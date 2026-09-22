@@ -47,6 +47,30 @@ def test_web_auth_uses_httponly_cookie_and_csrf_not_browser_bearer_storage(clien
     assert refreshed.json()["csrf_token"] == body["csrf_token"]
 
 
+def test_browser_login_invalid_credentials_do_not_enumerate_account(client):
+    bearer_signup(client, "known-browser-login@example.com")
+    known=client.post('/api/v1/auth/web/login',json={
+        "email":"known-browser-login@example.com","password":"definitely-wrong-password"
+    })
+    unknown=client.post('/api/v1/auth/web/login',json={
+        "email":"unknown-browser-login@example.com","password":"definitely-wrong-password"
+    })
+    assert known.status_code==unknown.status_code==401
+    assert known.json()["detail"]==unknown.json()["detail"]=="Invalid credentials"
+
+
+def test_browser_signup_conflict_does_not_enumerate_existing_account(client):
+    payload={"email":"existing-browser@example.com","password":"correct-horse-battery","role":"Analyst"}
+    first=client.post('/api/v1/auth/web/signup',json=payload)
+    assert first.status_code==200
+    duplicate=client.post('/api/v1/auth/web/signup',json=payload)
+    assert duplicate.status_code==409
+    assert duplicate.json()["detail"]=="Unable to create account with those details"
+    lowered=duplicate.text.lower()
+    assert "already registered" not in lowered
+    assert payload["email"] not in lowered
+
+
 def test_cookie_logout_requires_csrf_clears_cookie_and_revokes_session(client):
     login_seed, bearer = bearer_signup(client, "logout-cookie@example.com")
     # Establish cookie session through web login.

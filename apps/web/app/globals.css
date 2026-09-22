@@ -79,3 +79,7 @@
 .sidebar .sideFoot .ghost{
   color:var(--ink);
 }
+
+.authNote{margin:18px 0 0;font-size:12px;line-height:1.55;color:#52657d}
+.authNote a{color:var(--blue);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.button:disabled,.ghost:disabled{cursor:not-allowed;opacity:.65}
