@@ -46,6 +46,8 @@ npm run types:api-edge
 npm run typecheck:api-edge
 ```
 
+On Workers Free, `wrangler.free.jsonc` deploys a deliberately degraded API placeholder at the same Worker name. It exposes `/health` as `degraded` and returns HTTP 503 for application APIs, so a free frontend preview can be published without claiming that FastAPI, authentication, alerts, reports, or live intelligence are operational. The paid Container deployment replaces this placeholder when approved.
+
 Configure per-provider budgets/cost estimates with environment variables documented in `.env.example`. Validate commercial provider limits and licensing before enabling production traffic.
 
 ## Mandatory external release gates

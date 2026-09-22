@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "cf-typegen": "wrangler types",
+    "deploy:free": "wrangler deploy --config wrangler.free.jsonc",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
