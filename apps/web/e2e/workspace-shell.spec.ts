@@ -14,6 +14,19 @@ async function mockHealthyService(page: import("@playwright/test").Page){
   }));
 }
 
+async function mockAuthorizedWorkspace(page: import("@playwright/test").Page){
+  await mockHealthyService(page);
+  await page.route("**/api/v1/workspaces",route=>route.fulfill({
+    status:200,
+    contentType:"application/json",
+    headers:corsHeaders,
+    body:JSON.stringify({items:[
+      {id:"w1",name:"Primary Treasury",role:"Individual",access_role:"OWNER"},
+      {id:"w2",name:"Research",role:"Organization",access_role:"ANALYST"},
+    ]}),
+  }));
+}
+
 test.describe("workspace shell access states",()=>{
   test("withholds workspace navigation while authorization is loading",async({page})=>{
     await mockHealthyService(page);
@@ -66,6 +79,53 @@ test.describe("workspace shell access states",()=>{
     await expect(state).toContainText("Workspace data has not been shown");
     await expect(state.getByRole("link",{name:"Log in again"})).toHaveAttribute("href","/login");
     await expect(page.getByRole("navigation",{name:"Workspace"})).toHaveCount(0);
+  });
+
+  test("exposes active navigation state and logical keyboard focus",async({page})=>{
+    await mockAuthorizedWorkspace(page);
+    await page.goto("/workspace");
+    const nav=page.getByRole("navigation",{name:"Workspace"});
+    await expect(nav).toBeVisible();
+
+    const overview=nav.getByRole("link",{name:"Overview"});
+    await expect(overview).toHaveAttribute("aria-current","page");
+
+    await page.keyboard.press("Tab");
+    const skip=page.getByRole("link",{name:"Skip to workspace content"});
+    await expect(skip).toBeFocused();
+
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link",{name:"Rivexis home"})).toBeFocused();
+
+    await page.keyboard.press("Tab");
+    const selector=page.getByRole("combobox",{name:"ACTIVE WORKSPACE"});
+    await expect(selector).toBeFocused();
+    const focusOutline=await selector.evaluate(el=>{
+      const style=getComputedStyle(el);
+      return {style:style.outlineStyle,width:style.outlineWidth};
+    });
+    expect(focusOutline.style).not.toBe("none");
+    expect(parseFloat(focusOutline.width)).toBeGreaterThan(0);
+  });
+
+  test("keeps workspace controls usable on a narrow mobile viewport",async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await mockAuthorizedWorkspace(page);
+    await page.goto("/workspace");
+
+    await expect(page.getByRole("combobox",{name:"ACTIVE WORKSPACE"})).toBeVisible();
+    await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
+    await expect(page.getByRole("button",{name:"Log out"})).toBeVisible();
+
+    for(const name of ["Overview","Workspaces","Providers","Protocol History","Investigations","Monitors","History","Saved"]){
+      await expect(page.getByRole("link",{name,exact:true})).toBeVisible();
+    }
+
+    const dimensions=await page.evaluate(()=>({
+      scrollWidth:document.documentElement.scrollWidth,
+      clientWidth:document.documentElement.clientWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
   });
 
   test("fails closed when the application API is unavailable",async({page})=>{
