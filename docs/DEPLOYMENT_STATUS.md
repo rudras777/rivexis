@@ -5,8 +5,8 @@ Last updated: 2026-09-23
 | Environment | Status | Evidence / meaning |
 |---|---|---|
 | Local development | AVAILABLE, NOT VERIFIED IN THIS CHAT | Repository contains SQLite/local and Docker/PostgreSQL development paths. No local shell execution was used for this update. |
-| GitHub CI | DEFINED; NEW CHANGE PENDING CI | `.github/workflows/ci.yml` includes API, web, invariants and PostgreSQL migration/runtime-control jobs. The new milestone must pass PR CI before merge. |
-| Free frontend preview | LIVE | `https://rivexis-web.rudrasingh0718.workers.dev` returned the Rivexis public site on 2026-09-23. |
+| GitHub CI | PASS FOR CURRENT MILESTONE | PR CI run #21 (`35793197939`) passed API, web/Playwright, invariants and PostgreSQL migration/runtime-control jobs after the syntax correction. |
+| Free frontend preview | LIVE, PRE-MERGE BUILD | `https://rivexis-web.rudrasingh0718.workers.dev` returned the Rivexis public site on 2026-09-23. The new availability banner is source/CI-verified but is not claimed live until a Cloudflare deployment occurs. |
 | Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` returned `status=degraded`; application routes intentionally return 503. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`; 53 product + 2 runtime-control tables verified. |
 | Staging | PARTIAL | Supabase exists, but there is no separate live FastAPI staging runtime with complete provider/browser/email certification. |
@@ -21,6 +21,15 @@ Last updated: 2026-09-23
 - **Distributed runtime controls:** PostgreSQL-backed path is implemented and migrated; Redis remains optional.
 - **Email:** Brevo account/sender preparation exists, but production delivery is not certified.
 - **Custom domain:** none configured.
+
+## Current milestone verification
+
+- Source branch: `build/milestone-a-service-status`.
+- Latest functional commit before this status update: `2ddb2a742ef7ada6089dd5277ac7858a972e239d`.
+- Pull request: #1, `Add durable build state and global degraded-service UX`.
+- CI run #21: all four jobs PASS.
+- No paid Cloudflare feature, new vendor, production credential, email send or external provider activation was performed.
+- The live Worker is not claimed to contain this source change until a real deployment is verified.
 
 ## Supabase verification notes
 
