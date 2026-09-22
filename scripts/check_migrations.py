@@ -4,6 +4,7 @@ import os
 import re
 import sqlite3
 import subprocess
+import sys
 import tempfile
 from contextlib import closing
 from pathlib import Path
@@ -11,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "apps" / "api"
 SCHEMA = ROOT / "infrastructure" / "db" / "schema.sql"
-expected = set(re.findall(r"^CREATE TABLE\s+([a-zA-Z0-9_]+)", SCHEMA.read_text(), re.M))
+expected = set(re.findall(r"^CREATE TABLE\s+([a-zA-Z0-9_]+)", SCHEMA.read_text(), re.MULTILINE))
 assert len(expected) == 53, f"Expected 53 blueprint tables, found {len(expected)}"
 
 with tempfile.TemporaryDirectory(prefix="rivexis-migration-") as tmp:
@@ -19,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix="rivexis-migration-") as tmp:
     env = os.environ.copy()
     env["DATABASE_URL"] = f"sqlite:///{db_path}"
     env["PYTHONPATH"] = str(API)
-    subprocess.run(["alembic", "upgrade", "head"], cwd=API, env=env, check=True, capture_output=True, text=True)
+    subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=API, env=env, check=True, capture_output=True, text=True)
     with closing(sqlite3.connect(db_path)) as con:
         actual = {
             row[0]
@@ -28,7 +29,7 @@ with tempfile.TemporaryDirectory(prefix="rivexis-migration-") as tmp:
             )
         }
     assert actual == expected, f"Migration/schema mismatch missing={sorted(expected-actual)} extra={sorted(actual-expected)}"
-    subprocess.run(["alembic", "downgrade", "base"], cwd=API, env=env, check=True, capture_output=True, text=True)
+    subprocess.run([sys.executable, "-m", "alembic", "downgrade", "base"], cwd=API, env=env, check=True, capture_output=True, text=True)
     with closing(sqlite3.connect(db_path)) as con:
         remaining = {
             row[0]

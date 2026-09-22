@@ -35,3 +35,39 @@ jobs:
       - run: python scripts/check_invariants.py
       - run: python scripts/check_migrations.py
       - run: python scripts/secret_scan.py
+  postgres-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: rivexis_ci
+          POSTGRES_PASSWORD: ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rivexis_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: python -m pip install -e './apps/api[postgres]'
+      - name: Create non-bypass migration role
+        env:
+          PGPASSWORD: ci_only
+        run: |
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE rivexis_migrator LOGIN PASSWORD 'ci_only' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS"
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "GRANT USAGE, CREATE ON SCHEMA public TO rivexis_migrator"
+      - name: Upgrade actual PostgreSQL schema
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql+psycopg://rivexis_migrator:ci_only@127.0.0.1:5432/rivexis_ci
+        run: python -m alembic upgrade head
+      - name: Verify migrated PostgreSQL schema
+        env:
+          PGPASSWORD: ci_only
+        run: |
+          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc 'select version_num from alembic_version')" = '0010_org_workspace_membership_rls'
+          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc "select count(*) from pg_tables where schemaname='public' and tablename<>'alembic_version'")" = 53

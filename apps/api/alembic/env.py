@@ -14,6 +14,12 @@ def run_migrations_offline():
 def run_migrations_online():
     connectable=engine_from_config(config.get_section(config.config_ini_section),prefix="sqlalchemy.",poolclass=pool.NullPool)
     with connectable.connect() as connection:
+        if connection.dialect.name == "postgresql":
+            # Several existing revision identifiers exceed Alembic's default
+            # VARCHAR(32). SQLite never enforced the limit, but PostgreSQL does.
+            connection.exec_driver_sql("CREATE TABLE IF NOT EXISTS alembic_version (version_num VARCHAR(64) NOT NULL PRIMARY KEY)")
+            connection.exec_driver_sql("ALTER TABLE alembic_version ALTER COLUMN version_num TYPE VARCHAR(64)")
+            connection.commit()
         context.configure(connection=connection,target_metadata=target_metadata)
         with context.begin_transaction():context.run_migrations()
 if context.is_offline_mode():run_migrations_offline()

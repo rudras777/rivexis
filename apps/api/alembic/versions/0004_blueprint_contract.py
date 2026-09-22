@@ -1,5 +1,6 @@
 """Promote P3 scaffolds to production-blueprint field and relationship coverage."""
 from __future__ import annotations
+import hashlib
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import inspect
@@ -595,7 +596,10 @@ EXPLICIT_INDEXES=[('workspaces_owner_idx', 'workspaces', ('owner_user_id',), Fal
  ('audit_logs_workspace_time_idx', 'audit_logs', ('workspace_id', 'created_at'), False)]
 
 def _type(code,dialect):
-    if code=="uuid": return postgresql.UUID(as_uuid=False) if dialect=="postgresql" else sa.String(36)
+    # 0001-0003 create every primary key and the initial relationships as
+    # String(36), including on PostgreSQL. Match that existing representation
+    # for new ID columns so FK constraints are valid on a fresh PG database.
+    if code=="uuid": return sa.String(36)
     if code in {"bigserial","bigint"}: return sa.BigInteger()
     if code in {"int","integer"}: return sa.Integer()
     if code=="numeric": return sa.Numeric()
@@ -612,6 +616,12 @@ def _unique_sets(inspector,table):
     out={tuple(x.get("column_names") or []) for x in inspector.get_unique_constraints(table) if x.get("column_names")}
     out.update(tuple(x.get("column_names") or []) for x in inspector.get_indexes(table) if x.get("unique") and x.get("column_names"))
     return out
+
+def _constraint_name(value):
+    # PostgreSQL identifiers are limited to 63 bytes; retain a stable suffix
+    # to avoid collisions when a blueprint relationship name is longer.
+    if len(value.encode("utf-8")) <= 63: return value
+    return value[:54] + "_" + hashlib.sha1(value.encode("utf-8")).hexdigest()[:8]
 
 def upgrade():
     bind=op.get_bind();dialect=bind.dialect.name;inspector=inspect(bind)
@@ -631,14 +641,16 @@ def upgrade():
         if not missing_fk and not missing_unique:continue
         with op.batch_alter_table(table,recreate="always" if dialect=="sqlite" else "auto") as batch:
             for local,ref,remote,ondelete in missing_fk:
-                batch.create_foreign_key("fk_"+table+"_"+"_".join(local)+"__"+ref,ref,list(local),list(remote),ondelete=ondelete)
+                batch.create_foreign_key(_constraint_name("fk_"+table+"_"+"_".join(local)+"__"+ref),ref,list(local),list(remote),ondelete=ondelete)
             for columns in missing_unique:
-                batch.create_unique_constraint("uq_"+table+"_"+"_".join(columns),list(columns))
+                batch.create_unique_constraint(_constraint_name("uq_"+table+"_"+"_".join(columns)),list(columns))
     inspector=inspect(bind)
     for name,table,columns,unique in EXPLICIT_INDEXES:
         if name not in {x["name"] for x in inspector.get_indexes(table)}:op.create_index(name,table,list(columns),unique=unique)
         inspector=inspect(bind)
-    if dialect=="postgresql":op.execute(sa.text("COMMENT ON SCHEMA public IS 'Rivexis schema contract upgraded through 0004'"))
+    # A dedicated migration role owns the application tables, not Supabase's
+    # public schema. COMMENT ON SCHEMA would require schema ownership and is
+    # not part of the application contract.
 
 P3_OPERATIONAL_COLUMNS={
     "users":{"id","email","password_hash","role","token_version","created_at"},
