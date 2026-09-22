@@ -17,7 +17,8 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Honest free-tier API boundary | PASS | `/health` reports degraded and application routes are designed to return 503 rather than fake FastAPI behavior. |
 | Global degraded-service UX | PASS | Root-level health check and accessible degraded/unverifiable disclosure implemented; retained through CI run #35. |
 | Workspace shell access-state UX | PASS | Loading, zero-workspace, 401 session-ended, 403 access-unavailable and 503/generic service failure paths fail closed; targeted Playwright coverage passed in CI run #35. |
-| Current milestone CI | PASS | CI run #35 passed API, web/Playwright, invariants/secret scan and PostgreSQL migration/runtime-control jobs. |
+| Responsive/keyboard shell UX | PASS | Skip link, focus-visible treatment, `aria-current`, narrow-view navigation/logout and mobile recovery states are covered; authenticated shell Axe has no serious/critical blockers after the logout contrast correction. |
+| Current milestone CI | PASS | CI run #48 passed API, web/Playwright/Axe, invariants/secret scan and PostgreSQL migration/runtime-control jobs. |
 | Live deployment of current milestone | BLOCKED | Source is CI-green but this change has not yet been verified on the Cloudflare Worker; no deployment action is claimed. |
 | Live FastAPI runtime | BLOCKED | Cloudflare Containers requires Workers Paid; no paid activation authorized. |
 | Production custom domain/TLS | BLOCKED | No domain owned/configured for Rivexis. |
