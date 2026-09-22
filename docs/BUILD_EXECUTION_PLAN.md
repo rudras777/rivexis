@@ -19,6 +19,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - PR #1 was merged to `main` as `ca16f39898b6392a022372ffe04cc595278a1fb6`.
 - PR #2 (`Harden authenticated workspace shell states`) passed CI run #35 (`35794008464`) and merged to `main` as `773a2faa2a6653c79972e98df505f01b15d702ea`.
 - PR #3 (`Harden responsive and keyboard workspace shell`) passed CI run #48 (`35794960918`) and merged to `main` as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
+- PR #4 (`Harden browser authentication and resumable onboarding`) passed CI run #65 (`35795979200`) and merged to `main` as `543dcccff3a2b094c504d68453000685648c96ec`.
 
 ## Milestone sequence
 
@@ -49,30 +50,33 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 ## Current active milestone
 
-**Milestone C — Browser authentication and onboarding journeys**
+**Milestone C — Browser session restoration, logout and revocation journeys**
 
-Milestone B is complete and CI-verified. The next priority is to validate and harden the existing browser session, CSRF and onboarding flow against the real FastAPI contract in runnable test environments while keeping production email verification/recovery explicitly blocked until Brevo/domain prerequisites exist.
+Browser signup/login and onboarding are now hardened and CI-verified. The remaining unblocked Milestone C priority is to prove browser-session continuity and termination behavior end to end in the repository harness: hard-reload CSRF recovery, explicit logout, revoked/expired session recovery, and safe client-state cleanup.
 
 Acceptance targets:
-- browser signup/login/logout use HttpOnly session-cookie flows and CSRF protections without exposing bearer tokens to browser storage;
-- session restoration and revoked/expired-session recovery are deterministic;
-- onboarding persists the intended workspace/role state and safely resumes/retries after recoverable failures;
-- authentication errors do not enumerate accounts or leak sensitive backend detail;
-- email verification/recovery is represented as unavailable until a real approved delivery path is configured;
+- an authenticated browser session restores after a hard reload without browser bearer-token storage;
+- unsafe cookie-authenticated logout obtains/reuses CSRF correctly and clears client workspace/CSRF state;
+- logout/revocation returns the browser to a safe unauthenticated state and subsequent workspace access fails closed;
+- expired/revoked sessions route through the existing explicit recovery state without leaking backend detail;
+- concurrent/double-submit behavior does not produce duplicate state transitions;
+- real production/browser certification remains BLOCKED until a live FastAPI runtime exists;
 - targeted API + Playwright security/browser tests and full CI remain green.
 
 ## Completed evidence
 
 - Milestone A repository/service audit and durable execution controls are complete.
-- Global API availability state is accessible and does not misrepresent the free degraded API.
-- Authenticated workspace shell fails closed during loading, empty, revoked-session and unavailable-service states.
-- Workspace API errors preserve HTTP status through typed `ApiError` handling while withholding backend detail from shell recovery copy.
-- Responsive/keyboard shell now includes a visible-on-focus skip link, explicit focus treatment, `aria-current` active navigation, mobile/tablet workspace navigation, and mobile-accessible logout.
-- Axe identified a 2.44:1 contrast defect on the newly visible logout button; the component contrast was corrected rather than suppressing the WCAG rule.
-- Playwright covers keyboard focus order, mobile navigation/overflow, mobile recovery actions and authenticated shell states.
-- Authenticated workspace Axe coverage has no serious/critical WCAG blockers after the contrast correction.
-- PR #3 head `bcef483333152973898fd26a6b5efb5e49355a93` passed CI run #48 across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
-- PR #3 merged to `main` as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
+- Milestone B global availability, fail-closed workspace shell, responsive/keyboard behavior and authenticated-shell accessibility are CI-verified.
+- Browser web auth continues to use HttpOnly cookies plus CSRF; no bearer token is introduced into browser storage.
+- Browser login and signup use non-enumerating user-facing error copy and lock duplicate submits while requests are pending.
+- Browser-facing signup conflicts no longer confirm whether an account exists; backend regression tests also prove known-account and unknown-account login failures return the same 401 detail.
+- Login/signup UI does not render arbitrary backend identity detail.
+- Email verification and password recovery are explicitly labeled unavailable until the approved delivery path is configured; no fake delivery capability is claimed.
+- Onboarding checks for an existing authorized workspace before creating another, recovers CSRF after hard reload, persists the active workspace only after confirmation, and reconciles an ambiguous create response against the authorized workspace list before asking the user to retry.
+- Playwright covers browser auth error masking, submit locking, no bearer localStorage, existing-workspace resume, hard-reload CSRF recovery and ambiguous-create reconciliation.
+- Initial PR #4 browser CI exposed only ambiguous test selectors caused by Next.js' route announcer sharing role=alert; selectors were narrowed to the form-owned alert without changing application behavior.
+- PR #4 head `338a8291e786e244295c6bf80496581d8e2c8756` passed CI run #65 across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
+- PR #4 merged to `main` as `543dcccff3a2b094c504d68453000685648c96ec`.
 
 ## Dependencies and blockers
 
@@ -85,4 +89,4 @@ Acceptance targets:
 
 ## Next action
 
-Begin Milestone C by auditing the current browser signup/login/logout/session/CSRF/onboarding implementation and existing tests, then implement the highest-value unblocked browser-auth/onboarding gap without introducing fake email verification or recovery.
+Continue Milestone C with browser session restoration, explicit logout and revocation journeys, including hard-reload CSRF recovery and client-state cleanup. Keep live production browser certification blocked until a real FastAPI runtime is deployed.
