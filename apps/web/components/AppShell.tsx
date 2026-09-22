@@ -82,7 +82,12 @@ export function AppShell({children}:{children:React.ReactNode}){
   },[apiStatus]);
 
   useEffect(()=>{
-    if(!q.data?.items.length)return;
+    if(!q.data)return;
+    if(!q.data.items.length){
+      clearActiveWorkspaceId();
+      setActive("");
+      return;
+    }
     const stored=activeWorkspaceId();
     const chosen=q.data.items.find(w=>w.id===stored)?.id??q.data.items[0].id;
     setActive(chosen);
@@ -148,7 +153,6 @@ export function AppShell({children}:{children:React.ReactNode}){
   }
 
   if(!q.data.items.length){
-    clearActiveWorkspaceId();
     return <ShellState
       kind="empty"
       title="No workspace configured"
