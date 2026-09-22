@@ -29,7 +29,7 @@ test.describe("browser authentication and onboarding",()=>{
     await page.getByLabel("Password").fill("wrong-password");
     await page.getByRole("button",{name:"Log in"}).click();
 
-    const alert=page.getByRole("alert");
+    const alert=page.locator(".formCard .error[role='alert']");
     await expect(alert).toHaveText("Invalid email or password.");
     await expect(alert).not.toContainText("alice@example.com");
     await expect(page.getByText("Password recovery is not enabled on this preview.")).toBeVisible();
@@ -58,7 +58,7 @@ test.describe("browser authentication and onboarding",()=>{
     const pending=page.getByRole("button",{name:"Creating account…"});
     await expect(pending).toBeDisabled();
 
-    const alert=page.getByRole("alert");
+    const alert=page.locator(".formCard .error[role='alert']");
     await expect(alert).toHaveText("Unable to create account with those details.");
     await expect(alert).not.toContainText("already registered");
     await expect(page.getByText(/Email verification and recovery are not enabled/)).toBeVisible();
