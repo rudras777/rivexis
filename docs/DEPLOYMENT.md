@@ -33,6 +33,19 @@ The certification script rejects unsafe application roles and adversarially chec
 
 For the Supabase deployment set `RIVEXIS_PROVIDER_CONTROL_BACKEND=postgres` and `RIVEXIS_AUTH_RATE_LIMIT_BACKEND=postgres`. Transaction-scoped PostgreSQL advisory locks coordinate sliding-window budgets and circuit state across replicas. Redis remains an alternative by setting both backends to `redis` and configuring `REDIS_URL`. Provider response cache values remain process-local, while request/cost history is persisted to PostgreSQL.
 
+### Cloudflare Container API
+
+`apps/api/cloudflare` contains the production Worker entrypoint that proxies to the FastAPI image. It uses one named `lite` container, sleeps after ten idle minutes, and injects only runtime-safe settings. The migration, RLS administration, backup, and alert-worker database credentials are deliberately excluded.
+
+Before deployment, add `DATABASE_URL`, `RIVEXIS_AUTH_SECRET`, and `RIVEXIS_ALLOWED_ORIGINS` as encrypted Worker secrets. `DATABASE_URL` must use the least-privilege `rivexis_app` role, and `RIVEXIS_ALLOWED_ORIGINS` must be the final exact HTTPS frontend origin. Provider credentials and the Rivexis-owned alert gateway settings may be added using the names allowlisted in `apps/api/cloudflare/src/index.ts`. Never add `RIVEXIS_MIGRATION_DATABASE_URL` to this Worker.
+
+Cloudflare Containers requires the Workers Paid plan. Do not run `wrangler deploy` until billing has been explicitly approved and the final application domain/origin is known. Configuration and type checks are safe to run without deployment:
+
+```bash
+npm run types:api-edge
+npm run typecheck:api-edge
+```
+
 Configure per-provider budgets/cost estimates with environment variables documented in `.env.example`. Validate commercial provider limits and licensing before enabling production traffic.
 
 ## Mandatory external release gates
