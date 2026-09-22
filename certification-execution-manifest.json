@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "release": "P37",
+  "generated_at": "2026-09-12T14:44:25.372067+00:00",
+  "execution_id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+  "manifest_path": "certification-execution-manifest.json",
+  "report_dir": "certification-reports",
+  "source_tree": {
+    "sha256": "073f17b1fd9bda906db0f00b4813e9ed6f08bfc879f90e2091cc12802632dbde",
+    "file_count": 244
+  },
+  "required_profiles": [
+    "local",
+    "postgres-rls",
+    "postgres-dr",
+    "redis",
+    "registry",
+    "providers",
+    "protocol",
+    "history",
+    "dependencies"
+  ],
+  "required_gates": [
+    "otlp-local",
+    "postgres-rls",
+    "postgres-dr",
+    "redis-distributed",
+    "registry-upstream",
+    "live-providers",
+    "protocol-adapters",
+    "archive-history",
+    "dependency-gates"
+  ],
+  "reports": [
+    {
+      "profile": "local",
+      "path": "certification-reports/local.json",
+      "gates": [
+        "otlp-local",
+        "dependency-gates"
+      ],
+      "prerequisites": [],
+      "destructive_gates": [],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=local RIVEXIS_STAGING_CERT_REPORT=certification-reports/local.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    },
+    {
+      "profile": "postgres-rls",
+      "path": "certification-reports/postgres-rls.json",
+      "gates": [
+        "postgres-rls"
+      ],
+      "prerequisites": [
+        "RIVEXIS_RLS_ADMIN_DATABASE_URL",
+        "RIVEXIS_RLS_APP_DATABASE_URL",
+        "RIVEXIS_RLS_WORKER_DATABASE_URL"
+      ],
+      "destructive_gates": [],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=postgres-rls RIVEXIS_STAGING_CERT_REPORT=certification-reports/postgres-rls.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    },
+    {
+      "profile": "postgres-dr",
+      "path": "certification-reports/postgres-dr.json",
+      "gates": [
+        "postgres-dr"
+      ],
+      "prerequisites": [
+        "RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY",
+        "RIVEXIS_BACKUP_RESTORE_DATABASE_URL",
+        "RIVEXIS_BACKUP_SOURCE_DATABASE_URL"
+      ],
+      "destructive_gates": [
+        "postgres-dr"
+      ],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=postgres-dr RIVEXIS_STAGING_CERT_REPORT=certification-reports/postgres-dr.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    },
+    {
+      "profile": "redis",
+      "path": "certification-reports/redis.json",
+      "gates": [
+        "redis-distributed"
+      ],
+      "prerequisites": [
+        "REDIS_URL"
+      ],
+      "destructive_gates": [],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=redis RIVEXIS_STAGING_CERT_REPORT=certification-reports/redis.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    },
+    {
+      "profile": "registry",
+      "path": "certification-reports/registry.json",
+      "gates": [
+        "registry-upstream"
+      ],
+      "prerequisites": [
+        "RIVEXIS_CERTIFY_REGISTRY_UPSTREAM"
+      ],
+      "destructive_gates": [],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=registry RIVEXIS_STAGING_CERT_REPORT=certification-reports/registry.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    },
+    {
+      "profile": "providers",
+      "path": "certification-reports/providers.json",
+      "gates": [
+        "live-providers"
+      ],
+      "prerequisites": [
+        "RIVEXIS_CERTIFY_LIVE_PROVIDERS"
+      ],
+      "destructive_gates": [],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=providers RIVEXIS_STAGING_CERT_REPORT=certification-reports/providers.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    },
+    {
+      "profile": "protocol",
+      "path": "certification-reports/protocol.json",
+      "gates": [
+        "protocol-adapters"
+      ],
+      "prerequisites": [
+        "RIVEXIS_CERT_AAVE_ASSET",
+        "RIVEXIS_CERT_COMPOUND_ASSET",
+        "RIVEXIS_CERT_MORPHO_MARKET_ID"
+      ],
+      "destructive_gates": [],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=protocol RIVEXIS_STAGING_CERT_REPORT=certification-reports/protocol.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    },
+    {
+      "profile": "history",
+      "path": "certification-reports/history.json",
+      "gates": [
+        "archive-history"
+      ],
+      "prerequisites": [
+        "RIVEXIS_CERT_HISTORY_ADAPTER"
+      ],
+      "destructive_gates": [],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=history RIVEXIS_STAGING_CERT_REPORT=certification-reports/history.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    },
+    {
+      "profile": "dependencies",
+      "path": "certification-reports/dependencies.json",
+      "gates": [
+        "dependency-gates"
+      ],
+      "prerequisites": [],
+      "destructive_gates": [],
+      "command": "RIVEXIS_CERT_RUNNER_PROFILE=dependencies RIVEXIS_STAGING_CERT_REPORT=certification-reports/dependencies.json RIVEXIS_CERT_EXECUTION_MANIFEST=certification-execution-manifest.json python scripts/certify_staging_suite.py"
+    }
+  ],
+  "aggregate": {
+    "output": "release-certification-bundle.json",
+    "command": "python scripts/certify_release_bundle.py --manifest certification-execution-manifest.json --report certification-reports/local.json --report certification-reports/postgres-rls.json --report certification-reports/postgres-dr.json --report certification-reports/redis.json --report certification-reports/registry.json --report certification-reports/providers.json --report certification-reports/protocol.json --report certification-reports/history.json --report certification-reports/dependencies.json",
+    "verify_command": "python scripts/verify_release_bundle.py release-certification-bundle.json --manifest certification-execution-manifest.json --require-complete"
+  },
+  "evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+}

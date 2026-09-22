@@ -1,0 +1,33 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13'}
+      - run: python -m pip install --upgrade pip setuptools
+      - run: cd apps/api && pip install -e '.[dev]'
+      - run: cd apps/api && ruff check rivexis_api tests
+      - run: cd apps/api && pytest -q
+      - run: cd apps/api && pip-audit
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: 'npm'}
+      - run: npm ci
+      - run: npm run typecheck:web
+      - run: npm run build:web
+      - run: npm audit --audit-level=high
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+  invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python scripts/check_invariants.py
+      - run: python scripts/check_migrations.py
+      - run: python scripts/secret_scan.py

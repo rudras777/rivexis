@@ -1,0 +1,162 @@
+{
+  "schema_version": 3,
+  "release": "P37",
+  "generated_at": "2026-09-12T14:45:42.816155+00:00",
+  "strict": false,
+  "execution": {
+    "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+    "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+  },
+  "runner": {
+    "profile": "postgres-dr",
+    "id": null
+  },
+  "runtime": {
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5",
+    "node": "v22.16.0",
+    "npm": "10.9.2",
+    "ruff": null,
+    "pip_audit": null
+  },
+  "source_tree": {
+    "sha256": "073f17b1fd9bda906db0f00b4813e9ed6f08bfc879f90e2091cc12802632dbde",
+    "file_count": 244
+  },
+  "results": [
+    {
+      "name": "otlp-local",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_otlp_export.py"
+      ],
+      "prerequisites": {},
+      "detail": "gate not assigned to runner profile postgres-dr",
+      "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819"
+    },
+    {
+      "name": "postgres-rls",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_postgres_rls.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_RLS_ADMIN_DATABASE_URL": false,
+        "RIVEXIS_RLS_APP_DATABASE_URL": false,
+        "RIVEXIS_RLS_WORKER_DATABASE_URL": false
+      },
+      "detail": "gate not assigned to runner profile postgres-dr",
+      "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819"
+    },
+    {
+      "name": "postgres-dr",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_postgres_dr.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_BACKUP_SOURCE_DATABASE_URL": false,
+        "RIVEXIS_BACKUP_RESTORE_DATABASE_URL": false,
+        "RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY": false
+      },
+      "detail": "runner profile allows gate but staging prerequisite is not configured",
+      "output_sha256": "200a5e970dc3a32b25ea2aac0c5b076630c10d8b0a7986f8eb0be33bde460ee8"
+    },
+    {
+      "name": "redis-distributed",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_redis_distributed.py"
+      ],
+      "prerequisites": {
+        "REDIS_URL": false
+      },
+      "detail": "gate not assigned to runner profile postgres-dr",
+      "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819"
+    },
+    {
+      "name": "registry-upstream",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_registry_upstream.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_CERTIFY_REGISTRY_UPSTREAM": false
+      },
+      "detail": "gate not assigned to runner profile postgres-dr",
+      "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819"
+    },
+    {
+      "name": "live-providers",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_live_providers.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_CERTIFY_LIVE_PROVIDERS": false
+      },
+      "detail": "gate not assigned to runner profile postgres-dr",
+      "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819"
+    },
+    {
+      "name": "protocol-adapters",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_protocol_adapters.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_CERT_AAVE_ASSET": false,
+        "RIVEXIS_CERT_COMPOUND_ASSET": false,
+        "RIVEXIS_CERT_MORPHO_MARKET_ID": false
+      },
+      "detail": "gate not assigned to runner profile postgres-dr",
+      "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819"
+    },
+    {
+      "name": "archive-history",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_protocol_history.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_CERT_HISTORY_ADAPTER": false
+      },
+      "detail": "gate not assigned to runner profile postgres-dr",
+      "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819"
+    },
+    {
+      "name": "dependency-gates",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_dependency_gates.py"
+      ],
+      "prerequisites": {},
+      "detail": "gate not assigned to runner profile postgres-dr",
+      "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819"
+    }
+  ],
+  "counts": {
+    "PASS": 0,
+    "FAIL": 0,
+    "SKIP": 9
+  },
+  "evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb"
+}

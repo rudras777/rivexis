@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: rivexis_admin
+      POSTGRES_PASSWORD: rivexis_admin_dev
+      POSTGRES_DB: rivexis
+    ports: ["5432:5432"]
+    volumes:
+      - ./postgres/001_roles.sql:/docker-entrypoint-initdb.d/001_roles.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rivexis_admin -d rivexis"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build: {context: ../apps/api}
+    entrypoint: ["./migrate-database.sh"]
+    environment:
+      RIVEXIS_MIGRATION_DATABASE_URL: postgresql+psycopg://rivexis_admin:rivexis_admin_dev@postgres:5432/rivexis
+      RIVEXIS_ALERT_WORKER_ROLE: rivexis_alert_worker
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: "no"
+
+  api:
+    build: {context: ../apps/api}
+    environment:
+      DATABASE_URL: postgresql+psycopg://rivexis_app:rivexis_app_dev@postgres:5432/rivexis
+      RIVEXIS_AUTH_SECRET: local-compose-secret-change-me
+      ENABLE_DEMO_ADAPTER: "true"
+      RIVEXIS_PROVIDER_CONTROL_BACKEND: redis
+      RIVEXIS_AUTH_RATE_LIMIT_BACKEND: redis
+      REDIS_URL: redis://redis:6379/0
+      RIVEXIS_AUTO_CREATE_SCHEMA: "false"
+    ports: ["8000:8000"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+
+  alert-worker:
+    build: {context: ../apps/api}
+    command: ["python","-m","rivexis_api.workers.alerts"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://rivexis_alert_worker:rivexis_alert_worker_dev@postgres:5432/rivexis
+      RIVEXIS_PROVIDER_CONTROL_BACKEND: redis
+      REDIS_URL: redis://redis:6379/0
+      RIVEXIS_AUTO_CREATE_SCHEMA: "false"
+      RIVEXIS_ALERT_WEBHOOK_URL: ${RIVEXIS_ALERT_WEBHOOK_URL:-}
+      RIVEXIS_ALERT_WEBHOOK_SCOPE: ${RIVEXIS_ALERT_WEBHOOK_SCOPE:-}
+      RIVEXIS_ALERT_WEBHOOK_SECRET: ${RIVEXIS_ALERT_WEBHOOK_SECRET:-}
+      RIVEXIS_ALERT_WORKER_POLL_SECONDS: ${RIVEXIS_ALERT_WORKER_POLL_SECONDS:-5}
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}

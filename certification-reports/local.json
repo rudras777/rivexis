@@ -1,0 +1,162 @@
+{
+  "schema_version": 3,
+  "release": "P37",
+  "generated_at": "2026-09-12T14:45:36.643814+00:00",
+  "strict": false,
+  "execution": {
+    "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+    "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+  },
+  "runner": {
+    "profile": "local",
+    "id": null
+  },
+  "runtime": {
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "python": "3.13.5",
+    "node": "v22.16.0",
+    "npm": "10.9.2",
+    "ruff": null,
+    "pip_audit": null
+  },
+  "source_tree": {
+    "sha256": "073f17b1fd9bda906db0f00b4813e9ed6f08bfc879f90e2091cc12802632dbde",
+    "file_count": 244
+  },
+  "results": [
+    {
+      "name": "otlp-local",
+      "status": "PASS",
+      "duration_ms": 1986,
+      "command": [
+        "python",
+        "scripts/certify_otlp_export.py"
+      ],
+      "prerequisites": {},
+      "detail": "OTLP certification: PASS (3 spans; W3C parent linkage; protobuf HTTP; exception payload redaction; endpoint /v1/traces)",
+      "output_sha256": "8bee59a4d022d099b6172e5cfd90d9b429e768ebb85c212097be277e34781633"
+    },
+    {
+      "name": "postgres-rls",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_postgres_rls.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_RLS_ADMIN_DATABASE_URL": false,
+        "RIVEXIS_RLS_APP_DATABASE_URL": false,
+        "RIVEXIS_RLS_WORKER_DATABASE_URL": false
+      },
+      "detail": "gate not assigned to runner profile local",
+      "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c"
+    },
+    {
+      "name": "postgres-dr",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_postgres_dr.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_BACKUP_SOURCE_DATABASE_URL": false,
+        "RIVEXIS_BACKUP_RESTORE_DATABASE_URL": false,
+        "RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY": false
+      },
+      "detail": "gate not assigned to runner profile local",
+      "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c"
+    },
+    {
+      "name": "redis-distributed",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_redis_distributed.py"
+      ],
+      "prerequisites": {
+        "REDIS_URL": false
+      },
+      "detail": "gate not assigned to runner profile local",
+      "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c"
+    },
+    {
+      "name": "registry-upstream",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_registry_upstream.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_CERTIFY_REGISTRY_UPSTREAM": false
+      },
+      "detail": "gate not assigned to runner profile local",
+      "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c"
+    },
+    {
+      "name": "live-providers",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_live_providers.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_CERTIFY_LIVE_PROVIDERS": false
+      },
+      "detail": "gate not assigned to runner profile local",
+      "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c"
+    },
+    {
+      "name": "protocol-adapters",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_protocol_adapters.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_CERT_AAVE_ASSET": false,
+        "RIVEXIS_CERT_COMPOUND_ASSET": false,
+        "RIVEXIS_CERT_MORPHO_MARKET_ID": false
+      },
+      "detail": "gate not assigned to runner profile local",
+      "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c"
+    },
+    {
+      "name": "archive-history",
+      "status": "SKIP",
+      "duration_ms": 0,
+      "command": [
+        "python",
+        "scripts/certify_protocol_history.py"
+      ],
+      "prerequisites": {
+        "RIVEXIS_CERT_HISTORY_ADAPTER": false
+      },
+      "detail": "gate not assigned to runner profile local",
+      "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c"
+    },
+    {
+      "name": "dependency-gates",
+      "status": "SKIP",
+      "duration_ms": 1341,
+      "command": [
+        "python",
+        "scripts/certify_dependency_gates.py"
+      ],
+      "prerequisites": {},
+      "detail": "SKIP dependency certification: 0 passed, 6 skipped, 0 failed\n{\n  \"strict\": false,\n  \"overall\": \"SKIP\",\n  \"lockfile_sha256\": null,\n  \"lockfile_version\": null,\n  \"lock_manifest_consistent\": false,\n  \"node_modules_present\": false,\n  \"results\": [\n    {\n      \"name\": \"ruff\",\n      \"status\": \"SKIP\",\n      \"detail\": \"ruff is not installed\"\n    },\n    {\n      \"name\": \"pip-audit\",\n      \"status\": \"SKIP\",\n      \"detail\": \"pip-audit is not installed\"\n    },\n    {\n      \"name\": \"npm-typecheck\",\n      \"status\": \"SKIP\",\n      \"detail\": \"valid package-lock.json and/or node_modules absent\"\n    },\n    {\n      \"name\": \"next-build\",\n      \"status\": \"SKIP\",\n      \"detail\": \"valid package-lock.json and/or node_modules absent\"\n    },\n    {\n      \"name\": \"npm-audit\",\n      \"status\": \"SKIP\",\n      \"detail\": \"valid package-lock.json and/or node_modules absent\"\n    },\n    {\n      \"name\": \"playwright-e2e\",\n      \"status\": \"SKIP\",\n      \"detail\": \"Playwright dependencies/browser runtime unavailable\"\n    }\n  ]\n}",
+      "output_sha256": "0830f9786afcdbd439df922301f6dea4857a8f7b3ee17b307ea071abf38fb0df"
+    }
+  ],
+  "counts": {
+    "PASS": 1,
+    "FAIL": 0,
+    "SKIP": 8
+  },
+  "evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132"
+}

@@ -1,0 +1,1247 @@
+{
+  "schema_version": 3,
+  "release": "P37",
+  "generated_at": "2026-09-12T14:46:48.859962+00:00",
+  "execution": {
+    "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+    "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295",
+    "required_profiles": [
+      "local",
+      "postgres-rls",
+      "postgres-dr",
+      "redis",
+      "registry",
+      "providers",
+      "protocol",
+      "history",
+      "dependencies"
+    ],
+    "observed_profiles": [
+      "dependencies",
+      "history",
+      "local",
+      "postgres-dr",
+      "postgres-rls",
+      "protocol",
+      "providers",
+      "redis",
+      "registry"
+    ],
+    "missing_profiles": [],
+    "coverage_complete": true
+  },
+  "source_tree": {
+    "sha256": "073f17b1fd9bda906db0f00b4813e9ed6f08bfc879f90e2091cc12802632dbde",
+    "file_count": 244
+  },
+  "required_gates": [
+    "otlp-local",
+    "postgres-rls",
+    "postgres-dr",
+    "redis-distributed",
+    "registry-upstream",
+    "live-providers",
+    "protocol-adapters",
+    "archive-history",
+    "dependency-gates"
+  ],
+  "input_reports": [
+    {
+      "report_index": 0,
+      "evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+      "generated_at": "2026-09-12T14:45:36.643814+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "local",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 1,
+        "FAIL": 0,
+        "SKIP": 8
+      }
+    },
+    {
+      "report_index": 1,
+      "evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+      "generated_at": "2026-09-12T14:45:39.732769+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "postgres-rls",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "SKIP": 9
+      }
+    },
+    {
+      "report_index": 2,
+      "evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+      "generated_at": "2026-09-12T14:45:42.816155+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "postgres-dr",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "SKIP": 9
+      }
+    },
+    {
+      "report_index": 3,
+      "evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+      "generated_at": "2026-09-12T14:45:45.962219+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "redis",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "SKIP": 9
+      }
+    },
+    {
+      "report_index": 4,
+      "evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+      "generated_at": "2026-09-12T14:45:49.321420+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "registry",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "SKIP": 9
+      }
+    },
+    {
+      "report_index": 5,
+      "evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+      "generated_at": "2026-09-12T14:45:52.657057+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "providers",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "SKIP": 9
+      }
+    },
+    {
+      "report_index": 6,
+      "evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+      "generated_at": "2026-09-12T14:45:55.943738+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "protocol",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "SKIP": 9
+      }
+    },
+    {
+      "report_index": 7,
+      "evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+      "generated_at": "2026-09-12T14:45:59.331117+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "history",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "SKIP": 9
+      }
+    },
+    {
+      "report_index": 8,
+      "evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+      "generated_at": "2026-09-12T14:46:03.834038+00:00",
+      "execution": {
+        "id": "463025b6b2333ffb02b2ec2d68ef6e6f17991a22dfe8832a2ecafc012222fb93",
+        "manifest_evidence_sha256": "1c6a0b27ff9058bf19fc34ecf39d10da1ace772de816b41d55ab6b0dd31fe295"
+      },
+      "runner": {
+        "profile": "dependencies",
+        "id": null
+      },
+      "runtime": {
+        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+        "python": "3.13.5",
+        "node": "v22.16.0",
+        "npm": "10.9.2",
+        "ruff": null,
+        "pip_audit": null
+      },
+      "counts": {
+        "PASS": 0,
+        "FAIL": 0,
+        "SKIP": 9
+      }
+    }
+  ],
+  "results": [
+    {
+      "name": "otlp-local",
+      "status": "PASS",
+      "reason": "at least one authorized sealed staging report recorded PASS and none recorded FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "PASS",
+          "output_sha256": "8bee59a4d022d099b6172e5cfd90d9b429e768ebb85c212097be277e34781633",
+          "duration_ms": 1986
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "ab415f6b85106b337252ebfec6e60baa560b9947220960795d69b0064a53b5ff",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "e4e74926c12d8cec0de960fab6f715198cf504594b9d8335ba4bf4769c748342",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "b096ca3a804187d666a40c62debd08e6b5e6244e1b58d03bb144f4a4341f6a98",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "7127abec8f52e2b8d835c7906c5e48724460398f9e5f85251c1dbd6a959bd21a",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "1340c91bfa163b87c3d4105700c802963696dfb487a80aab1d601a9488a2ef02",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "d45620ac40c3b79adf599c9fee9f861a5c71f84b05f173399f50ab99a0c049b6",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "63eaa911ed125bb991d2c522968a8ba3cc429074b43e7e35c0fb6a4c8fb5a1e4",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "name": "postgres-rls",
+      "status": "SKIP",
+      "reason": "no authorized sealed staging report recorded PASS or FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "200a5e970dc3a32b25ea2aac0c5b076630c10d8b0a7986f8eb0be33bde460ee8",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "e4e74926c12d8cec0de960fab6f715198cf504594b9d8335ba4bf4769c748342",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "b096ca3a804187d666a40c62debd08e6b5e6244e1b58d03bb144f4a4341f6a98",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "7127abec8f52e2b8d835c7906c5e48724460398f9e5f85251c1dbd6a959bd21a",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "1340c91bfa163b87c3d4105700c802963696dfb487a80aab1d601a9488a2ef02",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "d45620ac40c3b79adf599c9fee9f861a5c71f84b05f173399f50ab99a0c049b6",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "63eaa911ed125bb991d2c522968a8ba3cc429074b43e7e35c0fb6a4c8fb5a1e4",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "name": "postgres-dr",
+      "status": "SKIP",
+      "reason": "no authorized sealed staging report recorded PASS or FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "ab415f6b85106b337252ebfec6e60baa560b9947220960795d69b0064a53b5ff",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "200a5e970dc3a32b25ea2aac0c5b076630c10d8b0a7986f8eb0be33bde460ee8",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "e4e74926c12d8cec0de960fab6f715198cf504594b9d8335ba4bf4769c748342",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "b096ca3a804187d666a40c62debd08e6b5e6244e1b58d03bb144f4a4341f6a98",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "7127abec8f52e2b8d835c7906c5e48724460398f9e5f85251c1dbd6a959bd21a",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "1340c91bfa163b87c3d4105700c802963696dfb487a80aab1d601a9488a2ef02",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "d45620ac40c3b79adf599c9fee9f861a5c71f84b05f173399f50ab99a0c049b6",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "63eaa911ed125bb991d2c522968a8ba3cc429074b43e7e35c0fb6a4c8fb5a1e4",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "name": "redis-distributed",
+      "status": "SKIP",
+      "reason": "no authorized sealed staging report recorded PASS or FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "ab415f6b85106b337252ebfec6e60baa560b9947220960795d69b0064a53b5ff",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "200a5e970dc3a32b25ea2aac0c5b076630c10d8b0a7986f8eb0be33bde460ee8",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "b096ca3a804187d666a40c62debd08e6b5e6244e1b58d03bb144f4a4341f6a98",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "7127abec8f52e2b8d835c7906c5e48724460398f9e5f85251c1dbd6a959bd21a",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "1340c91bfa163b87c3d4105700c802963696dfb487a80aab1d601a9488a2ef02",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "d45620ac40c3b79adf599c9fee9f861a5c71f84b05f173399f50ab99a0c049b6",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "63eaa911ed125bb991d2c522968a8ba3cc429074b43e7e35c0fb6a4c8fb5a1e4",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "name": "registry-upstream",
+      "status": "SKIP",
+      "reason": "no authorized sealed staging report recorded PASS or FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "ab415f6b85106b337252ebfec6e60baa560b9947220960795d69b0064a53b5ff",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "e4e74926c12d8cec0de960fab6f715198cf504594b9d8335ba4bf4769c748342",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "200a5e970dc3a32b25ea2aac0c5b076630c10d8b0a7986f8eb0be33bde460ee8",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "7127abec8f52e2b8d835c7906c5e48724460398f9e5f85251c1dbd6a959bd21a",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "1340c91bfa163b87c3d4105700c802963696dfb487a80aab1d601a9488a2ef02",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "d45620ac40c3b79adf599c9fee9f861a5c71f84b05f173399f50ab99a0c049b6",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "63eaa911ed125bb991d2c522968a8ba3cc429074b43e7e35c0fb6a4c8fb5a1e4",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "name": "live-providers",
+      "status": "SKIP",
+      "reason": "no authorized sealed staging report recorded PASS or FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "ab415f6b85106b337252ebfec6e60baa560b9947220960795d69b0064a53b5ff",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "e4e74926c12d8cec0de960fab6f715198cf504594b9d8335ba4bf4769c748342",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "b096ca3a804187d666a40c62debd08e6b5e6244e1b58d03bb144f4a4341f6a98",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "200a5e970dc3a32b25ea2aac0c5b076630c10d8b0a7986f8eb0be33bde460ee8",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "1340c91bfa163b87c3d4105700c802963696dfb487a80aab1d601a9488a2ef02",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "d45620ac40c3b79adf599c9fee9f861a5c71f84b05f173399f50ab99a0c049b6",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "63eaa911ed125bb991d2c522968a8ba3cc429074b43e7e35c0fb6a4c8fb5a1e4",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "name": "protocol-adapters",
+      "status": "SKIP",
+      "reason": "no authorized sealed staging report recorded PASS or FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "ab415f6b85106b337252ebfec6e60baa560b9947220960795d69b0064a53b5ff",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "e4e74926c12d8cec0de960fab6f715198cf504594b9d8335ba4bf4769c748342",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "b096ca3a804187d666a40c62debd08e6b5e6244e1b58d03bb144f4a4341f6a98",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "7127abec8f52e2b8d835c7906c5e48724460398f9e5f85251c1dbd6a959bd21a",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "200a5e970dc3a32b25ea2aac0c5b076630c10d8b0a7986f8eb0be33bde460ee8",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "d45620ac40c3b79adf599c9fee9f861a5c71f84b05f173399f50ab99a0c049b6",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "63eaa911ed125bb991d2c522968a8ba3cc429074b43e7e35c0fb6a4c8fb5a1e4",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "name": "archive-history",
+      "status": "SKIP",
+      "reason": "no authorized sealed staging report recorded PASS or FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2531584fc3ed849c6915624adaf52372afb2f8dfa63d9b64b3dca3959cd2c03c",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "ab415f6b85106b337252ebfec6e60baa560b9947220960795d69b0064a53b5ff",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "e4e74926c12d8cec0de960fab6f715198cf504594b9d8335ba4bf4769c748342",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "b096ca3a804187d666a40c62debd08e6b5e6244e1b58d03bb144f4a4341f6a98",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "7127abec8f52e2b8d835c7906c5e48724460398f9e5f85251c1dbd6a959bd21a",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "1340c91bfa163b87c3d4105700c802963696dfb487a80aab1d601a9488a2ef02",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "200a5e970dc3a32b25ea2aac0c5b076630c10d8b0a7986f8eb0be33bde460ee8",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "63eaa911ed125bb991d2c522968a8ba3cc429074b43e7e35c0fb6a4c8fb5a1e4",
+          "duration_ms": 0
+        }
+      ]
+    },
+    {
+      "name": "dependency-gates",
+      "status": "SKIP",
+      "reason": "no authorized sealed staging report recorded PASS or FAIL",
+      "observations": [
+        {
+          "report_index": 0,
+          "report_evidence_sha256": "ccf223c7b1dccb2a6af09fd92c781831ad65ef2c14ac5fa100cf7be467ecd132",
+          "generated_at": "2026-09-12T14:45:36.643814+00:00",
+          "runner_profile": "local",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "0830f9786afcdbd439df922301f6dea4857a8f7b3ee17b307ea071abf38fb0df",
+          "duration_ms": 1341
+        },
+        {
+          "report_index": 1,
+          "report_evidence_sha256": "443e09bd2f9d9e4d81d274beae0c30fc22478841ee43a6aa545b55992f6214c6",
+          "generated_at": "2026-09-12T14:45:39.732769+00:00",
+          "runner_profile": "postgres-rls",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "ab415f6b85106b337252ebfec6e60baa560b9947220960795d69b0064a53b5ff",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 2,
+          "report_evidence_sha256": "9ab54b660a41bab2534986fb7684e2d687cf67942a84eb1bec28853698b1b6fb",
+          "generated_at": "2026-09-12T14:45:42.816155+00:00",
+          "runner_profile": "postgres-dr",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "2a41125e0996d876d854bd8d88a2a1c859cb212663a5fc6a16b2cc5440c42819",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 3,
+          "report_evidence_sha256": "6d06d74af5ffa0df397935425c3d5aad25b2f191ee93d3216db1ee24be68955f",
+          "generated_at": "2026-09-12T14:45:45.962219+00:00",
+          "runner_profile": "redis",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "e4e74926c12d8cec0de960fab6f715198cf504594b9d8335ba4bf4769c748342",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 4,
+          "report_evidence_sha256": "fa0265a64243b4f48a2c0cb439567d6a0b2d5c36f418367eaab745203982ab50",
+          "generated_at": "2026-09-12T14:45:49.321420+00:00",
+          "runner_profile": "registry",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "b096ca3a804187d666a40c62debd08e6b5e6244e1b58d03bb144f4a4341f6a98",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 5,
+          "report_evidence_sha256": "7c89d6a69b58fe9a99a2e3aedd5448c22d2114b4804f6cc46a25a4040d34013b",
+          "generated_at": "2026-09-12T14:45:52.657057+00:00",
+          "runner_profile": "providers",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "7127abec8f52e2b8d835c7906c5e48724460398f9e5f85251c1dbd6a959bd21a",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 6,
+          "report_evidence_sha256": "553126c32e44e45ffcff58207a1da23a97dd019f2473931a72cdb5ad9a1cd235",
+          "generated_at": "2026-09-12T14:45:55.943738+00:00",
+          "runner_profile": "protocol",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "1340c91bfa163b87c3d4105700c802963696dfb487a80aab1d601a9488a2ef02",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 7,
+          "report_evidence_sha256": "1681d7be75b9b0cdb8e3d1bb2edde75609f6d7fd782aefa03c2419f5b63a0307",
+          "generated_at": "2026-09-12T14:45:59.331117+00:00",
+          "runner_profile": "history",
+          "runner_id": null,
+          "authorized_for_gate": false,
+          "status": "SKIP",
+          "output_sha256": "d45620ac40c3b79adf599c9fee9f861a5c71f84b05f173399f50ab99a0c049b6",
+          "duration_ms": 0
+        },
+        {
+          "report_index": 8,
+          "report_evidence_sha256": "8764f1b7a6963036097d53a1b1465f49a3c5b3e1b217a8acefd6795569b5a992",
+          "generated_at": "2026-09-12T14:46:03.834038+00:00",
+          "runner_profile": "dependencies",
+          "runner_id": null,
+          "authorized_for_gate": true,
+          "status": "SKIP",
+          "output_sha256": "0830f9786afcdbd439df922301f6dea4857a8f7b3ee17b307ea071abf38fb0df",
+          "duration_ms": 1336
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "PASS": 1,
+    "FAIL": 0,
+    "SKIP": 8
+  },
+  "certified": false,
+  "evidence_sha256": "478843e87d5e2855c73d517da1e107b705736b6b6ca49169847ac8eddc7c3d39"
+}

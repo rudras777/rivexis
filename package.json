@@ -1,0 +1,18 @@
+{
+  "name": "rivexis",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @rivexis/web run dev",
+    "build:web": "npm --workspace @rivexis/web run build",
+    "typecheck:web": "npm --workspace @rivexis/web run typecheck",
+    "lint:web": "npm --workspace @rivexis/web run lint",
+    "test:api": "cd apps/api && pytest",
+    "verify": "bash scripts/verify.sh",
+    "check:frontend-ast": "node scripts/check_frontend_ast.js",
+    "test:e2e": "npm --workspace @rivexis/web run test:e2e",
+    "test:a11y": "npm --workspace @rivexis/web run test:a11y"
+  }
+}

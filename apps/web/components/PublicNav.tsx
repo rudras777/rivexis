@@ -1,0 +1,2 @@
+import Link from "next/link";import {Brand} from "./Brand";
+export function PublicNav(){return <header className="top"><Brand/><nav aria-label="Primary"><Link href="/platform">Platform</Link><Link href="/blockchain-intelligence">Blockchain</Link><Link href="/crypto-finance">Crypto Finance</Link><Link href="/methodology">Methodology</Link><Link href="/data">Data</Link><Link href="/security">Security</Link></nav><div className="navActions"><Link href="/login" className="ghost">Log in</Link><Link href="/signup" className="button">Start workspace</Link></div></header>}

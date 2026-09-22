@@ -1,0 +1,19 @@
+from enum import Enum
+
+class EngineId(str, Enum):
+    B1="B1"; B2="B2"; B3="B3"; B4="B4"; B5="B5"
+    F1="F1"; F2="F2"; F3="F3"; F4="F4"; F5="F5"
+
+class DecisionState(str, Enum):
+    PROCEED="PROCEED"; MODIFY="MODIFY"; WAIT="WAIT"; AVOID="AVOID"; UNKNOWN="UNKNOWN"
+
+class Severity(str, Enum):
+    LOW="low"; MODERATE="moderate"; HIGH="high"; CRITICAL="critical"; UNKNOWN="unknown"
+
+class AnalysisStatus(str, Enum):
+    QUEUED="QUEUED"; RUNNING="RUNNING"; PARTIAL="PARTIAL"; COMPLETED="COMPLETED"; FAILED="FAILED"
+    PROVIDER_UNAVAILABLE="PROVIDER_UNAVAILABLE"; UNSUPPORTED="UNSUPPORTED"; INSUFFICIENT_DATA="INSUFFICIENT_DATA"
+    STALE_DATA="STALE_DATA"; CONFLICTING_DATA="CONFLICTING_DATA"
+
+class FreshnessStatus(str, Enum):
+    LIVE="LIVE"; CURRENT="CURRENT"; RECENT="RECENT"; STALE="STALE"; EXPIRED="EXPIRED"; UNKNOWN="UNKNOWN"

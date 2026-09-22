@@ -1,0 +1,5323 @@
+MASTER BUILD PROMPT — RIVEXIS
+INSTITUTIONAL BLOCKCHAIN INTELLIGENCE + CRYPTO FINANCE / DEFI RISK DECISION SYSTEM
+
+VERSION: MASTER ARCHITECTURE / BUILD SPECIFICATION
+BUILD TARGET: PRODUCTION-GRADE MVP FROM ZERO
+DESIGN DIRECTION: WHITE + BLUE INSTITUTIONAL FINANCIAL INFRASTRUCTURE
+CORE PRINCIPLE: DATA → ENGINES → EVIDENCE → RIVEXIS DECISION
+
+======================================================================
+0. ROLE AND EXECUTION MODE
+======================================================================
+
+You are acting simultaneously as:
+
+1. Principal FinTech Product Architect
+2. Principal Blockchain / Web3 Architect
+3. Institutional DeFi Risk Architect
+4. Quantitative Risk Engineer
+5. Blockchain Security Engineer
+6. Senior Full-Stack Engineer
+7. Senior Backend/API Engineer
+8. Data Platform Architect
+9. Data Engineer
+10. Institutional UI/UX Product Designer
+11. DevSecOps / Cloud Architect
+12. Cybersecurity Engineer
+13. QA / Reliability Engineer
+14. Product Manager
+15. Technical Documentation Lead
+
+Your task is NOT merely to:
+
+- suggest features,
+- create mockups,
+- create a landing page,
+- provide architecture diagrams,
+- make UI screenshots,
+- produce a product specification,
+- or describe what Rivexis could become.
+
+Your responsibility is to:
+
+DESIGN
+→ ARCHITECT
+→ IMPLEMENT
+→ INTEGRATE
+→ TEST
+→ DEBUG
+→ VERIFY
+→ DOCUMENT
+→ HARDEN
+→ PREPARE FOR PRODUCTION
+
+the complete Rivexis MVP from scratch.
+
+Continue systematically through the phases defined in this specification.
+
+Do not stop after producing a plan.
+
+Do not create placeholder screens and declare the project complete.
+
+Do not fabricate:
+
+- blockchain transactions,
+- portfolio values,
+- protocol metrics,
+- security alerts,
+- wallet identities,
+- risk scores,
+- transaction simulations,
+- APYs,
+- prices,
+- liquidity,
+- labels,
+- threat intelligence,
+- oracle information,
+- provider responses,
+- confidence values,
+- or AI-generated analytical conclusions.
+
+When a live provider/API is unavailable:
+
+1. Implement its provider interface.
+2. Implement its adapter boundary.
+3. Define required environment variables.
+4. Add provider-health detection.
+5. Add a clearly labeled DEMO/MOCK adapter.
+6. Never present mock data as live data.
+7. Document exactly what remains required for production.
+
+Rivexis may take conceptual inspiration from leading blockchain/security/DeFi products, but must NOT:
+
+- copy proprietary source code,
+- clone layouts,
+- copy branded terminology,
+- copy proprietary scoring methodologies,
+- copy written content,
+- copy visual identity,
+- scrape restricted data,
+- violate API licensing,
+- or present another provider's analysis as Rivexis-owned analysis.
+
+The attached RIVEXIS logo is the authoritative brand reference.
+
+======================================================================
+1. FREEZE THE PRODUCT DEFINITION
+======================================================================
+
+PRODUCT NAME:
+
+RIVEXIS
+
+BRAND MEANING:
+
+Risk • Value • Execution • Intelligence System
+
+PRODUCT CATEGORY:
+
+Institutional blockchain intelligence and crypto-finance risk decision infrastructure.
+
+ONE-SENTENCE DEFINITION:
+
+Rivexis analyzes blockchain execution, security, liquidity, market, portfolio, protocol and DeFi risk before capital or transactions are committed, and converts that evidence into an explainable decision.
+
+Rivexis is not primarily a data dashboard.
+
+Rivexis is not primarily an AI chatbot.
+
+Rivexis is not merely an on-chain explorer.
+
+Rivexis is a DECISION INTELLIGENCE SYSTEM.
+
+Its output is:
+
+PROCEED
+MODIFY
+WAIT
+AVOID
+UNKNOWN
+
+Every Rivexis decision must explain:
+
+1. What was analyzed?
+2. What evidence was collected?
+3. Which engines were used?
+4. What risks were detected?
+5. What positive factors were detected?
+6. What risks are material?
+7. What uncertainties remain?
+8. How fresh is the underlying data?
+9. How confident is Rivexis?
+10. Why was the final decision selected?
+11. What could go wrong?
+12. What could the user modify?
+13. Is there a safer alternative?
+14. Which data sources support the conclusion?
+15. Which provider or methodology produced every important metric?
+
+CORE SYSTEM:
+
+INPUT
+   ↓
+DATA ACQUISITION
+   ↓
+SOURCE NORMALIZATION
+   ↓
+SPECIALIST RIVEXIS ENGINES
+   ↓
+NORMALIZED ENGINE OUTPUTS
+   ↓
+RISK / EVIDENCE FUSION
+   ↓
+RIVEXIS DECISION POLICY ENGINE
+   ↓
+AI EXPLANATION LAYER
+   ↓
+FINAL DECISION
+   ↓
+WHY
+   ↓
+SAFER OPTION
+   ↓
+SAVE / REPORT / HISTORY / ALERT
+
+Freeze this definition.
+
+Do not gradually transform Rivexis into:
+
+- crypto exchange
+- wallet
+- generic portfolio tracker
+- copy-trading platform
+- signal platform
+- charting application
+- block explorer
+- token discovery product
+- crypto news platform
+- consumer trading terminal
+- yield aggregator
+- bridge aggregator
+- AI assistant with no deterministic analytics
+
+Those products may eventually connect to Rivexis.
+
+They are not Rivexis itself.
+
+======================================================================
+2. FREEZE THE TWO PRODUCT DOMAINS
+======================================================================
+
+Rivexis has exactly TWO primary intelligence domains.
+
+DOMAIN A
+
+BLOCKCHAIN INTELLIGENCE
+
+DOMAIN B
+
+CRYPTO FINANCE / DEFI RISK
+
+Each domain contains exactly FIVE core specialist engines in MVP.
+
+Total:
+
+10 Rivexis Engines
+
+Do not arbitrarily add more top-level engines during MVP.
+
+Additional functionality should normally become:
+
+- engine submodules,
+- provider adapters,
+- supporting services,
+- analytical dimensions,
+- or future modules.
+
+======================================================================
+3. TARGET USER ROLES
+======================================================================
+
+After login/sign-up ask:
+
+WHO ARE YOU?
+
+1. Individual
+2. Fund
+3. Treasury
+4. Analyst
+
+The intelligence infrastructure remains consistent.
+
+Role selection changes:
+
+- dashboard priorities
+- defaults
+- terminology
+- report depth
+- recommended engines
+- risk-policy defaults
+- information density
+- onboarding
+- saved workspace configuration
+
+INDIVIDUAL
+
+Priorities:
+
+- transaction safety
+- wallet exposure
+- protocol risk
+- understandable explanations
+- cross-chain execution risk
+
+FUND
+
+Priorities:
+
+- portfolio exposure
+- protocol risk
+- liquidity
+- capital allocation
+- concentration
+- execution
+- institutional reporting
+- scenario analysis
+
+TREASURY
+
+Priorities:
+
+- capital preservation
+- liquidity
+- protocol exposure
+- stablecoin exposure
+- counterparty concentration
+- bridge exposure
+- scenario stress
+- risk policy
+
+ANALYST
+
+Priorities:
+
+- maximum evidence
+- raw metrics
+- comparisons
+- historical information
+- entity intelligence
+- methodology
+- exports
+- deep technical inspection
+
+======================================================================
+4. CORE USER FLOW
+======================================================================
+
+PUBLIC LANDING PAGE
+
+        ↓
+
+LOGIN / SIGN UP
+
+        ↓
+
+WHO ARE YOU?
+
+Individual | Fund | Treasury | Analyst
+
+        ↓
+
+RIVEXIS WORKSPACE
+
+        ↓
+
+┌────────────────────────────┬───────────────────────────────┐
+│ BLOCKCHAIN INTELLIGENCE    │ CRYPTO FINANCE / DEFI RISK   │
+│                            │                               │
+│ 5 Rivexis Engines          │ 5 Rivexis Engines            │
+└────────────────────────────┴───────────────────────────────┘
+
+        ↓                               ↓
+
+      INPUT                           INPUT
+
+        └──────────────┬────────────────┘
+                       ↓
+
+              RIVEXIS ANALYSIS
+                       ↓
+                 AI EXPLANATION
+                       ↓
+                  FINAL DECISION
+                       ↓
+
+       PROCEED / MODIFY / WAIT /
+             AVOID / UNKNOWN
+
+                       ↓
+              WHY + SAFER OPTION
+                       ↓
+          SAVE / REPORT / HISTORY
+
+This information architecture is mandatory.
+
+======================================================================
+5. DOMAIN A — BLOCKCHAIN INTELLIGENCE
+======================================================================
+
+Freeze exactly FIVE engines.
+
+----------------------------------------------------------------------
+ENGINE B1 — TRANSACTION SIMULATION ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Determine exactly what a blockchain transaction is expected to do before execution.
+
+REFERENCE CONCEPTS:
+
+Tenderly
+Alchemy simulation
+Native RPC / fork-based simulation
+
+INPUTS:
+
+- blockchain/network
+- transaction hash for historical replay OR
+- from address
+- destination address
+- calldata
+- native value
+- token
+- amount
+- gas configuration
+- nonce where required
+- state block
+- contract ABI where available
+- transaction bundle
+- state override
+- account override
+- optional pending transaction context
+
+ANALYZE:
+
+- execution success
+- execution failure
+- revert path
+- calls
+- internal calls
+- delegatecalls
+- token movements
+- native asset movements
+- approvals
+- allowance modifications
+- NFT movements
+- state transitions
+- events
+- gas usage
+- touched contracts
+- touched addresses
+- contract creation
+- self-destruct behavior where applicable
+- proxy interactions
+- abnormal calls
+- suspicious value flow
+
+OUTPUTS:
+
+simulation status
+expected token transfers
+native asset transfers
+balance changes
+approval changes
+allowance changes
+contract-state changes
+event logs
+execution call tree
+revert reason
+gas estimate
+gas breakdown
+execution trace
+contracts touched
+addresses touched
+before/after state
+slippage where applicable
+warnings
+simulation confidence
+state block
+data timestamp
+provider information
+evidence references
+
+UX SECTIONS:
+
+Transaction Summary
+Asset Changes
+State Changes
+Approvals
+Contracts
+Execution Trace
+Gas
+Warnings
+Risk Interpretation
+Raw Technical Details
+
+Never show raw hexadecimal data as the only explanation.
+
+Advanced users must still be able to inspect the raw transaction.
+
+----------------------------------------------------------------------
+ENGINE B2 — TRANSACTION & CONTRACT SECURITY ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Determine whether a transaction, contract, token approval, address or interaction presents security risk.
+
+REFERENCE CONCEPTS:
+
+Blockaid
+Hypernative
+on-chain threat intelligence
+security-provider data
+Rivexis proprietary rules
+
+INPUTS:
+
+wallet address
+destination
+transaction
+contract
+token
+spender
+approval quantity
+typed-data payload
+chain
+dApp domain where appropriate
+counterparty addresses
+
+ANALYZE:
+
+malicious contract indicators
+wallet-drainer behavior
+suspicious approvals
+unlimited approvals
+unknown spender risk
+address poisoning
+phishing indicators
+honeypot characteristics
+token restrictions
+malicious transfer logic
+abnormal proxy architecture
+known exploit evidence
+suspicious counterparties
+privileged functions
+upgrade authority
+admin risks
+token-tax behavior where discoverable
+suspicious transfer destination
+historical exploit associations
+contract verification state
+deployment age
+suspicious fund flow
+
+OUTPUTS:
+
+Security Risk Score 0–100
+
+Severity:
+
+Low
+Moderate
+High
+Critical
+Unknown
+
+Additionally:
+
+detected signals
+threat classifications
+affected asset
+affected address
+explanation
+recommended mitigation
+hard blocker yes/no
+evidence
+confidence
+freshness
+provider status
+
+----------------------------------------------------------------------
+ENGINE B3 — REAL-TIME THREAT & MONITORING ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Monitor blockchain entities for emerging security and operational threats.
+
+REFERENCE CONCEPTS:
+
+Hypernative-style real-time monitoring
+
+INPUTS:
+
+wallet
+contract
+protocol
+bridge
+oracle
+token
+chain
+rules
+thresholds
+alert preferences
+
+MONITOR:
+
+large withdrawals
+unusual transactions
+unexpected minting
+unexpected burns
+abnormal contract calls
+privileged administrator actions
+oracle anomalies
+liquidity deterioration
+bridge incidents
+exploit signals
+protocol pauses
+governance changes
+ownership changes
+dependency failures
+stablecoin depeg
+suspicious address interactions
+rapid changes in protocol state
+unusual token supply changes
+
+OUTPUTS:
+
+event
+severity
+timestamp
+affected entity
+estimated exposure
+classification
+evidence
+recommended response
+escalation
+confidence
+current status
+resolved/unresolved
+alert history
+
+Support:
+
+SSE
+or
+WebSocket
+
+for real-time updates.
+
+----------------------------------------------------------------------
+ENGINE B4 — ON-CHAIN ENTITY & FUND-FLOW INTELLIGENCE ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Explain:
+
+WHO moved capital,
+WHERE it moved,
+HOW much moved,
+WHAT entities were involved,
+and WHY the movement may matter.
+
+REFERENCE CONCEPTS:
+
+Nansen
+Arkham
+Dune
+Etherscan
+The Graph
+on-chain indexers
+
+INPUTS:
+
+wallet
+contract
+token
+transaction
+protocol
+chain
+date range
+wallet groups
+optional entity filters
+
+ANALYZE:
+
+wallet balances
+historical activity
+counterparties
+inflows
+outflows
+token flows
+protocol interactions
+exchange flows
+holder concentration
+portfolio holdings
+realized/unrealized PnL where supportable
+entity labels
+transaction clusters
+large movements
+repeat counterparties
+related addresses
+historical behavior
+bridge usage
+DEX usage
+contract interactions
+
+OUTPUTS:
+
+entity profile
+wallet classification
+asset balances
+counterparties
+fund-flow summary
+fund-flow graph
+top interactions
+holding concentration
+activity timeline
+risk flags
+behavioral observations
+evidence
+confidence
+freshness
+
+CRITICAL RULE:
+
+Never invent an entity identity.
+
+If an address is unlabeled:
+
+UNKNOWN ADDRESS
+
+must remain acceptable.
+
+Provider-specific labels must preserve attribution.
+
+----------------------------------------------------------------------
+ENGINE B5 — CROSS-CHAIN ROUTE & BRIDGE INTELLIGENCE ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Evaluate cross-chain execution routes and compare their safety, cost, liquidity and complexity.
+
+REFERENCE CONCEPT:
+
+LI.FI
+
+INPUTS:
+
+source chain
+destination chain
+source token
+destination token
+amount
+wallet
+slippage
+speed preference
+cost preference
+risk preference
+excluded bridges
+excluded DEXs
+institutional policy
+
+FOR EACH ROUTE ANALYZE:
+
+bridge
+DEX
+aggregator
+number of execution steps
+expected amount
+price impact
+slippage
+gas
+protocol fee
+bridge fee
+estimated duration
+liquidity
+route complexity
+provider availability
+security intelligence
+dependency risk
+contract risk
+chain risk
+bridge history where reliable
+possible failure conditions
+
+OUTPUTS:
+
+ranked routes
+recommended route
+cheapest route
+fastest route
+lowest-risk route
+expected received amount
+fee breakdown
+execution steps
+warnings
+risk score
+confidence
+safer alternative
+
+MVP:
+
+ANALYZE first.
+
+Do not autonomously execute user transactions.
+
+Signing must remain under explicit user control.
+
+======================================================================
+6. DOMAIN B — CRYPTO FINANCE / DEFI RISK
+======================================================================
+
+Freeze exactly FIVE engines.
+
+----------------------------------------------------------------------
+ENGINE F1 — PORTFOLIO & EXPOSURE ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Produce an institutional view of digital-asset exposures.
+
+INPUTS:
+
+one or more wallets
+manual positions
+future exchange/account imports
+chain
+valuation currency
+liabilities
+benchmark
+time horizon
+
+ANALYZE:
+
+NAV
+assets
+liabilities
+token exposure
+stablecoin exposure
+chain exposure
+protocol exposure
+sector exposure
+counterparty exposure
+bridge exposure
+concentration
+liquidity
+realized PnL
+unrealized PnL
+volatility
+drawdown
+correlation
+leverage
+risk contribution
+historical exposure changes
+
+OUTPUTS:
+
+portfolio value
+allocation
+concentration score
+liquidity profile
+PnL
+risk summary
+largest exposures
+largest risk contributors
+warnings
+possible mitigation
+data confidence
+evidence
+freshness
+
+----------------------------------------------------------------------
+ENGINE F2 — PROTOCOL RISK ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Evaluate whether capital deployment into a DeFi protocol presents acceptable risk.
+
+REFERENCE CONCEPTS:
+
+Gauntlet
+Chaos Labs
+Token Terminal
+DeFiLlama
+security/on-chain evidence
+
+INPUTS:
+
+protocol
+market
+pool
+vault
+chain
+asset
+proposed capital
+investment horizon
+user risk tolerance
+
+ANALYZE:
+
+A. SMART CONTRACT
+
+audit evidence
+exploit history
+upgradeability
+admin privilege
+contract maturity
+proxy structure
+emergency controls
+
+B. ECONOMIC
+
+TVL
+utilization
+collateral composition
+borrow concentration
+liquidity
+liquidation mechanics
+bad debt risk
+insolvency risk
+
+C. ORACLE
+
+oracle source
+oracle dependencies
+feed freshness
+update method
+fallback oracle
+manipulation exposure
+
+D. GOVERNANCE
+
+governance concentration
+multisig
+timelocks
+emergency powers
+admin ownership
+governance attacks
+
+E. MARKET
+
+asset volatility
+collateral correlation
+depeg exposure
+liquidity
+market depth
+
+F. DEPENDENCY / CONTAGION
+
+bridges
+oracles
+protocol dependencies
+vault dependencies
+rehypothecation
+external collateral
+cross-protocol dependency
+
+OUTPUTS:
+
+Protocol Risk Score 0–100
+
+Subscores:
+
+smart-contract risk
+economic risk
+liquidity risk
+oracle risk
+governance risk
+market risk
+dependency risk
+contagion risk
+
+Additionally:
+
+critical findings
+mitigations
+confidence
+evidence
+data freshness
+
+----------------------------------------------------------------------
+ENGINE F3 — POSITION & LIQUIDATION RISK ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Evaluate leveraged/collateralized positions.
+
+INPUTS:
+
+wallet
+protocol
+market
+collateral
+debt
+prices
+liquidation threshold
+LTV
+position structure
+
+SUPPORT:
+
+lending
+borrowing
+leveraged loops
+collateralized debt
+perpetuals where supported
+future leveraged LP positions
+
+CALCULATE:
+
+current LTV
+health factor
+liquidation price
+liquidation distance
+leverage
+collateral concentration
+debt concentration
+borrow rate
+interest expense
+price sensitivity
+collateral sensitivity
+interest-rate sensitivity
+
+STRESS TESTS:
+
+-5%
+-10%
+-20%
+-30%
+custom asset shock
+stablecoin depeg
+liquidity contraction
+oracle divergence
+interest-rate increase
+
+OUTPUTS:
+
+position health
+liquidation-risk estimate
+liquidation level
+capital buffer
+scenario table
+severity
+recommended position adjustment
+safer configuration
+confidence
+
+Never present modeled probability as certainty.
+
+----------------------------------------------------------------------
+ENGINE F4 — YIELD & STRATEGY RISK ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Determine whether yield adequately compensates for underlying risk.
+
+INPUTS:
+
+protocol
+pool
+vault
+asset
+APY/APR
+deposit
+duration
+reward token
+strategy
+lock period
+
+ANALYZE:
+
+base yield
+incentive yield
+reward dependence
+historical yield stability
+liquidity
+withdrawal limits
+lockups
+smart-contract risk
+protocol risk
+asset risk
+depeg exposure
+leverage
+impermanent loss
+counterparty dependency
+bridge dependency
+strategy complexity
+yield sustainability
+
+OUTPUTS:
+
+headline yield
+estimated sustainable yield
+incentive-dependent yield
+risk-adjusted yield assessment
+liquidity risk
+strategy risk
+downside scenarios
+principal-risk warnings
+dependencies
+decision interpretation
+confidence
+evidence
+
+High APY must never automatically imply high quality.
+
+----------------------------------------------------------------------
+ENGINE F5 — TREASURY ALLOCATION & SCENARIO ENGINE
+----------------------------------------------------------------------
+
+PURPOSE:
+
+Evaluate potential treasury or fund capital allocations before deployment.
+
+INPUTS:
+
+capital
+existing portfolio
+candidate investments
+minimum liquidity reserve
+maximum concentration
+allowed chains
+allowed protocols
+allowed stablecoins
+risk appetite
+time horizon
+return objective
+policy restrictions
+
+SCENARIOS:
+
+crypto market crash
+BTC drawdown
+ETH drawdown
+stablecoin depeg
+protocol exploit
+bridge failure
+oracle failure
+liquidity freeze
+borrow-rate increase
+correlated protocol failure
+custom scenario
+
+OUTPUTS:
+
+current portfolio risk
+proposed allocation
+concentration
+liquidity
+scenario losses
+risk contributions
+policy violations
+recommended modifications
+safer allocation
+assumptions
+confidence
+evidence
+
+MVP provides decision support.
+
+MVP does NOT autonomously manage user assets.
+
+======================================================================
+7. EXTERNAL DATA STRATEGY — CORE ARCHITECTURAL REQUIREMENT
+======================================================================
+
+Rivexis must separate external data providers into TWO major infrastructure groups:
+
+A. BLOCKCHAIN DATA / INFRASTRUCTURE
+
+B. CRYPTO FINANCE / DEFI DATA
+
+These providers supply:
+
+raw data,
+decoded data,
+indexed data,
+security intelligence,
+market information,
+protocol information,
+or external analytical signals.
+
+They do NOT replace Rivexis's own 10 engines.
+
+THE CRITICAL ARCHITECTURAL PRINCIPLE IS:
+
+BLOCKCHAIN DATA SOURCES
+        ↓
+NORMALIZATION / VALIDATION
+        ↓
+RIVEXIS ENGINES
+        ↓
+RIVEXIS DECISION
+
+AND
+
+CRYPTO FINANCE / DEFI SOURCES
+        ↓
+NORMALIZATION / VALIDATION
+        ↓
+RIVEXIS ENGINES
+        ↓
+RIVEXIS DECISION
+
+Conceptually:
+
+BLOCKCHAIN SOURCES
+
+Dune
++ Etherscan
++ RPC providers
++ Alchemy
++ QuickNode
++ The Graph
++ Tenderly
++ Blockaid
++ Hypernative
++ LI.FI
++ Chainlink
++ Arkham
++ Nansen
+
+                ↓
+
+       RIVEXIS DATA LAYER
+
+                ↓
+
+       RIVEXIS 10 ENGINES
+
+                ↑
+
+     RIVEXIS DATA LAYER
+
+                ↑
+
+FINANCE / DEFI SOURCES
+
+DeFiLlama
++ CoinGecko
++ CoinMarketCap
++ Kaiko
++ Glassnode
++ Token Terminal
++ Messari
++ Gauntlet
++ Chaos Labs
++ Chainlink
++ Nansen
++ Arkham
+
+                ↓
+
+       RIVEXIS DECISION
+
+Rivexis must NOT simply combine provider scores.
+
+Rivexis must build its own normalized evidence layer and its own decision methodology.
+
+======================================================================
+8. BLOCKCHAIN DATA / INFRASTRUCTURE PROVIDERS
+======================================================================
+
+Architect Rivexis so the following providers can be integrated through adapters.
+
+----------------------------------------------------------------------
+DUNE ANALYTICS
+----------------------------------------------------------------------
+
+USE FOR:
+
+historical blockchain queries
+decoded blockchain data
+protocol activity
+token transfers
+gas analytics
+DEX activity
+bridge activity
+cross-chain analytics
+custom analytical datasets
+
+Rivexis should use Dune primarily for:
+
+historical analysis
+aggregation
+research
+large-scale queryable datasets
+
+Do not make Dune the real-time RPC dependency.
+
+----------------------------------------------------------------------
+ETHERSCAN / ETHERSCAN-FAMILY APIs
+----------------------------------------------------------------------
+
+USE FOR:
+
+Ethereum/EVM transactions
+contract information
+verified source information
+ABIs where permitted
+token transfers
+balances
+labels
+contract verification status
+historical transaction information
+
+Rivexis should treat verified-contract information separately from speculative intelligence.
+
+----------------------------------------------------------------------
+ALCHEMY
+----------------------------------------------------------------------
+
+USE FOR:
+
+RPC
+blockchain state
+transactions
+traces
+asset balances
+token transfers
+simulation where supported
+webhooks where appropriate
+blockchain infrastructure
+
+Provider abstraction is mandatory so Alchemy is not permanently hardcoded as the only node provider.
+
+----------------------------------------------------------------------
+QUICKNODE
+----------------------------------------------------------------------
+
+USE FOR:
+
+RPC
+blockchain node infrastructure
+real-time blockchain data
+multi-chain access
+streaming where available
+
+Potential fallback/alternative to other RPC providers.
+
+----------------------------------------------------------------------
+THE GRAPH
+----------------------------------------------------------------------
+
+USE FOR:
+
+indexed protocol data
+smart-contract event data
+Subgraphs
+Substreams
+protocol-specific indexed information
+
+Use indexed data where direct node scanning would be unnecessarily expensive.
+
+----------------------------------------------------------------------
+TENDERLY
+----------------------------------------------------------------------
+
+USE FOR:
+
+transaction simulation
+execution traces
+state changes
+debugging
+gas information
+bundle simulation where available
+
+Primary relevance:
+
+B1 Transaction Simulation Engine
+
+Do not make Tenderly's own interpretation equal to Rivexis's final decision.
+
+----------------------------------------------------------------------
+BLOCKAID
+----------------------------------------------------------------------
+
+USE FOR:
+
+pre-transaction analysis
+transaction security
+contract security signals
+malicious transaction detection
+risky approval detection
+security intelligence
+
+Primary relevance:
+
+B2 Transaction & Contract Security Engine
+
+External Blockaid results become evidence.
+
+They do not become the Rivexis final decision automatically.
+
+----------------------------------------------------------------------
+HYPERNATIVE
+----------------------------------------------------------------------
+
+USE FOR:
+
+real-time threat monitoring
+on-chain anomaly detection
+pre-transaction/security signals
+protocol monitoring
+incident intelligence
+
+Primary relevance:
+
+B2 Security Engine
+B3 Threat Monitoring Engine
+
+----------------------------------------------------------------------
+LI.FI
+----------------------------------------------------------------------
+
+USE FOR:
+
+cross-chain routes
+bridge routes
+DEX routes
+route costs
+route execution estimates
+route comparison
+cross-chain transaction information
+
+Primary relevance:
+
+B5 Route Intelligence Engine
+
+Rivexis must independently incorporate:
+
+security risk
+dependency risk
+liquidity
+policy rules
+
+before selecting a route.
+
+----------------------------------------------------------------------
+CHAINLINK
+----------------------------------------------------------------------
+
+USE FOR:
+
+oracle prices
+price-feed values
+price-feed timestamps
+feed freshness
+oracle metadata
+market-data reference feeds
+
+Primary relevance:
+
+B3 monitoring
+F2 protocol risk
+F3 liquidation risk
+F5 treasury scenarios
+
+Never assume every protocol uses Chainlink.
+
+Identify the actual oracle dependency.
+
+----------------------------------------------------------------------
+ARKHAM INTELLIGENCE
+----------------------------------------------------------------------
+
+USE FOR:
+
+wallet/entity intelligence
+counterparties
+transaction flows
+address labels
+fund-flow interpretation
+large-wallet activity
+
+Primary relevance:
+
+B4 entity intelligence
+F1 portfolio context
+F5 market/counterparty context
+
+Never present an entity label without preserving its provenance.
+
+----------------------------------------------------------------------
+NANSEN
+----------------------------------------------------------------------
+
+USE FOR:
+
+wallet labels
+smart-money behavior
+portfolio information
+capital movement
+on-chain behavioral analytics
+wallet activity
+entity intelligence
+
+Primary relevance:
+
+B4
+F1
+F5
+
+Provider labels are evidence.
+
+They are not absolute truth.
+
+======================================================================
+9. CRYPTO FINANCE / DEFI DATA PROVIDERS
+======================================================================
+
+----------------------------------------------------------------------
+DEFILLAMA
+----------------------------------------------------------------------
+
+USE FOR:
+
+TVL
+protocol metrics
+chain metrics
+yield data
+stablecoins
+bridges
+protocol categories
+DeFi market information
+
+Primary relevance:
+
+F1
+F2
+F4
+F5
+
+----------------------------------------------------------------------
+COINGECKO
+----------------------------------------------------------------------
+
+USE FOR:
+
+token prices
+historical prices
+market capitalization
+trading volume
+asset metadata
+DEX information where available
+liquidity information where available
+
+Primary relevance:
+
+F1
+F3
+F4
+F5
+
+----------------------------------------------------------------------
+COINMARKETCAP
+----------------------------------------------------------------------
+
+USE FOR:
+
+secondary asset reference
+prices
+market caps
+volume
+asset metadata
+
+Should often be a secondary source rather than a sole dependency.
+
+----------------------------------------------------------------------
+KAIKO
+----------------------------------------------------------------------
+
+USE FOR:
+
+institutional market data
+prices
+trades
+order books
+market depth
+liquidity
+exchange data
+market microstructure
+
+Primary relevance:
+
+F1
+F2
+F3
+F5
+
+Where a premium institutional market data provider is connected, use it for high-value market-risk calculations.
+
+----------------------------------------------------------------------
+GLASSNODE
+----------------------------------------------------------------------
+
+USE FOR:
+
+on-chain financial metrics
+asset flows
+supply behavior
+holder profitability
+derivative metrics
+market structure
+historical network behavior
+
+Primary relevance:
+
+B4
+F1
+F5
+
+----------------------------------------------------------------------
+TOKEN TERMINAL
+----------------------------------------------------------------------
+
+USE FOR:
+
+protocol revenue
+fees
+TVL
+users
+financial fundamentals
+standardized protocol financial metrics
+
+Primary relevance:
+
+F2
+F4
+F5
+
+----------------------------------------------------------------------
+MESSARI
+----------------------------------------------------------------------
+
+USE FOR:
+
+asset intelligence
+protocol research
+fundamental information
+market intelligence
+structured crypto datasets
+
+Use research separately from deterministic on-chain facts.
+
+----------------------------------------------------------------------
+GAUNTLET
+----------------------------------------------------------------------
+
+USE FOR:
+
+external quantitative risk information
+DeFi risk methodology reference
+lending risk
+vault risk
+market risk
+risk-adjusted allocation context
+
+Primary relevance:
+
+F2
+F3
+F5
+
+IMPORTANT:
+
+Do NOT copy Gauntlet methodology.
+
+If Gauntlet data is integrated:
+
+store the external result as external evidence.
+
+Rivexis must run independent calculations/rules.
+
+----------------------------------------------------------------------
+CHAOS LABS
+----------------------------------------------------------------------
+
+USE FOR:
+
+DeFi market-risk information
+protocol-risk information
+simulation
+risk parameters
+lending-market intelligence
+
+Primary relevance:
+
+F2
+F3
+F5
+
+Again:
+
+Chaos Labs analysis is evidence.
+
+It must not automatically become the Rivexis decision.
+
+----------------------------------------------------------------------
+CHAINLINK DATA FEEDS
+----------------------------------------------------------------------
+
+USE FOR:
+
+reference prices
+oracle state
+feed freshness
+liquidation calculations
+oracle-risk evaluation
+scenario calculations
+
+----------------------------------------------------------------------
+NANSEN
+----------------------------------------------------------------------
+
+USE FOR:
+
+portfolio movement
+wallet behavior
+capital flow
+market positioning context
+entity intelligence
+
+----------------------------------------------------------------------
+ARKHAM
+----------------------------------------------------------------------
+
+USE FOR:
+
+large-wallet/entity flow
+counterparty context
+market movement context
+address intelligence
+
+======================================================================
+10. MULTI-PROVIDER ARCHITECTURE — NON-NEGOTIABLE
+======================================================================
+
+Rivexis must NOT depend on only one external provider for critical product functionality whenever a reasonable alternative exists.
+
+Implement provider abstraction.
+
+Example:
+
+PriceProvider
+    ├── ChainlinkPriceAdapter
+    ├── KaikoPriceAdapter
+    ├── CoinGeckoPriceAdapter
+    ├── CoinMarketCapPriceAdapter
+    └── MockPriceAdapter
+
+RpcProvider
+    ├── AlchemyAdapter
+    ├── QuickNodeAdapter
+    ├── DirectRpcAdapter
+    └── MockRpcAdapter
+
+SimulationProvider
+    ├── TenderlyAdapter
+    ├── AlchemySimulationAdapter
+    ├── LocalForkSimulationAdapter
+    └── MockSimulationAdapter
+
+SecurityProvider
+    ├── BlockaidAdapter
+    ├── HypernativeAdapter
+    ├── RivexisSecurityRulesAdapter
+    └── MockSecurityAdapter
+
+OnchainIndexProvider
+    ├── DuneAdapter
+    ├── TheGraphAdapter
+    ├── EtherscanAdapter
+    └── InternalIndexerAdapter
+
+EntityIntelligenceProvider
+    ├── NansenAdapter
+    ├── ArkhamAdapter
+    └── InternalEntityAdapter
+
+RouteProvider
+    ├── LiFiAdapter
+    └── FutureRouteAdapter
+
+ProtocolDataProvider
+    ├── DefiLlamaAdapter
+    ├── TokenTerminalAdapter
+    ├── MessariAdapter
+    └── InternalProtocolAdapter
+
+MarketDataProvider
+    ├── KaikoAdapter
+    ├── CoinGeckoAdapter
+    ├── CoinMarketCapAdapter
+    └── GlassnodeAdapter
+
+ExternalRiskProvider
+    ├── GauntletAdapter
+    ├── ChaosLabsAdapter
+    └── InternalRiskAdapter
+
+OracleProvider
+    ├── ChainlinkAdapter
+    ├── ProtocolNativeOracleAdapter
+    └── CustomOracleAdapter
+
+ThreatProvider
+    ├── HypernativeAdapter
+    ├── BlockaidAdapter
+    └── RivexisMonitorAdapter
+
+======================================================================
+11. PROVIDER FALLBACK SYSTEM
+======================================================================
+
+For every critical provider category define:
+
+PRIMARY
+SECONDARY
+FALLBACK
+UNAVAILABLE BEHAVIOR
+
+Example:
+
+Ethereum RPC:
+
+Primary:
+Alchemy
+
+Secondary:
+QuickNode
+
+Fallback:
+Configured direct RPC
+
+If all fail:
+
+mark blockchain state unavailable.
+
+Do NOT fabricate state.
+
+Potential decision:
+
+UNKNOWN
+
+Price example:
+
+For protocol liquidation calculations:
+
+Primary source may be the ACTUAL protocol oracle.
+
+Secondary market reference:
+
+Chainlink where relevant
+Kaiko
+CoinGecko
+
+Do not blindly substitute spot market price for protocol oracle price.
+
+The user must be able to inspect:
+
+Protocol Oracle Price
+Market Reference Price
+Difference
+Timestamp
+Source
+
+======================================================================
+12. SOURCE REGISTRY
+======================================================================
+
+Implement an internal RIVEXIS SOURCE REGISTRY.
+
+Every provider should have metadata such as:
+
+provider_id
+provider_name
+category
+data_types
+supported_chains
+supported_assets
+supported_engines
+authentication_type
+rate_limit
+commercial_tier
+data_latency
+expected_freshness
+provider_priority
+provider_status
+license_notes
+enabled
+last_health_check
+last_success
+last_failure
+failure_rate
+
+Example categories:
+
+rpc
+explorer
+indexer
+simulation
+security
+threat
+oracle
+price
+market_data
+entity_intelligence
+protocol_data
+route
+external_risk
+research
+
+Create:
+
+GET /api/v1/providers
+
+GET /api/v1/providers/status
+
+GET /api/v1/providers/{id}
+
+Admin/system users should be able to determine provider health.
+
+======================================================================
+13. CANONICAL RIVEXIS DATA LAYER
+======================================================================
+
+External APIs must NOT propagate arbitrary provider schemas throughout the application.
+
+Provider payload:
+
+        ↓
+
+PROVIDER ADAPTER
+
+        ↓
+
+VALIDATION
+
+        ↓
+
+CANONICAL RIVEXIS DATA MODEL
+
+        ↓
+
+ENGINE
+
+This prevents vendor lock-in.
+
+Create canonical internal models such as:
+
+Asset
+Token
+Chain
+Block
+Transaction
+TransactionTrace
+Transfer
+Contract
+Wallet
+Entity
+EntityLabel
+Protocol
+Pool
+Vault
+Market
+Bridge
+Route
+PricePoint
+OracleFeed
+Portfolio
+Position
+YieldOpportunity
+SecuritySignal
+ThreatEvent
+LiquidityMetric
+ProtocolMetric
+MarketMetric
+RiskSignal
+EvidenceRecord
+
+Every engine must consume canonical Rivexis models wherever practical.
+
+======================================================================
+14. MULTI-SOURCE VALIDATION
+======================================================================
+
+Important values should be cross-validated where reasonably possible.
+
+Examples:
+
+PRICE
+
+Compare:
+
+actual protocol oracle
+Chainlink
+Kaiko
+CoinGecko
+
+TVL
+
+Compare where appropriate:
+
+DeFiLlama
+Token Terminal
+protocol-native data
+
+ENTITY LABEL
+
+Compare:
+
+Nansen
+Arkham
+verified public/internal evidence
+
+TRANSACTION STATE
+
+Prefer direct node/RPC truth.
+
+Cross-check with explorer/indexer where useful.
+
+CONTRACT VERIFICATION
+
+Use explorer/provider verification evidence.
+
+Never treat analytics aggregation as a replacement for blockchain state.
+
+======================================================================
+15. SOURCE CONFLICT RESOLUTION
+======================================================================
+
+Different providers will sometimes disagree.
+
+Rivexis must not silently choose one value.
+
+Create:
+
+SourceConflict
+
+Fields:
+
+metric
+source_a
+value_a
+source_b
+value_b
+difference
+difference_percentage
+expected_tolerance
+severity
+resolution_method
+resolved_value
+resolution_confidence
+
+Resolution policy:
+
+1. Determine whether providers measure the same concept.
+2. Normalize units and timestamps.
+3. Compare observation time.
+4. Prefer primary/authoritative source for the metric.
+5. Preserve alternative values.
+6. Reduce confidence when unexplained divergence remains.
+7. Expose material conflicts in evidence.
+
+Example:
+
+Provider A TVL = $1.02B
+Provider B TVL = $970M
+
+Do NOT immediately call one wrong.
+
+Possible causes:
+
+different block
+different methodology
+different pool inclusion
+different asset valuation
+different timestamp
+
+Rivexis must understand this.
+
+======================================================================
+16. DATA AUTHORITATIVENESS MODEL
+======================================================================
+
+Not all providers should be treated equally for all information.
+
+Use data-source classes.
+
+CLASS A — DIRECT STATE
+
+Examples:
+
+blockchain RPC
+smart-contract state
+actual protocol oracle
+
+Generally highest authority for direct state.
+
+CLASS B — VERIFIED / INDEXED STATE
+
+Examples:
+
+Etherscan
+The Graph
+Dune
+provider indexers
+
+Useful for decoded/indexed information.
+
+CLASS C — PROFESSIONAL MARKET DATA
+
+Examples:
+
+Kaiko
+Chainlink
+reliable exchange/provider feeds
+
+CLASS D — ANALYTICAL / ENRICHED DATA
+
+Examples:
+
+Nansen
+Arkham
+Glassnode
+Token Terminal
+DeFiLlama
+
+CLASS E — EXTERNAL RISK / RESEARCH
+
+Examples:
+
+Gauntlet
+Chaos Labs
+Messari
+
+These may materially inform analysis, but their conclusions should remain identifiable as external analytical evidence.
+
+======================================================================
+17. DATA FRESHNESS
+======================================================================
+
+Every data point must contain freshness information.
+
+At minimum:
+
+observed_at
+retrieved_at
+block_number where applicable
+provider
+age_seconds
+freshness_status
+
+Statuses:
+
+LIVE
+CURRENT
+RECENT
+STALE
+EXPIRED
+UNKNOWN
+
+Freshness thresholds must depend on data type.
+
+Example:
+
+transaction security:
+seconds matter
+
+asset price:
+seconds/minutes may matter
+
+protocol financial fundamentals:
+hours/day may be reasonable
+
+audit information:
+not expected to update every minute
+
+Never use a single universal freshness threshold.
+
+======================================================================
+18. DATA PROVENANCE
+======================================================================
+
+Every significant metric/findings object must preserve provenance.
+
+EvidenceRecord:
+
+evidence_id
+provider
+source_type
+provider_endpoint/method
+provider_request_id where available
+retrieved_at
+observed_at
+block_number
+chain_id
+asset_id
+protocol_id
+raw_reference
+normalized_value
+calculation_version
+engine_version
+confidence
+freshness
+license_classification
+
+The Rivexis UI should eventually allow:
+
+“View Source”
+
+“View Evidence”
+
+“Why is this value shown?”
+
+======================================================================
+19. PROVIDER CONFIDENCE
+======================================================================
+
+Do not confuse:
+
+DATA CONFIDENCE
+
+with
+
+RISK
+
+with
+
+DECISION CONFIDENCE.
+
+Example:
+
+Risk Score:
+82/100
+
+Confidence:
+94%
+
+means:
+
+high risk with high confidence.
+
+Not:
+
+94% safe.
+
+Separate:
+
+riskScore
+dataConfidence
+engineConfidence
+decisionConfidence
+
+======================================================================
+20. PROVIDER CONSENSUS / EVIDENCE FUSION
+======================================================================
+
+Do NOT simply average provider values.
+
+Implement context-aware evidence fusion.
+
+For each metric determine:
+
+authority
+freshness
+completeness
+agreement
+methodology compatibility
+provider reliability
+observation block/time
+
+Possible consensus states:
+
+STRONG AGREEMENT
+MODERATE AGREEMENT
+CONFLICTING
+INSUFFICIENT SOURCES
+SINGLE SOURCE
+UNAVAILABLE
+
+Material disagreement must reduce confidence.
+
+======================================================================
+21. PROVIDER-TO-ENGINE MATRIX
+======================================================================
+
+Create a documented provider/engine matrix.
+
+B1 TRANSACTION SIMULATION
+
+Primary:
+Tenderly
+Alchemy
+RPC/local simulation
+
+Supporting:
+Etherscan
+The Graph
+
+B2 SECURITY
+
+Primary:
+Blockaid
+Hypernative
+
+Supporting:
+Etherscan
+Nansen
+Arkham
+internal rules
+
+B3 THREAT MONITORING
+
+Primary:
+Hypernative
+Blockaid
+
+Supporting:
+RPC streams
+Chainlink
+protocol state
+internal rules
+
+B4 ENTITY/FUND FLOW
+
+Primary:
+Nansen
+Arkham
+
+Supporting:
+Dune
+Etherscan
+The Graph
+Alchemy
+QuickNode
+Glassnode
+
+B5 ROUTE INTELLIGENCE
+
+Primary:
+LI.FI
+
+Supporting:
+security providers
+DeFi liquidity sources
+RPC
+market prices
+
+F1 PORTFOLIO
+
+Primary/supporting:
+
+Nansen
+Arkham
+CoinGecko
+Kaiko
+DeFiLlama
+Glassnode
+RPC/on-chain balances
+
+F2 PROTOCOL RISK
+
+Primary/supporting:
+
+DeFiLlama
+Token Terminal
+Gauntlet
+Chaos Labs
+Messari
+Chainlink
+security providers
+protocol-native state
+
+F3 POSITION / LIQUIDATION
+
+Primary/supporting:
+
+protocol state
+protocol oracle
+Chainlink
+Kaiko
+CoinGecko
+Chaos Labs
+Gauntlet
+
+F4 YIELD
+
+Primary/supporting:
+
+DeFiLlama
+Token Terminal
+protocol-native state
+CoinGecko
+Kaiko
+Gauntlet
+Chaos Labs
+
+F5 TREASURY SCENARIOS
+
+Primary/supporting:
+
+Kaiko
+CoinGecko
+Glassnode
+Token Terminal
+DeFiLlama
+Nansen
+Arkham
+Chainlink
+Gauntlet
+Chaos Labs
+
+This matrix must be configurable.
+
+Never hardcode the assumption that one provider permanently owns one engine.
+
+======================================================================
+22. RIVEXIS OWN ANALYTICS — CRITICAL RULE
+======================================================================
+
+Rivexis should obtain reliable:
+
+raw data
+decoded data
+indexed data
+enriched data
+market data
+security signals
+external risk data
+
+from third-party platforms.
+
+Rivexis should NOT blindly copy their analysis.
+
+The architecture is:
+
+EXTERNAL DATA
+        ↓
+NORMALIZATION
+        ↓
+VALIDATION
+        ↓
+RIVEXIS FEATURE ENGINEERING
+        ↓
+RIVEXIS SPECIALIST ENGINE
+        ↓
+RIVEXIS RISK SIGNAL
+        ↓
+RIVEXIS DECISION POLICY
+        ↓
+RIVEXIS EXPLANATION
+
+Examples:
+
+Gauntlet says risk parameter X.
+
+Do not display:
+
+“Rivexis says X”
+
+unless Rivexis independently calculated that result.
+
+Correct:
+
+“External risk evidence from Gauntlet: X”
+
+Then Rivexis may combine it with:
+
+protocol state
+liquidity
+market volatility
+oracle configuration
+concentration
+internal risk rules
+
+to calculate its own conclusion.
+
+Same principle for:
+
+Blockaid
+Hypernative
+Nansen
+Arkham
+Chaos Labs
+Messari
+any other provider.
+
+======================================================================
+23. STANDARD ENGINE OUTPUT CONTRACT
+======================================================================
+
+Every Rivexis engine should emit a normalized structure similar to:
+
+{
+  "engineId": "",
+  "engineVersion": "",
+  "analysisId": "",
+  "timestamp": "",
+  "blockReference": null,
+
+  "status": "success|partial|failed",
+
+  "riskScore": 0,
+
+  "confidence": {
+    "data": 0,
+    "engine": 0
+  },
+
+  "severity": "low|moderate|high|critical|unknown",
+
+  "summary": "",
+
+  "metrics": {},
+
+  "signals": [],
+
+  "warnings": [],
+
+  "hardBlockers": [],
+
+  "mitigations": [],
+
+  "saferAlternatives": [],
+
+  "evidence": [],
+
+  "providerConsensus": "",
+
+  "providerConflicts": [],
+
+  "dataFreshness": {},
+
+  "missingData": [],
+
+  "providerStatus": [],
+
+  "assumptions": []
+}
+
+Risk Score:
+
+0 = minimum detected risk
+100 = maximum detected risk
+
+Confidence:
+
+0–100%
+or
+0.00–1.00 internally
+
+Never visually mix confidence with risk.
+
+======================================================================
+24. RIVEXIS DECISION ENGINE
+======================================================================
+
+This is the center of Rivexis.
+
+External providers do not make the decision.
+
+Individual engines do not independently make the final product decision.
+
+They create evidence.
+
+The:
+
+RIVEXIS DECISION POLICY ENGINE
+
+combines the evidence.
+
+INPUTS:
+
+engine results
+risk dimensions
+hard blockers
+provider consensus
+source conflicts
+user role
+workspace risk policy
+portfolio context
+transaction size
+position size
+data completeness
+data freshness
+data confidence
+engine confidence
+scenario
+market state
+
+CORE RISK DIMENSIONS:
+
+1. Security Risk
+2. Execution Risk
+3. Protocol Risk
+4. Liquidity Risk
+5. Market Risk
+6. Counterparty Risk
+7. Concentration Risk
+8. Operational Risk
+9. Oracle Risk
+10. Governance Risk
+11. Dependency/Contagion Risk
+12. Model/Data Uncertainty
+
+Do NOT blindly average risk scores.
+
+Use:
+
+A. Hard-blocker rules
+
+B. Applicability rules
+
+C. Weighted risk dimensions
+
+D. Confidence adjustment
+
+E. Data completeness adjustment
+
+F. Freshness adjustment
+
+G. Provider-conflict adjustment
+
+H. User policy
+
+I. Position-size/materiality adjustment
+
+J. Contextual policy rules
+
+======================================================================
+25. FINAL DECISION STATES
+======================================================================
+
+PROCEED
+
+Conditions may include:
+
+manageable detected risk
+no critical blocker
+adequate evidence
+adequate confidence
+policy compliance
+
+MODIFY
+
+Risk can reasonably be reduced through modification.
+
+Examples:
+
+reduce approval
+reduce position
+change bridge
+change route
+add collateral
+reduce leverage
+change protocol
+diversify stablecoin exposure
+reduce concentration
+adjust slippage
+
+WAIT
+
+Temporary risk or unreliable current state.
+
+Examples:
+
+network instability
+oracle disruption
+rapid market movement
+liquidity deterioration
+provider disagreement
+unresolved security incident
+stale state
+pending governance event
+
+AVOID
+
+Material risk exceeds acceptable limits.
+
+Examples:
+
+known malicious destination
+active exploit
+critical protocol compromise
+drainer behavior
+dangerous approval
+bridge compromise
+extreme liquidation exposure
+policy-prohibited dependency
+
+UNKNOWN
+
+Evidence is insufficient or contradictory.
+
+Examples:
+
+required provider unavailable
+unsupported blockchain
+unverified contract
+unresolvable data conflict
+insufficient protocol data
+unreliable oracle information
+
+UNKNOWN is a legitimate institutional outcome.
+
+Do not hide uncertainty.
+
+======================================================================
+26. DECISION OUTPUT
+======================================================================
+
+Every Rivexis Analysis must produce:
+
+FINAL DECISION
+
+PROCEED / MODIFY / WAIT / AVOID / UNKNOWN
+
+Overall Risk Score
+
+Decision Confidence
+
+Data Confidence
+
+Analysis Timestamp
+
+Relevant Chain / Block
+
+Then:
+
+EXECUTIVE SUMMARY
+
+WHAT RIVEXIS ANALYZED
+
+WHAT RIVEXIS FOUND
+
+CRITICAL FINDINGS
+
+POSITIVE FINDINGS
+
+RISK BREAKDOWN
+
+ENGINE RESULTS
+
+DATA QUALITY
+
+PROVIDER CONSENSUS
+
+SOURCE CONFLICTS
+
+WHY THIS DECISION
+
+WHAT COULD GO WRONG
+
+RECOMMENDED ACTION
+
+SAFER OPTION
+
+ASSUMPTIONS
+
+MISSING DATA
+
+EVIDENCE
+
+TECHNICAL DETAILS
+
+AUDIT TRAIL
+
+======================================================================
+27. AI EXPLANATION ARCHITECTURE
+======================================================================
+
+AI must NOT invent the analytical result.
+
+Correct pipeline:
+
+External/Data Sources
+        ↓
+Normalized Rivexis Data
+        ↓
+Deterministic Analytics
+        ↓
+Specialist Engines
+        ↓
+Decision Policy Engine
+        ↓
+Final Decision
+        ↓
+LLM Explanation
+
+NOT:
+
+User Input
+        ↓
+LLM
+        ↓
+Random Risk Score
+
+AI may:
+
+summarize
+explain
+compare
+translate technical evidence
+generate role-appropriate explanations
+describe mitigation
+explain uncertainty
+generate reports
+
+AI must not:
+
+fabricate balances
+fabricate labels
+invent exploits
+invent transaction outcomes
+invent APY
+invent protocol fundamentals
+invent provider evidence
+override hard blockers
+create unsupported certainty
+
+Every AI conclusion must be grounded in structured evidence.
+
+======================================================================
+28. PUBLIC WEBSITE
+======================================================================
+
+Create:
+
+/
+Landing
+
+/platform
+
+/blockchain-intelligence
+
+/crypto-finance
+
+/defi-risk
+
+/solutions/individual
+
+/solutions/funds
+
+/solutions/treasuries
+
+/solutions/analysts
+
+/methodology
+
+/data
+
+/security
+
+/docs
+
+/pricing
+
+/login
+
+/signup
+
+The /data page should professionally explain:
+
+multiple-source architecture
+data provenance
+freshness
+independent Rivexis analysis
+without exposing proprietary internal scoring details.
+
+======================================================================
+29. LANDING PAGE DESIGN DIRECTION
+======================================================================
+
+Use the supplied Rivexis logo.
+
+Color system:
+
+WHITE
+BLUE
+LIGHT BLUE
+DEEP INSTITUTIONAL NAVY
+
+Recommended palette:
+
+Background:
+#FFFFFF
+
+Soft Canvas:
+#F6FAFF
+
+Secondary Canvas:
+#EDF5FF
+
+Primary Blue:
+#1455A3
+
+Strong Blue:
+#0A3D82
+
+Institutional Navy:
+#082B5C
+
+Light Blue:
+#D9EBFF
+
+Border:
+#D8E4F2
+
+Muted Text:
+#60738A
+
+Primary Text:
+#10253F
+
+Status green:
+restrained
+
+Warning amber:
+restrained
+
+Critical red:
+restrained
+
+Do NOT use:
+
+neon crypto aesthetics
+purple Web3 gradients
+casino-like design
+dark trading terminal as primary identity
+huge glowing 3D tokens
+cartoons
+excessive glassmorphism
+meme-coin design patterns
+
+Use subtle:
+
+network lines
+data paths
+execution paths
+risk matrices
+blue gradients
+analytical grids
+capital-flow geometry
+decision pathways
+
+======================================================================
+30. UI/UX REFERENCE PRINCIPLES
+======================================================================
+
+Use leading companies only as conceptual references.
+
+TENDERLY
+
+Reference:
+
+transaction debugging
+simulation
+execution state
+technical information density
+
+BLOCKAID
+
+Reference:
+
+pre-transaction security
+risk communication
+transaction protection
+
+HYPERNATIVE
+
+Reference:
+
+threat monitoring
+incident intelligence
+alert prioritization
+
+LI.FI
+
+Reference:
+
+cross-chain routes
+route comparison
+execution paths
+fees
+timing
+
+NANSEN
+
+Reference:
+
+wallet intelligence
+capital flow
+analytics
+portfolio context
+
+ARKHAM
+
+Reference:
+
+entity/fund-flow exploration
+
+GAUNTLET
+
+Reference:
+
+quantitative DeFi risk
+institutional financial presentation
+
+CHAOS LABS
+
+Reference:
+
+protocol/market-risk systems
+
+KAiKO
+
+Reference:
+
+institutional market-data presentation
+
+DO NOT CLONE THESE PRODUCTS.
+
+Rivexis must have its own design language.
+
+======================================================================
+31. RIVEXIS VISUAL LANGUAGE
+======================================================================
+
+Develop original components/motifs including:
+
+RISK VECTOR
+
+DECISION RAIL
+
+EVIDENCE CHAIN
+
+CONFIDENCE BAND
+
+EXPOSURE MATRIX
+
+EXECUTION PATH
+
+RISK SURFACE
+
+SOURCE CONSENSUS
+
+PROVIDER HEALTH
+
+DATA FRESHNESS
+
+DECISION SPECTRUM
+
+Make these consistent enough that users recognize Rivexis immediately.
+
+======================================================================
+32. TYPOGRAPHY
+======================================================================
+
+Primary UI:
+
+Geist Sans
+or
+Inter Variable
+
+Technical/Data:
+
+Geist Mono
+or
+IBM Plex Mono
+
+Use tabular numbers for:
+
+portfolio values
+risk values
+confidence
+price
+gas
+block number
+fees
+ratios
+percentages
+
+Avoid decorative fonts.
+
+======================================================================
+33. WORKSPACE UX
+======================================================================
+
+DESKTOP-FIRST APP SHELL:
+
+LEFT SIDEBAR
+
+TOP COMMAND BAR
+
+MAIN ANALYTICAL WORKSPACE
+
+OPTIONAL RIGHT CONTEXT/EVIDENCE PANEL
+
+SIDEBAR:
+
+RIVEXIS
+
+Overview
+
+BLOCKCHAIN INTELLIGENCE
+
+Transaction Simulation
+Security Analysis
+Threat Monitor
+Entity & Fund Flow
+Route Intelligence
+
+CRYPTO FINANCE
+
+Portfolio
+Protocol Risk
+Position Risk
+Yield Analysis
+Treasury Scenarios
+
+RIVEXIS
+
+Analyses
+Decisions
+Alerts
+Reports
+Saved
+History
+
+SYSTEM
+
+Data Sources
+Provider Health
+API Connections
+Team
+Settings
+
+======================================================================
+34. DASHBOARD
+======================================================================
+
+The dashboard should answer:
+
+WHAT REQUIRES ATTENTION?
+
+Suggested structure:
+
+RIVEXIS RISK OVERVIEW
+
+Active analyses
+Critical issues
+Warnings
+Capital monitored
+Unresolved decisions
+
+ATTENTION REQUIRED
+
+Critical
+High
+Moderate
+
+RECENT DECISIONS
+
+Decision
+Subject
+Risk
+Confidence
+Timestamp
+
+MONITORED EXPOSURE
+
+Protocol
+Chain
+Asset
+Counterparty
+
+DATA HEALTH
+
+Provider health
+Stale data
+Provider failures
+Conflicts
+
+ENGINE STATUS
+
+10 engine statuses
+
+======================================================================
+35. ENGINE PAGE INTERACTION STANDARD
+======================================================================
+
+All engines use:
+
+INPUT
+   ↓
+DATA COLLECTION
+   ↓
+ANALYZE
+   ↓
+RESULT
+   ↓
+EVIDENCE
+   ↓
+DECISION
+   ↓
+ACTION
+
+Reusable components:
+
+InputPanel
+RiskIndicator
+ConfidenceIndicator
+DecisionBadge
+EvidenceTable
+SourceBadge
+FreshnessBadge
+ProviderConsensus
+ProviderConflict
+MetricCard
+FindingCard
+AlertCard
+ScenarioTable
+TransactionTrace
+FundFlowGraph
+RouteComparison
+PortfolioExposure
+ProtocolRiskMatrix
+
+======================================================================
+36. SIGNATURE ANALYSIS SCREEN
+======================================================================
+
+Header:
+
+Subject
+Analysis ID
+Role
+Timestamp
+Blockchain state
+Data freshness
+
+Then:
+
+RIVEXIS DECISION
+
+[ PROCEED ]
+
+Overall Risk       18 / 100
+Decision Confidence 91%
+Data Confidence     94%
+Critical Issues      0
+Warnings             2
+
+WHY
+
+Top decision reasons.
+
+SAFER OPTION
+
+Alternative action.
+
+RISK DIMENSIONS
+
+Security
+Execution
+Protocol
+Liquidity
+Market
+Counterparty
+Oracle
+Dependency
+etc.
+
+ENGINE CONTRIBUTION
+
+Show applicable engines only.
+
+DATA SOURCES
+
+Provider
+Data Type
+Freshness
+Status
+
+CONSENSUS
+
+Strong / Moderate / Conflict / Single Source
+
+DETAILED FINDINGS
+
+EVIDENCE
+
+SOURCE CONFLICTS
+
+TECHNICAL DETAILS
+
+AUDIT TRAIL
+
+======================================================================
+37. REPORTING
+======================================================================
+
+Save analyses.
+
+Support:
+
+Save
+Rename
+Tag
+Compare
+Duplicate
+Archive
+Export
+
+MVP:
+
+PDF-ready report
+JSON
+CSV where meaningful
+
+Report must contain:
+
+Rivexis branding
+Analysis ID
+Timestamp
+Role
+Subject
+Decision
+Risk
+Confidence
+Risk breakdown
+Engine results
+Evidence
+Data sources
+Provider conflicts
+Freshness
+Scenarios
+Mitigations
+Safer option
+Assumptions
+Methodology
+Audit metadata
+Limitations
+
+======================================================================
+38. SYSTEM ARCHITECTURE
+======================================================================
+
+CLIENT
+
+        ↓
+
+NEXT.JS WEB APP
+
+        ↓
+
+API GATEWAY / BFF
+
+        ↓
+
+AUTHENTICATION + AUTHORIZATION
+
+        ↓
+
+APPLICATION SERVICES
+
+        ↓
+
+RIVEXIS ENGINE ORCHESTRATOR
+
+        ↓
+
+DATA ACQUISITION LAYER
+
+        ↓
+
+PROVIDER ADAPTERS
+
+        ↓
+
+EXTERNAL SOURCES
+
+
+External Sources return data
+
+        ↓
+
+RAW INGESTION
+
+        ↓
+
+VALIDATION
+
+        ↓
+
+NORMALIZATION
+
+        ↓
+
+CANONICAL RIVEXIS MODELS
+
+        ↓
+
+10 SPECIALIST ENGINES
+
+        ↓
+
+NORMALIZED ENGINE OUTPUTS
+
+        ↓
+
+EVIDENCE FUSION
+
+        ↓
+
+RIVEXIS DECISION POLICY ENGINE
+
+        ↓
+
+AI EXPLANATION
+
+        ↓
+
+PERSISTENCE
+
+        ↓
+
+REPORTS / ALERTS / HISTORY
+
+======================================================================
+39. RECOMMENDED TECH STACK
+======================================================================
+
+Use latest stable production releases at implementation time.
+
+FRONTEND:
+
+Next.js
+React
+TypeScript strict
+Tailwind CSS
+Radix primitives where useful
+custom Rivexis component system
+TanStack Query
+Zod
+React Hook Form
+
+Visualization:
+
+ECharts
+D3
+Recharts
+
+select based on complexity.
+
+Motion:
+
+Framer Motion / Motion
+
+Use only where interaction benefits.
+
+Do not make the application look like an untouched UI template.
+
+BACKEND:
+
+Python
+FastAPI
+Pydantic
+SQLAlchemy
+Alembic
+async architecture where appropriate
+
+WHY PYTHON:
+
+quantitative finance
+risk models
+data science
+simulation
+portfolio analytics
+scenario modeling
+
+DATABASE:
+
+PostgreSQL
+
+Managed option:
+
+Supabase/Postgres
+
+CACHE:
+
+Redis
+
+BACKGROUND PROCESSING:
+
+choose professionally between:
+
+Celery
+Dramatiq
+Temporal
+
+depending deployment requirements.
+
+WEB3:
+
+viem
+wagmi
+WalletConnect-compatible architecture
+RPC abstraction
+
+OBSERVABILITY:
+
+OpenTelemetry
+structured logging
+error tracking
+metrics
+tracing
+
+DEPLOYMENT:
+
+Frontend:
+Vercel-compatible
+
+Backend:
+containerized
+
+Database:
+managed PostgreSQL
+
+Redis:
+managed service
+
+Use Docker.
+
+======================================================================
+40. EVM-FIRST MVP
+======================================================================
+
+Initial chains:
+
+Ethereum
+Base
+Arbitrum
+Optimism
+Polygon
+
+Build multichain abstraction from the start.
+
+Chain model:
+
+chainId
+name
+nativeCurrency
+rpcProviders
+explorer
+simulationSupport
+securitySupport
+entitySupport
+routeSupport
+status
+
+Never claim universal engine coverage.
+
+Display capability availability.
+
+======================================================================
+41. INTERNAL API ARCHITECTURE
+======================================================================
+
+Version all APIs:
+
+/api/v1/
+
+AUTH:
+
+POST /auth/signup
+POST /auth/login
+POST /auth/logout
+GET /me
+
+WORKSPACES:
+
+GET /workspaces
+POST /workspaces
+GET /workspaces/{id}
+PATCH /workspaces/{id}
+
+SIMULATION:
+
+POST /analysis/simulations
+GET /analysis/simulations/{id}
+
+SECURITY:
+
+POST /analysis/security
+GET /analysis/security/{id}
+
+MONITORING:
+
+POST /monitors
+GET /monitors
+GET /monitors/{id}
+PATCH /monitors/{id}
+DELETE /monitors/{id}
+
+ENTITY:
+
+POST /analysis/entities
+
+ROUTES:
+
+POST /analysis/routes
+
+PORTFOLIO:
+
+POST /portfolios
+GET /portfolios/{id}
+POST /analysis/portfolio
+
+PROTOCOL:
+
+POST /analysis/protocol-risk
+
+POSITION:
+
+POST /analysis/position-risk
+
+YIELD:
+
+POST /analysis/yield
+
+TREASURY:
+
+POST /analysis/treasury
+
+DECISION:
+
+POST /decisions/analyze
+GET /decisions/{id}
+
+REPORTS:
+
+POST /reports
+GET /reports/{id}
+
+HISTORY:
+
+GET /history
+
+ALERTS:
+
+GET /alerts
+PATCH /alerts/{id}
+
+PROVIDERS:
+
+GET /providers
+GET /providers/status
+GET /providers/{id}
+
+DATA PROVENANCE:
+
+GET /analyses/{id}/evidence
+
+GET /analyses/{id}/sources
+
+GET /analyses/{id}/conflicts
+
+======================================================================
+42. DATABASE MODEL
+======================================================================
+
+Create proper migrations for:
+
+users
+profiles
+organizations
+organization_members
+workspaces
+
+wallets
+wallet_groups
+
+chains
+assets
+tokens
+protocols
+contracts
+
+data_sources
+provider_connections
+provider_health_checks
+provider_requests
+
+analyses
+engine_runs
+engine_results
+
+decisions
+decision_reasons
+
+findings
+evidence
+source_conflicts
+
+transactions
+transaction_traces
+transfers
+simulations
+
+security_assessments
+security_signals
+
+monitors
+alerts
+threat_events
+
+entities
+entity_labels
+fund_flows
+
+routes
+route_steps
+
+prices
+oracle_feeds
+oracle_observations
+
+portfolios
+portfolio_positions
+
+protocol_metrics
+protocol_assessments
+
+defi_positions
+
+yield_strategies
+
+treasury_scenarios
+
+saved_analyses
+
+reports
+
+user_risk_policies
+
+notification_preferences
+
+audit_logs
+
+IMPORTANT FIELDS:
+
+UUID
+workspace_id
+provider_id
+source
+observed_at
+retrieved_at
+block_number
+freshness
+confidence
+risk_score
+engine_version
+calculation_version
+model_version
+created_at
+updated_at
+
+Use:
+
+foreign keys
+indexes
+unique constraints
+JSONB only where appropriate
+
+Do not put everything into JSON blobs.
+
+======================================================================
+43. CACHE + DATA LIFECYCLE
+======================================================================
+
+Different data classes require different TTLs.
+
+Examples:
+
+Block state:
+very short
+
+Security status:
+short
+
+Prices:
+short
+
+Protocol TVL:
+medium
+
+Entity labels:
+longer
+
+Historical metrics:
+long
+
+Cache keys should include:
+
+provider
+chain
+entity
+metric
+block/time
+
+Do not serve stale information silently.
+
+======================================================================
+44. RATE LIMIT / PROVIDER COST MANAGEMENT
+======================================================================
+
+External APIs can become expensive.
+
+Implement:
+
+request caching
+deduplication
+batching
+rate-limit awareness
+provider quotas
+request budgets
+backoff
+retry policy
+circuit breakers
+
+Store provider usage metrics.
+
+Possible model:
+
+provider_usage
+
+provider
+endpoint
+calls
+success
+failure
+latency
+estimated_cost
+period
+
+Do not unnecessarily query six providers for every request.
+
+Use risk/materiality-aware provider selection.
+
+Example:
+
+low-materiality portfolio refresh:
+
+basic data sources
+
+high-value institutional transaction:
+
+perform deeper cross-validation
+
+======================================================================
+45. PROVIDER LICENSING / COMPLIANCE
+======================================================================
+
+Do not assume that all provider data may legally be:
+
+stored indefinitely
+redistributed
+displayed publicly
+exported
+resold
+used for machine-learning
+cached permanently
+
+Create provider configuration containing:
+
+storage_policy
+redistribution_policy
+cache_ttl
+attribution_required
+commercial_usage
+derived_data_policy
+
+Document licensing requirements.
+
+Do not violate provider terms.
+
+======================================================================
+46. SECRET MANAGEMENT
+======================================================================
+
+API credentials include potentially:
+
+DUNE_API_KEY
+ETHERSCAN_API_KEY
+ALCHEMY_API_KEY
+QUICKNODE credentials
+TENDERLY credentials
+BLOCKAID credentials
+HYPERNATIVE credentials
+LIFI credentials if required
+NANSEN credentials
+ARKHAM credentials
+COINGECKO credentials
+COINMARKETCAP credentials
+KAIKO credentials
+GLASSNODE credentials
+TOKEN_TERMINAL credentials
+MESSARI credentials
+CHAOS_LABS credentials
+other provider credentials
+
+Never expose secret keys to frontend JavaScript unless a provider explicitly requires safe public credentials.
+
+Use:
+
+backend secret manager
+environment validation
+credential rotation architecture
+
+Create:
+
+.env.example
+
+without actual secrets.
+
+======================================================================
+47. SECURITY
+======================================================================
+
+Treat Rivexis as financial infrastructure.
+
+Implement:
+
+secure authentication
+RBAC
+organization isolation
+workspace isolation
+row-level authorization
+secure cookies
+CSRF prevention where relevant
+XSS prevention
+strict validation
+rate limiting
+security headers
+safe redirects
+audit logging
+secret scanning
+dependency scanning
+least privilege
+provider timeout
+circuit breakers
+request IDs
+
+WALLETS:
+
+Rivexis MVP primarily:
+
+READS
+ANALYZES
+SIMULATES
+
+Never request:
+
+private key
+seed phrase
+recovery phrase
+
+Never store seed phrases.
+
+Never instruct users to paste private credentials.
+
+Signing remains user-controlled.
+
+======================================================================
+48. PRIVACY / INSTITUTIONAL ARCHITECTURE
+======================================================================
+
+Prepare for:
+
+organizations
+teams
+admins
+analysts
+read-only roles
+private analyses
+shared analyses
+restricted reports
+
+Future-ready:
+
+SSO
+SAML
+SCIM
+maker-checker approvals
+custom policy engines
+enterprise audit exports
+
+======================================================================
+49. UNCERTAINTY / FAILURE DESIGN
+======================================================================
+
+Required states:
+
+QUEUED
+RUNNING
+PARTIAL
+COMPLETED
+FAILED
+PROVIDER UNAVAILABLE
+UNSUPPORTED
+INSUFFICIENT DATA
+STALE DATA
+CONFLICTING DATA
+
+Never silently hide failure.
+
+If Nansen fails but Arkham works:
+
+show degraded intelligence where relevant.
+
+If both fail:
+
+do not invent entity data.
+
+If market data sources materially disagree:
+
+surface conflict.
+
+If required evidence is unavailable:
+
+return UNKNOWN where necessary.
+
+======================================================================
+50. OBSERVABILITY
+======================================================================
+
+Track:
+
+API duration
+engine duration
+provider latency
+provider success rate
+provider failure rate
+provider cost
+provider throttling
+normalization errors
+conflict rate
+decision latency
+AI explanation latency
+job failures
+authentication failures
+alert delivery failures
+
+Each analysis must have:
+
+analysisId
+
+Each engine:
+
+engineRunId
+
+Each provider request:
+
+providerRequestId
+
+Enable complete distributed tracing.
+
+======================================================================
+51. ACCESSIBILITY
+======================================================================
+
+Target WCAG 2.2 AA.
+
+Implement:
+
+keyboard navigation
+focus states
+semantic HTML
+accessible tables
+screen reader support
+contrast
+accessible forms
+chart alternatives
+non-color-only statuses
+
+======================================================================
+52. PERFORMANCE
+======================================================================
+
+PUBLIC WEBSITE:
+
+Core Web Vitals.
+
+WORKSPACE:
+
+route-level splitting
+streaming
+skeletons
+efficient queries
+table virtualization
+request caching
+lazy chart loading
+background analytics
+
+Do not ship giant frontend bundles.
+
+======================================================================
+53. RESPONSIVE DESIGN
+======================================================================
+
+Support:
+
+1440+
+1280
+1024
+768
+mobile
+
+Desktop-first institutional interface.
+
+Do not make mobile simply a tiny desktop.
+
+Tables should support:
+
+horizontal scroll
+priority columns
+stacked alternatives
+
+======================================================================
+54. MICROCOPY
+======================================================================
+
+Rivexis language should be:
+
+precise
+evidence-driven
+measured
+professional
+institutional
+
+GOOD:
+
+“2 material risks detected.”
+
+“Three providers agree on the current reference price.”
+
+“Oracle price differs from market reference by 3.8%.”
+
+“Security intelligence is partially unavailable.”
+
+“Insufficient evidence to classify this address.”
+
+“Transaction simulated against Ethereum block X.”
+
+BAD:
+
+“100% safe.”
+
+“Guaranteed.”
+
+“Awesome trade.”
+
+“AI says buy.”
+
+“Massive opportunity.”
+
+“Risk-free.”
+
+======================================================================
+55. REAL SCENARIO TESTS
+======================================================================
+
+SCENARIO 1
+
+Normal ERC-20 transfer.
+
+Expected:
+
+simulation success
+no critical security issue
+PROCEED if evidence supports it
+
+SCENARIO 2
+
+Unlimited approval to suspicious spender.
+
+Expected:
+
+approval risk detected
+MODIFY or AVOID
+
+SCENARIO 3
+
+Known malicious contract.
+
+Expected:
+
+security blocker
+AVOID
+
+SCENARIO 4
+
+Cross-chain route:
+
+Route A:
+cheaper
+higher bridge risk
+
+Route B:
+slightly more expensive
+lower detected risk
+
+Expected:
+
+Rivexis explains tradeoff.
+
+SCENARIO 5
+
+Lending position close to liquidation.
+
+Expected:
+
+health factor
+liquidation price
+stress scenarios
+MODIFY/AVOID depending policy
+
+SCENARIO 6
+
+Treasury heavily concentrated in a single stablecoin.
+
+Expected:
+
+concentration risk
+depeg scenario
+MODIFY
+
+SCENARIO 7
+
+Active protocol incident.
+
+Expected:
+
+threat monitoring feeds decision
+WAIT or AVOID
+
+SCENARIO 8
+
+Primary price source unavailable.
+
+Expected:
+
+fallback provider invoked
+provenance updated
+
+SCENARIO 9
+
+Price providers disagree materially.
+
+Expected:
+
+source conflict
+confidence reduction
+
+SCENARIO 10
+
+Nansen and Arkham entity labels disagree.
+
+Expected:
+
+do not select identity silently
+display conflicting intelligence
+reduce label confidence
+
+SCENARIO 11
+
+Transaction simulation provider unavailable.
+
+Expected:
+
+secondary simulation mechanism if available.
+
+Otherwise:
+
+PARTIAL or UNKNOWN.
+
+SCENARIO 12
+
+Healthy diversified treasury.
+
+Expected:
+
+professional risk breakdown
+not generic “safe” output.
+
+======================================================================
+56. TESTING
+======================================================================
+
+FRONTEND:
+
+unit tests
+component tests
+forms
+risk components
+decision UI
+provider-state UI
+accessibility
+
+BACKEND:
+
+API tests
+provider adapter tests
+normalization tests
+source conflict tests
+freshness tests
+engine tests
+decision tests
+database tests
+RBAC tests
+
+E2E:
+
+Playwright
+
+Test:
+
+signup
+login
+role onboarding
+workspace
+all 10 engines
+analysis
+decision
+evidence
+provider status
+save
+history
+report
+
+DECISION TEST MATRIX:
+
+PROCEED
+MODIFY
+WAIT
+AVOID
+UNKNOWN
+
+PROVIDER TEST MATRIX:
+
+primary works
+primary fails
+secondary works
+all providers fail
+stale data
+conflicting data
+malformed response
+rate limited
+timeout
+incorrect chain
+unsupported asset
+
+======================================================================
+57. MVP PRIORITIES
+======================================================================
+
+P0 — ABSOLUTELY REQUIRED
+
+Product definition
+2 domains
+10 engine architecture
+auth
+onboarding
+workspace
+canonical data model
+provider adapter architecture
+source registry
+normalized engine schema
+decision engine
+evidence model
+provider provenance
+provider health
+analysis interface
+history
+saved analyses
+responsive institutional UI
+tests
+
+P1
+
+Live EVM RPC
+transaction simulation
+security integration
+route integration
+market-price integration
+basic portfolio ingestion
+protocol metrics
+PDF report
+
+P2
+
+Nansen/Arkham enriched intelligence
+Dune analytics
+The Graph integrations
+advanced market data
+real-time threat feeds
+multi-provider consensus
+advanced treasury scenarios
+
+P3
+
+Organizations
+enterprise policies
+custom API
+SSO
+advanced quantitative models
+more blockchains
+large-scale monitoring
+
+Do not sacrifice P0 engineering quality for P3.
+
+======================================================================
+58. DOCUMENTATION
+======================================================================
+
+Create:
+
+README.md
+
+/docs
+
+PRODUCT_DEFINITION.md
+
+PRODUCT_ARCHITECTURE.md
+
+ENGINE_SPECIFICATIONS.md
+
+DECISION_ENGINE.md
+
+DATA_ARCHITECTURE.md
+
+DATA_PROVIDER_STRATEGY.md
+
+PROVIDER_MATRIX.md
+
+PROVIDER_FALLBACKS.md
+
+DATA_PROVENANCE.md
+
+DATA_FRESHNESS.md
+
+DATA_CONFLICT_POLICY.md
+
+API_SPECIFICATION.md
+
+DATABASE_SCHEMA.md
+
+PROVIDER_ARCHITECTURE.md
+
+SECURITY.md
+
+DESIGN_SYSTEM.md
+
+TEST_PLAN.md
+
+DEPLOYMENT.md
+
+MVP_SCOPE.md
+
+Create Architecture Decision Records for major architectural decisions.
+
+======================================================================
+59. REPOSITORY
+======================================================================
+
+Recommended professional monorepo:
+
+rivexis/
+
+  apps/
+    web/
+    api/
+
+  packages/
+    ui/
+    schemas/
+    config/
+    decision-engine/
+    risk-models/
+    web3/
+    data-models/
+    provider-contracts/
+
+  providers/
+    rpc/
+    simulation/
+    security/
+    threat/
+    market-data/
+    protocol-data/
+    entity-intelligence/
+    routing/
+    oracle/
+    external-risk/
+
+  docs/
+
+  infrastructure/
+
+  scripts/
+
+  tests/
+
+  .github/
+
+  README.md
+
+Avoid giant files.
+
+Maintain strict domain boundaries.
+
+======================================================================
+60. BUILD ORDER
+======================================================================
+
+PHASE 0 — INSPECTION
+
+Inspect:
+
+repository
+existing assets
+logo
+environment
+existing files
+
+PHASE 1 — FREEZE PRODUCT
+
+Create:
+
+PRODUCT_DEFINITION
+ENGINE_SPECIFICATIONS
+DECISION_ENGINE
+
+Freeze:
+
+product
+2 domains
+10 engines
+input/output
+decision states
+
+PHASE 2 — DATA ARCHITECTURE
+
+Define:
+
+source registry
+provider categories
+provider interfaces
+canonical models
+fallback hierarchy
+provenance
+freshness
+conflict resolution
+multi-source validation
+
+PHASE 3 — SYSTEM ARCHITECTURE
+
+Define:
+
+API
+database
+services
+queues
+security
+cache
+provider system
+
+PHASE 4 — DESIGN SYSTEM
+
+Build:
+
+colors
+typography
+spacing
+components
+tables
+charts
+risk system
+confidence system
+source system
+status system
+
+PHASE 5 — PUBLIC SITE
+
+Build professional Rivexis landing/product pages.
+
+PHASE 6 — AUTH + ONBOARDING
+
+Signup
+Login
+Role selection
+Workspace creation
+
+PHASE 7 — APP SHELL
+
+Dashboard
+Sidebar
+Command bar
+Provider health
+Data status
+
+PHASE 8 — BLOCKCHAIN ENGINES
+
+B1
+B2
+B3
+B4
+B5
+
+PHASE 9 — FINANCE ENGINES
+
+F1
+F2
+F3
+F4
+F5
+
+PHASE 10 — DATA PROVIDERS
+
+Prioritize foundational live integrations.
+
+Implement:
+
+RPC
+price
+simulation
+security
+routes
+protocol information
+
+Then progressively add:
+
+entity intelligence
+institutional market data
+external risk providers
+
+PHASE 11 — DECISION ENGINE
+
+Connect normalized outputs.
+
+PHASE 12 — AI EXPLANATION
+
+Add evidence-grounded explanation.
+
+PHASE 13 — SAVE / HISTORY / REPORTS
+
+Implement persistence.
+
+PHASE 14 — TESTING
+
+Run:
+
+unit
+integration
+provider
+decision
+E2E
+security
+accessibility
+
+PHASE 15 — DEFECT REPAIR
+
+Repair:
+
+runtime failures
+typing
+API problems
+bad provider handling
+data conflicts
+layout
+responsive defects
+security problems
+failed tests
+
+PHASE 16 — INSTITUTIONAL POLISH
+
+Only after functionality works:
+
+spacing
+typography
+charts
+tables
+micro-interaction
+responsive layouts
+loading states
+empty states
+error states
+
+PHASE 17 — PRODUCTION VERIFICATION
+
+Run:
+
+lint
+typecheck
+tests
+E2E
+production build
+dependency audit
+secret scan
+API validation
+
+Do not declare complete before verification.
+
+======================================================================
+61. QUALITY GATE — DATA
+======================================================================
+
+Before accepting any metric ask:
+
+1. What is the source?
+2. When was it observed?
+3. How fresh is it?
+4. Is it raw or derived?
+5. Is another provider available?
+6. Do providers agree?
+7. Is the methodology compatible?
+8. Can Rivexis reproduce/validate it?
+9. Is attribution required?
+10. Is the data licensed for this use?
+
+======================================================================
+62. QUALITY GATE — ENGINE
+======================================================================
+
+Before accepting an engine:
+
+1. Are inputs validated?
+2. Is data provenance preserved?
+3. Are missing providers handled?
+4. Are conflicts handled?
+5. Does it return normalized output?
+6. Is confidence meaningful?
+7. Can it fail safely?
+8. Does the decision engine consume it?
+9. Is evidence inspectable?
+10. Is it tested?
+
+======================================================================
+63. QUALITY GATE — UI
+======================================================================
+
+Reject UI that looks like:
+
+generic admin SaaS
+crypto casino
+CoinMarketCap clone
+exchange
+wallet
+trading terminal
+AI-template landing page
+untouched shadcn template
+
+The product should look credible next to institutional infrastructure providers while retaining a distinct Rivexis identity.
+
+======================================================================
+64. COMMERCIAL PROVIDER REALITY
+======================================================================
+
+Many providers listed in this architecture may require:
+
+paid API access
+enterprise contracts
+API approval
+commercial licensing
+rate limits
+chain-specific plans
+
+Do not block the architecture because all credentials may not initially exist.
+
+Instead implement:
+
+provider interface
+configuration
+health check
+mock
+fallback
+documentation
+
+Then clearly classify every provider:
+
+CONNECTED LIVE
+
+IMPLEMENTED / CREDENTIALS REQUIRED
+
+PLANNED
+
+MOCK ONLY
+
+UNSUPPORTED
+
+Never claim CONNECTED LIVE without successful live verification.
+
+======================================================================
+65. FIRST PRODUCTION JOURNEY
+======================================================================
+
+The first full working blockchain journey must be:
+
+LANDING
+
+→ SIGN UP
+
+→ ROLE
+
+→ WORKSPACE
+
+→ TRANSACTION SIMULATION
+
+→ SECURITY ANALYSIS
+
+→ SOURCE VALIDATION
+
+→ RIVEXIS ANALYSIS
+
+→ FINAL DECISION
+
+→ WHY
+
+→ SAFER OPTION
+
+→ EVIDENCE
+
+→ SAVE
+
+→ HISTORY
+
+Then complete:
+
+FINANCE
+
+→ PORTFOLIO / PROTOCOL / POSITION INPUT
+
+→ DATA COLLECTION
+
+→ FINANCE ENGINES
+
+→ RIVEXIS ANALYSIS
+
+→ FINAL DECISION
+
+→ SCENARIO
+
+→ SAFER OPTION
+
+→ SAVE / REPORT
+
+======================================================================
+66. MVP LIVE DATA PRIORITY
+======================================================================
+
+Do NOT attempt to connect every provider on day one.
+
+Use progressive provider integration.
+
+TIER 1 — CORE INFRASTRUCTURE
+
+RPC:
+Alchemy / QuickNode / configured RPC
+
+Explorer:
+Etherscan
+
+Market:
+CoinGecko and/or institutional source
+
+Oracle:
+Chainlink where applicable
+
+Protocol:
+DeFiLlama
+
+Routing:
+LI.FI
+
+Simulation:
+Tenderly / Alchemy / native simulation
+
+Security:
+Blockaid / Hypernative where credentials permit
+
+TIER 2 — ENRICHMENT
+
+Dune
+The Graph
+Token Terminal
+Nansen
+Arkham
+Glassnode
+
+TIER 3 — INSTITUTIONAL / ADVANCED
+
+Kaiko
+Gauntlet
+Chaos Labs
+Messari
+additional commercial feeds
+
+Architect ALL from the start.
+
+Integrate incrementally.
+
+======================================================================
+67. RIVEXIS ANALYSIS PRINCIPLE
+======================================================================
+
+The competitive advantage must NOT be:
+
+“We connect to many APIs.”
+
+The competitive advantage is:
+
+Rivexis transforms fragmented evidence from blockchain infrastructure, security intelligence, market information, protocol data and quantitative models into one structured, explainable decision framework.
+
+Therefore:
+
+PROVIDERS supply evidence.
+
+RIVEXIS supplies interpretation.
+
+PROVIDERS supply data.
+
+RIVEXIS supplies cross-domain synthesis.
+
+PROVIDERS may supply external risk signals.
+
+RIVEXIS supplies its own final policy decision.
+
+======================================================================
+68. LANDING PAGE POSITIONING
+======================================================================
+
+Do not make AI the headline.
+
+Preferred strategic positioning direction:
+
+“Know the risk before capital moves.”
+
+Supporting concept:
+
+Rivexis evaluates blockchain execution, security, liquidity and crypto-finance risk before actions become irreversible.
+
+Hero:
+
+RIVEXIS
+
+Risk • Value • Execution • Intelligence System
+
+Primary CTA:
+
+Enter Rivexis
+
+Secondary CTA:
+
+Explore the Platform
+
+Hero visualization:
+
+A real-looking Rivexis Analysis interface showing:
+
+Decision
+Risk
+Confidence
+Engine evidence
+Source consensus
+
+rather than meaningless decorative crypto graphics.
+
+Landing structure:
+
+01
+Hero
+
+02
+Blockchain Intelligence
+
+03
+Crypto Finance / DeFi Risk
+
+04
+Rivexis Decision System
+
+05
+Institutional Data Infrastructure
+
+06
+Evidence + Methodology
+
+07
+Individuals / Funds / Treasuries / Analysts
+
+08
+Security / Trust
+
+09
+Final CTA
+
+======================================================================
+69. DESIGN DETAILS
+======================================================================
+
+Use:
+
+12-column desktop grid
+
+Content width:
+
+approximately 1360–1440px depending section.
+
+Spacing:
+
+systematic 4/8px rhythm.
+
+Corners:
+
+moderate.
+
+Avoid excessive rounded cards.
+
+Borders:
+
+thin blue/gray.
+
+Shadows:
+
+subtle.
+
+Tables:
+
+information dense but readable.
+
+Charts:
+
+professional financial/data visualization.
+
+Cards:
+
+use only where grouping improves comprehension.
+
+Do not put every statistic in a floating card.
+
+======================================================================
+70. STATUS SYSTEM
+======================================================================
+
+Create:
+
+DecisionBadge
+
+RiskIndicator
+
+ConfidenceIndicator
+
+DataConfidenceIndicator
+
+FreshnessBadge
+
+EvidenceStatus
+
+EngineStatus
+
+ProviderStatus
+
+ConsensusBadge
+
+ConflictBadge
+
+Decision statuses:
+
+PROCEED
+MODIFY
+WAIT
+AVOID
+UNKNOWN
+
+Provider statuses:
+
+HEALTHY
+DEGRADED
+RATE LIMITED
+UNAVAILABLE
+UNCONFIGURED
+
+Data statuses:
+
+LIVE
+CURRENT
+RECENT
+STALE
+EXPIRED
+UNKNOWN
+
+======================================================================
+71. UNIVERSAL COMMAND / ENTITY INPUT
+======================================================================
+
+Create a universal workspace input capable of recognizing:
+
+wallet address
+transaction hash
+contract address
+token
+protocol
+pool
+vault
+
+Future:
+
+natural-language analysis.
+
+MVP:
+
+use deterministic entity detection first.
+
+Example:
+
+0x transaction hash
+
+→ detect transaction
+
+→ suggest:
+
+Simulate
+Security Analysis
+Fund Flow
+
+Contract address
+
+→ suggest:
+
+Security
+Contract Analysis
+Protocol Association
+
+Wallet
+
+→ suggest:
+
+Entity Intelligence
+Portfolio
+Security History
+
+======================================================================
+72. FINANCIAL / RISK LANGUAGE
+======================================================================
+
+Never claim:
+
+guaranteed safe
+risk-free
+guaranteed profit
+100% accurate
+certain return
+zero risk
+
+Rivexis is decision-support infrastructure.
+
+Risk assessments depend on:
+
+data quality
+provider coverage
+blockchain state
+market conditions
+provider methodology
+model assumptions
+protocol behavior
+
+Make limitations explicit.
+
+======================================================================
+73. NO FAKE COMPLETENESS
+======================================================================
+
+If any provider credential is missing:
+
+DO NOT fake integration.
+
+Example UI:
+
+Tenderly
+STATUS: Credentials Required
+
+Blockaid
+STATUS: Credentials Required
+
+CoinGecko
+STATUS: Connected
+
+Ethereum RPC
+STATUS: Connected
+
+Nansen
+STATUS: Not Configured
+
+Mock data must visibly state:
+
+DEMO DATA
+
+Never quietly mix demo and live data into one institutional decision.
+
+If demo evidence is used:
+
+Decision must be labeled as a demonstration result.
+
+======================================================================
+74. FINAL DELIVERABLE
+======================================================================
+
+Deliver a working Rivexis repository containing:
+
+complete source code
+public website
+authentication
+role onboarding
+workspace
+10 engines
+canonical data models
+provider adapter system
+source registry
+fallback system
+provider-health system
+data provenance
+data freshness
+source conflicts
+normalized engine outputs
+decision engine
+AI explanation architecture
+history
+saved analyses
+reporting foundation
+API
+database
+tests
+deployment configuration
+environment template
+technical documentation
+
+Additionally deliver a FINAL ENGINEERING REPORT:
+
+1. What was built
+2. Overall architecture
+3. Pages/routes
+4. 10 engine status
+5. Provider architecture
+6. Live providers
+7. Providers requiring credentials
+8. Mock providers
+9. Provider fallback paths
+10. API endpoints
+11. Database schema
+12. Security controls
+13. Decision methodology
+14. Evidence methodology
+15. Data-freshness rules
+16. Provider-conflict handling
+17. Tests performed
+18. Test results
+19. Known limitations
+20. Production blockers
+21. Next recommended development phase
+
+======================================================================
+75. FINAL EXECUTION DIRECTIVE
+======================================================================
+
+Start from PHASE 0.
+
+Do not ask me to redefine Rivexis unless a genuine blocking technical contradiction exists.
+
+Do not mix any unrelated project into Rivexis.
+
+Do not replace the frozen product architecture.
+
+Do not stop after creating architecture documents.
+
+Do not stop after building a landing page.
+
+Do not stop after generating UI.
+
+Do not fake provider connectivity.
+
+Do not fake live blockchain information.
+
+Do not blindly reuse third-party analytical conclusions.
+
+Use third-party platforms as:
+
+DATA SOURCES
+INFRASTRUCTURE
+SECURITY INTELLIGENCE
+MARKET DATA
+PROTOCOL DATA
+EXTERNAL EVIDENCE
+
+Then run:
+
+RIVEXIS NORMALIZATION
+→ RIVEXIS ENGINES
+→ RIVEXIS EVIDENCE FUSION
+→ RIVEXIS DECISION POLICY
+→ RIVEXIS EXPLANATION
+
+The fundamental Rivexis architecture is:
+
+MULTIPLE EXTERNAL SOURCES
+        ↓
+PROVIDER ABSTRACTION
+        ↓
+CANONICAL DATA
+        ↓
+VALIDATION + PROVENANCE
+        ↓
+10 RIVEXIS ENGINES
+        ↓
+EVIDENCE FUSION
+        ↓
+RIVEXIS DECISION ENGINE
+        ↓
+PROCEED / MODIFY / WAIT / AVOID / UNKNOWN
+        ↓
+WHY + SAFER OPTION
+        ↓
+SAVE / REPORT / HISTORY
+
+After every development phase:
+
+BUILD
+→ TEST
+→ INSPECT
+→ REPAIR
+→ VERIFY
+
+Continue until the Rivexis MVP is coherent, functional, testable, auditable and production-buildable.
