@@ -15,8 +15,9 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - Supabase contains 53 logical product tables plus 2 runtime-control tables; the runtime-control migration is present.
 - Supabase security advisor returned no findings. A generic table-list advisory notes 19 non-RLS tables, but a direct privilege check found no explicit table grants to `anon` or `authenticated`; do not enable RLS blindly unless the access model changes.
 - CI workflow contains API regression/audit, frontend type/build/vinext/audit/Playwright, invariant/secret/migration checks, and real PostgreSQL migration/runtime-control checks.
-- Final PR CI run #25 (`35793408514`) passed all four jobs: API, web, invariants and PostgreSQL migrations/runtime controls.
+- Final PR #1 CI run #25 (`35793408514`) passed all four jobs: API, web, invariants and PostgreSQL migrations/runtime controls.
 - PR #1 was merged to `main` as `ca16f39898b6392a022372ffe04cc595278a1fb6`.
+- PR #2 (`Harden authenticated workspace shell states`) passed CI run #35 (`35794008464`) and merged to `main` as `773a2faa2a6653c79972e98df505f01b15d702ea`.
 
 ## Milestone sequence
 
@@ -47,30 +48,31 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 ## Current active milestone
 
-**Milestone B — Consistent workspace loading, empty, error and degraded states**
+**Milestone B — Responsive and keyboard application-shell hardening**
 
-The global availability boundary is complete, CI-verified and merged. The next highest-value shell work is to make authenticated workspace data failures intentional and accessible rather than leaving query failures, empty workspaces or unavailable API calls implicit.
+Global service availability and authenticated workspace access states are now complete, CI-verified and merged. The remaining Milestone B priority is to make the authenticated shell robust across narrow viewports and keyboard-only use without hiding navigation, creating focus traps, or changing the established institutional visual system.
 
 Acceptance targets:
-- workspace shell distinguishes loading, empty, unauthorized/session-expired and service-unavailable states;
-- navigation and workspace selector do not imply a usable authenticated workspace while API data is unavailable;
-- error/retry copy is non-sensitive and keyboard/screen-reader usable;
-- existing responsive layout remains intact;
-- targeted Playwright coverage plus TypeScript/build/vinext/e2e checks stay green.
+- workspace navigation remains usable at desktop, tablet and mobile widths;
+- keyboard focus is clearly visible and follows a logical order;
+- active navigation state is programmatically exposed, not color-only;
+- workspace switching remains labeled and usable without pointer input;
+- shell state/recovery actions remain responsive;
+- targeted Playwright/accessibility coverage plus TypeScript/build/vinext/e2e checks stay green.
 
 ## Completed evidence
 
 - Milestone A repository and service baseline verified on 2026-09-23.
 - Existing architecture, deployment, security, provider, staging-certification, test and verification documents reviewed.
-- Current frontend routes and workspace/auth entrypoints inspected.
-- Current Cloudflare free-preview behavior verified.
-- Current Supabase project/schema/migrations/security-advisor state verified.
-- Direct Supabase role-grant check confirmed no explicit `anon`/`authenticated` table grants.
+- Current Cloudflare free-preview behavior and Supabase project/schema/migration/security state verified.
 - Durable execution files required by the master mandate were added.
-- Global API availability state was added to the root layout.
-- Degraded free-preview and unverifiable API states are textually disclosed and use an accessible status region.
-- Final PR CI run #25 passed API regression/audit, frontend type/build/vinext/audit/Playwright, invariants/secret checks, and PostgreSQL migration/runtime-control certification.
-- PR #1 merged cleanly to `main` as `ca16f39898b6392a022372ffe04cc595278a1fb6`.
+- Global API availability state was added to the root layout with accessible degraded/unverifiable disclosure.
+- Authenticated workspace shell now fails closed while access is loading or unavailable.
+- The web API helper preserves HTTP status through a typed `ApiError`, enabling explicit 401/403/503 handling without rendering backend detail strings.
+- Valid no-workspace sessions receive an explicit onboarding state; expired/revoked sessions receive a login recovery state; unavailable application APIs suppress authenticated navigation and workspace content and provide retry/public-site recovery.
+- Playwright covers loading, empty-workspace, revoked-session and service-unavailable shell states.
+- PR #2 head `192c62029f2fb8a0f25f6c4e1a8a2ac0fe02fd39` passed CI run #35 across API regression/audit, frontend type/build/vinext/audit/Playwright, invariants/secret checks and PostgreSQL migration/runtime-control certification.
+- PR #2 merged to `main` as `773a2faa2a6653c79972e98df505f01b15d702ea`.
 
 ## Dependencies and blockers
 
@@ -83,4 +85,4 @@ Acceptance targets:
 
 ## Next action
 
-Continue Milestone B by hardening `AppShell` loading/empty/error/session states and adding browser coverage. Do not move to Milestone C until the shell no longer hides authenticated data/service failures.
+Continue Milestone B with responsive and keyboard shell hardening, including programmatic active-navigation state and targeted accessibility/browser coverage. Move to Milestone C only after those shell acceptance targets are CI-green.
