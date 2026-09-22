@@ -2,7 +2,7 @@
 
 Implemented controls include scrypt password hashing, expiring signed tokens, server-side token-version revocation, organization RBAC (`OWNER`/`ADMIN`/`ANALYST`/`VIEWER`), workspace-scoped authorization, request IDs, security headers, strict validation, audit records, no-private-key/seed handling, static secret-pattern scanning and PostgreSQL RLS preparation/identity propagation.
 
-Provider/runtime controls include workspace-scoped budgets, retry/backoff, circuit breaking, concurrent request coalescing, persistent request/cost telemetry and optional Redis distribution for budget/circuit state. These are defense-in-depth controls, not substitutes for provider-side quotas or an edge WAF.
+Provider/runtime controls include workspace-scoped budgets, retry/backoff, circuit breaking, concurrent request coalescing, persistent request/cost telemetry and PostgreSQL or Redis distribution for budget/circuit state. These are defense-in-depth controls, not substitutes for provider-side quotas or an edge WAF.
 
 Background-service logging is data-minimized: the cross-tenant alert worker never serializes alert records, workspace/alert identifiers, tenant payload evidence, webhook bodies or free-form delivery/database errors into stdout. Its cycle logs contain aggregate counters only.
 
@@ -16,7 +16,7 @@ Outbound alert delivery is fail-closed in production: configured receivers must 
 - Hypernative forwarded events must reference an existing monitor in the supplied workspace; raw provider payload is capped at 64 KiB; workspace/provider/external-event keys are persistently unique so replayed events reuse the original alert.
 - The forwarding endpoint explicitly reports that provider-native signature verification was not performed. A deployment must implement the actual customer/provider signing contract when available rather than infer one.
 
-Production still requires managed identity/SSO as applicable, real non-superuser PostgreSQL RLS certification, real Redis multi-replica/load testing, managed secret rotation, dependency/browser audits, provider credential/license certification, backup/restore validation and incident-response procedures.
+Production still requires managed identity/SSO as applicable, non-superuser PostgreSQL RLS and distributed-control certification, managed secret rotation, dependency/browser audits, provider credential/license certification, backup/restore validation and incident-response procedures. Redis certification is required only when Redis is selected instead of the Supabase PostgreSQL backend.
 Production startup is fail-closed for application authentication: `RIVEXIS_AUTH_SECRET` must be a non-placeholder secret of at least 32 characters and `ENABLE_DEMO_ADAPTER` must be false. Provider inventory, status, individual-provider health and resolution/deep-probe endpoints require bearer authentication so anonymous callers cannot inspect operational provider state or consume configured provider/RPC quota.
 
 ## P35 observability, diagnostics and authentication-abuse hardening
@@ -25,11 +25,11 @@ P35 treats telemetry as an external data boundary. Provider/RPC URLs may contain
 
 Authenticated provider diagnostics remain available for shallow operational state, but production tenant API calls cannot trigger `deep=true` provider probes because those probes consume GLOBAL provider/RPC control-plane capacity. Controlled release certification calls provider adapters directly instead.
 
-P35 also adds a Redis-backed global authentication-attempt budget before login/signup scrypt work. This complements—not replaces—the per-account budget and prevents rotating random identifiers from bypassing all shared CPU-abuse controls. Production validates a bounded global budget and fails closed when the Redis authentication backend is unavailable.
+P35 also adds a distributed global authentication-attempt budget before login/signup scrypt work. This complements—not replaces—the per-account budget and prevents rotating random identifiers from bypassing all shared CPU-abuse controls. Production validates a bounded global budget and fails closed when the configured PostgreSQL or Redis backend is unavailable.
 
 ## P34 production trust-boundary hardening
 
-P34 makes current organization membership—not workspace creator lineage—the authority for organization workspaces at both application and PostgreSQL RLS layers. Browser credentials move to HttpOnly cookies with CSRF protection; API bearer tokens remain supported for non-browser clients. Production login throttling and provider controls require Redis so horizontal replicas share abuse/rate state.
+P34 makes current organization membership—not workspace creator lineage—the authority for organization workspaces at both application and PostgreSQL RLS layers. Browser credentials move to HttpOnly cookies with CSRF protection; API bearer tokens remain supported for non-browser clients. Production login throttling and provider controls require a PostgreSQL or Redis distributed backend so horizontal replicas share abuse/rate state.
 
 Provider/RPC endpoint strings are secret-bearing and must never be emitted verbatim to telemetry/evidence. P34 sanitizes provenance and converts arbitrary upstream/transport failures into stable public messages. Hypernative ingress uses monitor-scoped credentials; outbound alert HMAC signatures bind a timestamp and body. The single global production alert sink must be explicitly scoped as a Rivexis-controlled `internal_gateway`, never a tenant/customer-specific receiver.
 

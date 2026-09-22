@@ -60,14 +60,20 @@ jobs:
         run: |
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE rivexis_migrator LOGIN PASSWORD 'ci_only' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS"
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "GRANT USAGE, CREATE ON SCHEMA public TO rivexis_migrator"
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE rivexis_app LOGIN PASSWORD 'ci_only' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT NOBYPASSRLS"
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "GRANT CONNECT ON DATABASE rivexis_ci TO rivexis_app; GRANT USAGE ON SCHEMA public TO rivexis_app"
       - name: Upgrade actual PostgreSQL schema
         working-directory: apps/api
         env:
           DATABASE_URL: postgresql+psycopg://rivexis_migrator:ci_only@127.0.0.1:5432/rivexis_ci
         run: python -m alembic upgrade head
+      - name: Certify distributed PostgreSQL runtime controls
+        env:
+          DATABASE_URL: postgresql+psycopg://rivexis_app:ci_only@127.0.0.1:5432/rivexis_ci
+        run: python scripts/certify_postgres_distributed_controls.py
       - name: Verify migrated PostgreSQL schema
         env:
           PGPASSWORD: ci_only
         run: |
-          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc 'select version_num from alembic_version')" = '0010_org_workspace_membership_rls'
-          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc "select count(*) from pg_tables where schemaname='public' and tablename<>'alembic_version'")" = 53
+          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc 'select version_num from alembic_version')" = '0011_postgres_runtime_controls'
+          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc "select count(*) from pg_tables where schemaname='public' and tablename<>'alembic_version'")" = 55

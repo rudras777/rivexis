@@ -58,22 +58,22 @@ This repository is the **P37 production-MVP certification-outcome-integrity corr
 - P35 observability confidentiality: provider/RPC trace endpoints are sanitized, HTTP spans use route templates instead of concrete tenant IDs, alert spans omit alert IDs, and exported exception telemetry contains only exception class/type rather than raw messages or stack traces.
 - P35 production OTLP transport guard: remote production collectors require HTTPS; loopback HTTP is allowed for a local sidecar, while endpoint userinfo/query/fragment components are rejected.
 - P35 diagnostic isolation: authenticated tenant API users cannot invoke `deep=true` provider probes in production; trusted release certification probes providers directly from the controlled runner.
-- P35 authentication CPU-abuse hardening: a Redis-backed global authentication budget runs before login/signup scrypt work in addition to the existing per-account login budget; Redis certification proves this shared budget across independent clients.
+- P35 authentication CPU-abuse hardening: a distributed global authentication budget runs before login/signup scrypt work in addition to the existing per-account login budget; Supabase PostgreSQL is the preferred production backend and Redis remains supported.
 - P36/P37 dependency certification integrity: runner-generated root `package-lock.json` no longer breaks the source seal; its SHA-256 is bound into dependency evidence, and previously floating frontend type packages are exact-version pinned.
 - P37 provider certification outcome integrity: multi-line child output cannot promote an overall provider SKIP to PASS; partial provider skips remain compatible with a final real provider PASS.
 - P34 tenant-revocation hardening: personal workspaces remain owner-based, while organization workspaces are authorized by current organization membership only; removing a member revokes creator access at both application RBAC and forced PostgreSQL RLS layers.
 - P34 browser-session hardening: the web UI uses an HttpOnly session cookie plus CSRF protection instead of storing bearer credentials in `localStorage`; bearer authentication remains available for API/automation clients.
 - P34 identity/onboarding hardening: production direct-add-by-email for new organization members is disabled; short-lived organization-bound membership claims require authenticated account possession and administrator acceptance, with out-of-band identity verification required operationally until a verified-email/invitation service is integrated.
 - P34 organization OWNER-authority hardening: ADMIN can manage non-owner memberships but cannot create, demote, modify or remove OWNER membership; only OWNER can transfer OWNER authority, and the final OWNER cannot be demoted or removed.
-- P34 authentication-abuse hardening: bounded login input, timing-balanced missing-user verification and a production Redis-backed distributed login-attempt budget with fail-closed backend errors.
+- P34 authentication-abuse hardening: bounded login input, timing-balanced missing-user verification and a production PostgreSQL- or Redis-backed distributed login-attempt budget with fail-closed backend errors.
 - P34 provider-secret provenance hardening: credential-bearing RPC/provider URLs and arbitrary upstream transport/error text are sanitized before telemetry, evidence, warnings or API responses; historical provider telemetry endpoints are scrubbed by migration.
 - P34 webhook isolation/integrity: Hypernative ingress uses monitor-scoped derived credentials in production; outbound alert HMACs bind a timestamp, reject query/userinfo/fragment-bearing URLs, and never reflect prior free-form delivery errors.
-- P34 production dependency guard: production requires PostgreSQL, Redis-backed provider controls, Redis-backed authentication throttling, a strong auth secret, DEMO disabled, direct organization email-add disabled and exact HTTPS browser origins.
+- P34 production dependency guard: production requires PostgreSQL, distributed PostgreSQL/Redis provider controls and authentication throttling, a strong auth secret, DEMO disabled, direct organization email-add disabled and exact HTTPS browser origins.
 - P34 certification strengthening: PostgreSQL RLS certification covers organization-member revocation, Redis certification covers distributed authentication budgets, and the protocol-adapter gate activates directly from concrete Aave/Compound/Morpho certification targets.
 - P11 protocol investigation cases: normalized timeline capture, linked configuration reviews, analyst notes/disposition, audited status transitions, and authenticated JSON/HTML/PDF rendering.
 - P11 retention and backup controls: bounded provider/audit retention with deletion disabled by default, plus non-destructive backup/restore certification tooling and explicit PostgreSQL restore opt-in.
 - Provider runtime controls: retry/backoff, workspace-scoped budgets, cache, concurrent request coalescing, circuit breakers, cost/latency telemetry and persisted provider-request history.
-- Optional Redis control plane for distributed rate-budget and circuit state.
+- Supabase PostgreSQL control plane for distributed rate budgets, authentication throttling and circuit state; Redis remains an optional alternative.
 - PostgreSQL production schema blueprint and Alembic migrations covering all **53 tables** with schema-contract verification.
 - PostgreSQL FORCE-RLS policies and request-scoped user/workspace/organization context propagation.
 - Docker deployment using a one-shot Alembic migration job, a dedicated `NOSUPERUSER NOBYPASSRLS` API role, and an isolated least-privilege alert-worker database role.
@@ -120,7 +120,7 @@ For a containerized local stack, use `docker compose -f infrastructure/docker-co
 
 ## Provider control plane
 
-Default development mode keeps rate-budget and circuit state in memory. Set `RIVEXIS_PROVIDER_CONTROL_BACKEND=redis` and `REDIS_URL` to use Redis for distributed budget/circuit coordination. Cache values remain process-local because provider responses may be arbitrary Python structures; production multi-replica deployments should use a serialization-safe shared cache if cross-worker cache reuse is required.
+Default development mode keeps rate-budget and circuit state in memory. For the approved Supabase deployment, set `RIVEXIS_PROVIDER_CONTROL_BACKEND=postgres` and `RIVEXIS_AUTH_RATE_LIMIT_BACKEND=postgres`; PostgreSQL transactions and advisory locks coordinate the controls across API replicas. Redis remains available by selecting `redis` for both backends and configuring `REDIS_URL`. Cache values remain process-local because provider responses may be arbitrary Python structures; production multi-replica deployments should use a serialization-safe shared cache if cross-worker cache reuse is required.
 
 Workspace-scoped endpoints expose runtime and persisted operational evidence:
 

@@ -43,13 +43,13 @@ with tempfile.TemporaryDirectory(prefix='rivexis-pg-dr-') as tmp:
     p = subprocess.run(['psql', DST, '-Atc', verify_sql], check=True, text=True, capture_output=True)
     table_count = int(p.stdout.strip())
     total = time.perf_counter() - started
-    if table_count != 53:
-        raise SystemExit(f'PostgreSQL DR certification: FAIL - restored table count {table_count}, expected 53')
+    if table_count != 55:
+        raise SystemExit(f'PostgreSQL DR certification: FAIL - restored table count {table_count}, expected 55')
     if total > MAX_RTO:
         raise SystemExit(f'PostgreSQL DR certification: FAIL - RTO {total:.2f}s exceeds {MAX_RTO:.2f}s')
     digest = hashlib.sha256(dump.read_bytes()).hexdigest()
     print(
         'PostgreSQL DR certification: PASS '
-        f'(53 tables; dump={dump_seconds:.2f}s; restore={restore_seconds:.2f}s; '
+        f'(53 logical + 2 runtime tables; dump={dump_seconds:.2f}s; restore={restore_seconds:.2f}s; '
         f'RTO={total:.2f}s <= {MAX_RTO:.2f}s; sha256={digest})'
     )

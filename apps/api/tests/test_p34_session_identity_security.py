@@ -240,8 +240,14 @@ def test_production_requires_distributed_auth_rate_limiter():
         provider_control_backend="redis", database_url="postgresql+psycopg://runtime@db.internal/rivexis",
     )
     assert validate_runtime_security(Settings(**base))["auth_rate_limit_backend"] == "redis"
+    postgres = {**base, "auth_rate_limit_backend": "postgres", "provider_control_backend": "postgres", "redis_url": ""}
+    validated = validate_runtime_security(Settings(**postgres))
+    assert validated["auth_rate_limit_backend"] == "postgres"
+    assert validated["provider_control_backend"] == "postgres"
     with pytest.raises(RuntimeError, match="AUTH_RATE_LIMIT_BACKEND"):
         validate_runtime_security(Settings(**{**base, "auth_rate_limit_backend": "memory"}))
+    with pytest.raises(RuntimeError, match="PROVIDER_CONTROL_BACKEND"):
+        validate_runtime_security(Settings(**{**base, "provider_control_backend": "memory"}))
     with pytest.raises(RuntimeError, match="REDIS_URL"):
         validate_runtime_security(Settings(**{**base, "redis_url": ""}))
 

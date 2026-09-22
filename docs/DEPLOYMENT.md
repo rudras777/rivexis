@@ -5,7 +5,7 @@
 - Frontend: Next.js on Cloudflare Workers using a compatible adapter, subject to build and runtime validation.
 - API: containerized FastAPI; evaluate Cloudflare Containers against the application and worker requirements before production deployment.
 - Database: Supabase PostgreSQL, with separate migration, API and alert-worker privileges.
-- Provider-control plane: Redis is currently required by production startup for distributed rate budgets, authentication throttling and circuit state. An approved-stack replacement needs implementation and certification before removing it.
+- Provider-control plane: Supabase PostgreSQL is the preferred approved-stack backend for distributed rate budgets, authentication throttling and circuit state. Redis remains supported where an independently managed Redis service is available.
 - Secrets: managed secret store; never expose provider secrets to browser JavaScript.
 - Observability: structured logs, metrics/tracing and persistent `provider_requests` telemetry.
 
@@ -31,7 +31,7 @@ The certification script rejects unsafe application roles and adversarially chec
 
 ## Provider runtime
 
-For multi-instance deployments set `RIVEXIS_PROVIDER_CONTROL_BACKEND=redis` and `REDIS_URL`. Redis coordinates rate budgets and circuit state. Provider response cache values are currently process-local, while request/cost history is persisted to PostgreSQL.
+For the Supabase deployment set `RIVEXIS_PROVIDER_CONTROL_BACKEND=postgres` and `RIVEXIS_AUTH_RATE_LIMIT_BACKEND=postgres`. Transaction-scoped PostgreSQL advisory locks coordinate sliding-window budgets and circuit state across replicas. Redis remains an alternative by setting both backends to `redis` and configuring `REDIS_URL`. Provider response cache values remain process-local, while request/cost history is persisted to PostgreSQL.
 
 Configure per-provider budgets/cost estimates with environment variables documented in `.env.example`. Validate commercial provider limits and licensing before enabling production traffic.
 
@@ -108,7 +108,7 @@ On managed PostgreSQL platforms, do not assume a newly created login is safe bec
 
 ## P34 production security contract
 
-For production (`RIVEXIS_ENV=production`/`prod`), P34 fails closed unless the runtime uses PostgreSQL, `RIVEXIS_PROVIDER_CONTROL_BACKEND=redis`, `RIVEXIS_AUTH_RATE_LIMIT_BACKEND=redis`, a configured `REDIS_URL`, a unique authentication secret of at least 32 characters, `ENABLE_DEMO_ADAPTER=false`, `RIVEXIS_ALLOW_DIRECT_ORG_MEMBER_ADD=false`, and an explicit list of exact HTTPS browser origins. Wildcard, credential-bearing, path/query/fragment origins are rejected.
+For production (`RIVEXIS_ENV=production`/`prod`), P34 fails closed unless the runtime uses PostgreSQL; both distributed-control backends are `postgres` or `redis`; `REDIS_URL` is configured whenever either backend selects Redis; the authentication secret is unique and at least 32 characters; demo mode and direct organization email-add are disabled; and browser origins are exact HTTPS origins. Wildcard, credential-bearing, path/query/fragment origins are rejected.
 
 The browser uses an HttpOnly session cookie and CSRF header for unsafe methods. Bearer authentication remains supported for API/automation clients. Organization workspaces are authorized by current organization membership only; creator lineage does not survive membership removal. The PostgreSQL RLS policy and staging certifier enforce the same rule.
 

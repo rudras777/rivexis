@@ -76,14 +76,21 @@ def consume_login_attempt(email: str, *, now: float | None = None) -> bool:
 
     The global budget prevents CPU exhaustion through rotating random email addresses,
     while the account bucket still limits credential guessing against one identity.
-    Production requires Redis so both dimensions are shared across API replicas.
+    Production requires PostgreSQL or Redis so both dimensions are shared across API replicas.
     """
     global _seq
     timestamp = float(time.time() if now is None else now)
     key = _identity(email)
     limit = _limit()
     global_limit = _global_limit()
-    if _backend() == "redis":
+    backend = _backend()
+    if backend == "postgres":
+        from rivexis_api.postgres_control import consume_budget
+
+        if not consume_budget("rivexis:auth-global", timestamp, global_limit):
+            return False
+        return consume_budget(f"rivexis:auth-login:{key}", timestamp, limit)
+    if backend == "redis":
         with _lock:
             _seq += 1
             seq = _seq
@@ -116,7 +123,13 @@ def consume_login_attempt(email: str, *, now: float | None = None) -> bool:
 
 def clear_login_attempts(email: str) -> None:
     key = _identity(email)
-    if _backend() == "redis":
+    backend = _backend()
+    if backend == "postgres":
+        from rivexis_api.postgres_control import clear_budget
+
+        clear_budget(f"rivexis:auth-login:{key}")
+        return
+    if backend == "redis":
         _redis().delete(f"rivexis:auth-login:{key}")
         return
     with _lock:

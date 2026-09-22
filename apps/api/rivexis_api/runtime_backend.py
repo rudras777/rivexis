@@ -156,3 +156,45 @@ return 1
     def reset(self) -> None:
         # Production reset is intentionally a no-op: one worker must never flush shared state.
         return None
+
+
+class PostgresControlPlane:
+    """Distributed provider controls using the existing production PostgreSQL database."""
+
+    name = "postgres"
+
+    def __init__(self, prefix: str = "rivexis:provider-control") -> None:
+        self.prefix = prefix.rstrip(":")
+
+    @classmethod
+    def from_env(cls) -> "PostgresControlPlane":
+        return cls()
+
+    def _key(self, scope: str, provider_id: str) -> str:
+        return f"{self.prefix}:{scope}:{provider_id}"
+
+    def consume_budget(self, scope: str, provider_id: str, now: float, limit: int) -> bool:
+        from rivexis_api.postgres_control import consume_budget
+
+        return consume_budget(self._key(scope, provider_id), now, limit)
+
+    def circuit(self, scope: str, provider_id: str, now: float) -> CircuitState:
+        from rivexis_api.postgres_control import read_circuit
+
+        state = read_circuit(scope, provider_id, now)
+        return CircuitState(state.consecutive_failures, state.opened_until)
+
+    def success(self, scope: str, provider_id: str) -> None:
+        from rivexis_api.postgres_control import record_success
+
+        record_success(scope, provider_id)
+
+    def failure(self, scope: str, provider_id: str, now: float, threshold: int, cooldown: float) -> CircuitState:
+        from rivexis_api.postgres_control import record_failure
+
+        state = record_failure(scope, provider_id, now, threshold, cooldown)
+        return CircuitState(state.consecutive_failures, state.opened_until)
+
+    def reset(self) -> None:
+        # Production reset is intentionally a no-op: one worker must never flush shared state.
+        return None

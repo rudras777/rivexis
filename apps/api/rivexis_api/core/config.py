@@ -43,12 +43,14 @@ def validate_runtime_security(settings_obj: Settings | None = None) -> dict[str,
             raise RuntimeError("ENABLE_DEMO_ADAPTER must be false in production")
         if bool(cfg.allow_direct_org_member_add):
             raise RuntimeError("RIVEXIS_ALLOW_DIRECT_ORG_MEMBER_ADD must be false in production")
-        if str(cfg.auth_rate_limit_backend).strip().lower() != "redis":
-            raise RuntimeError("RIVEXIS_AUTH_RATE_LIMIT_BACKEND must be redis in production")
-        if not str(cfg.redis_url or "").strip():
-            raise RuntimeError("REDIS_URL is required for production authentication rate limiting")
-        if str(cfg.provider_control_backend).strip().lower() != "redis":
-            raise RuntimeError("RIVEXIS_PROVIDER_CONTROL_BACKEND must be redis in production")
+        auth_backend = str(cfg.auth_rate_limit_backend).strip().lower()
+        provider_backend = str(cfg.provider_control_backend).strip().lower()
+        if auth_backend not in {"postgres", "redis"}:
+            raise RuntimeError("RIVEXIS_AUTH_RATE_LIMIT_BACKEND must be postgres or redis in production")
+        if provider_backend not in {"postgres", "redis"}:
+            raise RuntimeError("RIVEXIS_PROVIDER_CONTROL_BACKEND must be postgres or redis in production")
+        if "redis" in {auth_backend, provider_backend} and not str(cfg.redis_url or "").strip():
+            raise RuntimeError("REDIS_URL is required when a production distributed-control backend uses redis")
         database_url = str(cfg.database_url or "").strip().lower()
         if not (database_url.startswith("postgresql://") or database_url.startswith("postgresql+")):
             raise RuntimeError("DATABASE_URL must use PostgreSQL in production so tenant RLS is enforceable")

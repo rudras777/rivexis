@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 
 from rivexis_api.core.context import get_workspace_id
 from rivexis_api.core.telemetry import child_span
-from rivexis_api.runtime_backend import ControlPlane, MemoryControlPlane, RedisControlPlane
+from rivexis_api.runtime_backend import ControlPlane, MemoryControlPlane, PostgresControlPlane, RedisControlPlane
 
 T = TypeVar("T")
 
@@ -78,6 +78,7 @@ _singleflight_locks: dict[tuple[str, str, str, str], threading.Lock] = {}
 _memory_backend = MemoryControlPlane()
 _backend_override: ControlPlane | None = None
 _redis_backend: RedisControlPlane | None = None
+_postgres_backend: PostgresControlPlane | None = None
 
 
 def _scope() -> str:
@@ -109,10 +110,15 @@ def _cost_per_attempt(provider_id: str) -> float:
 
 
 def _control_plane() -> ControlPlane:
-    global _redis_backend
+    global _postgres_backend, _redis_backend
     if _backend_override is not None:
         return _backend_override
-    if os.getenv("RIVEXIS_PROVIDER_CONTROL_BACKEND", "memory").strip().lower() != "redis":
+    configured = os.getenv("RIVEXIS_PROVIDER_CONTROL_BACKEND", "memory").strip().lower()
+    if configured == "postgres":
+        if _postgres_backend is None:
+            _postgres_backend = PostgresControlPlane.from_env()
+        return _postgres_backend
+    if configured != "redis":
         return _memory_backend
     if _redis_backend is None:
         _redis_backend = RedisControlPlane.from_env()
@@ -175,8 +181,8 @@ def execute(
     Cache values remain process-local because the runtime accepts arbitrary Python results.
     Concurrent cacheable requests for the same workspace/provider/operation/key are coalesced
     by a per-key lock; followers re-check the cache after the leader completes. Rate budgets
-    and circuit state can be distributed with Redis by setting
-    RIVEXIS_PROVIDER_CONTROL_BACKEND=redis and REDIS_URL. Every workspace-scoped logical call
+    and circuit state can be distributed with PostgreSQL or Redis by setting
+    RIVEXIS_PROVIDER_CONTROL_BACKEND=postgres or redis. Every workspace-scoped logical call
     is separately persisted to provider_requests for operational/cost history.
     """
     endpoint = safe_provider_endpoint(provider_id, endpoint)
@@ -352,7 +358,7 @@ def snapshot(workspace_id: str | None = None) -> dict[str, Any]:
 
 
 def reset_runtime_state() -> None:
-    global _redis_backend
+    global _postgres_backend, _redis_backend
     with _lock:
         _telemetry.clear()
         _cache.clear()
@@ -361,3 +367,4 @@ def reset_runtime_state() -> None:
     if _backend_override is not None:
         _backend_override.reset()
     _redis_backend = None
+    _postgres_backend = None

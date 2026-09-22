@@ -1,6 +1,6 @@
 # Database Schema
 
-`infrastructure/db/schema.sql` is the 53-table PostgreSQL production blueprint.
+`infrastructure/db/schema.sql` is the 53-table PostgreSQL product-data blueprint. Alembic also creates two internal runtime-control tables for distributed request budgets and provider circuit state; these are infrastructure state, not product entities.
 
 Alembic migrations `0001` and `0002` implement the operational persistence used by the application. `0003_production_schema_rls` expands the clean-upgrade table surface and PostgreSQL RLS policy coverage. `0004_blueprint_contract` promotes the remaining scaffold tables/fields and relationship constraints to the current blueprint contract.
 
