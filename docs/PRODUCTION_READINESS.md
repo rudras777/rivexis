@@ -7,7 +7,7 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Area | State | Evidence / blocker |
 |---|---|---|
 | Repository baseline and source control | PASS | Private repo, `main` verified at `daa5cc1` before this milestone. |
-| Durable execution planning | PASS | Build plan, backlog, architecture decisions, deployment status and this readiness matrix are now maintained in-repo. |
+| Durable execution planning | PASS | Build plan, backlog, architecture decisions, deployment status and this readiness matrix are maintained in-repo. |
 | Ten-engine architecture | PASS | Repository preserves exactly B1–B5 and F1–F5 plus existing invariant coverage. |
 | Deterministic decision/UNKNOWN policy | PASS | Existing domain and verification docs/tests preserve explicit UNKNOWN and evidence-first outcomes. |
 | Supabase project health | PASS | Project is `ACTIVE_HEALTHY` in `ap-south-1`. |
@@ -15,18 +15,19 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Supabase browser-role exposure review | PASS | Security advisor has no findings; direct check found no explicit `anon`/`authenticated` table grants. Re-check if grants/Data API exposure changes. |
 | Frontend free preview | PASS | Public site reachable on Cloudflare Workers. |
 | Honest free-tier API boundary | PASS | `/health` reports degraded and application routes are designed to return 503 rather than fake FastAPI behavior. |
-| Global degraded-service UX | PASS | Root-level health check and accessible degraded/unverifiable disclosure implemented; retained through CI run #35. |
-| Workspace shell access-state UX | PASS | Loading, zero-workspace, 401 session-ended, 403 access-unavailable and 503/generic service failure paths fail closed; targeted Playwright coverage passed in CI run #35. |
+| Global degraded-service UX | PASS | Root-level health check and accessible degraded/unverifiable disclosure implemented; retained through current CI. |
+| Workspace shell access-state UX | PASS | Loading, zero-workspace, 401 session-ended, 403 access-unavailable and 503/generic service failure paths fail closed; targeted Playwright coverage passed. |
 | Responsive/keyboard shell UX | PASS | Skip link, focus-visible treatment, `aria-current`, narrow-view navigation/logout and mobile recovery states are covered; authenticated shell Axe has no serious/critical blockers after the logout contrast correction. |
 | Browser auth/onboarding repository coverage | PASS | HttpOnly-cookie/CSRF architecture, non-enumerating login/signup behavior, safe browser error copy, submit locking, existing-workspace resume, hard-reload CSRF recovery and ambiguous-create reconciliation are covered by API + Playwright tests. |
-| Current milestone CI | PASS | CI run #65 passed API, web/Playwright/Axe, invariants/secret scan and PostgreSQL migration/runtime-control jobs. |
+| Browser session lifecycle repository coverage | PASS | Hard-reload workspace continuity, CSRF recovery for logout, duplicate-submit locking, confirmed logout cleanup, already-revoked 401 cleanup, post-logout fail-closed access, generic non-401 logout failure handling, revoked-session CSRF rejection and invalid-CSRF non-revocation are covered by API + Playwright tests. |
+| Current milestone CI | PASS | PR #5 CI run #77 (`35798213551`) passed API, web/Playwright/Axe, invariants/secret scan and PostgreSQL migration/runtime-control jobs. |
 | Live deployment of current milestone | BLOCKED | Source is CI-green but this change has not yet been verified on the Cloudflare Worker; no deployment action is claimed. |
 | Live FastAPI runtime | BLOCKED | Cloudflare Containers requires Workers Paid; no paid activation authorized. |
 | Production custom domain/TLS | BLOCKED | No domain owned/configured for Rivexis. |
 | Production auth secret installation | BLOCKED | Requires action-time production credential setup. |
 | Least-privilege production API DB credential | BLOCKED | Role model exists; final runtime credential must be configured into the live API environment. |
 | Isolated production migration run | BLOCKED | Requires the real production deployment path/credential at launch. |
-| Real browser auth/onboarding E2E | BLOCKED | No live FastAPI runtime on the current free preview. |
+| Real browser auth/onboarding/session E2E | BLOCKED | Repository-level browser/API evidence is green, but the current free preview has no live FastAPI runtime, so deployed browser certification cannot be claimed. |
 | Brevo transactional email | BLOCKED | Phone verification, owned domain, DKIM/SPF/DMARC review, credentials and real Gmail delivery verification remain. |
 | Live provider certification | BLOCKED | Requires configured/licensed Rivexis-owned provider targets and credentials. |
 | Arkham | BLOCKED | Must remain license-gated until explicit commercial approval. |
