@@ -27,4 +27,23 @@ test.describe('public route smoke', () => {
       expect(pageErrors).toEqual([]);
     });
   }
+
+  test('degraded API availability is disclosed globally', async ({ page }) => {
+    await page.route('**/health', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          status: 'degraded',
+          reason: 'FastAPI runtime unavailable on the approved free-tier stack',
+        }),
+      }),
+    );
+
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const availability = page.getByTestId('service-availability');
+    await expect(availability).toHaveAttribute('role', 'status');
+    await expect(availability).toContainText('Service availability');
+    await expect(availability).toContainText('authenticated workspace actions and live analyses are unavailable');
+  });
 });
