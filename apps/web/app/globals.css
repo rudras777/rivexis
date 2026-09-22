@@ -8,3 +8,15 @@
 .serviceBanner.degraded{background:#fff7dc;border-color:#f0cd75;color:#684f00}
 .serviceBanner.unavailable{background:#fff1f0;border-color:#f1b7b2;color:#7a271a}
 @media(max-width:600px){.serviceBanner{display:grid;gap:4px;padding:10px 18px}.serviceBanner strong{white-space:normal}}
+
+.workspaceSelector{font-size:11px;display:grid;gap:6px}
+.workspaceSelector select{min-width:0}
+.shellStateSidebar .sideFoot{margin-top:auto}
+.shellState{display:grid;place-items:center;min-height:70vh}
+.shellStateCard{width:min(620px,100%);background:#fff;border:1px solid var(--line);box-shadow:0 12px 42px #173a6b0d;border-radius:14px;padding:28px}
+.shellStateCard h1{font-size:28px;margin:8px 0 10px}
+.shellStateCard p{color:var(--muted);line-height:1.65;margin:0;max-width:560px}
+.shellStateKicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:800}
+.shellStateActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+@media(max-width:900px){.shellState{min-height:48vh}.shellStateSidebar .sideFoot{display:grid}}
+@media(max-width:600px){.shellStateCard{padding:22px}.shellStateActions{display:grid}.shellStateActions .button,.shellStateActions .ghost{width:100%;text-align:center}}
