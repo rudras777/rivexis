@@ -19,7 +19,7 @@ export async function api<T>(path:string,init:RequestInit={}):Promise<T>{
  if(init.body!=null&&!headers.has("Content-Type"))headers.set("Content-Type","application/json");
  if(UNSAFE.has(method)&&!webAuthBootstrap(path))headers.set("X-Rivexis-CSRF",await ensureCsrfToken());
  const r=await fetch(`${API}${path}`,{...init,headers,credentials:"include",cache:"no-store"});
- if(!r.ok){let msg=`Request failed (${r.status})`;try{const j=await r.json();msg=j.detail??msg}catch{};throw new Error(msg)}
+ if(!r.ok){let msg=`Request failed (${r.status})`;try{const j=await r.json() as {detail?:string};msg=j.detail??msg}catch{};throw new Error(msg)}
  if(r.status===204)return undefined as T;return r.json() as Promise<T>;
 }
 export const enginePath:Record<EngineId,string>={B1:"simulations",B2:"security",B3:"monitoring",B4:"entities",B5:"routes",F1:"portfolio",F2:"protocol-risk",F3:"position-risk",F4:"yield",F5:"treasury"};
@@ -28,6 +28,6 @@ export async function apiBlob(path:string,init:RequestInit={}):Promise<Blob>{
  const headers=new Headers(init.headers);
  if(UNSAFE.has(method))headers.set("X-Rivexis-CSRF",await ensureCsrfToken());
  const r=await fetch(`${API}${path}`,{...init,headers,credentials:"include",cache:"no-store"});
- if(!r.ok){let msg=`Request failed (${r.status})`;try{const j=await r.json();msg=j.detail??msg}catch{};throw new Error(msg)}
+ if(!r.ok){let msg=`Request failed (${r.status})`;try{const j=await r.json() as {detail?:string};msg=j.detail??msg}catch{};throw new Error(msg)}
  return r.blob();
 }
