@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
-import {useQuery} from "@tanstack/react-query";
+import {useQuery,useQueryClient} from "@tanstack/react-query";
 import {useEffect,useState} from "react";
 import {Brand} from "./Brand";
+import {WorkspaceContextProvider,type WorkspaceSummary} from "./WorkspaceContext";
 import {
   ApiError,
   activeWorkspaceId,
@@ -24,14 +25,6 @@ const nav=[
   ["History","/workspace/history"],
   ["Saved","/workspace/saved"],
 ];
-
-type Workspace={
-  id:string;
-  name:string;
-  role:string;
-  organization_id?:string|null;
-  access_role:string;
-};
 
 type ShellStateProps={
   title:string;
@@ -73,40 +66,60 @@ function clearClientSessionState(){
 export function AppShell({children}:{children:React.ReactNode}){
   const p=usePathname();
   const router=useRouter();
+  const queryClient=useQueryClient();
   const [active,setActive]=useState("");
   const [loggingOut,setLoggingOut]=useState(false);
   const [logoutError,setLogoutError]=useState("");
   const q=useQuery({
     queryKey:["workspaces-shell"],
-    queryFn:()=>api<{items:Workspace[]}>("/api/v1/workspaces"),
+    queryFn:()=>api<{items:WorkspaceSummary[]}>("/api/v1/workspaces"),
     retry:false,
   });
 
   const apiStatus=q.error instanceof ApiError?q.error.status:null;
 
+  function clearWorkspaceQueries(workspaceId?:string|null){
+    if(workspaceId){
+      void queryClient.cancelQueries({queryKey:["workspace",workspaceId]});
+      queryClient.removeQueries({queryKey:["workspace",workspaceId]});
+      return;
+    }
+    void queryClient.cancelQueries({queryKey:["workspace"]});
+    queryClient.removeQueries({queryKey:["workspace"]});
+  }
+
   useEffect(()=>{
     if(apiStatus!==401)return;
+    clearWorkspaceQueries();
     clearClientSessionState();
   },[apiStatus]);
 
   useEffect(()=>{
     if(!q.data)return;
     if(!q.data.items.length){
+      clearWorkspaceQueries();
       clearActiveWorkspaceId();
       setActive("");
       return;
     }
     const stored=activeWorkspaceId();
     const chosen=q.data.items.find(w=>w.id===stored)?.id??q.data.items[0].id;
+    if(stored&&stored!==chosen){
+      clearWorkspaceQueries(stored);
+      window.dispatchEvent(new CustomEvent("rivexis-workspace-change",{detail:{workspaceId:chosen,previousWorkspaceId:stored}}));
+    }
     setActive(chosen);
     setActiveWorkspaceId(chosen);
   },[q.data]);
 
   function change(id:string){
+    const previous=active||activeWorkspaceId();
+    if(previous===id)return;
+    if(previous)clearWorkspaceQueries(previous);
     setActive(id);
     setActiveWorkspaceId(id);
-    window.dispatchEvent(new Event("rivexis-workspace-change"));
-    window.location.reload();
+    setLogoutError("");
+    window.dispatchEvent(new CustomEvent("rivexis-workspace-change",{detail:{workspaceId:id,previousWorkspaceId:previous}}));
   }
 
   async function logout(){
@@ -124,6 +137,7 @@ export function AppShell({children}:{children:React.ReactNode}){
       // A 401 during CSRF bootstrap or logout means the server session is already
       // missing/revoked. Finish local cleanup and route to the unauthenticated surface.
     }
+    clearWorkspaceQueries();
     clearClientSessionState();
     router.replace("/login");
     router.refresh();
@@ -176,6 +190,8 @@ export function AppShell({children}:{children:React.ReactNode}){
   }
 
   const selected=active||q.data.items[0].id;
+  const selectedWorkspace=q.data.items.find(w=>w.id===selected)??q.data.items[0];
+  const contextValue={workspaceId:selected,workspace:selectedWorkspace,workspaces:q.data.items,switchWorkspace:change};
 
   return <div className="appShell">
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
@@ -203,6 +219,8 @@ export function AppShell({children}:{children:React.ReactNode}){
         </div>
       </div>
     </aside>
-    <main className="workspaceMain" id="workspace-main">{children}</main>
+    <main className="workspaceMain" id="workspace-main">
+      <WorkspaceContextProvider value={contextValue}>{children}</WorkspaceContextProvider>
+    </main>
   </div>;
 }
