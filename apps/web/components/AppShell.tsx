@@ -65,11 +65,17 @@ function ShellState({title,message,kind,action}:ShellStateProps){
   </div>;
 }
 
+function clearClientSessionState(){
+  setCsrfToken(null);
+  clearActiveWorkspaceId();
+}
+
 export function AppShell({children}:{children:React.ReactNode}){
   const p=usePathname();
   const router=useRouter();
   const [active,setActive]=useState("");
   const [loggingOut,setLoggingOut]=useState(false);
+  const [logoutError,setLogoutError]=useState("");
   const q=useQuery({
     queryKey:["workspaces-shell"],
     queryFn:()=>api<{items:Workspace[]}>("/api/v1/workspaces"),
@@ -80,8 +86,7 @@ export function AppShell({children}:{children:React.ReactNode}){
 
   useEffect(()=>{
     if(apiStatus!==401)return;
-    clearActiveWorkspaceId();
-    setCsrfToken(null);
+    clearClientSessionState();
   },[apiStatus]);
 
   useEffect(()=>{
@@ -107,15 +112,21 @@ export function AppShell({children}:{children:React.ReactNode}){
   async function logout(){
     if(loggingOut)return;
     setLoggingOut(true);
+    setLogoutError("");
     try{
       await api("/api/v1/auth/logout",{method:"POST"});
-      setCsrfToken(null);
-      clearActiveWorkspaceId();
-      router.replace("/login");
-      router.refresh();
-    }catch{
-      setLoggingOut(false);
+    }catch(error){
+      if(!(error instanceof ApiError)||error.status!==401){
+        setLogoutError("Rivexis could not confirm logout. Retry before leaving this device.");
+        setLoggingOut(false);
+        return;
+      }
+      // A 401 during CSRF bootstrap or logout means the server session is already
+      // missing/revoked. Finish local cleanup and route to the unauthenticated surface.
     }
+    clearClientSessionState();
+    router.replace("/login");
+    router.refresh();
   }
 
   if(q.isPending){
@@ -185,6 +196,7 @@ export function AppShell({children}:{children:React.ReactNode}){
       </nav>
       <div className="sideFoot">
         <button type="button" className="ghost" onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out"}</button>
+        {logoutError?<div className="sidebarError" role="alert">{logoutError}</div>:null}
         <div className="decisionLegend">
           <b>Decision states</b>
           <span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span>
