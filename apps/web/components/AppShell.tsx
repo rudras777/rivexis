@@ -120,6 +120,11 @@ export function AppShell({children}:{children:React.ReactNode}){
     setActiveWorkspaceId(id);
     setLogoutError("");
     window.dispatchEvent(new CustomEvent("rivexis-workspace-change",{detail:{workspaceId:id,previousWorkspaceId:previous}}));
+    // Several legacy tool pages still hold workspace-local results in component state.
+    // Keep a hard navigation boundary until each of those pages is migrated to keyed
+    // workspace state; this prevents a selected result from one workspace surviving
+    // visually after a switch.
+    window.location.reload();
   }
 
   async function logout(){
