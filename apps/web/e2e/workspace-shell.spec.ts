@@ -128,6 +128,28 @@ test.describe("workspace shell access states",()=>{
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
   });
 
+  test("keeps session recovery actions usable on mobile",async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await mockHealthyService(page);
+    await page.route("**/api/v1/workspaces",route=>route.fulfill({
+      status:401,
+      contentType:"application/json",
+      headers:corsHeaders,
+      body:JSON.stringify({detail:"Authentication required"}),
+    }));
+
+    await page.goto("/workspace");
+    const state=page.getByTestId("workspace-shell-session");
+    await expect(state.getByRole("link",{name:"Log in again"})).toBeVisible();
+    await expect(state.getByRole("link",{name:"Public site"})).toBeVisible();
+
+    const dimensions=await page.evaluate(()=>({
+      scrollWidth:document.documentElement.scrollWidth,
+      clientWidth:document.documentElement.clientWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  });
+
   test("fails closed when the application API is unavailable",async({page})=>{
     await mockHealthyService(page);
     let calls=0;
