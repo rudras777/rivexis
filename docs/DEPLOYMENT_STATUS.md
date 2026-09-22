@@ -5,7 +5,7 @@ Last updated: 2026-09-23
 | Environment | Status | Evidence / meaning |
 |---|---|---|
 | Local development | AVAILABLE, NOT VERIFIED IN THIS CHAT | Repository contains SQLite/local and Docker/PostgreSQL development paths. No local shell execution was used for this update. |
-| GitHub CI | PASS FOR CURRENT MILESTONE | PR #2 CI run #35 (`35794008464`) passed API, web/Playwright, invariants and PostgreSQL migration/runtime-control jobs. |
+| GitHub CI | PASS FOR CURRENT MILESTONE | PR #3 CI run #48 (`35794960918`) passed API, web/Playwright/Axe, invariants and PostgreSQL migration/runtime-control jobs. |
 | Free frontend preview | LIVE, SOURCE MERGED / DEPLOYMENT UNVERIFIED | `https://rivexis-web.rudrasingh0718.workers.dev` returned the Rivexis public site on 2026-09-23. The availability banner is merged and CI-verified but is not claimed live until a Cloudflare deployment is independently verified. |
 | Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` returned `status=degraded`; application routes intentionally return 503. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`; 53 product + 2 runtime-control tables verified. |
@@ -26,8 +26,9 @@ Last updated: 2026-09-23
 
 - Pull request #1 (`Add durable build state and global degraded-service UX`) merged to `main` as `ca16f39898b6392a022372ffe04cc595278a1fb6`.
 - Pull request #2 (`Harden authenticated workspace shell states`) merged to `main` as `773a2faa2a6653c79972e98df505f01b15d702ea`.
-- PR #2 final head: `192c62029f2fb8a0f25f6c4e1a8a2ac0fe02fd39`.
-- CI run #35: all four jobs PASS.
+- Pull request #3 (`Harden responsive and keyboard workspace shell`) merged to `main` as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
+- PR #3 final head: `bcef483333152973898fd26a6b5efb5e49355a93`.
+- CI run #48: all four jobs PASS.
 - Durable plan synchronization continued on `main` after each merge.
 - No paid Cloudflare feature, new vendor, production credential, email send or external provider activation was performed.
 - The live Worker is not claimed to contain this source change until a real deployment is verified.
