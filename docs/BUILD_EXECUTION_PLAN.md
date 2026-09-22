@@ -20,6 +20,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - PR #2 (`Harden authenticated workspace shell states`) passed CI run #35 (`35794008464`) and merged to `main` as `773a2faa2a6653c79972e98df505f01b15d702ea`.
 - PR #3 (`Harden responsive and keyboard workspace shell`) passed CI run #48 (`35794960918`) and merged to `main` as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
 - PR #4 (`Harden browser authentication and resumable onboarding`) passed CI run #65 (`35795979200`) and merged to `main` as `543dcccff3a2b094c504d68453000685648c96ec`.
+- PR #5 (`Harden browser session restoration and logout lifecycle`) passed CI run #77 (`35798213551`) and merged to `main` as `158eedd7a13bf0dd0089a5d60138dcd18de6f46d`.
 
 ## Milestone sequence
 
@@ -50,18 +51,19 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 ## Current active milestone
 
-**Milestone C — Browser session restoration, logout and revocation journeys**
+**Milestone D — Workspace foundations: dashboard and workspace context integrity**
 
-Browser signup/login and onboarding are now hardened and CI-verified. The remaining unblocked Milestone C priority is to prove browser-session continuity and termination behavior end to end in the repository harness: hard-reload CSRF recovery, explicit logout, revoked/expired session recovery, and safe client-state cleanup.
+Milestone C is complete in the runnable repository harness. Browser signup/login/onboarding, hard-reload session continuity, CSRF recovery, explicit logout, revoked/expired-session cleanup and fail-closed recovery are CI-verified. Real deployed browser/auth certification remains blocked until a live FastAPI runtime exists.
+
+The next highest-value unblocked priority is to make the workspace itself a dependable operating surface: the dashboard and shared workspace context must consistently reflect the selected workspace, avoid stale cross-workspace data after switching, and expose honest loading/empty/error/provider states before deeper feature completion.
 
 Acceptance targets:
-- an authenticated browser session restores after a hard reload without browser bearer-token storage;
-- unsafe cookie-authenticated logout obtains/reuses CSRF correctly and clears client workspace/CSRF state;
-- logout/revocation returns the browser to a safe unauthenticated state and subsequent workspace access fails closed;
-- expired/revoked sessions route through the existing explicit recovery state without leaking backend detail;
-- concurrent/double-submit behavior does not produce duplicate state transitions;
-- real production/browser certification remains BLOCKED until a live FastAPI runtime exists;
-- targeted API + Playwright security/browser tests and full CI remain green.
+- dashboard data requests are scoped to the active authorized workspace wherever the API contract supports workspace scoping;
+- changing workspaces invalidates/refetches workspace-dependent client data instead of leaving stale tenant context visible;
+- dashboard/loading/empty/error states do not imply data exists when APIs are unavailable or empty;
+- provider/runtime state distinguishes configured/available/degraded/unavailable conditions without fabricated readiness;
+- workspace settings, history and saved foundations preserve authorization boundaries and selected-workspace context;
+- targeted API + Playwright coverage plus full CI remain green.
 
 ## Completed evidence
 
@@ -69,14 +71,18 @@ Acceptance targets:
 - Milestone B global availability, fail-closed workspace shell, responsive/keyboard behavior and authenticated-shell accessibility are CI-verified.
 - Browser web auth continues to use HttpOnly cookies plus CSRF; no bearer token is introduced into browser storage.
 - Browser login and signup use non-enumerating user-facing error copy and lock duplicate submits while requests are pending.
-- Browser-facing signup conflicts no longer confirm whether an account exists; backend regression tests also prove known-account and unknown-account login failures return the same 401 detail.
+- Browser-facing signup conflicts no longer confirm whether an account exists; backend regression tests prove known-account and unknown-account login failures return the same 401 detail.
 - Login/signup UI does not render arbitrary backend identity detail.
 - Email verification and password recovery are explicitly labeled unavailable until the approved delivery path is configured; no fake delivery capability is claimed.
 - Onboarding checks for an existing authorized workspace before creating another, recovers CSRF after hard reload, persists the active workspace only after confirmation, and reconciles an ambiguous create response against the authorized workspace list before asking the user to retry.
-- Playwright covers browser auth error masking, submit locking, no bearer localStorage, existing-workspace resume, hard-reload CSRF recovery and ambiguous-create reconciliation.
-- Initial PR #4 browser CI exposed only ambiguous test selectors caused by Next.js' route announcer sharing role=alert; selectors were narrowed to the form-owned alert without changing application behavior.
-- PR #4 head `338a8291e786e244295c6bf80496581d8e2c8756` passed CI run #65 across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
-- PR #4 merged to `main` as `543dcccff3a2b094c504d68453000685648c96ec`.
+- Browser session continuity is preserved across hard reloads without browser bearer-token storage.
+- Explicit logout obtains/reuses CSRF, prevents duplicate transitions while pending, clears active-workspace and in-memory CSRF state only after confirmed logout or an already-ended 401 session, and routes to the unauthenticated surface.
+- If logout cannot be confirmed because of a non-401 service failure, Rivexis retains local workspace context and exposes a generic retry warning instead of silently pretending the session ended.
+- Revoked/expired sessions cannot refresh CSRF, clear local client session state, and fail closed on subsequent workspace access without rendering backend detail.
+- Invalid-CSRF logout attempts are rejected without silently revoking an otherwise valid server session.
+- Initial PR #5 browser CI exposed a transport-specific test assumption about inspecting cross-origin cookie headers under Playwright route interception; the test was corrected to assert behavior-level continuity, CSRF recovery and logout semantics instead of a mock-transport header artifact.
+- PR #5 head `f1016623466c86c5b15250ed3e25cd262ea258df` passed PR CI run #77 across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
+- PR #5 merged to `main` as `158eedd7a13bf0dd0089a5d60138dcd18de6f46d`.
 
 ## Dependencies and blockers
 
@@ -85,8 +91,9 @@ Acceptance targets:
 - **Production email:** BLOCKED on Brevo phone verification, owned domain, domain authentication and action-time credential approval.
 - **External providers:** BLOCKED where credentials, commercial licensing or customer-specific contracts are absent; unsupported paths must remain UNKNOWN/unavailable.
 - **Production secrets:** creation/rotation requires action-time confirmation where specified by the project mandate.
+- **Real deployed browser/auth certification:** BLOCKED until a live FastAPI runtime is available; repository-level browser/API evidence is not production evidence.
 - **Production certification:** remains incomplete until real Rudra/Rivexis-owned targets supply external gate evidence.
 
 ## Next action
 
-Continue Milestone C with browser session restoration, explicit logout and revocation journeys, including hard-reload CSRF recovery and client-state cleanup. Keep live production browser certification blocked until a real FastAPI runtime is deployed.
+Begin Milestone D by auditing dashboard/workspace-dependent queries, active-workspace propagation, switching invalidation, provider state, settings, history and saved views. Implement the highest-value unblocked workspace-context integrity gap first, then gate the change on targeted browser/API tests and full CI.
