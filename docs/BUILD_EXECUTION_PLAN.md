@@ -18,6 +18,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - Final PR #1 CI run #25 (`35793408514`) passed all four jobs: API, web, invariants and PostgreSQL migrations/runtime controls.
 - PR #1 was merged to `main` as `ca16f39898b6392a022372ffe04cc595278a1fb6`.
 - PR #2 (`Harden authenticated workspace shell states`) passed CI run #35 (`35794008464`) and merged to `main` as `773a2faa2a6653c79972e98df505f01b15d702ea`.
+- PR #3 (`Harden responsive and keyboard workspace shell`) passed CI run #48 (`35794960918`) and merged to `main` as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
 
 ## Milestone sequence
 
@@ -48,31 +49,30 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 ## Current active milestone
 
-**Milestone B — Responsive and keyboard application-shell hardening**
+**Milestone C — Browser authentication and onboarding journeys**
 
-Global service availability and authenticated workspace access states are now complete, CI-verified and merged. The remaining Milestone B priority is to make the authenticated shell robust across narrow viewports and keyboard-only use without hiding navigation, creating focus traps, or changing the established institutional visual system.
+Milestone B is complete and CI-verified. The next priority is to validate and harden the existing browser session, CSRF and onboarding flow against the real FastAPI contract in runnable test environments while keeping production email verification/recovery explicitly blocked until Brevo/domain prerequisites exist.
 
 Acceptance targets:
-- workspace navigation remains usable at desktop, tablet and mobile widths;
-- keyboard focus is clearly visible and follows a logical order;
-- active navigation state is programmatically exposed, not color-only;
-- workspace switching remains labeled and usable without pointer input;
-- shell state/recovery actions remain responsive;
-- targeted Playwright/accessibility coverage plus TypeScript/build/vinext/e2e checks stay green.
+- browser signup/login/logout use HttpOnly session-cookie flows and CSRF protections without exposing bearer tokens to browser storage;
+- session restoration and revoked/expired-session recovery are deterministic;
+- onboarding persists the intended workspace/role state and safely resumes/retries after recoverable failures;
+- authentication errors do not enumerate accounts or leak sensitive backend detail;
+- email verification/recovery is represented as unavailable until a real approved delivery path is configured;
+- targeted API + Playwright security/browser tests and full CI remain green.
 
 ## Completed evidence
 
-- Milestone A repository and service baseline verified on 2026-09-23.
-- Existing architecture, deployment, security, provider, staging-certification, test and verification documents reviewed.
-- Current Cloudflare free-preview behavior and Supabase project/schema/migration/security state verified.
-- Durable execution files required by the master mandate were added.
-- Global API availability state was added to the root layout with accessible degraded/unverifiable disclosure.
-- Authenticated workspace shell now fails closed while access is loading or unavailable.
-- The web API helper preserves HTTP status through a typed `ApiError`, enabling explicit 401/403/503 handling without rendering backend detail strings.
-- Valid no-workspace sessions receive an explicit onboarding state; expired/revoked sessions receive a login recovery state; unavailable application APIs suppress authenticated navigation and workspace content and provide retry/public-site recovery.
-- Playwright covers loading, empty-workspace, revoked-session and service-unavailable shell states.
-- PR #2 head `192c62029f2fb8a0f25f6c4e1a8a2ac0fe02fd39` passed CI run #35 across API regression/audit, frontend type/build/vinext/audit/Playwright, invariants/secret checks and PostgreSQL migration/runtime-control certification.
-- PR #2 merged to `main` as `773a2faa2a6653c79972e98df505f01b15d702ea`.
+- Milestone A repository/service audit and durable execution controls are complete.
+- Global API availability state is accessible and does not misrepresent the free degraded API.
+- Authenticated workspace shell fails closed during loading, empty, revoked-session and unavailable-service states.
+- Workspace API errors preserve HTTP status through typed `ApiError` handling while withholding backend detail from shell recovery copy.
+- Responsive/keyboard shell now includes a visible-on-focus skip link, explicit focus treatment, `aria-current` active navigation, mobile/tablet workspace navigation, and mobile-accessible logout.
+- Axe identified a 2.44:1 contrast defect on the newly visible logout button; the component contrast was corrected rather than suppressing the WCAG rule.
+- Playwright covers keyboard focus order, mobile navigation/overflow, mobile recovery actions and authenticated shell states.
+- Authenticated workspace Axe coverage has no serious/critical WCAG blockers after the contrast correction.
+- PR #3 head `bcef483333152973898fd26a6b5efb5e49355a93` passed CI run #48 across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
+- PR #3 merged to `main` as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
 
 ## Dependencies and blockers
 
@@ -85,4 +85,4 @@ Acceptance targets:
 
 ## Next action
 
-Continue Milestone B with responsive and keyboard shell hardening, including programmatic active-navigation state and targeted accessibility/browser coverage. Move to Milestone C only after those shell acceptance targets are CI-green.
+Begin Milestone C by auditing the current browser signup/login/logout/session/CSRF/onboarding implementation and existing tests, then implement the highest-value unblocked browser-auth/onboarding gap without introducing fake email verification or recovery.
