@@ -15,7 +15,8 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - Supabase contains 53 logical product tables plus 2 runtime-control tables; the runtime-control migration is present.
 - Supabase security advisor returned no findings. A generic table-list advisory notes 19 non-RLS tables, but a direct privilege check found no explicit table grants to `anon` or `authenticated`; do not enable RLS blindly unless the access model changes.
 - CI workflow contains API regression/audit, frontend type/build/vinext/audit/Playwright, invariant/secret/migration checks, and real PostgreSQL migration/runtime-control checks.
-- PR CI run #21 (`35793197939`) passed all four jobs after the root-layout syntax fix: API, web, invariants and PostgreSQL migrations/runtime controls.
+- Final PR CI run #25 (`35793408514`) passed all four jobs: API, web, invariants and PostgreSQL migrations/runtime controls.
+- PR #1 was merged to `main` as `ca16f39898b6392a022372ffe04cc595278a1fb6`.
 
 ## Milestone sequence
 
@@ -48,7 +49,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 **Milestone B — Consistent workspace loading, empty, error and degraded states**
 
-The global availability boundary is complete and CI-verified. The next highest-value shell work is to make authenticated workspace data failures intentional and accessible rather than leaving query failures, empty workspaces or unavailable API calls implicit.
+The global availability boundary is complete, CI-verified and merged. The next highest-value shell work is to make authenticated workspace data failures intentional and accessible rather than leaving query failures, empty workspaces or unavailable API calls implicit.
 
 Acceptance targets:
 - workspace shell distinguishes loading, empty, unauthorized/session-expired and service-unavailable states;
@@ -68,7 +69,8 @@ Acceptance targets:
 - Durable execution files required by the master mandate were added.
 - Global API availability state was added to the root layout.
 - Degraded free-preview and unverifiable API states are textually disclosed and use an accessible status region.
-- PR CI run #21 passed API regression/audit, frontend type/build/vinext/audit/Playwright, invariants/secret checks, and PostgreSQL migration/runtime-control certification.
+- Final PR CI run #25 passed API regression/audit, frontend type/build/vinext/audit/Playwright, invariants/secret checks, and PostgreSQL migration/runtime-control certification.
+- PR #1 merged cleanly to `main` as `ca16f39898b6392a022372ffe04cc595278a1fb6`.
 
 ## Dependencies and blockers
 
@@ -81,4 +83,4 @@ Acceptance targets:
 
 ## Next action
 
-Merge the CI-green global service-availability milestone to `main`, then continue Milestone B by hardening `AppShell` loading/empty/error/session states and adding browser coverage. Do not move to Milestone C until the shell no longer hides authenticated data/service failures.
+Continue Milestone B by hardening `AppShell` loading/empty/error/session states and adding browser coverage. Do not move to Milestone C until the shell no longer hides authenticated data/service failures.
