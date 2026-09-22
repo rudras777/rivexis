@@ -5,8 +5,8 @@ Last updated: 2026-09-23
 | Environment | Status | Evidence / meaning |
 |---|---|---|
 | Local development | AVAILABLE, NOT VERIFIED IN THIS CHAT | Repository contains SQLite/local and Docker/PostgreSQL development paths. No local shell execution was used for this update. |
-| GitHub CI | PASS FOR CURRENT MILESTONE | PR #4 CI run #65 (`35795979200`) passed API, web/Playwright/Axe, invariants and PostgreSQL migration/runtime-control jobs. |
-| Free frontend preview | LIVE, SOURCE MERGED / DEPLOYMENT UNVERIFIED | `https://rivexis-web.rudrasingh0718.workers.dev` returned the Rivexis public site on 2026-09-23. The availability banner is merged and CI-verified but is not claimed live until a Cloudflare deployment is independently verified. |
+| GitHub CI | PASS FOR CURRENT MILESTONE | PR #5 CI run #77 (`35798213551`) passed API, web/Playwright/Axe, invariants and PostgreSQL migration/runtime-control jobs. |
+| Free frontend preview | LIVE, SOURCE MERGED / DEPLOYMENT UNVERIFIED | `https://rivexis-web.rudrasingh0718.workers.dev` returned the Rivexis public site on 2026-09-23. Current auth/session source is merged and CI-verified but is not claimed live until a Cloudflare deployment is independently verified. |
 | Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` returned `status=degraded`; application routes intentionally return 503. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`; 53 product + 2 runtime-control tables verified. |
 | Staging | PARTIAL | Supabase exists, but there is no separate live FastAPI staging runtime with complete provider/browser/email certification. |
@@ -28,11 +28,13 @@ Last updated: 2026-09-23
 - Pull request #2 (`Harden authenticated workspace shell states`) merged to `main` as `773a2faa2a6653c79972e98df505f01b15d702ea`.
 - Pull request #3 (`Harden responsive and keyboard workspace shell`) merged to `main` as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
 - Pull request #4 (`Harden browser authentication and resumable onboarding`) merged to `main` as `543dcccff3a2b094c504d68453000685648c96ec`.
-- PR #4 final head: `338a8291e786e244295c6bf80496581d8e2c8756`.
-- CI run #65: all four jobs PASS.
+- Pull request #5 (`Harden browser session restoration and logout lifecycle`) merged to `main` as `158eedd7a13bf0dd0089a5d60138dcd18de6f46d`.
+- PR #5 final head: `f1016623466c86c5b15250ed3e25cd262ea258df`.
+- CI run #77: all four jobs PASS.
+- Repository-level browser session continuity/logout/revocation is verified; real deployed browser/auth certification remains blocked until a live FastAPI runtime exists.
 - Durable plan synchronization continued on `main` after each merge.
 - No paid Cloudflare feature, new vendor, production credential, email send or external provider activation was performed.
-- The live Worker is not claimed to contain this source change until a real deployment is verified.
+- The live Worker is not claimed to contain the current merged source until a real deployment is verified.
 
 ## Supabase verification notes
 
