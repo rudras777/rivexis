@@ -21,6 +21,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - PR #3 (`Harden responsive and keyboard workspace shell`) passed CI run #48 (`35794960918`) and merged to `main` as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
 - PR #4 (`Harden browser authentication and resumable onboarding`) passed CI run #65 (`35795979200`) and merged to `main` as `543dcccff3a2b094c504d68453000685648c96ec`.
 - PR #5 (`Harden browser session restoration and logout lifecycle`) passed CI run #77 (`35798213551`) and merged to `main` as `158eedd7a13bf0dd0089a5d60138dcd18de6f46d`.
+- PR #6 (`Harden workspace switching and provider state boundaries`) passed CI run #93 (`35799257420`) and merged to `main` as `b1c857bed25706d959bc55bbbb8fc40e863bbba4`.
 
 ## Milestone sequence
 
@@ -51,18 +52,19 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 ## Current active milestone
 
-**Milestone D — Workspace foundations: dashboard and workspace context integrity**
+**Milestone D — Workspace foundations: migrate remaining workspace-local state and switching boundaries**
 
-Milestone C is complete in the runnable repository harness. Browser signup/login/onboarding, hard-reload session continuity, CSRF recovery, explicit logout, revoked/expired-session cleanup and fail-closed recovery are CI-verified. Real deployed browser/auth certification remains blocked until a live FastAPI runtime exists.
+Milestone C is complete in the runnable repository harness. The first Milestone D integrity slice is also complete: authenticated pages now have a typed active-workspace context and workspace-keyed query namespace; History and Saved Analyses are explicitly scoped to the active workspace; provider configuration health is separated from workspace runtime telemetry; and API/browser tests prove foreign-workspace reads fail closed and old workspace collection data is not reused across switches.
 
-The next highest-value unblocked priority is to make the workspace itself a dependable operating surface: the dashboard and shared workspace context must consistently reflect the selected workspace, avoid stale cross-workspace data after switching, and expose honest loading/empty/error/provider states before deeper feature completion.
+A hard reload remains intentionally enforced on workspace switch because several legacy tool pages still keep workspace-local results or selections in component state. Removing that boundary before those pages are migrated could leave a result from the previous workspace visible after a switch even when subsequent API calls are correctly scoped.
 
-Acceptance targets:
-- dashboard data requests are scoped to the active authorized workspace wherever the API contract supports workspace scoping;
-- changing workspaces invalidates/refetches workspace-dependent client data instead of leaving stale tenant context visible;
-- dashboard/loading/empty/error states do not imply data exists when APIs are unavailable or empty;
-- provider/runtime state distinguishes configured/available/degraded/unavailable conditions without fabricated readiness;
-- workspace settings, history and saved foundations preserve authorization boundaries and selected-workspace context;
+Acceptance targets for the next slice:
+- migrate Monitors, Investigations, Protocol History and engine-runner workspace identity from imperative `localStorage` access/component-local carryover to the authenticated workspace context or an equivalently keyed boundary;
+- clear or re-key selected results, reviews, latest engine results and mutation state whenever workspace identity changes;
+- only after all audited workspace-local surfaces are safe, remove the hard reload switch boundary and prove in-place switching cannot display old-workspace data;
+- preserve API authorization as the authoritative tenancy control; client workspace context remains UX/cache state, never a security boundary;
+- keep global provider configuration state separate from workspace-owned runtime history and telemetry;
+- continue explicit loading, empty, partial, unavailable and error states without fabricated provider readiness or data;
 - targeted API + Playwright coverage plus full CI remain green.
 
 ## Completed evidence
@@ -80,9 +82,16 @@ Acceptance targets:
 - If logout cannot be confirmed because of a non-401 service failure, Rivexis retains local workspace context and exposes a generic retry warning instead of silently pretending the session ended.
 - Revoked/expired sessions cannot refresh CSRF, clear local client session state, and fail closed on subsequent workspace access without rendering backend detail.
 - Invalid-CSRF logout attempts are rejected without silently revoking an otherwise valid server session.
-- Initial PR #5 browser CI exposed a transport-specific test assumption about inspecting cross-origin cookie headers under Playwright route interception; the test was corrected to assert behavior-level continuity, CSRF recovery and logout semantics instead of a mock-transport header artifact.
-- PR #5 head `f1016623466c86c5b15250ed3e25cd262ea258df` passed PR CI run #77 across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
-- PR #5 merged to `main` as `158eedd7a13bf0dd0089a5d60138dcd18de6f46d`.
+- The authenticated shell now exposes a typed workspace context plus workspace-scoped React Query namespace and clears workspace-query memory on logout/revocation and before workspace changes.
+- History and Saved Analyses no longer use static query keys with imperative `localStorage` workspace reads; each request/key carries the active workspace ID and renders explicit loading, empty and generic fail-closed error states.
+- Provider Health now distinguishes shared/global provider registry configuration from active-workspace provider runtime telemetry. A workspace with no provider activity renders an explicit empty state instead of implied readiness.
+- Workspace Settings routes existing workspace selection through the shell rather than duplicating storage/reload switching logic.
+- Dashboard copy identifies the active workspace while continuing to state that API authorization is authoritative.
+- API regression coverage proves a foreign workspace ID is rejected for history, saved analyses, monitors and provider-runtime reads.
+- Playwright coverage switches between two workspace identities and proves History does not reuse the prior workspace's collection data; provider runtime telemetry changes with workspace identity while global registry health remains shared.
+- The reload-on-switch boundary is intentionally retained until legacy tool pages with workspace-local component state are migrated; this is a safety control, not an unresolved cache workaround.
+- PR #6 head `37da88820f5b4e766b4d2779f7f3dc0c61081436` passed PR CI run #93 (`35799257420`) across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
+- PR #6 merged to `main` as `b1c857bed25706d959bc55bbbb8fc40e863bbba4`.
 
 ## Dependencies and blockers
 
@@ -96,4 +105,4 @@ Acceptance targets:
 
 ## Next action
 
-Begin Milestone D by auditing dashboard/workspace-dependent queries, active-workspace propagation, switching invalidation, provider state, settings, history and saved views. Implement the highest-value unblocked workspace-context integrity gap first, then gate the change on targeted browser/API tests and full CI.
+Continue Milestone D by migrating Monitors, Investigations, Protocol History and engine-runner workspace-local result/selection state to the authenticated workspace context or workspace-keyed state. Prove old-workspace results cannot survive a switch. Remove the hard reload switch boundary only after all audited surfaces are safe, then gate the change on targeted browser/API tests and full CI.
