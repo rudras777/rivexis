@@ -214,9 +214,11 @@ def login(req:LoginRequest):
 def web_signup(req:SignupRequest,response:Response):
     if req.role not in ROLES: raise HTTPException(422,"Invalid role")
     _enforce_login_budget(req.email)
-    if get_user(req.email): raise HTTPException(409,"Email already registered")
+    # Browser-facing signup conflicts intentionally avoid confirming whether an
+    # account exists. The bearer/API signup contract remains backward compatible.
+    if get_user(req.email): raise HTTPException(409,"Unable to create account with those details")
     try: u=create_user(req.email,hash_password(req.password),req.role)
-    except ValueError as exc: raise HTTPException(409,str(exc)) from exc
+    except ValueError as exc: raise HTTPException(409,"Unable to create account with those details") from exc
     clear_login_attempts(req.email)
     token=create_token(u.email,u.role,u.token_version)
     _set_session_cookie(response,token)
