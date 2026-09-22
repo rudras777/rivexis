@@ -15,6 +15,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - Supabase contains 53 logical product tables plus 2 runtime-control tables; the runtime-control migration is present.
 - Supabase security advisor returned no findings. A generic table-list advisory notes 19 non-RLS tables, but a direct privilege check found no explicit table grants to `anon` or `authenticated`; do not enable RLS blindly unless the access model changes.
 - CI workflow contains API regression/audit, frontend type/build/vinext/audit/Playwright, invariant/secret/migration checks, and real PostgreSQL migration/runtime-control checks.
+- PR CI run #21 (`35793197939`) passed all four jobs after the root-layout syntax fix: API, web, invariants and PostgreSQL migrations/runtime controls.
 
 ## Milestone sequence
 
@@ -45,17 +46,16 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 ## Current active milestone
 
-**Milestone B — Global service availability boundary**
+**Milestone B — Consistent workspace loading, empty, error and degraded states**
 
-Why now: the public frontend is live while the approved free-tier API intentionally returns degraded health and HTTP 503 for application routes. The frontend must communicate that state before users attempt authenticated workspace actions or live analysis.
+The global availability boundary is complete and CI-verified. The next highest-value shell work is to make authenticated workspace data failures intentional and accessible rather than leaving query failures, empty workspaces or unavailable API calls implicit.
 
-Acceptance evidence:
-- global health state is checked without exposing secrets;
-- healthy/ready state stays quiet;
-- degraded or unverifiable state is visibly and textually disclosed;
-- current free-preview limitation is described accurately;
-- Playwright covers the degraded state;
-- TypeScript/build/vinext/e2e gates pass in CI.
+Acceptance targets:
+- workspace shell distinguishes loading, empty, unauthorized/session-expired and service-unavailable states;
+- navigation and workspace selector do not imply a usable authenticated workspace while API data is unavailable;
+- error/retry copy is non-sensitive and keyboard/screen-reader usable;
+- existing responsive layout remains intact;
+- targeted Playwright coverage plus TypeScript/build/vinext/e2e checks stay green.
 
 ## Completed evidence
 
@@ -65,6 +65,10 @@ Acceptance evidence:
 - Current Cloudflare free-preview behavior verified.
 - Current Supabase project/schema/migrations/security-advisor state verified.
 - Direct Supabase role-grant check confirmed no explicit `anon`/`authenticated` table grants.
+- Durable execution files required by the master mandate were added.
+- Global API availability state was added to the root layout.
+- Degraded free-preview and unverifiable API states are textually disclosed and use an accessible status region.
+- PR CI run #21 passed API regression/audit, frontend type/build/vinext/audit/Playwright, invariants/secret checks, and PostgreSQL migration/runtime-control certification.
 
 ## Dependencies and blockers
 
@@ -77,4 +81,4 @@ Acceptance evidence:
 
 ## Next action
 
-Finish the global degraded/unavailable service-state UI and merge it only after clean CI. Then continue Milestone B with consistent workspace loading/error/empty states and accessibility before moving into Milestone C auth/onboarding end-to-end verification.
+Merge the CI-green global service-availability milestone to `main`, then continue Milestone B by hardening `AppShell` loading/empty/error/session states and adding browser coverage. Do not move to Milestone C until the shell no longer hides authenticated data/service failures.
