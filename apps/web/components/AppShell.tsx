@@ -43,15 +43,18 @@ type ShellStateProps={
 function ShellState({title,message,kind,action}:ShellStateProps){
   const live=kind==="loading"||kind==="empty"?"status":"alert";
   return <div className="appShell">
+    <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
     <aside className="sidebar shellStateSidebar">
       <Brand/>
       <div className="environment">MVP / WORKSPACE-SCOPED</div>
       <div className="sideFoot">
-        <b>Decision states</b>
-        <span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span>
+        <div className="decisionLegend">
+          <b>Decision states</b>
+          <span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span>
+        </div>
       </div>
     </aside>
-    <main className="workspaceMain shellState">
+    <main className="workspaceMain shellState" id="workspace-main">
       <section className="shellStateCard" role={live} aria-live="polite" data-testid={`workspace-shell-${kind}`}>
         <div className="shellStateKicker">Workspace access</div>
         <h1>{title}</h1>
@@ -164,6 +167,7 @@ export function AppShell({children}:{children:React.ReactNode}){
   const selected=active||q.data.items[0].id;
 
   return <div className="appShell">
+    <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
     <aside className="sidebar">
       <Brand/>
       <div className="environment">MVP / WORKSPACE-SCOPED</div>
@@ -174,14 +178,19 @@ export function AppShell({children}:{children:React.ReactNode}){
         </select>
       </label>
       <nav aria-label="Workspace">
-        {nav.map(([n,h])=><Link key={h} href={h} className={p===h?"active":""}>{n}</Link>)}
+        {nav.map(([n,h])=>{
+          const current=p===h;
+          return <Link key={h} href={h} className={current?"active":""} aria-current={current?"page":undefined}>{n}</Link>;
+        })}
       </nav>
       <div className="sideFoot">
         <button type="button" className="ghost" onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out"}</button>
-        <b>Decision states</b>
-        <span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span>
+        <div className="decisionLegend">
+          <b>Decision states</b>
+          <span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span>
+        </div>
       </div>
     </aside>
-    <main className="workspaceMain">{children}</main>
+    <main className="workspaceMain" id="workspace-main">{children}</main>
   </div>;
 }

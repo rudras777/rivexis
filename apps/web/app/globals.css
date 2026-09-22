@@ -20,3 +20,62 @@
 .shellStateActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
 @media(max-width:900px){.shellState{min-height:48vh}.shellStateSidebar .sideFoot{display:grid}}
 @media(max-width:600px){.shellStateCard{padding:22px}.shellStateActions{display:grid}.shellStateActions .button,.shellStateActions .ghost{width:100%;text-align:center}}
+
+
+/* Keyboard and responsive application-shell hardening. */
+:where(a,button,input,select,textarea):focus-visible{
+  outline:3px solid #2f7df6;
+  outline-offset:3px;
+}
+.skipLink{
+  position:fixed;
+  left:16px;
+  top:12px;
+  z-index:100;
+  padding:10px 14px;
+  border-radius:8px;
+  background:#fff;
+  color:var(--navy);
+  border:2px solid var(--blue);
+  font-weight:800;
+  transform:translateY(-180%);
+  transition:transform .12s ease;
+}
+.skipLink:focus{
+  transform:translateY(0);
+}
+.sidebar nav{
+  grid-template-columns:minmax(0,1fr);
+}
+.sidebar nav a{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.sidebar nav a[aria-current="page"]{
+  background:#102d54;
+  color:#fff;
+  box-shadow:inset 3px 0 0 #75a9ff;
+}
+.decisionLegend{
+  display:grid;
+  gap:6px;
+}
+@media(max-width:900px){
+  .sidebar nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .sidebar .sideFoot{
+    display:flex;
+    margin-top:0;
+    align-items:center;
+    justify-content:flex-start;
+  }
+  .sidebar .decisionLegend{display:none}
+  .sidebar .sideFoot .ghost{width:max-content}
+}
+@media(max-width:600px){
+  .sidebar nav{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sidebar .sideFoot .ghost{width:100%;text-align:center}
+}
+
+.sidebar .sideFoot .ghost{
+  color:var(--ink);
+}
