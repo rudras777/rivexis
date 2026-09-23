@@ -8,8 +8,16 @@ from rivexis_api.chains import normalize_chain
 from rivexis_api.models.engine import EngineResult
 from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, Severity
 from rivexis_api.models.evidence import EvidenceRecord, SourceConflict
-from rivexis_api.provider_clients import ArkhamClient, EtherscanClient, NansenClient, ProviderError, hex_to_int
+from rivexis_api.provider_clients import (
+    ArkhamClient,
+    EtherscanClient,
+    NansenClient,
+    ProviderError,
+    hex_to_int,
+)
 from rivexis_api.providers import select_rpc_client
+
+UINT256_MAX = 2**256 - 1
 
 
 def _address(value: object) -> str | None:
@@ -23,27 +31,86 @@ def _address(value: object) -> str | None:
     return s
 
 
+def _uint_decimal(value: object, *, maximum: int = UINT256_MAX) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        parsed = value
+    elif isinstance(value, str) and value.isdigit():
+        try:
+            parsed = int(value)
+        except ValueError:
+            return None
+    else:
+        return None
+    return parsed if 0 <= parsed <= maximum else None
+
+
+def _rpc_uint(value: object) -> int | None:
+    try:
+        parsed = hex_to_int(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return parsed if parsed is not None and 0 <= parsed <= UINT256_MAX else None
+
+
+def _parse_limit(value: object) -> int | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return None
+    if parsed < 1:
+        return None
+    return min(parsed, 250)
+
+
 def _result_list(call) -> list[dict]:
-    body = call.result if isinstance(call.result, dict) else {}
-    rows = body.get("result")
-    return [x for x in rows if isinstance(x, dict)] if isinstance(rows, list) else []
+    if not isinstance(call.result, dict):
+        raise ProviderError(
+            "Etherscan history response must be an object",
+            provider_id="etherscan",
+            code="MALFORMED_RESPONSE",
+        )
+    rows = call.result.get("result")
+    if not isinstance(rows, list):
+        raise ProviderError(
+            "Etherscan history result must be a list",
+            provider_id="etherscan",
+            code="MALFORMED_RESPONSE",
+        )
+    return [row for row in rows if isinstance(row, dict)]
 
 
-def _provider_evidence(call, *, provider: str, normalized_value: dict, chain_id: int, block_number: int | None, wallet: str, confidence: float) -> EvidenceRecord:
+def _provider_evidence(
+    call,
+    *,
+    provider: str,
+    normalized_value: dict,
+    chain_id: int,
+    block_number: int | None,
+    wallet: str,
+    confidence: float,
+) -> EvidenceRecord:
+    retrieved = datetime.now(timezone.utc)
     return EvidenceRecord(
         evidence_id=str(uuid4()),
         provider=provider,
         source_type="entity_label_intelligence",
         provider_endpoint=call.endpoint,
         provider_request_id=call.request_id,
-        retrieved_at=datetime.now(timezone.utc),
-        observed_at=datetime.now(timezone.utc),
+        retrieved_at=retrieved,
+        # No normalized provider observation timestamp is available for these label
+        # responses. Keep the schema-required datetime as a retrieval fallback only;
+        # freshness remains UNKNOWN so it is not presented as provider-observed now.
+        observed_at=retrieved,
         block_number=block_number,
         chain_id=chain_id,
         raw_reference=f"provider:{provider};request:{call.request_id};address:{wallet}",
         normalized_value=normalized_value,
         confidence=confidence,
-        freshness=FreshnessStatus.CURRENT,
+        freshness=FreshnessStatus.UNKNOWN,
         license_classification="external-provider-attributed",
     )
 
@@ -68,7 +135,11 @@ def _nansen_normalize(body: object) -> dict:
         if not isinstance(row, dict):
             continue
         label = row.get("label") or row.get("name")
-        normalized = {k: row.get(k) for k in ("label", "name", "category", "confidence") if row.get(k) is not None}
+        normalized = {
+            key: row.get(key)
+            for key in ("label", "name", "category", "confidence")
+            if row.get(key) is not None
+        }
         if normalized:
             labels.append(normalized)
         if isinstance(label, str) and label.strip():
@@ -87,12 +158,19 @@ def _arkham_normalize(body: object) -> dict:
         entity_id = entity_obj.get("id") or entity_obj.get("entityId")
     elif isinstance(entity_obj, str):
         entity_name = entity_obj
-    entity_name = entity_name or body.get("entityName")
+    if not isinstance(entity_name, str) or not entity_name.strip():
+        external_name = body.get("entityName")
+        entity_name = external_name.strip() if isinstance(external_name, str) and external_name.strip() else None
+    else:
+        entity_name = entity_name.strip()
+
     label_obj = body.get("label") or body.get("arkhamLabel")
     if isinstance(label_obj, dict):
-        label = label_obj.get("name") or label_obj.get("label")
+        raw_label = label_obj.get("name") or label_obj.get("label")
+        label = raw_label.strip() if isinstance(raw_label, str) and raw_label.strip() else None
     else:
-        label = label_obj if isinstance(label_obj, str) else None
+        label = label_obj.strip() if isinstance(label_obj, str) and label_obj.strip() else None
+
     tags_raw = body.get("tags") or []
     tags: list[str] = []
     if isinstance(tags_raw, list):
@@ -103,7 +181,7 @@ def _arkham_normalize(body: object) -> dict:
                 value = row.get("name") or row.get("tag") or row.get("label")
                 if isinstance(value, str) and value.strip():
                     tags.append(value.strip())
-    identities = [x.strip() for x in (entity_name, label) if isinstance(x, str) and x.strip()]
+    identities = [item for item in (entity_name, label) if item]
     return {
         "entity": {"name": entity_name, "id": entity_id} if entity_name or entity_id else None,
         "label": label,
@@ -116,26 +194,48 @@ def _canonical_identity(value: str) -> str:
     return " ".join(value.lower().replace(":", " ").replace("-", " ").split())
 
 
+def _invalid_input(message: str, missing: str) -> EngineResult:
+    return EngineResult(
+        engine_id=EngineId.B4,
+        engine_version="1.0.0",
+        status=AnalysisStatus.INSUFFICIENT_DATA,
+        risk_score=0,
+        data_confidence=0,
+        engine_confidence=0,
+        severity=Severity.UNKNOWN,
+        summary=message,
+        warnings=["No entity or fund-flow conclusion was inferred from invalid input."],
+        missing_data=[missing],
+        provider_consensus="UNAVAILABLE",
+        demo=False,
+    )
+
+
 def run_live_b4(data: dict) -> EngineResult:
     wallet = _address(data.get("wallet") or data.get("address"))
     if not wallet:
+        return _invalid_input("B4 requires a valid wallet/address.", "valid wallet/address")
+
+    limit = _parse_limit(data.get("limit", 100))
+    if limit is None:
+        return _invalid_input("B4 limit must be a positive integer.", "positive history limit")
+
+    try:
+        chain = normalize_chain(data.get("chain", "ethereum"))
+    except ValueError as exc:
         return EngineResult(
             engine_id=EngineId.B4,
-            status=AnalysisStatus.INSUFFICIENT_DATA,
+            engine_version="1.0.0",
+            status=AnalysisStatus.UNSUPPORTED,
             risk_score=0,
             data_confidence=0,
             engine_confidence=0,
             severity=Severity.UNKNOWN,
-            summary="B4 requires a valid wallet/address.",
-            warnings=["No entity identity was inferred from invalid or missing input."],
-            missing_data=["valid wallet/address"],
+            summary=str(exc),
+            missing_data=["supported chain"],
             provider_consensus="UNAVAILABLE",
             demo=False,
         )
-    try:
-        chain = normalize_chain(data.get("chain", "ethereum"))
-    except ValueError as exc:
-        return EngineResult(engine_id=EngineId.B4,status=AnalysisStatus.UNSUPPORTED,risk_score=0,data_confidence=0,engine_confidence=0,severity=Severity.UNKNOWN,summary=str(exc),missing_data=["supported chain"],demo=False)
 
     evidence: list[EvidenceRecord] = []
     provider_status: list[dict] = []
@@ -144,74 +244,162 @@ def run_live_b4(data: dict) -> EngineResult:
     now = datetime.now(timezone.utc)
 
     try:
-        rpc_provider, rpc, probe, attempts = select_rpc_client(chain.chain_id)
+        rpc_provider, rpc, _probe, attempts = select_rpc_client(chain.chain_id)
         block_call = rpc.call("eth_blockNumber")
         balance_call = rpc.call("eth_getBalance", [wallet, "latest"])
-        block_number = hex_to_int(block_call.result) or 0
-        balance_wei = hex_to_int(balance_call.result) or 0
+        block_number = _rpc_uint(block_call.result)
+        balance_wei = _rpc_uint(balance_call.result)
+        if block_number is None or balance_wei is None:
+            raise ProviderError(
+                "RPC returned malformed block or balance state",
+                provider_id=rpc_provider,
+                code="MALFORMED_RESPONSE",
+            )
         native_balance = balance_wei / 10**18
         provider_status.extend(attempts)
-        provider_status.append({"provider_id": rpc_provider, "status": "HEALTHY", "block_number": block_number, "latency_ms": balance_call.latency_ms})
-        evidence.append(EvidenceRecord(
-            evidence_id=str(uuid4()),provider=rpc_provider,source_type="direct_state",provider_endpoint=balance_call.endpoint,provider_request_id=balance_call.request_id,
-            retrieved_at=now,observed_at=now,block_number=block_number,chain_id=chain.chain_id,raw_reference=wallet,
-            normalized_value={"wallet":wallet,"native_balance":native_balance,"native_symbol":chain.native_symbol},confidence=92,freshness=FreshnessStatus.LIVE,license_classification="direct-rpc"
-        ))
+        provider_status.append(
+            {
+                "provider_id": rpc_provider,
+                "status": "HEALTHY",
+                "block_number": block_number,
+                "latency_ms": balance_call.latency_ms,
+            }
+        )
+        evidence.append(
+            EvidenceRecord(
+                evidence_id=str(uuid4()),
+                provider=rpc_provider,
+                source_type="direct_state",
+                provider_endpoint=balance_call.endpoint,
+                provider_request_id=balance_call.request_id,
+                retrieved_at=now,
+                observed_at=now,
+                block_number=block_number,
+                chain_id=chain.chain_id,
+                raw_reference=wallet,
+                normalized_value={
+                    "wallet": wallet,
+                    "native_balance": native_balance,
+                    "native_symbol": chain.native_symbol,
+                },
+                confidence=92,
+                freshness=FreshnessStatus.LIVE,
+                license_classification="direct-rpc",
+            )
+        )
     except ProviderError as exc:
         return EngineResult(
-            engine_id=EngineId.B4,status=AnalysisStatus.PROVIDER_UNAVAILABLE,risk_score=0,data_confidence=0,engine_confidence=0,severity=Severity.UNKNOWN,
-            summary=f"Direct blockchain state is unavailable for {chain.name}; Rivexis did not fabricate wallet balances or activity.",warnings=[str(exc)],missing_data=["direct blockchain state"],provider_consensus="UNAVAILABLE",provider_status=[{"provider_id":exc.provider_id,"status":exc.code}],demo=False
+            engine_id=EngineId.B4,
+            engine_version="1.0.0",
+            status=AnalysisStatus.PROVIDER_UNAVAILABLE,
+            risk_score=0,
+            data_confidence=0,
+            engine_confidence=0,
+            severity=Severity.UNKNOWN,
+            summary=f"Direct blockchain state is unavailable for {chain.name}; Rivexis did not fabricate wallet balances or activity.",
+            warnings=[str(exc)],
+            missing_data=["direct blockchain state"],
+            provider_consensus="UNAVAILABLE",
+            provider_status=[{"provider_id": exc.provider_id, "status": exc.code}],
+            demo=False,
         )
 
     normal_txs: list[dict] = []
     token_txs: list[dict] = []
     es = EtherscanClient()
     if es.configured:
-        limit = min(max(int(data.get("limit", 100)), 1), 250)
         try:
             normal_call = es.account_transactions(chain, wallet, offset=limit)
             token_call = es.token_transactions(chain, wallet, offset=limit)
             normal_txs = _result_list(normal_call)
             token_txs = _result_list(token_call)
-            provider_status.append({"provider_id":"etherscan","status":"HEALTHY","latency_ms":round(normal_call.latency_ms+token_call.latency_ms,2)})
-            evidence.append(EvidenceRecord(
-                evidence_id=str(uuid4()),provider="etherscan",source_type="indexed_account_history",provider_endpoint=normal_call.endpoint,provider_request_id=normal_call.request_id,
-                retrieved_at=now,observed_at=now,block_number=block_number,chain_id=chain.chain_id,raw_reference=wallet,
-                normalized_value={"normal_transaction_count":len(normal_txs),"erc20_transfer_count":len(token_txs)},confidence=78,freshness=FreshnessStatus.CURRENT,license_classification="external-provider-attributed"
-            ))
+            provider_status.append(
+                {
+                    "provider_id": "etherscan",
+                    "status": "HEALTHY",
+                    "latency_ms": round(normal_call.latency_ms + token_call.latency_ms, 2),
+                }
+            )
+            retrieved = datetime.now(timezone.utc)
+            evidence.append(
+                EvidenceRecord(
+                    evidence_id=str(uuid4()),
+                    provider="etherscan",
+                    source_type="indexed_account_history",
+                    provider_endpoint=normal_call.endpoint,
+                    provider_request_id=normal_call.request_id,
+                    retrieved_at=retrieved,
+                    observed_at=retrieved,
+                    block_number=block_number,
+                    chain_id=chain.chain_id,
+                    raw_reference=wallet,
+                    normalized_value={
+                        "normal_transaction_count": len(normal_txs),
+                        "erc20_transfer_count": len(token_txs),
+                    },
+                    confidence=72,
+                    # Query retrieval is current, but no indexer sync-height/freshness proof
+                    # is normalized here, so indexed-history observation freshness is unknown.
+                    freshness=FreshnessStatus.UNKNOWN,
+                    license_classification="external-provider-attributed",
+                )
+            )
         except ProviderError as exc:
-            provider_status.append({"provider_id":"etherscan","status":exc.code})
+            provider_status.append({"provider_id": "etherscan", "status": exc.code})
             warnings.append(f"Indexed history unavailable from Etherscan: {exc}")
             missing.append("indexed transaction/token-transfer history")
     else:
-        provider_status.append({"provider_id":"etherscan","status":"CREDENTIALS_REQUIRED"})
+        provider_status.append({"provider_id": "etherscan", "status": "CREDENTIALS_REQUIRED"})
         missing.append("indexed transaction/token-transfer history (Etherscan key not configured)")
 
     counterparties = Counter()
     native_in = native_out = 0.0
+    malformed_history_rows = 0
     for tx in normal_txs:
-        frm = _address(tx.get("from")); to = _address(tx.get("to"))
-        value = float(tx.get("value") or 0) / 10**18
+        frm = _address(tx.get("from"))
+        to = _address(tx.get("to"))
+        raw_value = _uint_decimal(tx.get("value") or 0)
+        if raw_value is None:
+            malformed_history_rows += 1
+            continue
+        value = raw_value / 10**18
         if frm == wallet:
             native_out += value
-            if to: counterparties[to] += 1
+            if to:
+                counterparties[to] += 1
         elif to == wallet:
             native_in += value
-            if frm: counterparties[frm] += 1
+            if frm:
+                counterparties[frm] += 1
 
-    tokens = defaultdict(lambda: {"in":0.0,"out":0.0,"count":0,"contract":None})
+    tokens = defaultdict(lambda: {"in": 0.0, "out": 0.0, "count": 0, "contract": None})
     for tx in token_txs:
-        decimals = int(tx.get("tokenDecimal") or 0) if str(tx.get("tokenDecimal") or "0").isdigit() else 0
-        amount = float(tx.get("value") or 0) / (10**decimals if decimals >= 0 else 1)
-        symbol = str(tx.get("tokenSymbol") or "UNKNOWN")
-        row = tokens[symbol]; row["contract"] = tx.get("contractAddress"); row["count"] += 1
-        frm = _address(tx.get("from")); to = _address(tx.get("to"))
+        raw_amount = _uint_decimal(tx.get("value") or 0)
+        decimals = _uint_decimal(tx.get("tokenDecimal"), maximum=255)
+        if raw_amount is None or decimals is None:
+            malformed_history_rows += 1
+            continue
+        amount = raw_amount / (10**decimals)
+        symbol = str(tx.get("tokenSymbol") or "UNKNOWN")[:64]
+        row = tokens[symbol]
+        row["contract"] = _address(tx.get("contractAddress")) or tx.get("contractAddress")
+        row["count"] += 1
+        frm = _address(tx.get("from"))
+        to = _address(tx.get("to"))
         if frm == wallet:
             row["out"] += amount
-            if to: counterparties[to] += 1
+            if to:
+                counterparties[to] += 1
         elif to == wallet:
             row["in"] += amount
-            if frm: counterparties[frm] += 1
+            if frm:
+                counterparties[frm] += 1
+
+    if malformed_history_rows:
+        warnings.append(
+            f"Skipped {malformed_history_rows} indexed history row(s) with malformed value/decimal fields; no zero-value substitution was made."
+        )
+        missing.append("fully normalized indexed transaction/token-transfer values")
 
     identity_sources: list[dict] = []
     conflicts: list[SourceConflict] = []
@@ -220,34 +408,90 @@ def run_live_b4(data: dict) -> EngineResult:
     if nansen.configured:
         try:
             call = nansen.address_labels(address=wallet, chain=chain.key)
-            normalized = _nansen_normalize(call.result)
-            identity_sources.append({"provider": "nansen", **normalized})
-            evidence.append(_provider_evidence(call, provider="nansen", normalized_value=normalized, chain_id=chain.chain_id, block_number=block_number, wallet=wallet, confidence=82))
-            provider_status.append({"provider_id": "nansen", "status": "HEALTHY", "latency_ms": round(call.latency_ms, 2)})
+            if not isinstance(call.result, dict):
+                provider_status.append(
+                    {"provider_id": "nansen", "status": "MALFORMED_RESPONSE"}
+                )
+                warnings.append("Nansen returned a non-object entity-label payload; it was not treated as no-attribution evidence.")
+            else:
+                normalized = _nansen_normalize(call.result)
+                identity_sources.append({"provider": "nansen", **normalized})
+                evidence.append(
+                    _provider_evidence(
+                        call,
+                        provider="nansen",
+                        normalized_value=normalized,
+                        chain_id=chain.chain_id,
+                        block_number=block_number,
+                        wallet=wallet,
+                        confidence=82,
+                    )
+                )
+                provider_status.append(
+                    {
+                        "provider_id": "nansen",
+                        "status": "HEALTHY",
+                        "latency_ms": round(call.latency_ms, 2),
+                    }
+                )
         except ProviderError as exc:
-            provider_status.append({"provider_id": "nansen", "status": exc.code, "detail": str(exc)})
+            provider_status.append(
+                {"provider_id": "nansen", "status": exc.code, "detail": str(exc)}
+            )
             warnings.append(f"Nansen entity-label evidence was unavailable: {exc.code}.")
     else:
         provider_status.append({"provider_id": "nansen", "status": "CREDENTIALS_REQUIRED"})
 
     arkham = ArkhamClient()
     if arkham.credentialed and not arkham.license_approved:
-        provider_status.append({"provider_id": "arkham", "status": "LICENSE_APPROVAL_REQUIRED"})
-        warnings.append("Arkham credentials are present but the adapter is disabled until this deployment explicitly approves the applicable API/commercial terms.")
+        provider_status.append(
+            {"provider_id": "arkham", "status": "LICENSE_APPROVAL_REQUIRED"}
+        )
+        warnings.append(
+            "Arkham credentials are present but the adapter is disabled until this deployment explicitly approves the applicable API/commercial terms."
+        )
     elif arkham.configured:
         try:
             call = arkham.address_intelligence(wallet)
-            normalized = _arkham_normalize(call.result)
-            identity_sources.append({"provider": "arkham", **normalized})
-            evidence.append(_provider_evidence(call, provider="arkham", normalized_value=normalized, chain_id=chain.chain_id, block_number=block_number, wallet=wallet, confidence=78))
-            provider_status.append({"provider_id": "arkham", "status": "HEALTHY", "latency_ms": round(call.latency_ms, 2)})
+            if not isinstance(call.result, dict):
+                provider_status.append(
+                    {"provider_id": "arkham", "status": "MALFORMED_RESPONSE"}
+                )
+                warnings.append("Arkham returned a non-object entity-intelligence payload; it was not treated as no-attribution evidence.")
+            else:
+                normalized = _arkham_normalize(call.result)
+                identity_sources.append({"provider": "arkham", **normalized})
+                evidence.append(
+                    _provider_evidence(
+                        call,
+                        provider="arkham",
+                        normalized_value=normalized,
+                        chain_id=chain.chain_id,
+                        block_number=block_number,
+                        wallet=wallet,
+                        confidence=78,
+                    )
+                )
+                provider_status.append(
+                    {
+                        "provider_id": "arkham",
+                        "status": "HEALTHY",
+                        "latency_ms": round(call.latency_ms, 2),
+                    }
+                )
         except ProviderError as exc:
-            provider_status.append({"provider_id": "arkham", "status": exc.code, "detail": str(exc)})
+            provider_status.append(
+                {"provider_id": "arkham", "status": exc.code, "detail": str(exc)}
+            )
             warnings.append(f"Arkham entity intelligence was unavailable: {exc.code}.")
     else:
         provider_status.append({"provider_id": "arkham", "status": "CREDENTIALS_REQUIRED"})
 
-    attributed = [(src["provider"], src["identity_candidates"][0]) for src in identity_sources if src.get("identity_candidates")]
+    attributed = [
+        (source["provider"], source["identity_candidates"][0])
+        for source in identity_sources
+        if source.get("identity_candidates")
+    ]
     identity = "UNKNOWN ADDRESS"
     identity_provenance: list[dict] = []
     if attributed:
@@ -259,44 +503,103 @@ def run_live_b4(data: dict) -> EngineResult:
             identity = attributed[0][1]
         else:
             identity = "CONFLICTING EXTERNAL LABELS"
-            (pa, la), (pb, lb) = attributed[0], attributed[1]
-            conflicts.append(SourceConflict(
-                metric="entity_identity", source_a=pa, value_a=la, source_b=pb, value_b=lb,
-                severity="high", resolution_method="unresolved_external_attribution_conflict", resolution_confidence=0,
-            ))
-            warnings.append("External entity providers disagree on the address identity; Rivexis did not silently choose one label.")
+            (provider_a, label_a), (provider_b, label_b) = attributed[0], attributed[1]
+            conflicts.append(
+                SourceConflict(
+                    metric="entity_identity",
+                    source_a=provider_a,
+                    value_a=label_a,
+                    source_b=provider_b,
+                    value_b=label_b,
+                    severity="high",
+                    resolution_method="unresolved_external_attribution_conflict",
+                    resolution_confidence=0,
+                )
+            )
+            warnings.append(
+                "External entity providers disagree on the address identity; Rivexis did not silently choose one label."
+            )
 
-    top_counterparties = [{"address":a,"interaction_count":c,"identity":"UNKNOWN ADDRESS"} for a,c in counterparties.most_common(10)]
-    token_flows = [{"symbol":k,**v,"net":v["in"]-v["out"]} for k,v in sorted(tokens.items())]
+    top_counterparties = [
+        {"address": address, "interaction_count": count, "identity": "UNKNOWN ADDRESS"}
+        for address, count in counterparties.most_common(10)
+    ]
+    token_flows = [
+        {"symbol": symbol, **row, "net": row["in"] - row["out"]}
+        for symbol, row in sorted(tokens.items())
+    ]
     activity_count = len(normal_txs) + len(token_txs)
     data_conf = 82 if normal_txs or token_txs else 58
-    if identity_sources:
+    if malformed_history_rows:
+        data_conf = max(35, data_conf - 10)
+    if attributed:
         data_conf = min(94, data_conf + 7)
     if conflicts:
         data_conf = max(35, data_conf - 20)
-    consensus = "CONFLICTING" if conflicts else "MULTI_SOURCE" if len({e.provider for e in evidence}) > 1 else "SINGLE_SOURCE"
+    consensus = (
+        "CONFLICTING"
+        if conflicts
+        else "MULTI_SOURCE"
+        if len({item.provider for item in evidence}) > 1
+        else "SINGLE_SOURCE"
+    )
     risk = 10.0 + (5 if activity_count >= 150 else 0) + (8 if conflicts else 0)
 
     if identity == "UNKNOWN ADDRESS":
-        warnings.append("No attributable external entity label was returned; this address remains UNKNOWN ADDRESS.")
+        warnings.append(
+            "No attributable external entity label was returned; this address remains UNKNOWN ADDRESS."
+        )
         missing.append("attributed Nansen/Arkham or verified entity labels")
     elif identity == "CONFLICTING EXTERNAL LABELS":
         missing.append("resolved entity identity")
-    missing.extend([
-        "cross-chain activity outside the selected chain",
-        "full internal-call and protocol semantic classification",
-        "realized/unrealized PnL and cost basis",
-    ])
+    missing.extend(
+        [
+            "cross-chain activity outside the selected chain",
+            "full internal-call and protocol semantic classification",
+            "realized/unrealized PnL and cost basis",
+        ]
+    )
 
     return EngineResult(
-        engine_id=EngineId.B4,status=AnalysisStatus.PARTIAL,risk_score=risk,data_confidence=data_conf,engine_confidence=62 if identity_sources else 55,severity=Severity.LOW,
+        engine_id=EngineId.B4,
+        engine_version="1.0.0",
+        status=AnalysisStatus.PARTIAL,
+        risk_score=risk,
+        data_confidence=data_conf,
+        engine_confidence=62 if attributed else 55,
+        severity=Severity.LOW,
         summary=f"Direct state and attributed entity intelligence were evaluated for {wallet} on {chain.name}. Identity state: {identity}.",
         metrics={
-            "entity_profile":{"address":wallet,"identity":identity,"identity_provenance":identity_provenance,"chain":chain.name,"native_balance":native_balance,"native_symbol":chain.native_symbol},
-            "external_identity_evidence":identity_sources,
-            "activity":{"indexed_normal_transactions":len(normal_txs),"indexed_erc20_transfers":len(token_txs),"native_in":native_in,"native_out":native_out,"native_net":native_in-native_out},
-            "top_counterparties":top_counterparties,"token_flows":token_flows,
+            "entity_profile": {
+                "address": wallet,
+                "identity": identity,
+                "identity_provenance": identity_provenance,
+                "chain": chain.name,
+                "native_balance": native_balance,
+                "native_symbol": chain.native_symbol,
+            },
+            "external_identity_evidence": identity_sources,
+            "activity": {
+                "indexed_normal_transactions": len(normal_txs),
+                "indexed_erc20_transfers": len(token_txs),
+                "malformed_indexed_rows_skipped": malformed_history_rows,
+                "native_in": native_in,
+                "native_out": native_out,
+                "native_net": native_in - native_out,
+            },
+            "top_counterparties": top_counterparties,
+            "token_flows": token_flows,
         },
-        warnings=warnings,evidence=evidence,provider_consensus=consensus,provider_conflicts=conflicts,data_freshness={"status":"LIVE","block_number":block_number},missing_data=sorted(set(missing)),provider_status=provider_status,
-        assumptions=["Provider-attributed labels are evidence, not absolute truth. Absence of a label is not evidence of benign or malicious ownership."],demo=False
+        warnings=warnings,
+        evidence=evidence,
+        provider_consensus=consensus,
+        provider_conflicts=conflicts,
+        data_freshness={"status": "LIVE", "block_number": block_number},
+        missing_data=sorted(set(missing)),
+        provider_status=provider_status,
+        assumptions=[
+            "Provider-attributed labels are evidence, not absolute truth. Absence of a label is not evidence of benign or malicious ownership.",
+            "External indexer/entity-label responses without a normalized provider observation timestamp are recorded with UNKNOWN evidence freshness rather than CURRENT.",
+        ],
+        demo=False,
     )
