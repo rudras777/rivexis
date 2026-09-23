@@ -47,7 +47,7 @@ def ev(
         block_number=block,
         raw_reference=f"provider:{provider};request:{call.request_id}",
         normalized_value=value,
-        calculation_version="f1-live-1.2.0",
+        calculation_version="f1-live-1.3.0",
         engine_version="1.2.0",
         confidence=confidence,
         freshness=freshness,
@@ -75,6 +75,10 @@ def _rpc_quantity(value: object) -> int | None:
     if parsed is None or parsed < 0:
         return None
     return parsed
+
+
+def _block_tag(block_number: int) -> str:
+    return hex(block_number)
 
 
 def _market_freshness(prices: dict[str, Any], ids: list[str]):
@@ -308,12 +312,13 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                     provider_id=pid,
                     code="MALFORMED_RESPONSE",
                 )
+            block_tag = _block_tag(block_number)
             evidence.append(
                 ev(
                     block,
                     pid,
                     "direct_state",
-                    {"block_number": block_number},
+                    {"block_number": block_number, "block_tag": block_tag},
                     chain.chain_id,
                     block_number,
                     99,
@@ -323,7 +328,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
 
             total_native = 0.0
             for wallet in wallets:
-                bal = rpc.call("eth_getBalance", [wallet, "latest"])
+                bal = rpc.call("eth_getBalance", [wallet, block_tag])
                 wei = _rpc_quantity(bal.result)
                 if wei is None:
                     raise ProviderError(
@@ -342,6 +347,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                             "wallet": wallet,
                             "native_balance": native,
                             "native_symbol": chain.native_symbol,
+                            "block_tag": block_tag,
                         },
                         chain.chain_id,
                         block_number,
@@ -368,7 +374,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                                 "to": spec["contract"],
                                 "data": _balance_of_calldata(wallet),
                             },
-                            "latest",
+                            block_tag,
                         ],
                     )
                     raw_balance = _rpc_quantity(token_call.result)
@@ -392,6 +398,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                                 "decimals": spec["decimals"],
                                 "raw_balance": raw_balance,
                                 "quantity": quantity,
+                                "block_tag": block_tag,
                             },
                             chain.chain_id,
                             block_number,
@@ -415,6 +422,9 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                     "status": "HEALTHY",
                     "latency_ms": round(probe.latency_ms, 2),
                 }
+            )
+            assumptions.append(
+                f"All direct wallet and ERC-20 balance reads were pinned to captured RPC block {block_tag} ({block_number})."
             )
             missing.extend(
                 [
