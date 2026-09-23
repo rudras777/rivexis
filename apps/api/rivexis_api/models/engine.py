@@ -5,10 +5,12 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 from rivexis_api.models.enums import AnalysisStatus, EngineId, Severity
 from rivexis_api.models.evidence import EvidenceRecord, SourceConflict
+from rivexis_api.version import ANALYSIS_FRAMEWORK_VERSION
 
 class EngineResult(BaseModel):
     engine_id: EngineId
     engine_version: str = "1.0.0"
+    analysis_framework_version: str = ANALYSIS_FRAMEWORK_VERSION
     analysis_id: str = Field(default_factory=lambda: str(uuid4()))
     engine_run_id: str = Field(default_factory=lambda: str(uuid4()))
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
