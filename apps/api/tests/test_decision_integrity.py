@@ -104,9 +104,19 @@ def test_api_decision_uses_persisted_engine_result_not_tampered_client_copy(clie
     assert body["decision"] == "AVOID"
     assert body["risk_breakdown"]["B2"] == canonical["risk_score"]
     assert body["canonical_persistence_verified"] is True
+    assert body["decision_methodology_version"]
     assert body["analysis_ids"] == [canonical["analysis_id"]]
     assert body["engine_versions"]["B2"] == canonical["engine_version"]
     assert body["analysis_framework_versions"]["B2"] == canonical["analysis_framework_version"]
+
+    explanation = client.get(f'/api/v1/decisions/{body["decision_id"]}/explanation', headers=headers)
+    assert explanation.status_code == 200
+    grounded = explanation.json()
+    assert grounded["canonical_persistence_verified"] is True
+    assert grounded["decision_methodology_version"] == body["decision_methodology_version"]
+    assert grounded["analysis_ids"] == [canonical["analysis_id"]]
+    assert grounded["engine_statuses"]["B2"] == canonical["status"]
+    assert grounded["evidence_count"] == body["evidence_count"]
 
 
 def test_api_duplicate_persisted_analysis_cannot_skew_decision(client):
