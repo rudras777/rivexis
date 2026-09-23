@@ -23,6 +23,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - PR #6 passed CI run #93 (`35799257420`) and merged as `b1c857bed25706d959bc55bbbb8fc40e863bbba4`.
 - PR #7 (`Complete safe in-place workspace switching`) passed CI run #105 (`35800016602`) and merged as `40950c29037ad35689c1d19a33924d430107c256`.
 - PR #9 (`Complete truthful workspace dashboard and settings summaries`) passed CI run #129 (`35828771358`) and merged as `22a999d018e8c84dd907d48a973d58406aa5ed33`.
+- PR #10 (`Harden decision evidence integrity and uncertainty semantics`) passed CI run #144 (`35830902047`) and merged as `deca453077f51101ef853161d07836a26472778d`.
 
 ## Milestone sequence
 
@@ -41,7 +42,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 **Milestone E — Analysis framework: evidence, provenance, conflicts, decisions and versioned outputs**
 
-Milestone D is complete at repository-test level. Workspace identity is typed and query-scoped, in-place switching is race-tested across audited tools, dashboard activity is backed by authorized workspace history while static product counts are explicitly labeled as metadata, History/Saved Analyses use supported-field summaries, and Settings lists only authorized workspace/organization data without implying unsupported member administration.
+Milestone D is complete at repository-test level. Milestone E now has a first CI-verified integrity slice: persisted analyses are the canonical decision inputs, duplicate evidence references cannot distort aggregate weighting, uncertainty cannot silently become a positive/negative recommendation, and framework/methodology provenance is persisted with the resulting decision.
 
 Acceptance targets for Milestone E:
 - audit the shared analysis request/result/decision models and UI so evidence, provenance, confidence, conflicts and UNKNOWN conditions are represented consistently rather than engine-by-engine ad hoc;
@@ -69,9 +70,15 @@ Acceptance targets for Milestone E:
 - Saved Analyses renders only supported active saved-reference fields and states that archived entries are excluded by the API default.
 - Settings renders authorized workspace and organization lists, organization membership roles and creation outcomes while explicitly stating member administration is not exposed on that page.
 - Playwright covers dashboard activity switching, structured History/Saved rendering, organization membership/creation truthfulness, prior workspace collection isolation and delayed-response switch races.
-- Initial PR #9 browser CI exposed two test-contract problems only: a legacy History mock used an unsupported `label` field, and a strict `ANALYST` selector matched both workspace and organization tables. Tests were corrected to the real API schema and scoped organization row.
-- PR #9 final head `55dbcb2a2ba1373dc0504734e802d75826de0048` passed CI run #129 (`35828771358`) across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
-- PR #9 merged to `main` as `22a999d018e8c84dd907d48a973d58406aa5ed33`.
+- PR #9 final head `55dbcb2a2ba1373dc0504734e802d75826de0048` passed CI run #129 (`35828771358`) and merged as `22a999d018e8c84dd907d48a973d58406aa5ed33`.
+- Shared engine outputs now persist `analysis_framework_version`; decisions persist a separate `decision_methodology_version` plus analysis IDs, engine versions/statuses, framework versions, evidence providers/count, unresolved conflict count and whether all decision inputs were rehydrated from canonical persisted storage.
+- Persisted `analysis_id` values are rehydrated from server-side analysis storage before decision scoring. Client-submitted changes to risk score, confidence, severity, blockers, warnings, conflicts or summary cannot override the stored analysis payload.
+- Repeating one persisted analysis ID, or submitting multiple results from the same specialist engine, no longer silently changes weighting; the shared decision model returns an explicit UNKNOWN state instead.
+- Requested evidence in `PARTIAL`, `STALE_DATA`, `CONFLICTING_DATA`, provider-unavailable or other non-COMPLETED states no longer becomes PROCEED/MODIFY/AVOID from aggregate scoring. It stays WAIT/UNKNOWN until resolved, except where an explicit hard blocker independently requires AVOID.
+- Grounded explanations expose the same methodology/provenance fields without generating a new risk score.
+- API/domain regression coverage includes an adversarial test that persists a high-risk B2 result, submits a forged safe copy under the same analysis ID, and proves the decision remains based on the canonical persisted high-risk result.
+- PR #10 final head `c817b0a9774faf1612faa4da61269d3b99911e4d` passed CI run #144 (`35830902047`) across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
+- PR #10 merged to `main` as `deca453077f51101ef853161d07836a26472778d`.
 
 ## Dependencies and blockers
 
@@ -85,4 +92,4 @@ Acceptance targets for Milestone E:
 
 ## Next action
 
-Start Milestone E by auditing shared analysis/decision schemas, engine result persistence, explanation/report generation and the engine result UI. Identify the smallest cross-engine inconsistency in evidence/provenance/conflict/UNKNOWN representation, fix it centrally where possible, add targeted API/domain/browser coverage, and gate the slice on full CI.
+Continue Milestone E by carrying the new evidence/provenance contract through decision reports and engine-result UI. Decision HTML/PDF must disclose methodology version, input engine statuses/versions, evidence sources/count, unresolved conflicts and canonical-persistence verification. Engine result surfaces should replace the raw-only presentation with a truthful structured summary that distinguishes demo, provider-grounded, partial/conflicting and provider-unavailable states without claiming evidence that was not used. Add targeted report/API/Playwright coverage and gate the slice on full CI.
