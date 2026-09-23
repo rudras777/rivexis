@@ -14,7 +14,17 @@ def _word(data: str, index: int) -> str | None:
 
 
 def _address(word: str | None) -> str | None:
-    return f"0x{word[-40:]}" if word and len(word) == 64 else None
+    if not isinstance(word, str) or len(word) != 64:
+        return None
+    try:
+        int(word, 16)
+    except ValueError:
+        return None
+    # Canonical ABI address encoding left-pads a 20-byte address with exactly
+    # 12 zero bytes. Do not silently discard non-zero high bits.
+    if word[:24] != "0" * 24:
+        return None
+    return f"0x{word[-40:].lower()}"
 
 
 def _uint(word: str | None) -> int | None:
@@ -28,9 +38,22 @@ def _uint(word: str | None) -> int | None:
 
 def _bool(word: str | None) -> bool | None:
     value = _uint(word)
-    if value is None:
-        return None
-    return bool(value)
+    if value == 0:
+        return False
+    if value == 1:
+        return True
+    # Solidity ABI bool values are canonically encoded as exactly 0 or 1.
+    return None
+
+
+def _malformed_standard(selector: str, signature: str) -> dict[str, Any]:
+    return {
+        "status": "MALFORMED_STANDARD_CALLDATA",
+        "selector": selector,
+        "signature": signature,
+        "confidence": 0,
+        "note": "One or more static ABI words were not canonically encoded; Rivexis did not normalize them into plausible parameters.",
+    }
 
 
 def decode_common_calldata(calldata: str | None) -> dict[str, Any]:
@@ -48,72 +71,104 @@ def decode_common_calldata(calldata: str | None) -> dict[str, Any]:
     selector = f"0x{data[:8]}"
 
     if selector == "0xa9059cbb":
+        signature = "transfer(address,uint256)"
+        to = _address(_word(data, 0))
+        amount = _uint(_word(data, 1))
+        if to is None or amount is None:
+            return _malformed_standard(selector, signature)
         return {
             "status": "DECODED_STANDARD_SELECTOR",
             "selector": selector,
-            "signature": "transfer(address,uint256)",
+            "signature": signature,
             "standard": "ERC20",
-            "parameters": {"to": _address(_word(data, 0)), "amount_raw": _uint(_word(data, 1))},
+            "parameters": {"to": to, "amount_raw": amount},
             "confidence": 95,
         }
     if selector == "0x095ea7b3":
+        signature = "approve(address,uint256)"
+        spender = _address(_word(data, 0))
         amount = _uint(_word(data, 1))
+        if spender is None or amount is None:
+            return _malformed_standard(selector, signature)
         return {
             "status": "DECODED_STANDARD_SELECTOR",
             "selector": selector,
-            "signature": "approve(address,uint256)",
+            "signature": signature,
             "standard": "ERC20_OR_ERC721_AMBIGUOUS_WITHOUT_CONTRACT_INTERFACE",
-            "parameters": {"spender_or_approved": _address(_word(data, 0)), "amount_or_token_id": amount},
+            "parameters": {"spender_or_approved": spender, "amount_or_token_id": amount},
             "unlimited_approval_candidate": amount == UINT256_MAX,
             "confidence": 88,
         }
     if selector == "0x23b872dd":
+        signature = "transferFrom(address,address,uint256)"
+        sender = _address(_word(data, 0))
+        recipient = _address(_word(data, 1))
+        amount = _uint(_word(data, 2))
+        if sender is None or recipient is None or amount is None:
+            return _malformed_standard(selector, signature)
         return {
             "status": "DECODED_STANDARD_SELECTOR",
             "selector": selector,
-            "signature": "transferFrom(address,address,uint256)",
+            "signature": signature,
             "standard": "ERC20_OR_ERC721_AMBIGUOUS_WITHOUT_CONTRACT_INTERFACE",
             "parameters": {
-                "from": _address(_word(data, 0)),
-                "to": _address(_word(data, 1)),
-                "amount_or_token_id": _uint(_word(data, 2)),
+                "from": sender,
+                "to": recipient,
+                "amount_or_token_id": amount,
             },
             "confidence": 88,
         }
     if selector == "0x42842e0e":
+        signature = "safeTransferFrom(address,address,uint256)"
+        sender = _address(_word(data, 0))
+        recipient = _address(_word(data, 1))
+        token_id = _uint(_word(data, 2))
+        if sender is None or recipient is None or token_id is None:
+            return _malformed_standard(selector, signature)
         return {
             "status": "DECODED_STANDARD_SELECTOR",
             "selector": selector,
-            "signature": "safeTransferFrom(address,address,uint256)",
+            "signature": signature,
             "standard": "ERC721",
             "parameters": {
-                "from": _address(_word(data, 0)),
-                "to": _address(_word(data, 1)),
-                "token_id": _uint(_word(data, 2)),
+                "from": sender,
+                "to": recipient,
+                "token_id": token_id,
             },
             "confidence": 94,
         }
     if selector == "0xb88d4fde":
+        signature = "safeTransferFrom(address,address,uint256,bytes)"
+        sender = _address(_word(data, 0))
+        recipient = _address(_word(data, 1))
+        token_id = _uint(_word(data, 2))
+        if sender is None or recipient is None or token_id is None:
+            return _malformed_standard(selector, signature)
         return {
             "status": "PARTIALLY_DECODED_STANDARD_SELECTOR",
             "selector": selector,
-            "signature": "safeTransferFrom(address,address,uint256,bytes)",
+            "signature": signature,
             "standard": "ERC721",
             "parameters": {
-                "from": _address(_word(data, 0)),
-                "to": _address(_word(data, 1)),
-                "token_id": _uint(_word(data, 2)),
+                "from": sender,
+                "to": recipient,
+                "token_id": token_id,
             },
             "note": "Dynamic bytes argument intentionally not decoded by the ABI-free fallback.",
             "confidence": 90,
         }
     if selector == "0xa22cb465":
+        signature = "setApprovalForAll(address,bool)"
+        operator = _address(_word(data, 0))
+        approved = _bool(_word(data, 1))
+        if operator is None or approved is None:
+            return _malformed_standard(selector, signature)
         return {
             "status": "DECODED_STANDARD_SELECTOR",
             "selector": selector,
-            "signature": "setApprovalForAll(address,bool)",
+            "signature": signature,
             "standard": "ERC721_OR_ERC1155",
-            "parameters": {"operator": _address(_word(data, 0)), "approved": _bool(_word(data, 1))},
+            "parameters": {"operator": operator, "approved": approved},
             "confidence": 94,
         }
     if selector == "0xd0e30db0":
@@ -126,12 +181,16 @@ def decode_common_calldata(calldata: str | None) -> dict[str, Any]:
             "confidence": 82,
         }
     if selector == "0x2e1a7d4d":
+        signature = "withdraw(uint256)"
+        amount = _uint(_word(data, 0))
+        if amount is None:
+            return _malformed_standard(selector, signature)
         return {
             "status": "DECODED_KNOWN_SELECTOR",
             "selector": selector,
-            "signature": "withdraw(uint256)",
+            "signature": signature,
             "standard": "WRAPPED_NATIVE_COMMON_PATTERN",
-            "parameters": {"amount_raw": _uint(_word(data, 0))},
+            "parameters": {"amount_raw": amount},
             "confidence": 82,
         }
     return {
@@ -140,6 +199,7 @@ def decode_common_calldata(calldata: str | None) -> dict[str, Any]:
         "confidence": 0,
         "note": "No ABI or verified signature evidence was used; Rivexis will not guess the method.",
     }
+
 
 # Pure-Python Keccak-256 is kept here to avoid requiring a full web3 dependency merely to
 # resolve verified ABI function selectors. Ethereum uses Keccak padding (0x01), not SHA3-256.
@@ -203,7 +263,7 @@ def _canonical_abi_type(param:dict[str,Any])->str:
 
 def _decode_abi_static(typ:str,word:str)->Any:
     if typ=="address":return _address(word)
-    if typ=="bool":return bool(_uint(word))
+    if typ=="bool":return _bool(word)
     if typ.startswith("uint"):return _uint(word)
     if typ.startswith("int"):
         raw=_uint(word)
@@ -231,7 +291,7 @@ def decode_verified_abi_calldata(calldata:str|None,abi:Any)->dict[str,Any]:
         inputs=item.get("inputs") or []
         signature=f"{item['name']}({','.join(_canonical_abi_type(x) for x in inputs)})"
         if function_selector(signature)!=selector:continue
-        decoded=[]
+        decoded=[];malformed_static=False
         for index,param in enumerate(inputs):
             typ=_canonical_abi_type(param);word=payload[index*64:(index+1)*64]
             value=None
@@ -249,8 +309,22 @@ def decode_verified_abi_calldata(calldata:str|None,abi:Any)->dict[str,Any]:
                                 except Exception:value={"hex":"0x"+raw,"length":length}
                             else:value="0x"+raw
                         else:value={"dynamic_offset":offset,"length":length}
-                else:value=_decode_abi_static(typ,word)
+                else:
+                    value=_decode_abi_static(typ,word)
+                    if value is None:malformed_static=True
+            elif not _is_dynamic_type(typ):
+                malformed_static=True
             decoded.append({"name":param.get("name") or f"arg{index}","type":typ,"value":value})
+        if malformed_static:
+            return {
+                "status":"MALFORMED_VERIFIED_ABI_CALLDATA",
+                "selector":selector,
+                "signature":signature,
+                "function":item.get("name"),
+                "parameters":decoded,
+                "confidence":0,
+                "note":"One or more static ABI parameters were not canonically encoded; Rivexis did not coerce them into valid values.",
+            }
         return {"status":"DECODED_VERIFIED_ABI","selector":selector,"signature":signature,"function":item.get("name"),"parameters":decoded,"confidence":99}
     return {"status":"SELECTOR_NOT_FOUND_IN_VERIFIED_ABI","selector":selector,"confidence":0}
 
@@ -265,7 +339,7 @@ def normalize_call_trace(trace:Any)->dict[str,Any]:
         item={"trace_index":idx,"parent_trace_index":parent,"depth":depth,"call_type":str(node.get("type") or "CALL").upper(),"from":node.get("from"),"to":node.get("to"),"value_wei":value,"gas":_uint_hex(node.get("gas")),"gas_used":_uint_hex(node.get("gasUsed")),"error":node.get("error"),"selector":decoded.get("selector"),"calldata_decode":decoded}
         calls.append(item)
         if value>0:native_transfers.append({"trace_index":idx,"from":node.get("from"),"to":node.get("to"),"amount_wei":value})
-        if decoded.get("signature") in {"approve(address,uint256)","setApprovalForAll(address,bool)"}:
+        if decoded.get("status") in {"DECODED_STANDARD_SELECTOR","PARTIALLY_DECODED_STANDARD_SELECTOR"} and decoded.get("signature") in {"approve(address,uint256)","setApprovalForAll(address,bool)"}:
             approval_candidates.append({"trace_index":idx,"contract":node.get("to"),"decode":decoded})
         for child in node.get("calls") or []:walk(child,idx,depth+1)
     walk(trace)
