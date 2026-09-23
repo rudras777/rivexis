@@ -85,14 +85,15 @@ test.describe("truthful workspace foundations",()=>{
     });
 
     await page.goto("/workspace/settings");
-    await expect(page.getByText("Existing Org")).toBeVisible();
-    await expect(page.getByText("ANALYST",{exact:true})).toBeVisible();
+    const organizationRow=page.getByRole("row",{name:/Existing Org ANALYST/});
+    await expect(organizationRow).toBeVisible();
+    await expect(organizationRow.getByRole("cell",{name:"ANALYST"})).toBeVisible();
     await expect(page.getByText("Member administration is not exposed on this page.")).toBeVisible();
     await expect(page.locator("pre.result")).toHaveCount(0);
 
     await page.getByLabel("Organization name").fill("New Research Org");
     await page.getByRole("button",{name:"Create organization"}).click();
-    await expect(page.getByRole("status")).toContainText("Created New Research Org. Your membership role is OWNER.");
+    await expect(page.getByText("Created New Research Org. Your membership role is OWNER.",{exact:true})).toBeVisible();
     expect(organizationPosts).toBe(1);
   });
 });
