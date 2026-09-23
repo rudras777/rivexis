@@ -13,7 +13,8 @@ type HistoryRow={
   demo?:boolean|null;
   created_at:string;
 };
-type Selection={type:"analysis"|"decision";id:string}|null;
+type HistorySelection={type:"analysis"|"decision";id:string};
+type Selection=HistorySelection|null;
 
 type Detail=Record<string,unknown>;
 
@@ -135,7 +136,8 @@ export default function History(){
   const items=q.data?.items??[];
   function inspect(item:HistoryRow){
     if(item.type!=="analysis"&&item.type!=="decision")return;
-    setSelected(current=>current?.type===item.type&&current.id===item.id?null:{type:item.type,id:item.id});
+    const next:HistorySelection={type:item.type,id:item.id};
+    setSelected(current=>current?.type===next.type&&current.id===next.id?null:next);
   }
   return <>
     <div className="workspaceHeader"><div><h1>History</h1><p>Analyses and decisions retained for the active workspace only.</p></div><span className="badge">{workspace.name}</span></div>
