@@ -89,7 +89,6 @@ def _provider_evidence(
     provider: str,
     normalized_value: dict,
     chain_id: int,
-    block_number: int | None,
     wallet: str,
     confidence: float,
 ) -> EvidenceRecord:
@@ -101,11 +100,11 @@ def _provider_evidence(
         provider_endpoint=call.endpoint,
         provider_request_id=call.request_id,
         retrieved_at=retrieved,
-        # No normalized provider observation timestamp is available for these label
-        # responses. Keep the schema-required datetime as a retrieval fallback only;
-        # freshness remains UNKNOWN so it is not presented as provider-observed now.
+        # No normalized provider observation timestamp or provider-specific block
+        # is available for these label responses. Keep retrieval time only as the
+        # schema-required datetime fallback and never inherit the direct RPC block.
         observed_at=retrieved,
-        block_number=block_number,
+        block_number=None,
         chain_id=chain_id,
         raw_reference=f"provider:{provider};request:{call.request_id};address:{wallet}",
         normalized_value=normalized_value,
@@ -337,8 +336,12 @@ def run_live_b4(data: dict) -> EngineResult:
                     provider_endpoint=normal_call.endpoint,
                     provider_request_id=normal_call.request_id,
                     retrieved_at=retrieved,
+                    # The indexer response does not expose a normalized observation
+                    # timestamp or one provider-specific block for this whole history
+                    # page. Retrieval time is only a schema fallback and the current
+                    # direct RPC block must not be copied onto this evidence.
                     observed_at=retrieved,
-                    block_number=block_number,
+                    block_number=None,
                     chain_id=chain.chain_id,
                     raw_reference=wallet,
                     normalized_value={
@@ -494,7 +497,6 @@ def run_live_b4(data: dict) -> EngineResult:
                         provider="nansen",
                         normalized_value=normalized,
                         chain_id=chain.chain_id,
-                        block_number=block_number,
                         wallet=wallet,
                         confidence=82,
                     )
@@ -539,7 +541,6 @@ def run_live_b4(data: dict) -> EngineResult:
                         provider="arkham",
                         normalized_value=normalized,
                         chain_id=chain.chain_id,
-                        block_number=block_number,
                         wallet=wallet,
                         confidence=78,
                     )
@@ -704,6 +705,17 @@ def run_live_b4(data: dict) -> EngineResult:
         ]
     )
 
+    indexed_history_evidence = any(
+        item.source_type == "indexed_account_history" for item in evidence
+    )
+    entity_label_evidence = any(
+        item.source_type == "entity_label_intelligence" for item in evidence
+    )
+    external_unknown_freshness = indexed_history_evidence or entity_label_evidence
+    overall_freshness = (
+        FreshnessStatus.UNKNOWN if external_unknown_freshness else FreshnessStatus.LIVE
+    )
+
     return EngineResult(
         engine_id=EngineId.B4,
         engine_version="1.0.0",
@@ -743,13 +755,28 @@ def run_live_b4(data: dict) -> EngineResult:
         evidence=evidence,
         provider_consensus=consensus,
         provider_conflicts=conflicts,
-        data_freshness={"status": "LIVE", "block_number": block_number},
+        data_freshness={
+            "status": overall_freshness.value,
+            "direct_state": FreshnessStatus.LIVE.value,
+            "direct_state_block_number": block_number,
+            "indexed_history": (
+                FreshnessStatus.UNKNOWN.value
+                if indexed_history_evidence
+                else "UNAVAILABLE"
+            ),
+            "entity_labels": (
+                FreshnessStatus.UNKNOWN.value
+                if entity_label_evidence
+                else "UNAVAILABLE"
+            ),
+        },
         missing_data=sorted(set(missing)),
         provider_status=provider_status,
         assumptions=[
             f"Direct native-balance state was pinned to captured RPC block {block_tag} ({block_number}) before evidence was stamped with that block reference.",
+            "The captured direct RPC block applies only to direct-state evidence; external indexer/entity-label rows are not assigned that block without provider-specific proof.",
             "Provider-attributed labels are evidence, not absolute truth. Absence of a label is not evidence of benign or malicious ownership.",
-            "External indexer/entity-label responses without a normalized provider observation timestamp are recorded with UNKNOWN evidence freshness rather than CURRENT.",
+            "External indexer/entity-label responses without a normalized provider observation timestamp are recorded with UNKNOWN evidence freshness rather than CURRENT, and aggregate freshness remains UNKNOWN when such evidence is consumed.",
             "Counterparty concentration is descriptive concentration of validated indexed records, not economic exposure, ownership or maliciousness, and is not used in the B4 risk score.",
         ],
         demo=False,
