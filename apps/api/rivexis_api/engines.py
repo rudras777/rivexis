@@ -47,6 +47,86 @@ def _sev(score):
     )
 
 
+def _b1_transaction_effects_summary(metrics: dict) -> dict:
+    """Build a conservative canonical B1 effects summary from existing evidence.
+
+    This does not infer token/NFT events that were never observed. It only reshapes
+    already-normalized calldata, call-trace and prestate-diff evidence into a stable
+    summary for downstream UI/report consumers.
+    """
+
+    calldata = metrics.get("calldata_decode")
+    if not isinstance(calldata, dict):
+        calldata = {}
+    trace = metrics.get("call_trace")
+    if not isinstance(trace, dict):
+        trace = None
+    state_diff = metrics.get("state_diff")
+    if not isinstance(state_diff, dict):
+        state_diff = None
+
+    entry_approval = None
+    signature = calldata.get("signature")
+    if signature in {"approve(address,uint256)", "setApprovalForAll(address,bool)"}:
+        entry_approval = {
+            "trace_index": None,
+            "contract": metrics.get("to"),
+            "decode": calldata,
+            "source": "entry_calldata",
+        }
+
+    internal_approvals = list(trace.get("approval_candidates") or []) if trace else []
+    approvals = ([entry_approval] if entry_approval else []) + internal_approvals
+    native_transfers = list(trace.get("native_value_transfers") or []) if trace else []
+    changes = list(state_diff.get("changes") or []) if state_diff else []
+
+    limitations = []
+    if trace is None:
+        limitations.append("Internal call trace was not available or not requested.")
+    if state_diff is None or state_diff.get("status") != "NORMALIZED_PRESTATE_DIFF":
+        limitations.append("Before/after contract-state diff was not available or not requested.")
+    limitations.append(
+        "Token/NFT transfer-event normalization is not proven by call traces alone; event/log evidence is not represented as a canonical asset-change list here."
+    )
+
+    return {
+        "entry_method": {
+            "status": calldata.get("status"),
+            "selector": calldata.get("selector"),
+            "signature": calldata.get("signature"),
+            "standard": calldata.get("standard"),
+            "confidence": calldata.get("confidence"),
+        },
+        "execution": {
+            "success": metrics.get("execution_success"),
+            "revert_reason": metrics.get("revert_reason"),
+            "gas_estimate": metrics.get("gas_estimate") or metrics.get("gas_used"),
+            "simulation_mode": metrics.get("simulation_mode"),
+        },
+        "internal_calls": {
+            "available": trace is not None,
+            "call_count": trace.get("call_count") if trace else None,
+            "error_count": trace.get("error_count") if trace else None,
+        },
+        "native_value_transfers": native_transfers,
+        "approval_candidates": approvals,
+        "state_changes": {
+            "available": bool(state_diff and state_diff.get("status") == "NORMALIZED_PRESTATE_DIFF"),
+            "addresses_touched": state_diff.get("addresses_touched") if state_diff else None,
+            "addresses_changed": state_diff.get("addresses_changed") if state_diff else None,
+            "changes": changes,
+            "truncated": state_diff.get("truncated") if state_diff else None,
+        },
+        "coverage": {
+            "entry_calldata_decoded": bool(calldata.get("status") and calldata.get("status") not in {"NO_CALLDATA", "NO_SELECTOR", "UNKNOWN_SELECTOR"}),
+            "internal_call_trace": trace is not None,
+            "state_diff": bool(state_diff and state_diff.get("status") == "NORMALIZED_PRESTATE_DIFF"),
+            "canonical_token_nft_event_changes": False,
+        },
+        "limitations": limitations,
+    }
+
+
 def _normalize_current_live_contract(result: EngineResult) -> EngineResult:
     """Normalize provenance fields for a newly executed live engine result.
 
@@ -66,6 +146,11 @@ def _normalize_current_live_contract(result: EngineResult) -> EngineResult:
             evidence.calculation_version = (
                 f"{result.engine_id.value.lower()}-live-{expected_version}"
             )
+
+    if result.engine_id == EngineId.B1 and isinstance(result.metrics, dict):
+        result.metrics["transaction_effects"] = _b1_transaction_effects_summary(
+            result.metrics
+        )
 
     # Unresolved provider conflicts are a first-class analysis state. A fresh live
     # result must not describe itself as ordinary COMPLETED/PARTIAL while also
