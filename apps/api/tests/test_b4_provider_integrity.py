@@ -96,7 +96,11 @@ def test_b4_native_balance_is_pinned_to_captured_rpc_block(monkeypatch):
     direct = next(item for item in result.evidence if item.source_type == "direct_state")
     assert direct.block_number == 100
     assert direct.normalized_value["block_tag"] == "0x64"
-    assert result.data_freshness["block_number"] == 100
+    assert result.data_freshness["status"] == FreshnessStatus.LIVE.value
+    assert result.data_freshness["direct_state"] == FreshnessStatus.LIVE.value
+    assert result.data_freshness["direct_state_block_number"] == 100
+    assert result.data_freshness["indexed_history"] == "UNAVAILABLE"
+    assert result.data_freshness["entity_labels"] == "UNAVAILABLE"
     assert any("pinned to captured RPC block 0x64" in text for text in result.assumptions)
 
 
@@ -119,6 +123,8 @@ def test_b4_non_object_nansen_response_is_not_healthy_no_label_evidence(monkeypa
     assert result.metrics["entity_profile"]["identity"] == "UNKNOWN ADDRESS"
     assert result.engine_confidence == 55
     assert not any(item.provider == "nansen" for item in result.evidence)
+    assert result.data_freshness["status"] == FreshnessStatus.LIVE.value
+    assert result.data_freshness["entity_labels"] == "UNAVAILABLE"
     assert any(
         row["provider_id"] == "nansen" and row["status"] == "MALFORMED_RESPONSE"
         for row in result.provider_status
@@ -144,9 +150,14 @@ def test_b4_valid_no_label_response_is_evidence_but_does_not_boost_attribution_c
     nansen_evidence = [item for item in result.evidence if item.provider == "nansen"]
     assert len(nansen_evidence) == 1
     assert nansen_evidence[0].freshness == FreshnessStatus.UNKNOWN
+    assert nansen_evidence[0].block_number is None
     assert result.metrics["entity_profile"]["identity"] == "UNKNOWN ADDRESS"
     assert result.data_confidence == 58
     assert result.engine_confidence == 55
+    assert result.data_freshness["status"] == FreshnessStatus.UNKNOWN.value
+    assert result.data_freshness["direct_state"] == FreshnessStatus.LIVE.value
+    assert result.data_freshness["direct_state_block_number"] == 100
+    assert result.data_freshness["entity_labels"] == FreshnessStatus.UNKNOWN.value
 
 
 def test_b4_attributed_label_uses_unknown_freshness_without_provider_timestamp(monkeypatch):
@@ -172,9 +183,13 @@ def test_b4_attributed_label_uses_unknown_freshness_without_provider_timestamp(m
 
     nansen_evidence = next(item for item in result.evidence if item.provider == "nansen")
     assert nansen_evidence.freshness == FreshnessStatus.UNKNOWN
+    assert nansen_evidence.block_number is None
     assert result.metrics["entity_profile"]["identity"] == "Example Exchange"
     assert result.data_confidence == 65
     assert result.engine_confidence == 62
+    assert result.data_freshness["status"] == FreshnessStatus.UNKNOWN.value
+    assert result.data_freshness["entity_labels"] == FreshnessStatus.UNKNOWN.value
+    assert any("current RPC block applies only to direct-state evidence" in text for text in result.assumptions)
 
 
 def test_b4_malformed_indexed_value_row_is_skipped_not_zeroed_or_crashed(monkeypatch):
@@ -208,3 +223,9 @@ def test_b4_malformed_indexed_value_row_is_skipped_not_zeroed_or_crashed(monkeyp
     assert any("Skipped 1 indexed history row" in warning for warning in result.warnings)
     etherscan_evidence = next(item for item in result.evidence if item.provider == "etherscan")
     assert etherscan_evidence.freshness == FreshnessStatus.UNKNOWN
+    assert etherscan_evidence.block_number is None
+    assert result.data_freshness["status"] == FreshnessStatus.UNKNOWN.value
+    assert result.data_freshness["direct_state"] == FreshnessStatus.LIVE.value
+    assert result.data_freshness["direct_state_block_number"] == 100
+    assert result.data_freshness["indexed_history"] == FreshnessStatus.UNKNOWN.value
+    assert result.data_freshness["entity_labels"] == "UNAVAILABLE"
