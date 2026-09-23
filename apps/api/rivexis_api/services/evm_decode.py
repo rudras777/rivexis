@@ -20,8 +20,6 @@ def _address(word: str | None) -> str | None:
         int(word, 16)
     except ValueError:
         return None
-    # Canonical ABI address encoding left-pads a 20-byte address with exactly
-    # 12 zero bytes. Do not silently discard non-zero high bits.
     if word[:24] != "0" * 24:
         return None
     return f"0x{word[-40:].lower()}"
@@ -42,7 +40,6 @@ def _bool(word: str | None) -> bool | None:
         return False
     if value == 1:
         return True
-    # Solidity ABI bool values are canonically encoded as exactly 0 or 1.
     return None
 
 
@@ -201,8 +198,6 @@ def decode_common_calldata(calldata: str | None) -> dict[str, Any]:
     }
 
 
-# Pure-Python Keccak-256 is kept here to avoid requiring a full web3 dependency merely to
-# resolve verified ABI function selectors. Ethereum uses Keccak padding (0x01), not SHA3-256.
 _KECCAK_RC = [
     0x0000000000000001,0x0000000000008082,0x800000000000808A,0x8000000080008000,
     0x000000000000808B,0x0000000080000001,0x8000000080008081,0x8000000000008009,
@@ -261,17 +256,34 @@ def _canonical_abi_type(param:dict[str,Any])->str:
         return f"({inner}){suffix}"
     return typ
 
+def _abi_int_width(typ:str,prefix:str)->int|None:
+    suffix=typ[len(prefix):]
+    if suffix=="":return 256
+    if not suffix.isdigit():return None
+    bits=int(suffix)
+    return bits if 8<=bits<=256 and bits%8==0 else None
+
 def _decode_abi_static(typ:str,word:str)->Any:
     if typ=="address":return _address(word)
     if typ=="bool":return _bool(word)
-    if typ.startswith("uint"):return _uint(word)
+    if typ.startswith("uint"):
+        raw=_uint(word);bits=_abi_int_width(typ,"uint")
+        if raw is None or bits is None or raw >= (1<<bits):return None
+        return raw
     if typ.startswith("int"):
-        raw=_uint(word)
-        if raw is None:return None
-        bits=int(typ[3:] or "256");return raw-(1<<bits) if raw >= (1<<(bits-1)) else raw
-    if typ=="bytes32":return "0x"+word
+        raw=_uint(word);bits=_abi_int_width(typ,"int")
+        if raw is None or bits is None:return None
+        low_mask=(1<<bits)-1;low=raw&low_mask;negative=bool(low&(1<<(bits-1)))
+        expected=low
+        if negative and bits<256:expected|=((1<<(256-bits))-1)<<bits
+        if raw!=expected:return None
+        return low-(1<<bits) if negative else low
     if typ.startswith("bytes") and typ[5:].isdigit():
-        size=int(typ[5:]);return "0x"+word[:size*2]
+        size=int(typ[5:])
+        if not 1<=size<=32 or len(word)!=64:return None
+        used=size*2
+        if any(ch!="0" for ch in word[used:]):return None
+        return "0x"+word[:used]
     return "0x"+word
 
 def _is_dynamic_type(typ:str)->bool:
