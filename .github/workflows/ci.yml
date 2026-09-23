@@ -11,7 +11,7 @@ jobs:
       - run: cd apps/api && pip install -e '.[dev,full]'
       - run: cd apps/api && ruff check rivexis_api tests
       - run: cd apps/api && pytest -q
-      - run: cd apps/api && pip-audit
+      - run: cd apps/api && pip-audit --skip-editable
   web:
     runs-on: ubuntu-latest
     steps:
