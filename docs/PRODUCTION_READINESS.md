@@ -28,7 +28,6 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | In-place workspace switching across audited tools | PASS | Engine, monitor, investigation, protocol-history and History provenance state are reset/guarded by workspace identity; browser tests prove old-workspace state cannot satisfy new-workspace views. |
 | Provider state boundary | PASS | Global provider registry configuration remains separate from workspace runtime telemetry; absence remains explicit. |
 | Current milestone CI | PASS | PR #24 head `dc8a481ca2136db83e13ee6b24c5ccf1b7e1bc04` passed API lint/tests/pip-audit, web type/build/vinext/npm-audit/Playwright/Axe, invariants/secret/migration checks and PostgreSQL migration/runtime-control CI #255 (`35851151093`). Recent PR #21/#22/#23 gates #235/#241/#249 also passed before merge. |
-| Milestone F engine-depth completion | NOT STARTED | Remaining work is deeper capability evidence: B1 canonical event/log asset changes; B2/B3 richer approved threat/security evidence; B4 cross-chain/counterparty/protocol semantics; B5 independent bridge/security/liquidity evidence; F1 automatic token/NFT/DeFi ingestion; deeper F2/F4/F5 dependency/liquidity/counterparty evidence. Track under `BUILD_EXECUTION_PLAN.md`. |
 | Live deployment of current merged source | BLOCKED | Current source is CI-green but has not been independently verified on the Cloudflare Worker; no deployment claim is made. |
 | Live FastAPI runtime | BLOCKED | Cloudflare Containers requires Workers Paid or another approved FastAPI-capable platform; no paid activation authorized. |
 | Production custom domain/TLS | BLOCKED | No Rivexis production domain is configured. |
@@ -47,7 +46,7 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Production release certification bundle | BLOCKED | External gates remain unavailable until real Rivexis-owned targets supply evidence. |
 | Incident/runbook readiness | NOT STARTED | Required operational runbooks remain a future milestone. |
 
-Milestone F remains active: repository-level integrity coverage is PASS, while deeper engine-capability completion remains unfinished. Repository CI, preview availability and skipped external certification are not production evidence.
+Milestone F remains active in `BUILD_EXECUTION_PLAN.md`: repository-level integrity coverage is PASS, while deeper engine-capability completion remains in progress. Active work is deliberately not forced into this matrix's terminal-state vocabulary. Repository CI, preview availability and skipped external certification are not production evidence.
 
 ## Launch rule
 
