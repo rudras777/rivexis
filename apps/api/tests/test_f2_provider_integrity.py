@@ -52,6 +52,22 @@ def test_f2_rejects_non_object_or_identityless_provider_record(monkeypatch):
     assert no_identity.risk_score == 0
     assert "protocol identity" in no_identity.summary
 
+    install_result(monkeypatch, {"name": {"unexpected": "object"}, "tvl": 100_000_000})
+    non_string_identity = live_f2.run_live_f2({"protocol": "aave"})
+    assert non_string_identity.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert non_string_identity.risk_score == 0
+
+
+def test_f2_rejects_truthy_string_provider_health_flag(monkeypatch):
+    install_result(monkeypatch, valid_record(latest_fetch_ok="false"))
+    result = live_f2.run_live_f2({"protocol": "aave"})
+
+    assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert result.severity == Severity.UNKNOWN
+    assert result.risk_score == 0
+    assert result.missing_data == ["boolean latestFetchIsOk metadata"]
+    assert "truthiness" in result.summary
+
 
 def test_f2_rejects_non_finite_or_negative_core_tvl(monkeypatch):
     install_result(monkeypatch, valid_record(tvl=float("nan")))
