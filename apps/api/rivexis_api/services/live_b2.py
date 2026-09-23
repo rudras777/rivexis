@@ -10,6 +10,7 @@ from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, 
 from rivexis_api.models.evidence import EvidenceRecord
 from rivexis_api.provider_clients import BlockaidClient, EtherscanClient, ProviderCall, ProviderError, hex_to_int
 from rivexis_api.providers import resolve_provider, select_rpc_client
+from rivexis_api.services.evm_decode import decode_common_calldata
 from rivexis_api.services.security_intel import blockaid_risk, normalize_blockaid
 
 MAX_UINT256 = 2**256 - 1
@@ -28,7 +29,7 @@ def _evidence(call: ProviderCall, source_type: str, normalized: Any, chain_id: i
         chain_id=chain_id,
         raw_reference=f"provider:{call.provider_id};request:{call.request_id}",
         normalized_value=normalized,
-        calculation_version="b2-live-1.1.0",
+        calculation_version="b2-live-1.2.0",
         engine_version="1.1.0",
         confidence=confidence,
         freshness=FreshnessStatus.LIVE,
@@ -58,36 +59,62 @@ def _transaction_hash(value: object) -> str | None:
     return raw
 
 
-def _decode_approval(data: str | None) -> dict[str, Any] | None:
-    if not isinstance(data, str) or not data.startswith("0x"):
-        return None
-    clean = data[2:].lower()
-    if len(clean) < 8:
-        return None
-    selector = clean[:8]
-    args = clean[8:]
+def _rpc_quantity(value: object) -> int | None:
     try:
-        if selector == "095ea7b3" and len(args) >= 128:  # approve(address,uint256)
-            spender = "0x" + args[24:64]
-            amount = int(args[64:128], 16)
-            return {
-                "type": "ERC20_APPROVE",
-                "selector": "0x095ea7b3",
-                "spender": spender,
-                "amount_raw": str(amount),
-                "unlimited": amount >= MAX_UINT256 - 2**128,
-            }
-        if selector == "a22cb465" and len(args) >= 128:  # setApprovalForAll(address,bool)
-            operator = "0x" + args[24:64]
-            enabled = int(args[64:128], 16) != 0
-            return {
-                "type": "SET_APPROVAL_FOR_ALL",
-                "selector": "0xa22cb465",
-                "operator": operator,
-                "enabled": enabled,
-            }
+        parsed = hex_to_int(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if isinstance(parsed, bool) or parsed is None or parsed < 0:
+        return None
+    return parsed
+
+
+def _bytecode(value: object) -> tuple[str, bytes] | None:
+    if not isinstance(value, str) or not value.startswith("0x"):
+        return None
+    raw = value[2:]
+    if len(raw) % 2:
+        return None
+    try:
+        decoded = bytes.fromhex(raw)
     except ValueError:
-        return {"type": "MALFORMED_APPROVAL", "selector": "0x" + selector}
+        return None
+    return "0x" + raw.lower(), decoded
+
+
+def _decode_approval(data: str | None) -> dict[str, Any] | None:
+    decoded = decode_common_calldata(data)
+    selector = decoded.get("selector")
+    signature = decoded.get("signature")
+    params = decoded.get("parameters") if isinstance(decoded.get("parameters"), dict) else {}
+
+    if signature == "approve(address,uint256)":
+        spender = params.get("spender_or_approved")
+        amount = params.get("amount_or_token_id")
+        if _evm_address(spender) is None or not isinstance(amount, int) or isinstance(amount, bool):
+            return {"type": "MALFORMED_APPROVAL", "selector": selector or "0x095ea7b3"}
+        return {
+            "type": "ERC20_APPROVE",
+            "selector": selector,
+            "spender": spender,
+            "amount_raw": str(amount),
+            "unlimited": amount >= MAX_UINT256 - 2**128,
+        }
+
+    if signature == "setApprovalForAll(address,bool)":
+        operator = params.get("operator")
+        enabled = params.get("approved")
+        if _evm_address(operator) is None or not isinstance(enabled, bool):
+            return {"type": "MALFORMED_APPROVAL", "selector": selector or "0xa22cb465"}
+        return {
+            "type": "SET_APPROVAL_FOR_ALL",
+            "selector": selector,
+            "operator": operator,
+            "enabled": enabled,
+        }
+
+    if selector in {"0x095ea7b3", "0xa22cb465"}:
+        return {"type": "MALFORMED_APPROVAL", "selector": selector}
     return None
 
 
@@ -148,11 +175,23 @@ def run_live_b2(input_data: dict[str, Any]) -> EngineResult:
         statuses.extend({"provider_id": e["provider_id"], "status": "FAILED_OR_UNAVAILABLE", "detail": e["error"]} for e in fallback_errors)
         statuses.append({"provider_id": rpc_provider_id, "status": "HEALTHY", "latency_ms": round(chain_probe.latency_ms, 2)})
         block_call = rpc.call("eth_blockNumber")
-        block_number = hex_to_int(block_call.result)
+        block_number = _rpc_quantity(block_call.result)
+        if block_number is None:
+            raise ProviderError(
+                "RPC returned a malformed block number",
+                provider_id=rpc_provider_id,
+                code="MALFORMED_RESPONSE",
+            )
         evidence.append(_evidence(block_call, "direct_state", {"block_number": block_number}, chain.chain_id, block_number, 99, "eth_blockNumber"))
         if tx_hash:
             tx_call = rpc.call("eth_getTransactionByHash", [tx_hash])
             if tx_call.result:
+                if not isinstance(tx_call.result, dict):
+                    raise ProviderError(
+                        "RPC returned a malformed transaction body",
+                        provider_id=rpc_provider_id,
+                        code="MALFORMED_RESPONSE",
+                    )
                 tx = dict(tx_call.result)
                 resolved_target = tx.get("to") or target
                 if resolved_target not in (None, ""):
@@ -170,7 +209,8 @@ def run_live_b2(input_data: dict[str, Any]) -> EngineResult:
                     tx["from"] = _evm_address(resolved_sender)
                 if target is not None:
                     tx["to"] = target
-                evidence.append(_evidence(tx_call, "direct_state", {k: tx.get(k) for k in ("hash", "from", "to", "input", "value", "blockNumber")}, chain.chain_id, hex_to_int(tx.get("blockNumber")), 99, "eth_getTransactionByHash"))
+                historical_block = _rpc_quantity(tx.get("blockNumber"))
+                evidence.append(_evidence(tx_call, "direct_state", {k: tx.get(k) for k in ("hash", "from", "to", "input", "value", "blockNumber")}, chain.chain_id, historical_block, 99, "eth_getTransactionByHash"))
             else:
                 warnings.append("Transaction hash was not found by the selected RPC provider.")
                 missing.append("transaction body")
@@ -193,12 +233,33 @@ def run_live_b2(input_data: dict[str, Any]) -> EngineResult:
     if not target:
         return _insufficient("Provide a contract/address, transaction destination, or transaction hash for live B2 analysis")
 
+    block_tag = hex(block_number)
     code_present = False
     try:
-        code_call = rpc.call("eth_getCode", [target, "latest"])
-        code = str(code_call.result or "0x")
-        code_present = code not in {"0x", "0x0", ""}
-        evidence.append(_evidence(code_call, "direct_state", {"address": target, "has_contract_code": code_present, "bytecode_bytes": max(0, (len(code) - 2) // 2)}, chain.chain_id, block_number, 99, "eth_getCode"))
+        code_call = rpc.call("eth_getCode", [target, block_tag])
+        normalized_code = _bytecode(code_call.result)
+        if normalized_code is None:
+            raise ProviderError(
+                "RPC returned malformed contract bytecode",
+                provider_id=rpc_provider_id,
+                code="MALFORMED_RESPONSE",
+            )
+        code, code_bytes = normalized_code
+        code_present = bool(code_bytes)
+        evidence.append(_evidence(
+            code_call,
+            "direct_state",
+            {
+                "address": target,
+                "has_contract_code": code_present,
+                "bytecode_bytes": len(code_bytes),
+                "block_tag": block_tag,
+            },
+            chain.chain_id,
+            block_number,
+            99,
+            "eth_getCode",
+        ))
     except ProviderError as exc:
         warnings.append(f"Contract-code lookup failed: {exc.code}")
         missing.append("contract bytecode state")
@@ -300,8 +361,6 @@ def run_live_b2(input_data: dict[str, Any]) -> EngineResult:
             warnings.append(f"Blockaid security evidence was configured but unavailable: {exc.code}.")
             missing.append("Blockaid security verdict")
     elif security_resolution.provider_id == "hypernative":
-        # Hypernative's public material documents screening/API capability, while the
-        # exact customer endpoint schema is access-controlled. Do not invent a payload.
         statuses.append({"provider_id": "hypernative", "status": "CUSTOMER_SCHEMA_REQUIRED"})
         missing.append("Hypernative customer API schema/endpoint configuration")
         warnings.append("Hypernative credentials are present, but Rivexis will not invent a customer-only screening request schema. Configure the certified adapter contract before consuming Hypernative evidence.")
@@ -334,7 +393,10 @@ def run_live_b2(input_data: dict[str, Any]) -> EngineResult:
         data_freshness={"status": "LIVE", "chain": chain.key, "block_number": block_number},
         missing_data=sorted(set(missing)),
         provider_status=statuses,
-        assumptions=["Absence of an external malicious verdict is not evidence that an address or transaction is safe."],
+        assumptions=[
+            "Absence of an external malicious verdict is not evidence that an address or transaction is safe.",
+            f"Direct contract bytecode state is pinned to captured RPC block {block_tag}.",
+        ],
     )
 
 
