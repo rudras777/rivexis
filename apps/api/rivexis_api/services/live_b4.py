@@ -246,12 +246,19 @@ def run_live_b4(data: dict) -> EngineResult:
     try:
         rpc_provider, rpc, _probe, attempts = select_rpc_client(chain.chain_id)
         block_call = rpc.call("eth_blockNumber")
-        balance_call = rpc.call("eth_getBalance", [wallet, "latest"])
         block_number = _rpc_uint(block_call.result)
-        balance_wei = _rpc_uint(balance_call.result)
-        if block_number is None or balance_wei is None:
+        if block_number is None:
             raise ProviderError(
-                "RPC returned malformed block or balance state",
+                "RPC returned malformed block state",
+                provider_id=rpc_provider,
+                code="MALFORMED_RESPONSE",
+            )
+        block_tag = hex(block_number)
+        balance_call = rpc.call("eth_getBalance", [wallet, block_tag])
+        balance_wei = _rpc_uint(balance_call.result)
+        if balance_wei is None:
+            raise ProviderError(
+                "RPC returned malformed balance state",
                 provider_id=rpc_provider,
                 code="MALFORMED_RESPONSE",
             )
@@ -281,6 +288,7 @@ def run_live_b4(data: dict) -> EngineResult:
                     "wallet": wallet,
                     "native_balance": native_balance,
                     "native_symbol": chain.native_symbol,
+                    "block_tag": block_tag,
                 },
                 confidence=92,
                 freshness=FreshnessStatus.LIVE,
@@ -338,8 +346,6 @@ def run_live_b4(data: dict) -> EngineResult:
                         "erc20_transfer_count": len(token_txs),
                     },
                     confidence=72,
-                    # Query retrieval is current, but no indexer sync-height/freshness proof
-                    # is normalized here, so indexed-history observation freshness is unknown.
                     freshness=FreshnessStatus.UNKNOWN,
                     license_classification="external-provider-attributed",
                 )
@@ -741,6 +747,7 @@ def run_live_b4(data: dict) -> EngineResult:
         missing_data=sorted(set(missing)),
         provider_status=provider_status,
         assumptions=[
+            f"Direct native-balance state was pinned to captured RPC block {block_tag} ({block_number}) before evidence was stamped with that block reference.",
             "Provider-attributed labels are evidence, not absolute truth. Absence of a label is not evidence of benign or malicious ownership.",
             "External indexer/entity-label responses without a normalized provider observation timestamp are recorded with UNKNOWN evidence freshness rather than CURRENT.",
             "Counterparty concentration is descriptive concentration of validated indexed records, not economic exposure, ownership or maliciousness, and is not used in the B4 risk score.",
