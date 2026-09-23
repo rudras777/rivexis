@@ -27,7 +27,7 @@ LIVE_ENGINE_VERSIONS = {
     EngineId.B3: "1.1.0",
     EngineId.B4: "1.0.0",
     EngineId.B5: "1.1.0",
-    EngineId.F1: "1.1.0",
+    EngineId.F1: "1.2.0",
     EngineId.F2: "1.2.0",
     EngineId.F3: "1.3.0",
     EngineId.F4: "1.2.0",
