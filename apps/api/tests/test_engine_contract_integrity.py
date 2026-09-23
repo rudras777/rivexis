@@ -262,7 +262,9 @@ def test_b1_effect_summary_normalizes_trace_approvals_native_value_and_state_cha
         "contract": "0x" + "33" * 20,
         "decode": entry_approval,
     }
+    target = "0x" + "55" * 20
     metrics = {
+        "to": target,
         "execution_success": True,
         "gas_estimate": 21000,
         "simulation_mode": "standards-based-rpc-dry-run",
@@ -300,11 +302,12 @@ def test_b1_effect_summary_normalizes_trace_approvals_native_value_and_state_cha
     assert effects["internal_calls"] == {"available": True, "call_count": 2, "error_count": 0}
     assert effects["native_value_transfers"][0]["amount_wei"] == 16
     assert len(effects["approval_candidates"]) == 2
+    assert effects["approval_candidates"][0]["contract"] == target
     assert effects["state_changes"]["addresses_changed"] == 1
     assert effects["coverage"]["internal_call_trace"] is True
     assert effects["coverage"]["state_diff"] is True
     assert effects["coverage"]["canonical_token_nft_event_changes"] is False
-    assert any("not proven" in item for item in effects["limitations"])
+    assert any("call traces alone are not treated as proof" in item for item in effects["limitations"])
 
 
 def test_b1_effect_summary_is_explicit_when_trace_and_state_diff_are_missing():
@@ -318,9 +321,66 @@ def test_b1_effect_summary_is_explicit_when_trace_and_state_diff_are_missing():
     assert effects["state_changes"]["available"] is False
     assert effects["native_value_transfers"] == []
     assert effects["approval_candidates"] == []
+    assert effects["asset_changes"] == []
+    assert effects["approval_events"] == []
     assert effects["coverage"]["entry_calldata_decoded"] is False
     assert effects["coverage"]["canonical_token_nft_event_changes"] is False
+    assert effects["coverage"]["canonical_approval_events"] is False
     assert len(effects["limitations"]) == 3
+
+
+def test_b1_effect_summary_exposes_normalized_event_effects_without_token_metadata_inference():
+    event_effects = {
+        "status": "NORMALIZED_STANDARD_EVENT_LOGS",
+        "source": "tenderly_simulation",
+        "outcome": "predicted",
+        "logs_available": True,
+        "input_log_count": 3,
+        "decoded_log_count": 2,
+        "asset_change_count": 1,
+        "approval_event_count": 1,
+        "unknown_log_count": 1,
+        "malformed_log_count": 0,
+        "truncated": False,
+        "asset_changes": [
+            {
+                "standard": "ERC20",
+                "event": "Transfer",
+                "contract": "0x" + "22" * 20,
+                "from": "0x" + "11" * 20,
+                "to": "0x" + "33" * 20,
+                "amount_raw": "1250000",
+            }
+        ],
+        "approval_events": [
+            {
+                "standard": "ERC20",
+                "event": "Approval",
+                "contract": "0x" + "22" * 20,
+                "owner": "0x" + "11" * 20,
+                "spender": "0x" + "44" * 20,
+                "amount_raw": "7",
+            }
+        ],
+        "raw_amounts_unscaled": True,
+    }
+    effects = _b1_transaction_effects_summary(
+        {
+            "execution_success": True,
+            "simulation_mode": "tenderly",
+            "calldata_decode": {"status": "NO_CALLDATA"},
+            "event_effects": event_effects,
+        }
+    )
+    assert effects["coverage"]["canonical_token_nft_event_changes"] is True
+    assert effects["coverage"]["canonical_approval_events"] is True
+    assert effects["asset_changes"][0]["amount_raw"] == "1250000"
+    assert effects["approval_events"][0]["amount_raw"] == "7"
+    assert effects["event_logs"]["source"] == "tenderly_simulation"
+    assert effects["event_logs"]["outcome"] == "predicted"
+    assert effects["event_logs"]["unknown_log_count"] == 1
+    assert any("raw on-chain integers" in item for item in effects["limitations"])
+    assert any("Unrecognized/non-standard" in item for item in effects["limitations"])
 
 
 def test_live_b1_dispatch_attaches_effect_summary_without_inventing_asset_changes(monkeypatch):
@@ -362,7 +422,8 @@ def test_live_b1_dispatch_attaches_effect_summary_without_inventing_asset_change
     assert effects["coverage"]["internal_call_trace"] is True
     assert effects["coverage"]["state_diff"] is False
     assert effects["coverage"]["canonical_token_nft_event_changes"] is False
-    assert normalized.engine_version == "1.2.0"
+    assert normalized.engine_version == "1.3.0"
+    assert normalized.evidence[0].engine_version == "1.3.0"
 
 
 def test_every_declared_live_engine_has_an_explicit_canonical_version():
