@@ -13,21 +13,48 @@ from reportlab.platypus import KeepTogether, Paragraph, SimpleDocTemplate, Space
 from rivexis_api.models.decision import RivexisDecision
 
 
+def _decision_engine_rows(d: RivexisDecision) -> list[tuple[str, str, str, str]]:
+    engines = sorted(set(d.engine_statuses) | set(d.engine_versions) | set(d.analysis_framework_versions))
+    return [
+        (
+            engine,
+            d.engine_statuses.get(engine, "UNKNOWN"),
+            d.engine_versions.get(engine, "UNKNOWN"),
+            d.analysis_framework_versions.get(engine, "UNKNOWN"),
+        )
+        for engine in engines
+    ]
+
+
 def decision_html(d: RivexisDecision) -> str:
     demo = '<div class="demo">DEMONSTRATION RESULT - NOT LIVE DATA</div>' if d.demo else ''
     why = ''.join(f'<li>{escape(x)}</li>' for x in d.why)
     findings = ''.join(f'<li>{escape(x)}</li>' for x in d.critical_findings) or '<li>No critical findings recorded.</li>'
+    engine_rows = ''.join(
+        f'<tr><td>{escape(engine)}</td><td>{escape(status)}</td><td>{escape(version)}</td><td>{escape(framework)}</td></tr>'
+        for engine, status, version, framework in _decision_engine_rows(d)
+    ) or '<tr><td colspan="4">No specialist engine provenance recorded.</td></tr>'
+    evidence_sources = ', '.join(escape(x) for x in d.evidence_sources) or 'None recorded'
+    analysis_ids = ''.join(f'<li><code>{escape(x)}</code></li>' for x in d.analysis_ids) or '<li>None recorded.</li>'
+    canonical = 'VERIFIED FROM PERSISTED ANALYSES' if d.canonical_persistence_verified else 'NOT VERIFIED FROM PERSISTED ANALYSES'
     return (
         f'<!doctype html><html><head><meta charset="utf-8"><title>Rivexis {escape(d.decision.value)} Report</title>'
         f'<style>body{{font:15px system-ui;max-width:900px;margin:40px auto;color:#10243f}}h1{{color:#0b5cff}}'
         f'.demo{{padding:12px;background:#fff3cd;border:1px solid #eed27a}}.metric{{display:inline-block;margin:8px 24px 8px 0}}'
-        f'</style></head><body>{demo}<h1>RIVEXIS Decision Report</h1><p><b>Decision:</b> {escape(d.decision.value)}</p>'
+        f'table{{border-collapse:collapse;width:100%;margin:8px 0 18px}}th,td{{border:1px solid #d7e2f0;padding:8px;text-align:left;vertical-align:top}}'
+        f'th{{background:#10243f;color:white}}code{{word-break:break-all}}</style></head><body>{demo}<h1>RIVEXIS Decision Report</h1>'
+        f'<p><b>Decision:</b> {escape(d.decision.value)}</p>'
         f'<div class="metric"><b>Risk:</b> {d.overall_risk_score:.1f}/100</div>'
         f'<div class="metric"><b>Decision confidence:</b> {d.decision_confidence:.1f}%</div>'
         f'<div class="metric"><b>Data confidence:</b> {d.data_confidence:.1f}%</div>'
         f'<h2>Executive summary</h2><p>{escape(d.executive_summary)}</p><h2>Why</h2><ul>{why}</ul>'
         f'<h2>Critical findings</h2><ul>{findings}</ul><h2>Recommended action</h2><p>{escape(d.recommended_action)}</p>'
-        f'<p><small>Generated from structured Rivexis evidence. Decision ID: {escape(d.decision_id)}</small></p></body></html>'
+        f'<h2>Evidence provenance</h2><p><b>Decision methodology:</b> {escape(d.decision_methodology_version)}<br>'
+        f'<b>Canonical persistence:</b> {escape(canonical)}<br><b>Evidence records:</b> {d.evidence_count}<br>'
+        f'<b>Evidence sources:</b> {evidence_sources}<br><b>Unresolved source conflicts:</b> {d.unresolved_conflict_count}</p>'
+        f'<table><thead><tr><th>Engine</th><th>Status</th><th>Engine version</th><th>Analysis framework</th></tr></thead><tbody>{engine_rows}</tbody></table>'
+        f'<h3>Persisted analysis references</h3><ul>{analysis_ids}</ul>'
+        f'<p><small>Generated only from the structured decision payload above. Decision ID: {escape(d.decision_id)}</small></p></body></html>'
     )
 
 
@@ -73,7 +100,11 @@ def decision_pdf(d: RivexisDecision) -> bytes:
         ['Decision confidence', f'{d.decision_confidence:.1f}%'],
         ['Data confidence', f'{d.data_confidence:.1f}%'],
         ['Timestamp', d.timestamp.isoformat()],
+        ['Decision methodology', d.decision_methodology_version],
+        ['Canonical persistence', 'VERIFIED' if d.canonical_persistence_verified else 'NOT VERIFIED'],
         ['Evidence records', str(d.evidence_count)],
+        ['Evidence sources', ', '.join(d.evidence_sources) or 'None recorded'],
+        ['Unresolved source conflicts', str(d.unresolved_conflict_count)],
     ]
     table = Table(metrics, colWidths=[48 * mm, 105 * mm], repeatRows=0)
     table.setStyle(TableStyle([
@@ -112,6 +143,25 @@ def decision_pdf(d: RivexisDecision) -> bytes:
     bullets('Assumptions', d.assumptions)
     bullets('Missing data', d.missing_data)
 
+    provenance_rows = [['Engine', 'Status', 'Engine version', 'Framework']] + [list(row) for row in _decision_engine_rows(d)]
+    if len(provenance_rows) == 1:
+        provenance_rows.append(['—', 'No specialist provenance recorded', '—', '—'])
+    provenance_table = Table(provenance_rows, colWidths=[22 * mm, 43 * mm, 42 * mm, 46 * mm], repeatRows=1)
+    provenance_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#10243F')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.35, colors.HexColor('#CCDCEF')),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+    ]))
+    story.append(Paragraph('Specialist engine provenance', styles['Section']))
+    story.append(provenance_table)
+    bullets('Persisted analysis references', d.analysis_ids)
+
     if d.risk_breakdown:
         heading = Paragraph('Risk breakdown', styles['Section'])
         rows = [['Dimension', 'Risk']] + [[escape(str(k)), f'{float(v):.1f}/100'] for k, v in sorted(d.risk_breakdown.items())]
@@ -131,7 +181,7 @@ def decision_pdf(d: RivexisDecision) -> bytes:
     story.extend([
         Spacer(1, 8 * mm),
         Paragraph(f'Decision ID: {escape(d.decision_id)}', styles['BodySmall']),
-        Paragraph('This report explains a structured Rivexis decision. It does not convert missing evidence into certainty.', styles['BodySmall']),
+        Paragraph('This report explains the persisted structured Rivexis decision. It does not infer evidence that is absent or convert missing evidence into certainty.', styles['BodySmall']),
     ])
     doc.build(story, onFirstPage=_pdf_page, onLaterPages=_pdf_page)
     return buf.getvalue()
