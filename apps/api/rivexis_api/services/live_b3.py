@@ -161,7 +161,7 @@ def _evidence(
         chain_id=chain_id,
         raw_reference=f"provider:{call.provider_id};request:{call.request_id}",
         normalized_value=normalized_value,
-        calculation_version="b3-live-1.1.0",
+        calculation_version="b3-live-1.2.0",
         engine_version="1.1.0",
         confidence=confidence,
         freshness=freshness,
@@ -184,13 +184,13 @@ def _decode_signed_word(word_hex: str) -> int:
 
 
 def _read_chainlink(
-    rpc, address: str
+    rpc, address: str, block_tag: str
 ) -> tuple[dict[str, Any], list[tuple[ProviderCall, str]], datetime | None, FreshnessStatus]:
     decimals_call = rpc.call(
-        "eth_call", [{"to": address, "data": DECIMALS_SELECTOR}, "latest"]
+        "eth_call", [{"to": address, "data": DECIMALS_SELECTOR}, block_tag]
     )
     round_call = rpc.call(
-        "eth_call", [{"to": address, "data": LATEST_ROUND_DATA_SELECTOR}, "latest"]
+        "eth_call", [{"to": address, "data": LATEST_ROUND_DATA_SELECTOR}, block_tag]
     )
     decimals = _rpc_uint(decimals_call.result, maximum=255)
     raw = round_call.result
@@ -269,6 +269,7 @@ def _read_chainlink(
         "answered_in_round": answered_in_round,
         "age_seconds": age,
         "timestamp_status": timestamp_status,
+        "block_tag": block_tag,
     }
     return (
         normalized,
@@ -365,13 +366,20 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
     try:
         block_call = rpc.call("eth_blockNumber")
         block = _rpc_uint(block_call.result)
-        balance_call = rpc.call("eth_getBalance", [entity, "latest"])
-        balance = _rpc_uint(balance_call.result)
-        code_call = rpc.call("eth_getCode", [entity, "latest"])
-        code_bytes = _bytecode(code_call.result)
-        if block is None or balance is None or code_bytes is None:
+        if block is None:
             raise ProviderError(
-                "RPC returned malformed block, balance, or bytecode state",
+                "RPC returned a malformed block number",
+                provider_id=rpc_provider,
+                code="MALFORMED_RESPONSE",
+            )
+        block_tag = hex(block)
+        balance_call = rpc.call("eth_getBalance", [entity, block_tag])
+        balance = _rpc_uint(balance_call.result)
+        code_call = rpc.call("eth_getCode", [entity, block_tag])
+        code_bytes = _bytecode(code_call.result)
+        if balance is None or code_bytes is None:
+            raise ProviderError(
+                "RPC returned malformed balance or bytecode state",
                 provider_id=rpc_provider,
                 code="MALFORMED_RESPONSE",
             )
@@ -398,6 +406,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
     snapshot: dict[str, Any] = {
         "chain_id": chain.chain_id,
         "block_number": block,
+        "block_tag": block_tag,
         "entity": entity,
         "native_balance_wei": balance,
         "code_size_bytes": len(code_bytes),
@@ -409,7 +418,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
             _evidence(
                 block_call,
                 source_type="direct_state",
-                normalized_value={"block_number": block},
+                normalized_value={"block_number": block, "block_tag": block_tag},
                 chain_id=chain.chain_id,
                 block_number=block,
                 method="eth_blockNumber",
@@ -417,7 +426,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
             _evidence(
                 balance_call,
                 source_type="direct_state",
-                normalized_value={"entity": entity, "native_balance_wei": balance},
+                normalized_value={"entity": entity, "native_balance_wei": balance, "block_tag": block_tag},
                 chain_id=chain.chain_id,
                 block_number=block,
                 method="eth_getBalance",
@@ -429,6 +438,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
                     "entity": entity,
                     "code_size_bytes": len(code_bytes),
                     "code_sha256": code_hash,
+                    "block_tag": block_tag,
                 },
                 chain_id=chain.chain_id,
                 block_number=block,
@@ -448,7 +458,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
         try:
             supply_call = rpc.call(
                 "eth_call",
-                [{"to": token_contract, "data": TOTAL_SUPPLY_SELECTOR}, "latest"],
+                [{"to": token_contract, "data": TOTAL_SUPPLY_SELECTOR}, block_tag],
             )
             total_supply = _rpc_uint(supply_call.result)
             if total_supply is None:
@@ -466,6 +476,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
                     normalized_value={
                         "token_contract": token_contract,
                         "total_supply_raw": total_supply,
+                        "block_tag": block_tag,
                     },
                     chain_id=chain.chain_id,
                     block_number=block,
@@ -480,7 +491,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
     oracle_threshold_stale = False
     if oracle_feed:
         try:
-            oracle, calls, observed_at, oracle_freshness = _read_chainlink(rpc, oracle_feed)
+            oracle, calls, observed_at, oracle_freshness = _read_chainlink(rpc, oracle_feed, block_tag)
             snapshot["oracle"] = oracle
             for call, method in calls:
                 evidence.append(
@@ -703,7 +714,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
                         f"provider:blockaid;request:{call.request_id};address:{entity}"
                     ),
                     normalized_value=normalized_threat,
-                    calculation_version="b3-live-1.1.0",
+                    calculation_version="b3-live-1.2.0",
                     engine_version="1.1.0",
                     confidence=90,
                     freshness=FreshnessStatus.CURRENT,
@@ -827,6 +838,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
         assumptions=[
             "RPC snapshots detect state changes only when compared with a prior snapshot; they are not a replacement for continuous threat intelligence.",
             "An oracle feed supplied by the caller is monitored as an address; Rivexis does not assert that it is the protocol's authoritative oracle unless separately verified.",
+            f"All direct RPC state and supplied Chainlink reads in this snapshot are pinned to captured block {block_tag}.",
         ],
         demo=False,
     )
