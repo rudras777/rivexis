@@ -24,7 +24,7 @@ def _evidence(call: ProviderCall, normalized: Any) -> EvidenceRecord:
         raw_reference=f"provider:lifi;request:{call.request_id}",
         normalized_value=normalized,
         calculation_version="b5-live-1.3.0",
-        engine_version="1.3.0",
+        engine_version="1.2.0",
         confidence=90,
         freshness=FreshnessStatus.LIVE,
         license_classification="external-provider-evidence",
@@ -270,7 +270,7 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
     except ProviderError as exc:
         return EngineResult(
             engine_id=EngineId.B5,
-            engine_version="1.3.0",
+            engine_version="1.2.0",
             status=AnalysisStatus.PROVIDER_UNAVAILABLE,
             risk_score=0,
             data_confidence=0,
@@ -346,7 +346,7 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
         }
         return EngineResult(
             engine_id=EngineId.B5,
-            engine_version="1.3.0",
+            engine_version="1.2.0",
             status=AnalysisStatus.CONFLICTING_DATA,
             risk_score=0,
             data_confidence=25,
@@ -384,7 +384,7 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
         warnings.append("LI.FI response did not provide a normalized minimum received amount.")
     return EngineResult(
         engine_id=EngineId.B5,
-        engine_version="1.3.0",
+        engine_version="1.2.0",
         status=AnalysisStatus.PARTIAL,
         risk_score=min(100, score),
         data_confidence=84,
@@ -407,7 +407,7 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
 def _fail(message: str, status: AnalysisStatus = AnalysisStatus.INSUFFICIENT_DATA) -> EngineResult:
     return EngineResult(
         engine_id=EngineId.B5,
-        engine_version="1.3.0",
+        engine_version="1.2.0",
         status=status,
         risk_score=0,
         data_confidence=0,
