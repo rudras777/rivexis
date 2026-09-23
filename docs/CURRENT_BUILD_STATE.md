@@ -6,44 +6,55 @@ This file is the compact resume point for the dedicated normal-ChatGPT productio
 
 ## Repository and CI
 
-- Repository: private `rudras777/rivexis`, branch `main`.
-- Current fully certified implementation head before this state commit: `c9baf68a045b194b9c8adb1557ac77091ae20b00`.
-- CI #328 (`35928391144`) passed the complete matrix on that head: API ruff/pytest/pip-audit, web typechecks/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and real PostgreSQL migration/runtime-control certification.
-- The earlier B5/F4/F5 campaign remains preserved; this continuation added F1, B1 and B4 deterministic trust-boundary hardening without changing external provider scope.
+- Repository: public `rudras777/rivexis`, branch `main`.
+- Public GitHub Pages fallback work added after the prior resume point is preserved (`.nojekyll`, root `index.html`, and `404.html` route users toward the live Rivexis surface). It is a public fallback/navigation surface, not proof of Cloudflare deployment parity or FastAPI production readiness.
+- Current fully certified implementation head before this state commit: `c5f9b083229e61297375f0c02ded6cc1ecdbada9`.
+- CI #340 (`35931269784`) completed successfully on that head across API ruff/pytest/pip-audit, web typechecks/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification.
+- The prior F1/B1/B4 and B5/F4/F5 campaigns remain preserved; this bulk continuation added B2, B3, F3 and F2 trust-boundary hardening without inventing new external-provider capability.
 
-## Milestone F integrity campaign — latest continuation
+## Bulk Milestone F integrity campaign — B2 / B3 / F3 / F2
 
-### F1 — Portfolio & Exposure
+### B2 — Transaction & Contract Security
 
-- Canonical engine contract remains `1.2.0`; direct portfolio evidence calculation generation is now `f1-live-1.3.0`.
-- F1 now captures one `eth_blockNumber` and uses that exact hex block tag for every requested native balance and ERC-20 `balanceOf` read in the portfolio snapshot.
-- Evidence records include the block tag and block number; no `latest` balance read can be stamped as though it came from the earlier captured block.
-- Explicit wallet/token all-or-nothing semantics, positive finite pricing and complete CoinGecko timestamp coverage remain preserved.
-- CI #322 (`35927503622`) passed the complete matrix for the F1 snapshot slice; the same changes are included in final CI #328.
+- Canonical engine contract remains `1.1.0`; hardened calculation evidence is `b2-live-1.2.0`.
+- B2 now captures and validates one RPC block and reads target bytecode at that exact block tag rather than `latest` before stamping block-referenced evidence.
+- Contract bytecode must be valid even-length hex; malformed RPC bytecode cannot become plausible contract-presence evidence.
+- B2 approval analysis now reuses the hardened canonical EVM calldata decoder. Non-zero high address padding and non-0/1 approval booleans remain malformed rather than becoming plausible approval parameters.
+- RPC transaction-by-hash bodies and block quantities are validated before downstream use.
 
-### B1 — Transaction Simulation / ABI decoding
+### B3 — Threat & Monitoring
 
-- Canonical B1 engine contract remains `1.3.0`.
-- ABI-free standard calldata decoding now requires canonical 32-byte address encoding: the high 12 bytes of an address word must be zero.
-- ABI booleans must be encoded as exactly `0` or `1`; other values remain malformed instead of becoming truthy.
-- Malformed standard transfer/approval-shaped calldata is returned as `MALFORMED_STANDARD_CALLDATA` and is not promoted into call-trace approval candidates.
-- Verified-ABI static decoding now enforces narrow integer widths/sign extension and fixed-bytes right-zero padding. Out-of-range `uintN`, incorrectly sign-extended `intN`, and non-zero `bytesN` padding return `MALFORMED_VERIFIED_ABI_CALLDATA` rather than plausible values.
-- Focused regression tests cover canonical and malformed address/bool/integer/fixed-bytes behavior. Final CI #328 passed with these changes.
+- Canonical engine contract remains `1.1.0`; hardened snapshot calculation evidence is `b3-live-1.2.0`.
+- One captured block now pins the entity native balance, runtime bytecode, optional token `totalSupply()`, and supplied Chainlink `decimals()` / `latestRoundData()` reads.
+- Snapshot/evidence output records the block tag used, so point-in-time deltas cannot mix state from different `latest` blocks while claiming one block reference.
+- Existing future-oracle UNKNOWN, stale-data gating, malformed prior-snapshot suppression, and explicit continuous-monitoring limitations remain preserved.
 
-### B4 — Entity & Fund Flow
+### F3 — Position & Liquidation Risk
 
-- Canonical engine contract remains `1.0.0`.
-- B4 now validates the captured RPC block number before its direct wallet balance read and queries `eth_getBalance` at that exact block tag instead of `latest`.
-- Direct-state evidence records the block tag it actually queried, and an explicit assumption documents that the balance snapshot was pinned before evidence was stamped with a block reference.
-- Existing malformed-history, token-identity, metadata-conflict, attribution and descriptive-concentration semantics remain unchanged.
-- Final CI #328 passed the B4 single-block snapshot regression together with the F1/B1 changes.
+- Canonical engine contract remains `1.3.0`; calculation evidence is now `f3-live-1.3.0`.
+- Generic modeled quantities, liquidation thresholds, conflict tolerances and user debt price reject booleans and non-finite values; debt price must be positive.
+- Chainlink round data must contain exactly five ABI words and normalize to a positive finite price.
+- Modeled collateral/debt oracle reads are pinned to the captured RPC block.
+- Missing, invalid or materially future oracle timestamps remain `UNKNOWN` rather than being clamped into fresh-looking observations.
+- CoinGecko comparison prices must be positive finite; their observation timestamp is normalized independently and missing/invalid/future timestamps remain UNKNOWN rather than automatically CURRENT.
+- Protocol-native health factors are validated before risk scoring.
 
-## Prior bulk Milestone F hardening retained
+### F2 — Protocol Risk
 
-- **B5:** canonical engine `1.2.0`; calculation generation `b5-live-1.3.0`; route request, gas/fee economics, duration and included-step contradictions fail closed as `CONFLICTING_DATA`/UNKNOWN with zero score.
-- **F4:** engine `1.2.0`; invalid/non-finite/negative reward APY or sigma and reward APY above headline APY fail closed as contradictory evidence.
-- **F5:** engine `1.2.0`; booleans cannot become numeric treasury values and CoinGecko freshness requires valid timestamp coverage for every requested asset.
-- **F2:** provider audit metadata remains bounded/descriptive only; malformed, insecure, contradictory or declaration-only audit claims cannot suppress missing-audit risk.
+- Canonical engine contract remains `1.2.0`; calculation evidence is now `f2-live-1.3.0`.
+- Boolean provider values can no longer pass through float coercion as TVL or timestamps.
+- This applies to timestamped TVL history, top-level TVL and `currentChainTvls`; boolean core TVL is malformed provider evidence and fails closed instead of becoming `$0`/`$1`.
+- Boolean TVL observation timestamps remain unusable, so freshness stays UNKNOWN and retrieval time is not promoted into provider observation time.
+- Existing audit-metadata protections remain unchanged: audit references are bounded, HTTPS/credential-free, internally consistent and descriptive only.
+
+## Previously certified Milestone F hardening retained
+
+- **B1:** engine `1.3.0`; canonical standard-event normalization plus strict ABI address/bool/integer/fixed-bytes encoding.
+- **B4:** engine `1.0.0`; direct native balance is pinned to its captured block and indexed-history/attribution integrity remains fail-closed.
+- **B5:** engine `1.2.0`, calculation `b5-live-1.3.0`; route request/economics/structure contradictions become `CONFLICTING_DATA`/UNKNOWN with zero route score.
+- **F1:** engine `1.2.0`, calculation `f1-live-1.3.0`; one captured block pins all requested native/ERC-20 holdings reads and incomplete explicit holdings never receive subset scoring.
+- **F4:** engine `1.2.0`; invalid/contradictory optional APY/sigma evidence fails closed.
+- **F5:** engine `1.2.0`; booleans cannot become numeric treasury values and market freshness requires complete credible timestamp coverage.
 
 ## Transactional email status
 
@@ -53,9 +64,9 @@ The repository contains the fail-closed transactional transport, targeted tests,
 
 ## Cloudflare / live frontend
 
-The P1 deployment drift remains unresolved. Earlier live verification showed an older generic/demo-safe workspace shell at unauthenticated `/workspace`, while current source withholds authenticated workspace content until `/api/v1/workspaces` authorizes access.
+The P1 Cloudflare deployment drift remains unresolved. Earlier live verification showed an older generic/demo-safe workspace shell at unauthenticated `/workspace`, while current source withholds authenticated workspace content until `/api/v1/workspaces` authorizes access.
 
-A Cloudflare dashboard check during the preceding bulk pass again redirected to sign-in. A plugin-directory recheck during this continuation also exposed no callable Cloudflare plugin in this chat runtime. Therefore the existing `rivexis-web` project, Git/main integration and deployed commit remain unverified. No deployment, DNS, billing, environment-variable, secret, route, project or API Worker setting was changed.
+The repository now has a public GitHub Pages fallback, but that does not establish that `rivexis-web` is deployed from current `main`. The most recent Cloudflare dashboard attempt required account sign-in and the plugin directory exposed no callable Cloudflare connector in this chat runtime. No Cloudflare deployment, DNS, billing, environment-variable, secret, route, project or API Worker setting was changed during this campaign.
 
 ## Other production gates retained
 
@@ -67,12 +78,12 @@ A Cloudflare dashboard check during the preceding bulk pass again redirected to 
 
 ## Active product milestone
 
-Milestone F — Ten-engine completion remains active. Repository-level integrity coverage is materially deeper, but capability depth is not declared complete.
+Milestone F — Ten-engine completion remains active. Deterministic repository integrity is materially deeper across all ten engines, but evidence/capability depth is not declared complete.
 
-Remaining depth includes deeper B1 internal/state/security semantics beyond canonical standard/verified-ABI normalization; B2/B3 independent threat/security evidence and continuous monitoring; B4 cross-chain/protocol-semantic attribution beyond the now-consistent direct-state snapshot; B5 independent bridge-security/liquidity/incident evidence; F1 automatic/indexed token discovery plus NFT/DeFi positions; and deeper independent F2/F4/F5 dependency, liquidity, governance/counterparty and strategy evidence.
+Remaining depth includes deeper B1 internal/state/security semantics; approved independent B2/B3 threat/security evidence and continuous monitoring; B4 cross-chain/protocol-semantic attribution; B5 independent bridge-security/liquidity/incident evidence; F1 automatic/indexed discovery plus NFT/DeFi positions; and deeper independent F2/F4/F5 dependency, liquidity, governance/counterparty and strategy evidence.
 
 ## Next execution order
 
-1. If authenticated Cloudflare access becomes available, inspect the established `rivexis-web` configuration, deploy current `main` only through that existing safe project, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior.
+1. If authenticated Cloudflare access becomes available, inspect the established `rivexis-web` configuration, deploy current `main` only through the existing safe project, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior.
 2. Keep Brevo authentication mail inactive until owned-domain/sender and delivery-lifecycle gates are certified.
-3. Otherwise continue the highest-value deterministic Milestone F capability-depth slice, with full CI gating and no fabricated provider capability.
+3. Otherwise continue Milestone F capability depth through the highest-value deterministic slice, preserving explicit UNKNOWN/unavailable states where provider contracts or credentials are absent.
