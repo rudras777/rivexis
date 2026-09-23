@@ -36,27 +36,32 @@ test.describe("workspace foundations",()=>{
       const workspaceId=new URL(route.request().url()).searchParams.get("workspace_id");
       if(workspaceId==="w-alpha")calls.alpha+=1;
       if(workspaceId==="w-beta")calls.beta+=1;
+      const item=workspaceId==="w-alpha"
+        ?{type:"analysis",id:"alpha-analysis",workspace_id:"w-alpha",engine_id:"B1",demo:false,created_at:"2026-09-23T00:00:00Z"}
+        :{type:"analysis",id:"beta-analysis",workspace_id:"w-beta",engine_id:"F5",demo:true,created_at:"2026-09-23T00:01:00Z"};
       return route.fulfill({
         status:200,
         contentType:"application/json",
         headers:corsHeaders,
-        body:JSON.stringify({items:[{workspace_id:workspaceId,label:workspaceId==="w-alpha"?"Alpha-only history":"Beta-only history"}]}),
+        body:JSON.stringify({items:[item]}),
       });
     });
 
     await page.goto("/workspace/history");
-    await expect(page.getByTestId("workspace-history-state")).toContainText("Alpha-only history");
+    await expect(page.getByTestId("workspace-history-state")).toContainText("alpha-analysis");
+    await expect(page.getByTestId("workspace-history-state")).toContainText("B1");
     await expect(page.getByRole("combobox",{name:"ACTIVE WORKSPACE"})).toHaveValue("w-alpha");
 
     await page.getByRole("combobox",{name:"ACTIVE WORKSPACE"}).selectOption("w-beta");
     await expect(page.getByRole("combobox",{name:"ACTIVE WORKSPACE"})).toHaveValue("w-beta");
-    await expect(page.getByTestId("workspace-history-state")).toContainText("Beta-only history");
-    await expect(page.getByText("Alpha-only history")).toHaveCount(0);
+    await expect(page.getByTestId("workspace-history-state")).toContainText("beta-analysis");
+    await expect(page.getByTestId("workspace-history-state")).toContainText("F5");
+    await expect(page.getByText("alpha-analysis")).toHaveCount(0);
     expect(await page.evaluate(()=>localStorage.getItem("rivexis_workspace_id"))).toBe("w-beta");
 
     await page.getByRole("combobox",{name:"ACTIVE WORKSPACE"}).selectOption("w-alpha");
-    await expect(page.getByTestId("workspace-history-state")).toContainText("Alpha-only history");
-    await expect(page.getByText("Beta-only history")).toHaveCount(0);
+    await expect(page.getByTestId("workspace-history-state")).toContainText("alpha-analysis");
+    await expect(page.getByText("beta-analysis")).toHaveCount(0);
     expect(calls.alpha).toBeGreaterThanOrEqual(2);
     expect(calls.beta).toBeGreaterThanOrEqual(1);
   });
