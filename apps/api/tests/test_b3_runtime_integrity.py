@@ -33,8 +33,10 @@ class SnapshotRpc:
         self.total_supply = total_supply
         self.oracle_updated_at = oracle_updated_at
         self.oracle_answer = oracle_answer
+        self.calls: list[tuple[str, list | None]] = []
 
     def call(self, method, params=None):
+        self.calls.append((method, params))
         if method == "eth_chainId":
             return ProviderCall("direct_rpc", "chain", "http://rpc.test", "0x1", 1.0)
         if method == "eth_blockNumber":
@@ -169,8 +171,6 @@ def test_stale_oracle_promotes_result_to_stale_data(monkeypatch):
 
 def test_custom_oracle_age_gate_reports_stale_overall_freshness(monkeypatch):
     now = int(datetime.now(timezone.utc).timestamp())
-    # Five minutes old is CURRENT by the shared freshness bands, but deliberately
-    # stale against this stricter caller monitoring policy.
     rpc = SnapshotRpc(oracle_updated_at=now - 300)
     install(monkeypatch, rpc)
 
@@ -210,3 +210,38 @@ def test_uppercase_previous_code_hash_is_same_hash_not_change(monkeypatch):
 
     assert not any(signal["type"] == "runtime_bytecode_changed" for signal in result.signals)
     assert not any("Runtime bytecode changed" in blocker for blocker in result.hard_blockers)
+
+
+def test_b3_all_direct_snapshot_reads_are_pinned_to_captured_block(monkeypatch):
+    now = int(datetime.now(timezone.utc).timestamp())
+    rpc = SnapshotRpc(oracle_updated_at=now)
+    install(monkeypatch, rpc)
+
+    result = live_b3.run_live_b3(
+        {
+            "chain": "ethereum",
+            "entity": ENTITY,
+            "token_contract": TOKEN,
+            "oracle_feed": ORACLE,
+        }
+    )
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert result.metrics["snapshot"]["block_number"] == 100
+    assert result.metrics["snapshot"]["block_tag"] == "0x64"
+    assert ("eth_getBalance", [ENTITY, "0x64"]) in rpc.calls
+    assert ("eth_getCode", [ENTITY, "0x64"]) in rpc.calls
+    snapshot_eth_calls = [params for method, params in rpc.calls if method == "eth_call"]
+    assert snapshot_eth_calls
+    assert all(params[-1] == "0x64" for params in snapshot_eth_calls)
+    assert not any(
+        params and params[-1] == "latest"
+        for method, params in rpc.calls
+        if method in {"eth_getBalance", "eth_getCode", "eth_call"}
+    )
+    assert all(
+        evidence.normalized_value.get("block_tag") == "0x64"
+        for evidence in result.evidence
+        if evidence.provider_endpoint in {"eth_getBalance", "eth_getCode", "totalSupply()"}
+    )
+    assert any("pinned to captured block 0x64" in text for text in result.assumptions)
