@@ -12,6 +12,7 @@ from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, 
 from rivexis_api.models.evidence import EvidenceRecord
 from rivexis_api.provider_clients import EtherscanClient, ProviderCall, ProviderError, TenderlyClient, hex_to_int, quantity_to_hex
 from rivexis_api.services.evm_decode import decode_common_calldata, decode_verified_abi_calldata, normalize_call_trace, summarize_prestate_diff
+from rivexis_api.services.evm_events import normalize_standard_event_logs
 from rivexis_api.providers import ADAPTERS, resolve_provider, select_rpc_client
 
 
@@ -37,6 +38,13 @@ def _valid_hash(value: str) -> bool:
         return False
 
 
+def _safe_quantity(value: Any) -> int | None:
+    try:
+        return hex_to_int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _tx_for_rpc(raw: dict[str, Any]) -> dict[str, Any]:
     allowed = {"from", "to", "gas", "gasPrice", "maxFeePerGas", "maxPriorityFeePerGas", "value", "data", "input"}
     tx = {k: v for k, v in raw.items() if k in allowed and v is not None}
@@ -49,7 +57,17 @@ def _tx_for_rpc(raw: dict[str, Any]) -> dict[str, Any]:
     return tx
 
 
-def _evidence(call: ProviderCall, *, source_type: str, normalized_value: Any, chain_id: int, block_number: int | None, confidence: float, endpoint_method: str) -> EvidenceRecord:
+def _evidence(
+    call: ProviderCall,
+    *,
+    source_type: str,
+    normalized_value: Any,
+    chain_id: int,
+    block_number: int | None,
+    confidence: float,
+    endpoint_method: str,
+    freshness: FreshnessStatus = FreshnessStatus.LIVE,
+) -> EvidenceRecord:
     return EvidenceRecord(
         evidence_id=str(uuid4()),
         provider=call.provider_id,
@@ -62,10 +80,10 @@ def _evidence(call: ProviderCall, *, source_type: str, normalized_value: Any, ch
         chain_id=chain_id,
         raw_reference=f"provider:{call.provider_id};request:{call.request_id}",
         normalized_value=normalized_value,
-        calculation_version="b1-live-1.2.0",
-        engine_version="1.2.0",
+        calculation_version="b1-live-1.3.0",
+        engine_version="1.3.0",
         confidence=confidence,
-        freshness=FreshnessStatus.LIVE,
+        freshness=freshness,
         license_classification="external-provider-evidence",
     )
 
@@ -79,6 +97,60 @@ def _provider_status(provider_id: str, status: str, detail: str | None = None, l
     return out
 
 
+def _tenderly_event_logs(body: object) -> tuple[list[Any] | None, str | None]:
+    if not isinstance(body, dict):
+        return None, None
+    transaction = body.get("transaction") if isinstance(body.get("transaction"), dict) else {}
+    simulation = body.get("simulation") if isinstance(body.get("simulation"), dict) else {}
+    receipt = transaction.get("receipt") if isinstance(transaction.get("receipt"), dict) else {}
+    transaction_info = transaction.get("transaction_info") if isinstance(transaction.get("transaction_info"), dict) else {}
+    info_trace = transaction_info.get("call_trace") if isinstance(transaction_info.get("call_trace"), dict) else {}
+    direct_trace = transaction.get("call_trace") if isinstance(transaction.get("call_trace"), dict) else {}
+    candidates = [
+        ("transaction.logs", transaction.get("logs")),
+        ("transaction.receipt.logs", receipt.get("logs")),
+        ("transaction.transaction_info.call_trace.logs", info_trace.get("logs")),
+        ("transaction.call_trace.logs", direct_trace.get("logs")),
+        ("simulation.logs", simulation.get("logs")),
+        ("response.logs", body.get("logs")),
+    ]
+    first_empty: tuple[list[Any], str] | None = None
+    for path, value in candidates:
+        if isinstance(value, list):
+            if value:
+                return value, path
+            if first_empty is None:
+                first_empty = (value, path)
+    return first_empty if first_empty is not None else (None, None)
+
+
+def _event_effect_gaps(effects: dict[str, Any] | None) -> list[str]:
+    if not effects or not effects.get("logs_available"):
+        return [
+            "canonical standard token/NFT event-log effects",
+            "canonical standard approval event-log effects",
+        ]
+    gaps: list[str] = []
+    if effects.get("malformed_log_count"):
+        gaps.append("complete normalization of malformed event logs")
+    if effects.get("unknown_log_count"):
+        gaps.append("semantics for unrecognized/non-standard event logs")
+    if effects.get("truncated"):
+        gaps.append("complete expansion of large event-effect batches")
+    return gaps
+
+
+def _append_event_warnings(warnings: list[str], effects: dict[str, Any] | None) -> None:
+    if not effects or not effects.get("logs_available"):
+        return
+    if effects.get("unknown_log_count"):
+        warnings.append("Some emitted logs use unrecognized/non-standard signatures; Rivexis did not infer asset or approval semantics for them.")
+    if effects.get("malformed_log_count"):
+        warnings.append("Some standard-signature logs had malformed topic/data encoding and were excluded from canonical event effects.")
+    if effects.get("truncated"):
+        warnings.append("A large event batch exceeded the canonical output-row cap; total effect counts are retained while displayed rows are truncated.")
+
+
 def _tenderly_success(body: dict[str, Any]) -> tuple[bool, str | None, int | None, dict[str, Any]]:
     transaction = body.get("transaction") if isinstance(body.get("transaction"), dict) else {}
     simulation = body.get("simulation") if isinstance(body.get("simulation"), dict) else {}
@@ -87,7 +159,8 @@ def _tenderly_success(body: dict[str, Any]) -> tuple[bool, str | None, int | Non
     revert_reason = None
     if error_info:
         revert_reason = str(error_info.get("error_message") or error_info.get("error_reason") or "Simulation reverted")
-    gas_used = hex_to_int(transaction.get("gas_used") or transaction.get("gasUsed") or simulation.get("gas_used"))
+    gas_used = _safe_quantity(transaction.get("gas_used") or transaction.get("gasUsed") or simulation.get("gas_used"))
+    event_logs, event_log_path = _tenderly_event_logs(body)
     summary = {
         "simulation_id": simulation.get("id"),
         "network_id": simulation.get("network_id") or body.get("network_id"),
@@ -95,7 +168,8 @@ def _tenderly_success(body: dict[str, Any]) -> tuple[bool, str | None, int | Non
         "gas_used": gas_used,
         "status": "success" if success else "reverted",
         "revert_reason": revert_reason,
-        "logs_count": len(transaction.get("logs") or []) if isinstance(transaction.get("logs"), list) else None,
+        "logs_count": len(event_logs) if event_logs is not None else None,
+        "event_log_path": event_log_path,
     }
     return success, revert_reason, gas_used, summary
 
@@ -106,7 +180,7 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
     except ValueError as exc:
         return EngineResult(
             engine_id=EngineId.B1,
-            engine_version="1.2.0",
+            engine_version="1.3.0",
             status=AnalysisStatus.UNSUPPORTED,
             risk_score=0,
             data_confidence=0,
@@ -137,6 +211,7 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
     missing: list[str] = []
     block_number: int | None = None
     rpc_provider_id: str | None = None
+    receipt_event_effects: dict[str, Any] | None = None
 
     try:
         rpc_provider_id, rpc, chain_probe, fallback_errors = select_rpc_client(chain.key)
@@ -144,12 +219,14 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
         provider_status.append(_provider_status(rpc_provider_id, "HEALTHY", f"chain_id={chain.chain_id}", chain_probe.latency_ms))
         evidence.append(_evidence(chain_probe, source_type="direct_state", normalized_value={"chain_id": chain.chain_id}, chain_id=chain.chain_id, block_number=None, confidence=99, endpoint_method="eth_chainId"))
         block_call = rpc.call("eth_blockNumber")
-        block_number = hex_to_int(block_call.result)
+        block_number = _safe_quantity(block_call.result)
+        if block_number is None:
+            raise ProviderError("RPC returned a malformed block number", provider_id=rpc_provider_id, code="MALFORMED_RESPONSE")
         evidence.append(_evidence(block_call, source_type="direct_state", normalized_value={"block_number": block_number}, chain_id=chain.chain_id, block_number=block_number, confidence=99, endpoint_method="eth_blockNumber"))
     except ProviderError as exc:
         return EngineResult(
             engine_id=EngineId.B1,
-            engine_version="1.2.0",
+            engine_version="1.3.0",
             status=AnalysisStatus.PROVIDER_UNAVAILABLE,
             risk_score=0,
             data_confidence=0,
@@ -168,7 +245,7 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
             if tx_call.result is None:
                 return EngineResult(
                     engine_id=EngineId.B1,
-                    engine_version="1.2.0",
+                    engine_version="1.3.0",
                     status=AnalysisStatus.INSUFFICIENT_DATA,
                     risk_score=0,
                     data_confidence=40,
@@ -181,15 +258,52 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
                     provider_consensus="SINGLE SOURCE",
                     provider_status=provider_status,
                 )
+            if not isinstance(tx_call.result, dict):
+                raise ProviderError("RPC returned a malformed transaction body", provider_id=rpc_provider_id, code="MALFORMED_RESPONSE")
             transaction = dict(tx_call.result)
-            historical_block = hex_to_int(transaction.get("blockNumber"))
-            evidence.append(_evidence(tx_call, source_type="direct_state", normalized_value={k: transaction.get(k) for k in ("hash", "from", "to", "value", "input", "blockNumber")}, chain_id=chain.chain_id, block_number=historical_block, confidence=99, endpoint_method="eth_getTransactionByHash"))
+            if not _valid_address(transaction.get("from")) or not _valid_address(transaction.get("to")):
+                raise ProviderError("RPC transaction body contains malformed addresses", provider_id=rpc_provider_id, code="MALFORMED_RESPONSE")
+            historical_block = _safe_quantity(transaction.get("blockNumber"))
+            evidence.append(_evidence(tx_call, source_type="direct_state", normalized_value={k: transaction.get(k) for k in ("hash", "from", "to", "value", "input", "blockNumber")}, chain_id=chain.chain_id, block_number=historical_block, confidence=99, endpoint_method="eth_getTransactionByHash", freshness=FreshnessStatus.UNKNOWN if historical_block is not None else FreshnessStatus.LIVE))
             if historical_block is not None:
                 block_number = historical_block
                 assumptions.append("Historical replay targets the state immediately before the transaction block when supported by the provider.")
+
+            receipt_call = rpc.call("eth_getTransactionReceipt", [tx_hash])
+            if receipt_call.result is None:
+                missing.append("mined transaction receipt/event logs")
+            elif not isinstance(receipt_call.result, dict):
+                warnings.append("Transaction receipt response was malformed; mined event effects were not inferred.")
+                missing.append("mined transaction receipt/event logs")
+            else:
+                receipt = receipt_call.result
+                logs = receipt.get("logs")
+                if isinstance(logs, list):
+                    receipt_event_effects = normalize_standard_event_logs(logs, source="mined_transaction_receipt", outcome="observed")
+                    receipt_block = _safe_quantity(receipt.get("blockNumber")) or historical_block
+                    receipt_status = _safe_quantity(receipt.get("status"))
+                    evidence.append(_evidence(
+                        receipt_call,
+                        source_type="observed_transaction_receipt_events",
+                        normalized_value={
+                            "transaction_hash": tx_hash,
+                            "receipt_status": receipt_status,
+                            "event_effects": receipt_event_effects,
+                        },
+                        chain_id=chain.chain_id,
+                        block_number=receipt_block,
+                        confidence=99,
+                        endpoint_method="eth_getTransactionReceipt",
+                        freshness=FreshnessStatus.UNKNOWN,
+                    ))
+                    assumptions.append("For a mined transaction hash, canonical event effects prefer observed receipt logs over replay/simulation event logs.")
+                    _append_event_warnings(warnings, receipt_event_effects)
+                else:
+                    warnings.append("Transaction receipt did not contain a usable log list; mined event effects were not inferred.")
+                    missing.append("mined transaction receipt/event logs")
         except ProviderError as exc:
-            warnings.append(f"Transaction lookup failed: {exc.code}")
-            missing.append("transaction lookup")
+            warnings.append(f"Transaction lookup/receipt evidence failed: {exc.code}")
+            missing.append("transaction lookup or receipt evidence")
 
     rpc_tx = _tx_for_rpc(transaction)
     calldata_decode = decode_common_calldata(rpc_tx.get("data"))
@@ -207,7 +321,7 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
             abi_payload = body.get("result")
             verified_abi_decode = decode_verified_abi_calldata(rpc_tx.get("data"), abi_payload)
             provider_status.append(_provider_status("etherscan", "HEALTHY", "Verified ABI lookup completed", abi_call.latency_ms))
-            evidence.append(_evidence(abi_call, source_type="verified_contract_abi", normalized_value={"decode": verified_abi_decode}, chain_id=chain.chain_id, block_number=block_number, confidence=96 if verified_abi_decode.get("status")=="DECODED_VERIFIED_ABI" else 82, endpoint_method="Etherscan getabi"))
+            evidence.append(_evidence(abi_call, source_type="verified_contract_abi", normalized_value={"decode": verified_abi_decode}, chain_id=chain.chain_id, block_number=block_number, confidence=96 if verified_abi_decode.get("status") == "DECODED_VERIFIED_ABI" else 82, endpoint_method="Etherscan getabi"))
             if verified_abi_decode.get("status") == "DECODED_VERIFIED_ABI":
                 if calldata_decode.get("status") == "UNKNOWN_SELECTOR":
                     calldata_decode = verified_abi_decode
@@ -229,37 +343,73 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
             historical_target = block_number - 1 if tx_hash and block_number and block_number > 0 else None
             sim_call = tenderly.simulate(chain, rpc_tx, block_number=historical_target)
             success, revert_reason, gas_used, normalized = _tenderly_success(sim_call.result)
+            tenderly_logs, tenderly_log_path = _tenderly_event_logs(sim_call.result)
+            tenderly_event_effects = (
+                normalize_standard_event_logs(tenderly_logs, source="tenderly_simulation", outcome="predicted")
+                if tenderly_logs is not None
+                else None
+            )
+            canonical_event_effects = receipt_event_effects or tenderly_event_effects
+            _append_event_warnings(warnings, tenderly_event_effects)
             provider_status.append(_provider_status("tenderly", "HEALTHY", "Simulation response received and core execution status normalized", sim_call.latency_ms))
             evidence.append(_evidence(sim_call, source_type="simulation", normalized_value=normalized, chain_id=chain.chain_id, block_number=normalized.get("block_number") or historical_target or block_number, confidence=94, endpoint_method="Tenderly Simulation API"))
+            if tenderly_event_effects is not None:
+                evidence.append(_evidence(
+                    sim_call,
+                    source_type="simulation_event_logs",
+                    normalized_value={"event_log_path": tenderly_log_path, "event_effects": tenderly_event_effects},
+                    chain_id=chain.chain_id,
+                    block_number=normalized.get("block_number") or historical_target or block_number,
+                    confidence=94,
+                    endpoint_method="Tenderly Simulation API event logs",
+                ))
             score = 90 if not success else 10
             blockers = [f"Simulation reverted: {revert_reason or 'revert detected'}"] if not success else []
             tenderly_missing = sorted(set(missing + [
                 "decoded internal call tree normalization",
-                "decoded token/NFT asset-change normalization",
-                "approval/allowance-change normalization",
                 "before/after contract-state diff normalization",
+                *_event_effect_gaps(canonical_event_effects),
             ]))
             return EngineResult(
                 engine_id=EngineId.B1,
-                engine_version="1.2.0",
+                engine_version="1.3.0",
                 block_reference=normalized.get("block_number") or historical_target or block_number,
                 status=AnalysisStatus.PARTIAL,
                 risk_score=score,
                 data_confidence=94,
                 engine_confidence=91,
                 severity=Severity.CRITICAL if not success else Severity.LOW,
-                summary=("Tenderly simulation predicts a revert; richer decoded effects are not yet normalized." if not success else "Tenderly simulation completed without an execution revert; richer decoded state/asset effects are not yet normalized into the Rivexis canonical model."),
-                metrics={"chain": chain.key, "chain_id": chain.chain_id, "execution_success": success, "revert_reason": revert_reason, "gas_used": gas_used, "simulation": normalized, "calldata_decode": calldata_decode},
+                summary=(
+                    "Tenderly simulation predicts a revert; standard event effects were normalized when raw logs were available, while richer internal/state effects remain partial."
+                    if not success
+                    else "Tenderly simulation completed without an execution revert; standard ERC event effects were normalized when raw logs were available, while internal/state effects remain partial."
+                ),
+                metrics={
+                    "chain": chain.key,
+                    "chain_id": chain.chain_id,
+                    "from": rpc_tx.get("from"),
+                    "to": rpc_tx.get("to"),
+                    "execution_success": success,
+                    "revert_reason": revert_reason,
+                    "gas_used": gas_used,
+                    "simulation_mode": "tenderly",
+                    "simulation": normalized,
+                    "calldata_decode": calldata_decode,
+                    "verified_abi_decode": verified_abi_decode,
+                    "event_effects": canonical_event_effects,
+                    "simulated_event_effects": tenderly_event_effects if receipt_event_effects is not None else None,
+                    "event_effects_precedence": "mined_transaction_receipt" if receipt_event_effects is not None else ("tenderly_simulation" if tenderly_event_effects is not None else None),
+                },
                 warnings=warnings,
                 hard_blockers=blockers,
                 mitigations=(["Do not sign the transaction until the revert cause is corrected."] if not success else []),
                 safer_alternatives=(["Correct transaction parameters and re-simulate against fresh state."] if not success else []),
                 evidence=evidence,
-                provider_consensus="MULTI_SOURCE" if rpc_provider_id else "SINGLE SOURCE",
+                provider_consensus="MULTI_SOURCE" if rpc_provider_id else "SINGLE_SOURCE",
                 data_freshness={"status": "LIVE", "block_number": normalized.get("block_number") or block_number, "chain": chain.key},
                 missing_data=tenderly_missing,
                 provider_status=provider_status,
-                assumptions=assumptions,
+                assumptions=assumptions + ["Raw event amounts/token IDs are preserved without inferring token decimals, symbols, prices or ownership beyond the emitted standard event."],
             )
         except ProviderError as exc:
             provider_status.append(_provider_status("tenderly", "FAILED", f"{exc.code}: {exc}"))
@@ -267,7 +417,7 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
 
     # Standards-based fallback: eth_call executes the message without broadcasting and
     # eth_estimateGas performs an execution dry-run. This proves basic execution/revert status,
-    # but it does not provide decoded internal traces, asset changes, approvals, or state diffs.
+    # but it does not emit transaction logs or provide a canonical asset/state change set.
     block_tag: str = str(input_data.get("block_tag") or "latest")
     if tx_hash and block_number and block_number > 0:
         block_tag = hex(block_number - 1)
@@ -285,7 +435,9 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
         warnings.append(f"eth_call failed/reverted: {exc}")
     try:
         gas_call = rpc.call("eth_estimateGas", [rpc_tx, block_tag])
-        gas_estimate = hex_to_int(gas_call.result)
+        gas_estimate = _safe_quantity(gas_call.result)
+        if gas_estimate is None:
+            raise ProviderError("RPC returned a malformed gas estimate", provider_id=rpc_provider_id or "rpc", code="MALFORMED_RESPONSE")
         evidence.append(_evidence(gas_call, source_type="direct_state_simulation", normalized_value={"gas_estimate": gas_estimate, "block_tag": block_tag}, chain_id=chain.chain_id, block_number=block_number, confidence=88, endpoint_method="eth_estimateGas"))
     except ProviderError as exc:
         if call_success:
@@ -298,7 +450,7 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
     state_diff_requested = bool(input_data.get("state_diff")) or os.getenv("RIVEXIS_B1_STATE_DIFF", "false").lower() == "true"
     if trace_requested:
         try:
-            trace_call = rpc.call("debug_traceCall", [rpc_tx, block_tag, {"tracer":"callTracer","timeout":"5s"}])
+            trace_call = rpc.call("debug_traceCall", [rpc_tx, block_tag, {"tracer": "callTracer", "timeout": "5s"}])
             call_trace = normalize_call_trace(trace_call.result)
             evidence.append(_evidence(trace_call, source_type="execution_trace", normalized_value=call_trace, chain_id=chain.chain_id, block_number=block_number, confidence=92, endpoint_method="debug_traceCall/callTracer"))
         except ProviderError as exc:
@@ -308,7 +460,7 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
         missing.append("decoded internal call trace")
     if state_diff_requested:
         try:
-            diff_call = rpc.call("debug_traceCall", [rpc_tx, block_tag, {"tracer":"prestateTracer","tracerConfig":{"diffMode":True},"timeout":"5s"}])
+            diff_call = rpc.call("debug_traceCall", [rpc_tx, block_tag, {"tracer": "prestateTracer", "tracerConfig": {"diffMode": True}, "timeout": "5s"}])
             state_diff = summarize_prestate_diff(diff_call.result)
             evidence.append(_evidence(diff_call, source_type="state_diff", normalized_value=state_diff, chain_id=chain.chain_id, block_number=block_number, confidence=90, endpoint_method="debug_traceCall/prestateTracer"))
         except ProviderError as exc:
@@ -317,39 +469,62 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
     else:
         missing.append("before/after contract state diff")
 
-    if call_trace is None:
-        missing.extend(["decoded token/NFT asset changes", "approval/allowance changes"])
-    elif not call_trace.get("approval_candidates"):
-        missing.append("canonical token/NFT transfer event normalization")
+    missing.extend(_event_effect_gaps(receipt_event_effects))
     score = 90 if not call_success else 15
+    if call_success and receipt_event_effects is not None:
+        summary = "RPC dry-run completed without an execution revert; for this mined transaction hash, standard ERC event effects were normalized from the observed transaction receipt."
+    elif call_success:
+        summary = "RPC dry-run completed without an execution revert; canonical event/state effects remain unavailable from the dry-run path."
+    else:
+        summary = "RPC dry-run indicates the transaction reverts or cannot execute."
     return EngineResult(
         engine_id=EngineId.B1,
-        engine_version="1.2.0",
+        engine_version="1.3.0",
         block_reference=block_number,
         status=AnalysisStatus.PARTIAL,
         risk_score=score,
         data_confidence=82 if call_success else 88,
         engine_confidence=72,
         severity=Severity.CRITICAL if not call_success else Severity.LOW,
-        summary=("RPC dry-run indicates the transaction reverts or cannot execute." if not call_success else "RPC dry-run completed without an execution revert; decoded state/asset effects remain unavailable."),
-        metrics={"chain": chain.key, "chain_id": chain.chain_id, "execution_success": call_success, "return_data": call_result, "revert_reason": revert_reason, "gas_estimate": gas_estimate, "block_tag": block_tag, "simulation_mode": "standards-based-rpc-dry-run", "calldata_decode": calldata_decode, "verified_abi_decode": verified_abi_decode, "call_trace": call_trace, "state_diff": state_diff},
-        warnings=warnings + (["This fallback is execution-only and is not equivalent to a decoded full-state simulation."] if call_success else []),
+        summary=summary,
+        metrics={
+            "chain": chain.key,
+            "chain_id": chain.chain_id,
+            "from": rpc_tx.get("from"),
+            "to": rpc_tx.get("to"),
+            "execution_success": call_success,
+            "return_data": call_result,
+            "revert_reason": revert_reason,
+            "gas_estimate": gas_estimate,
+            "block_tag": block_tag,
+            "simulation_mode": "standards-based-rpc-dry-run",
+            "calldata_decode": calldata_decode,
+            "verified_abi_decode": verified_abi_decode,
+            "call_trace": call_trace,
+            "state_diff": state_diff,
+            "event_effects": receipt_event_effects,
+            "event_effects_precedence": "mined_transaction_receipt" if receipt_event_effects is not None else None,
+        },
+        warnings=warnings + (["This fallback dry-run is execution-only; receipt event effects, when present, describe the already-mined transaction rather than newly simulated logs."] if call_success else []),
         hard_blockers=([f"Execution revert/failure: {revert_reason}"] if not call_success else []),
         mitigations=(["Correct transaction parameters and re-simulate before signing."] if not call_success else []),
-        safer_alternatives=(["Configure Tenderly for decoded execution traces and richer state-change evidence."] if call_success else ["Do not sign until the revert cause is corrected."]),
+        safer_alternatives=(["Configure Tenderly for predicted standard event effects on prospective transactions."] if call_success else ["Do not sign until the revert cause is corrected."]),
         evidence=evidence,
         provider_consensus="SINGLE SOURCE",
         data_freshness={"status": "LIVE", "block_number": block_number, "chain": chain.key},
         missing_data=sorted(set(missing)),
         provider_status=provider_status,
-        assumptions=assumptions + ["RPC eth_call/eth_estimateGas simulate against the selected block state but do not guarantee the future mined outcome."],
+        assumptions=assumptions + [
+            "RPC eth_call/eth_estimateGas simulate against the selected block state but do not guarantee the future mined outcome.",
+            "Raw event amounts/token IDs are preserved without inferring token decimals, symbols, prices or ownership beyond the emitted standard event.",
+        ],
     )
 
 
 def _invalid(message: str) -> EngineResult:
     return EngineResult(
         engine_id=EngineId.B1,
-        engine_version="1.2.0",
+        engine_version="1.3.0",
         status=AnalysisStatus.INSUFFICIENT_DATA,
         risk_score=0,
         data_confidence=0,
