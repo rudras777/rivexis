@@ -1,4 +1,9 @@
-from rivexis_api.engines import ENGINES, LIVE_ENGINE_VERSIONS, _normalize_current_live_contract
+from rivexis_api.engines import (
+    ENGINES,
+    LIVE_ENGINE_VERSIONS,
+    _b1_transaction_effects_summary,
+    _normalize_current_live_contract,
+)
 from rivexis_api.models.engine import EngineResult
 from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, Severity
 from rivexis_api.models.evidence import EvidenceRecord, SourceConflict
@@ -241,6 +246,123 @@ def test_authoritative_f3_adapter_position_is_not_discarded(monkeypatch):
     assert r.engine_version == "1.3.0"
     assert r.evidence[0].engine_version == "1.3.0"
     assert r.evidence[0].calculation_version == "protocol-native-1.1.0"
+
+
+def test_b1_effect_summary_normalizes_trace_approvals_native_value_and_state_changes():
+    entry_approval = {
+        "status": "DECODED_STANDARD_SELECTOR",
+        "selector": "0x095ea7b3",
+        "signature": "approve(address,uint256)",
+        "standard": "ERC20_OR_ERC721_AMBIGUOUS_WITHOUT_CONTRACT_INTERFACE",
+        "parameters": {"spender_or_approved": "0x" + "44" * 20, "amount_or_token_id": 1},
+        "confidence": 88,
+    }
+    internal_approval = {
+        "trace_index": 1,
+        "contract": "0x" + "33" * 20,
+        "decode": entry_approval,
+    }
+    metrics = {
+        "execution_success": True,
+        "gas_estimate": 21000,
+        "simulation_mode": "standards-based-rpc-dry-run",
+        "calldata_decode": entry_approval,
+        "call_trace": {
+            "call_count": 2,
+            "error_count": 0,
+            "native_value_transfers": [
+                {
+                    "trace_index": 1,
+                    "from": "0x" + "11" * 20,
+                    "to": "0x" + "22" * 20,
+                    "amount_wei": 16,
+                }
+            ],
+            "approval_candidates": [internal_approval],
+        },
+        "state_diff": {
+            "status": "NORMALIZED_PRESTATE_DIFF",
+            "addresses_touched": 3,
+            "addresses_changed": 1,
+            "changes": [
+                {
+                    "address": "0x" + "33" * 20,
+                    "changed_fields": ["balance"],
+                    "changed_storage_slots": 2,
+                }
+            ],
+            "truncated": False,
+        },
+    }
+    effects = _b1_transaction_effects_summary(metrics)
+    assert effects["entry_method"]["signature"] == "approve(address,uint256)"
+    assert effects["execution"]["gas_estimate"] == 21000
+    assert effects["internal_calls"] == {"available": True, "call_count": 2, "error_count": 0}
+    assert effects["native_value_transfers"][0]["amount_wei"] == 16
+    assert len(effects["approval_candidates"]) == 2
+    assert effects["state_changes"]["addresses_changed"] == 1
+    assert effects["coverage"]["internal_call_trace"] is True
+    assert effects["coverage"]["state_diff"] is True
+    assert effects["coverage"]["canonical_token_nft_event_changes"] is False
+    assert any("not proven" in item for item in effects["limitations"])
+
+
+def test_b1_effect_summary_is_explicit_when_trace_and_state_diff_are_missing():
+    effects = _b1_transaction_effects_summary(
+        {
+            "execution_success": True,
+            "calldata_decode": {"status": "UNKNOWN_SELECTOR", "selector": "0xdeadbeef", "confidence": 0},
+        }
+    )
+    assert effects["internal_calls"]["available"] is False
+    assert effects["state_changes"]["available"] is False
+    assert effects["native_value_transfers"] == []
+    assert effects["approval_candidates"] == []
+    assert effects["coverage"]["entry_calldata_decoded"] is False
+    assert effects["coverage"]["canonical_token_nft_event_changes"] is False
+    assert len(effects["limitations"]) == 3
+
+
+def test_live_b1_dispatch_attaches_effect_summary_without_inventing_asset_changes(monkeypatch):
+    from rivexis_api.services import live_b1
+
+    b1 = EngineResult(
+        engine_id=EngineId.B1,
+        status=AnalysisStatus.PARTIAL,
+        risk_score=15,
+        data_confidence=82,
+        engine_confidence=72,
+        severity=Severity.LOW,
+        summary="RPC dry-run fixture",
+        metrics={
+            "execution_success": True,
+            "calldata_decode": {
+                "status": "DECODED_STANDARD_SELECTOR",
+                "selector": "0xa9059cbb",
+                "signature": "transfer(address,uint256)",
+                "standard": "ERC20",
+                "confidence": 95,
+            },
+            "call_trace": {
+                "call_count": 1,
+                "error_count": 0,
+                "native_value_transfers": [],
+                "approval_candidates": [],
+            },
+            "state_diff": None,
+        },
+        evidence=[evidence("direct_rpc")],
+        provider_consensus="SINGLE_SOURCE",
+    )
+    monkeypatch.setattr(live_b1, "run_live_b1", lambda _: b1)
+
+    normalized = ENGINES[EngineId.B1]({"transaction": {}}, False)
+    effects = normalized.metrics["transaction_effects"]
+    assert effects["entry_method"]["signature"] == "transfer(address,uint256)"
+    assert effects["coverage"]["internal_call_trace"] is True
+    assert effects["coverage"]["state_diff"] is False
+    assert effects["coverage"]["canonical_token_nft_event_changes"] is False
+    assert normalized.engine_version == "1.2.0"
 
 
 def test_every_declared_live_engine_has_an_explicit_canonical_version():
