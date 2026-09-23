@@ -190,12 +190,21 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
             "normalized protocol record",
         )
     body = call.result
-    name = str(body.get("name") or "").strip()
-    if not name:
+    name_raw = body.get("name")
+    if not isinstance(name_raw, str) or not name_raw.strip():
         return _provider_payload_failure(
             call,
             "DefiLlama returned a protocol record without a usable protocol identity; Rivexis did not score it.",
             "protocol identity",
+        )
+    name = name_raw.strip()
+
+    latest_fetch_ok = body.get("latestFetchIsOk")
+    if latest_fetch_ok is not None and not isinstance(latest_fetch_ok, bool):
+        return _provider_payload_failure(
+            call,
+            "DefiLlama returned malformed latest-fetch health metadata; Rivexis did not infer provider health from string/number truthiness.",
+            "boolean latestFetchIsOk metadata",
         )
 
     tvl, tvl_observed_at, malformed_tvl = _latest_tvl_point(body)
@@ -207,7 +216,11 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
         )
 
     freshness, freshness_age = _freshness(tvl_observed_at)
-    chains = [str(item) for item in body.get("chains", []) if str(item).strip()] if isinstance(body.get("chains"), list) else []
+    chains = (
+        [str(item).strip() for item in body.get("chains", []) if isinstance(item, str) and item.strip()]
+        if isinstance(body.get("chains"), list)
+        else []
+    )
     audit_links = body.get("audit_links") if isinstance(body.get("audit_links"), list) else []
     audits = body.get("audits")
     try:
@@ -217,7 +230,6 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
     if audit_count < 0:
         audit_count = 0
 
-    latest_fetch_ok = body.get("latestFetchIsOk")
     normalized = {
         "slug": slug,
         "name": name,
@@ -320,7 +332,11 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
     consensus = "MULTI_SOURCE" if len({item.provider for item in evidence}) > 1 else "SINGLE_SOURCE"
     stale_gate = latest_fetch_ok is False or freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}
     status = AnalysisStatus.STALE_DATA if stale_gate else AnalysisStatus.PARTIAL
-    overall_freshness = FreshnessStatus.STALE if latest_fetch_ok is False and freshness not in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED} else freshness
+    overall_freshness = (
+        FreshnessStatus.STALE
+        if latest_fetch_ok is False and freshness not in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}
+        else freshness
+    )
     summary = (
         "F2 combined attributed protocol fundamentals with caller-declared direct contract/oracle evidence. Remaining gaps are preserved explicitly."
         if len(evidence) > 1
