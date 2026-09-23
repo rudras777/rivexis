@@ -9,6 +9,7 @@ ERC1155_TRANSFER_SINGLE_TOPIC = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c
 ERC1155_TRANSFER_BATCH_TOPIC = "0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb"
 
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+MAX_INPUT_LOGS = 1000
 MAX_EFFECT_ROWS = 200
 MAX_BATCH_ITEMS = 100
 
@@ -29,8 +30,7 @@ def _hex(value: object, *, nibbles: int | None = None) -> str | None:
 
 
 def _address(value: object) -> str | None:
-    normalized = _hex(value, nibbles=40)
-    return normalized
+    return _hex(value, nibbles=40)
 
 
 def _topic(value: object) -> str | None:
@@ -97,7 +97,9 @@ def _raw_log(row: object) -> dict[str, Any] | None:
     if index_value is None:
         index_value = raw.get("log_index")
     if index_value is None:
-        index_value = row.get("logIndex") or row.get("log_index")
+        index_value = row.get("logIndex")
+    if index_value is None:
+        index_value = row.get("log_index")
     return {
         "address": address,
         "topics": topics,
@@ -250,10 +252,27 @@ def _decode_erc1155_batch(raw: dict[str, Any]) -> tuple[list[dict[str, Any]], in
     to_address = _topic_address(topics[3])
     if operator is None or from_address is None or to_address is None:
         return None
-    ids = _decode_uint_array(raw["data"], words[0])
-    amounts = _decode_uint_array(raw["data"], words[1])
-    if ids is None or amounts is None or ids[1] != amounts[1]:
+
+    # TransferBatch(uint256[],uint256[]) has a two-word head followed by two
+    # dynamic arrays. Accept only canonical ABI layout so overlapping/aliased
+    # offsets cannot be reinterpreted as legitimate token movements.
+    ids_offset = words[0]
+    amounts_offset = words[1]
+    if ids_offset != 64:
         return None
+    ids = _decode_uint_array(raw["data"], ids_offset)
+    if ids is None:
+        return None
+    expected_amounts_offset = ids_offset + 32 + ids[1] * 32
+    if amounts_offset != expected_amounts_offset:
+        return None
+    amounts = _decode_uint_array(raw["data"], amounts_offset)
+    if amounts is None or ids[1] != amounts[1]:
+        return None
+    expected_total_bytes = amounts_offset + 32 + amounts[1] * 32
+    if expected_total_bytes != len(raw["data"][2:]) // 2:
+        return None
+
     output: list[dict[str, Any]] = []
     for index, (token_id, amount) in enumerate(zip(ids[0], amounts[0], strict=True)):
         output.append({
@@ -284,6 +303,8 @@ def normalize_standard_event_logs(logs: object, *, source: str, outcome: str) ->
             "outcome": outcome,
             "logs_available": False,
             "input_log_count": None,
+            "processed_log_count": 0,
+            "omitted_log_count": 0,
             "decoded_log_count": 0,
             "asset_change_count": 0,
             "approval_event_count": 0,
@@ -294,6 +315,9 @@ def normalize_standard_event_logs(logs: object, *, source: str, outcome: str) ->
             "truncated": False,
         }
 
+    input_log_count = len(logs)
+    processed_logs = logs[:MAX_INPUT_LOGS]
+    omitted_log_count = max(0, input_log_count - len(processed_logs))
     asset_changes: list[dict[str, Any]] = []
     approval_events: list[dict[str, Any]] = []
     decoded_log_count = 0
@@ -301,9 +325,9 @@ def normalize_standard_event_logs(logs: object, *, source: str, outcome: str) ->
     approval_event_count = 0
     unknown_log_count = 0
     malformed_log_count = 0
-    truncated = False
+    truncated = omitted_log_count > 0
 
-    for row in logs:
+    for row in processed_logs:
         raw = _raw_log(row)
         if raw is None:
             malformed_log_count += 1
@@ -379,7 +403,9 @@ def normalize_standard_event_logs(logs: object, *, source: str, outcome: str) ->
         "source": source,
         "outcome": outcome,
         "logs_available": True,
-        "input_log_count": len(logs),
+        "input_log_count": input_log_count,
+        "processed_log_count": len(processed_logs),
+        "omitted_log_count": omitted_log_count,
         "decoded_log_count": decoded_log_count,
         "asset_change_count": asset_change_count,
         "approval_event_count": approval_event_count,
