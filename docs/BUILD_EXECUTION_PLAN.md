@@ -6,25 +6,14 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 ## Current verified baseline
 
 - Repository: private `rudras777/rivexis`; default branch `main`.
-- Baseline verified at chat start: `daa5cc1c924a9c3a0214aad24a93dd00d4a732ca` (`Add honest free-tier API fallback`).
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
-- API: FastAPI remains the authoritative application backend. The free Cloudflare Worker at `rivexis-api.rudrasingh0718.workers.dev` is an explicit degraded placeholder, not a replacement API.
-- Live frontend preview was reachable on 2026-09-23 at `https://rivexis-web.rudrasingh0718.workers.dev`.
-- Live API `/health` was verified on 2026-09-23 as `status=degraded` with the FastAPI runtime unavailable on the approved free-tier stack.
-- Supabase project `ivszvufdonfgwjpfgwii` is `ACTIVE_HEALTHY` in `ap-south-1`.
-- Supabase contains 53 logical product tables plus 2 runtime-control tables; the runtime-control migration is present.
-- Supabase security advisor returned no findings. A generic table-list advisory notes 19 non-RLS tables, but a direct privilege check found no explicit table grants to `anon` or `authenticated`; do not enable RLS blindly unless the access model changes.
-- CI workflow contains API regression/audit, frontend type/build/vinext/audit/Playwright, invariant/secret/migration checks, and real PostgreSQL migration/runtime-control checks.
-- PR #1 passed CI run #25 (`35793408514`) and merged as `ca16f39898b6392a022372ffe04cc595278a1fb6`.
-- PR #2 passed CI run #35 (`35794008464`) and merged as `773a2faa2a6653c79972e98df505f01b15d702ea`.
-- PR #3 passed CI run #48 (`35794960918`) and merged as `926265f2c0e44a5a0f74caf6c815c2cf0e638f72`.
-- PR #4 passed CI run #65 (`35795979200`) and merged as `543dcccff3a2b094c504d68453000685648c96ec`.
-- PR #5 passed CI run #77 (`35798213551`) and merged as `158eedd7a13bf0dd0089a5d60138dcd18de6f46d`.
-- PR #6 passed CI run #93 (`35799257420`) and merged as `b1c857bed25706d959bc55bbbb8fc40e863bbba4`.
-- PR #7 (`Complete safe in-place workspace switching`) passed CI run #105 (`35800016602`) and merged as `40950c29037ad35689c1d19a33924d430107c256`.
-- PR #9 (`Complete truthful workspace dashboard and settings summaries`) passed CI run #129 (`35828771358`) and merged as `22a999d018e8c84dd907d48a973d58406aa5ed33`.
-- PR #10 (`Harden decision evidence integrity and uncertainty semantics`) passed CI run #144 (`35830902047`) and merged as `deca453077f51101ef853161d07836a26472778d`.
-- PR #11 (`Expose truthful analysis provenance in reports and engine results`) passed CI run #154 (`35831726073`) and merged as `5795344fea5b4e3b83103114fbdb7891a223e399`.
+- API: FastAPI is the authoritative application backend. The free Cloudflare Worker API is an explicit degraded placeholder, not a replacement runtime.
+- Supabase project `ivszvufdonfgwjpfgwii` is `ACTIVE_HEALTHY` in `ap-south-1`; 53 logical product tables plus 2 runtime-control tables were previously verified.
+- CI covers API lint/tests/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret/migration checks, and real PostgreSQL migration/runtime-control checks.
+- Milestone D final workspace-foundation slice: PR #9, CI #129 (`35828771358`), merge `22a999d018e8c84dd907d48a973d58406aa5ed33`.
+- Milestone E decision-integrity slice: PR #10, CI #144 (`35830902047`), merge `deca453077f51101ef853161d07836a26472778d`.
+- Milestone E report/engine provenance slice: PR #11, CI #154 (`35831726073`), merge `5795344fea5b4e3b83103114fbdb7891a223e399`.
+- Milestone E History provenance slice: PR #12 final head `b7c3b7e3c974ea901c3d920278b1c42f6396fcbc`, CI #164 (`35832725687`), merge `ad136be86f8536bbd5d2e917d7dc8a086b376ac4`.
 
 ## Milestone sequence
 
@@ -41,50 +30,53 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 ## Current active milestone
 
-**Milestone E — Analysis framework: evidence, provenance, conflicts, decisions and versioned outputs**
+**Milestone F — Ten-engine completion**
 
-Milestone D is complete at repository-test level. Milestone E now has two CI-verified slices: canonical persisted evidence/uncertainty semantics at the decision boundary, plus truthful version/evidence provenance in decision reports and engine result UI.
+Milestone E is complete at repository-test level. The shared analysis/decision framework now preserves canonical evidence, uncertainty, versioning and provenance from persisted engine output through decisioning, explanations, reports, engine-result UI and workspace History.
 
-Acceptance targets for Milestone E:
-- audit the shared analysis request/result/decision models and UI so evidence, provenance, confidence, conflicts and UNKNOWN conditions are represented consistently rather than engine-by-engine ad hoc;
-- ensure direct-state, provider-grounded and demo inputs remain distinguishable in persisted analysis/history/report outputs;
-- make stale, partial, unavailable and conflicting evidence visible without converting uncertainty into a positive/negative recommendation;
-- standardize version/methodology identifiers needed to reproduce or review an analysis;
-- verify analysis/detail/report surfaces never claim provider evidence that was not actually used;
-- keep workspace authorization and in-place switch isolation across every new analysis/result surface;
-- add targeted API/domain/Playwright coverage and require full CI before advancing to Milestone F.
+### Milestone F acceptance targets
 
-## Completed evidence
+- audit all ten specialist engines B1–B5 and F1–F5 against their intended live-provider/direct-state contracts, deterministic/demo behavior and current tests;
+- identify exact repository-level gaps rather than treating absent commercial credentials as code defects;
+- ensure each engine has a versioned output contract, explicit evidence/provider provenance, deterministic missing-data semantics and safe `PARTIAL`, `STALE_DATA`, `CONFLICTING_DATA`, `PROVIDER_UNAVAILABLE` or other UNKNOWN-compatible states where evidence is incomplete;
+- prohibit synthetic provider facts, unsupported “safe” conclusions and silent fallback from live mode to demo assumptions;
+- verify engine-specific hard blockers, confidence, evidence freshness and provider consensus are reproducible and covered by focused tests;
+- preserve workspace authorization, canonical persistence, decision integrity and in-place switch isolation;
+- keep license/customer-contract gated providers such as Arkham or undocumented Hypernative-native contracts explicitly blocked rather than fabricating integration behavior;
+- require full CI before declaring the ten-engine repository implementation complete enough to advance to Milestone G.
 
-- Milestones A–D are complete at repository-test level; production/browser certification remains separately gated by real deployment evidence.
-- Browser web auth uses HttpOnly cookies plus CSRF; no bearer token is introduced into browser storage.
-- The authenticated shell is workspace-query-scoped; foreign workspace reads fail closed; delayed engine/monitor/investigation/protocol-history results cannot render after a switch.
-- Dashboard/History/Saved/Settings surfaces are workspace-authorized and truthful; provider registry state remains separated from workspace runtime telemetry.
-- Shared engine outputs persist `analysis_framework_version`; decisions persist `decision_methodology_version` plus analysis IDs, engine versions/statuses/framework versions, evidence providers/count, unresolved conflict count and canonical-persistence verification.
-- Persisted `analysis_id` values are rehydrated from server-side analysis storage before decision scoring. Client-submitted changes to risk score, confidence, severity, blockers, warnings, conflicts or summary cannot override the stored analysis payload.
-- Repeating one persisted analysis ID, or submitting multiple results from the same specialist engine, returns explicit UNKNOWN instead of silently changing aggregate weighting.
-- Requested evidence in `PARTIAL`, `STALE_DATA`, `CONFLICTING_DATA`, provider-unavailable or other non-COMPLETED states remains WAIT/UNKNOWN until resolved, except where an explicit hard blocker independently requires AVOID.
-- Grounded explanations expose decision methodology/provenance without generating a new risk score.
-- API/domain regression coverage includes an adversarial forged-safe-payload test proving a high-risk persisted B2 result remains authoritative.
-- PR #10 final head `c817b0a9774faf1612faa4da61269d3b99911e4d` passed CI run #144 (`35830902047`) and merged as `deca453077f51101ef853161d07836a26472778d`.
-- Decision HTML/PDF now disclose methodology version, canonical-persistence verification, evidence count/sources, unresolved conflicts, specialist engine status/version/framework and persisted analysis references.
-- Engine result UI now renders structured status/risk/confidence/version/evidence/conflict/missing-data/assumption fields and keeps raw normalized JSON behind an explicit disclosure rather than using raw JSON as the only result presentation.
-- Engine result banners are derived from actual result state: demo, provider unavailable, partial, conflicting, stale, completed-with-recorded-evidence, or completed-with-no-recorded-evidence. A zero-evidence result is never called provider-grounded.
-- Playwright proves a provider-unavailable result with zero evidence says no evidence is recorded, and a partial B5 result names `lifi` only because that provider appears in the returned evidence array.
-- Report tests prove canonical verification wording is driven by the persisted flag and PDF generation remains self-contained.
-- PR #11 final head `c57b93b89326922a1dab28d49b71199f1e20ed45` passed CI run #154 (`35831726073`) across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
-- PR #11 merged to `main` as `5795344fea5b4e3b83103114fbdb7891a223e399`.
+## Milestone E completed evidence
+
+- `analysis_framework_version` is persisted on shared engine outputs and `decision_methodology_version` on decisions.
+- Decisions rehydrate persisted `analysis_id` records before scoring. Caller-supplied changes to risk, confidence, severity, blockers, warnings, conflicts or summary cannot override canonical stored evidence.
+- Duplicate persisted analysis references and duplicate specialist-engine inputs cannot silently distort aggregate weighting; the shared decision model returns explicit UNKNOWN.
+- Requested non-COMPLETED evidence—including partial, stale, conflicting or provider-unavailable results—cannot become PROCEED/MODIFY/AVOID through aggregate scoring. It remains WAIT/UNKNOWN unless an explicit hard blocker independently requires AVOID.
+- Decisions persist analysis IDs, engine versions/statuses/framework versions, evidence providers/count, unresolved conflicts and canonical-persistence verification. Grounded explanations expose the same provenance without generating a new score.
+- Decision HTML/PDF reports expose methodology/canonical-input verification and specialist/evidence provenance from the persisted decision payload only.
+- Engine result UI distinguishes demo, provider-unavailable, partial, conflicting, stale, completed-with-evidence and completed-with-no-recorded-evidence states. Provider names are displayed only when present in returned evidence.
+- Workspace History keeps the capped summary endpoint lightweight and loads canonical persisted analysis/decision provenance only on user request through existing authorized detail endpoints; raw payloads are not dumped in the History view.
+- History provenance detail queries are active-workspace keyed and selected detail is cleared on workspace changes. Playwright proves Workspace A provenance does not remain visible after switching to Workspace B.
+- PR #12 initially exposed a TypeScript closure-narrowing issue; it was corrected without changing behavior, and only the subsequent full-green CI #164 is accepted as merge evidence.
+
+## Existing platform integrity retained
+
+- Browser auth uses HttpOnly cookies plus CSRF; browser bearer-token storage is not introduced.
+- Workspace reads/writes fail closed and remain permission-aware.
+- Engine/monitor/investigation/protocol-history delayed responses from an old workspace are discarded after switching.
+- Shared/global provider registry configuration is separate from active-workspace runtime telemetry.
+- Product constants are labeled as static metadata; workspace activity comes from authorized workspace APIs.
+- External/provider absence remains explicit UNKNOWN/unavailable rather than fabricated evidence.
 
 ## Dependencies and blockers
 
-- **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval (or another explicitly approved FastAPI-capable platform).
+- **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable platform.
 - **Custom domain:** BLOCKED on user domain choice/purchase approval.
 - **Production email:** BLOCKED on Brevo phone verification, owned domain, domain authentication and action-time credential approval.
 - **External providers:** BLOCKED where credentials, commercial licensing or customer-specific contracts are absent; unsupported paths remain UNKNOWN/unavailable.
 - **Production secrets:** creation/rotation requires action-time confirmation where specified by the project mandate.
-- **Real deployed browser/auth certification:** BLOCKED until a live FastAPI runtime is available; repository-level browser/API evidence is not production evidence.
-- **Production certification:** remains incomplete until real Rudra/Rivexis-owned targets supply external gate evidence.
+- **Real deployed browser/auth/analysis certification:** BLOCKED until a live FastAPI runtime is available; repository-level browser/API evidence is not production evidence.
+- **Production certification:** incomplete until real Rudra/Rivexis-owned targets supply external gate evidence.
 
 ## Next action
 
-Finish the Milestone E audit by carrying persisted analysis status/provenance into workspace History without exposing raw payloads. History should distinguish demo/live, status, framework/engine version, evidence count/sources, provider consensus and conflict count using only canonical persisted fields; decision history should expose decision state/methodology/canonical-input verification where supported. Preserve the existing 50-record cap disclosure, workspace isolation and in-place switch behavior, then gate the slice on full CI before deciding whether Milestone E can advance to Milestone F.
+Start Milestone F with a ten-engine contract audit. Build a precise B1–B5/F1–F5 matrix covering engine version, live evidence source(s), direct-state versus indexed/provider evidence, provider-unavailable behavior, partial/conflict/stale semantics, hard blockers, freshness/confidence and current tests. Patch the highest-risk engine inconsistency first, add focused regression coverage, and gate every slice on full CI.
