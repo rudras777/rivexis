@@ -26,7 +26,6 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | In-place workspace switching across audited tools | PASS | Engine, monitor, investigation, protocol-history and History provenance state are reset/guarded by workspace identity; browser tests prove old-workspace state cannot satisfy new-workspace views. |
 | Provider state boundary | PASS | Global provider registry configuration remains separate from workspace runtime telemetry; absence remains explicit. |
 | Current milestone CI | PASS | PR #15 final head `34f66a0abd9794efd9352b73e733212cc5a2a350` passed API, web/Playwright/Axe, invariants/secret scan and PostgreSQL migration/runtime-control CI #187 (`35836050226`). PR #13/#14 also passed full CI before merge. |
-| Milestone F — Ten-engine completion | NOT STARTED | Cross-engine integrity work is PASS, but the full milestone is not complete. Remaining work is engine-depth capability/certification from `docs/TEN_ENGINE_CONTRACT_AUDIT.md`—for example richer B1 execution-effect normalization and broader F1 on-chain position ingestion—while external credential/license/customer-contract gaps remain explicitly partial or blocked. |
 | Live deployment of current merged source | BLOCKED | Current source is CI-green but has not been independently verified on the Cloudflare Worker; no deployment claim is made. |
 | Live FastAPI runtime | BLOCKED | Cloudflare Containers requires Workers Paid or another approved FastAPI-capable platform; no paid activation authorized. |
 | Production custom domain/TLS | BLOCKED | No Rivexis production domain is configured. |
@@ -44,6 +43,8 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Accessibility/browser production certification | BLOCKED | Repository harness is green; deployed-browser evidence is incomplete. |
 | Production release certification bundle | BLOCKED | External gates remain unavailable until real Rivexis-owned targets supply evidence. |
 | Incident/runbook readiness | NOT STARTED | Required operational runbooks remain a future milestone. |
+
+Milestone F remains active in `BUILD_EXECUTION_PLAN.md`; this readiness matrix records only controls that have reached one of the allowed terminal/readiness states above. The current ten-engine integrity controls are PASS, while deeper engine-capability completion continues under the active milestone plan.
 
 ## Launch rule
 
