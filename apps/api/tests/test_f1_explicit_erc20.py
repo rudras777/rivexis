@@ -78,6 +78,7 @@ def test_f1_reads_explicit_erc20_balance_from_rpc_without_claiming_wallet_discov
 
     assert result.status == AnalysisStatus.PARTIAL
     assert result.engine_version == "1.2.0"
+    assert result.block_reference == 100
     assert result.metrics["portfolio_value_usd"] == 1.5
     assert result.metrics["positions"] == [
         {
@@ -95,13 +96,25 @@ def test_f1_reads_explicit_erc20_balance_from_rpc_without_claiming_wallet_discov
     assert token_evidence[0].normalized_value["token_contract"] == token
     assert token_evidence[0].normalized_value["raw_balance"] == 1_500_000
     assert token_evidence[0].normalized_value["quantity"] == 1.5
+    assert token_evidence[0].normalized_value["block_tag"] == "0x64"
+    assert token_evidence[0].block_number == 100
+
+    native_calls = [params for method, params in rpc.balance_calls if method == "eth_getBalance"]
     eth_calls = [params for method, params in rpc.balance_calls if method == "eth_call"]
+    assert native_calls == [[wallet, "0x64"]]
     assert eth_calls[0][0]["to"] == token
     assert eth_calls[0][0]["data"] == live_f1.BALANCE_OF_SELECTOR + ("0" * 24) + wallet[2:]
+    assert eth_calls[0][1] == "0x64"
+    assert all(
+        params[-1] != "latest"
+        for method, params in rpc.balance_calls
+        if method in {"eth_getBalance", "eth_call"}
+    )
     assert "automatic ERC-20 token discovery outside explicitly supplied contracts" in result.missing_data
     assert "NFT positions for wallet ingestion" in result.missing_data
     assert "DeFi protocol positions for wallet ingestion" in result.missing_data
     assert any("caller-supplied metadata" in text for text in result.assumptions)
+    assert any("pinned to captured RPC block 0x64" in text for text in result.assumptions)
 
 
 def test_f1_aggregates_duplicate_asset_rows_before_concentration_scoring(monkeypatch):
@@ -166,4 +179,4 @@ def test_f1_dispatch_preserves_new_contract_version_and_evidence_version(monkeyp
 
     assert result.engine_version == "1.2.0"
     assert {e.engine_version for e in result.evidence} == {"1.2.0"}
-    assert any(e.calculation_version == "f1-live-1.2.0" for e in result.evidence)
+    assert any(e.calculation_version == "f1-live-1.3.0" for e in result.evidence)
