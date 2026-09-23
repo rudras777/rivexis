@@ -104,6 +104,112 @@ def test_current_live_failure_paths_use_canonical_engine_versions_without_provid
         assert r.provider_consensus in {"UNAVAILABLE", "USER_INPUT_ONLY"}
 
 
+def test_explicit_f3_adapter_request_discards_generic_modeled_fallback(monkeypatch):
+    from rivexis_api.services import live_f3
+
+    generic = EngineResult(
+        engine_id=EngineId.F3,
+        status=AnalysisStatus.PARTIAL,
+        risk_score=5,
+        data_confidence=95,
+        engine_confidence=95,
+        severity=Severity.LOW,
+        summary="Generic modeled path looked low risk",
+        metrics={"health_factor": 2.5, "position": {"health_factor": 2.5}},
+        evidence=[evidence("direct_rpc")],
+        provider_consensus="SINGLE_SOURCE",
+    )
+    monkeypatch.setattr(live_f3, "run_live_f3", lambda _: generic)
+
+    r = ENGINES[EngineId.F3](
+        {
+            "protocol_adapter": "aave_v3",
+            "user_address": "0x1111111111111111111111111111111111111111",
+        },
+        False,
+    )
+
+    assert r.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert r.risk_score == 0
+    assert r.data_confidence == 0
+    assert r.engine_confidence == 0
+    assert r.severity == Severity.UNKNOWN
+    assert r.provider_consensus == "UNAVAILABLE"
+    assert r.evidence == []
+    assert r.metrics["requested_protocol_adapter"] == "aave_v3"
+    assert r.metrics["discarded_fallback_status"] == "PARTIAL"
+    assert "discarded" in r.summary.lower()
+    assert "authoritative protocol-native position evidence" in r.missing_data
+
+
+def test_explicit_f3_adapter_request_preserves_provider_unavailable_state(monkeypatch):
+    from rivexis_api.services import live_f3
+
+    unavailable = EngineResult(
+        engine_id=EngineId.F3,
+        status=AnalysisStatus.PROVIDER_UNAVAILABLE,
+        risk_score=0,
+        data_confidence=0,
+        engine_confidence=0,
+        severity=Severity.UNKNOWN,
+        summary="RPC unavailable",
+        provider_consensus="UNAVAILABLE",
+    )
+    monkeypatch.setattr(live_f3, "run_live_f3", lambda _: unavailable)
+
+    r = ENGINES[EngineId.F3](
+        {
+            "protocol_adapter": "aave_v3",
+            "wallet": "0x1111111111111111111111111111111111111111",
+        },
+        False,
+    )
+    assert r.status == AnalysisStatus.PROVIDER_UNAVAILABLE
+    assert r.severity == Severity.UNKNOWN
+    assert r.risk_score == 0
+
+
+def test_authoritative_f3_adapter_position_is_not_discarded(monkeypatch):
+    from rivexis_api.services import live_f3
+
+    authoritative = EngineResult(
+        engine_id=EngineId.F3,
+        status=AnalysisStatus.PARTIAL,
+        risk_score=72,
+        data_confidence=92,
+        engine_confidence=92,
+        severity=Severity.HIGH,
+        summary="Authoritative adapter position",
+        metrics={
+            "authoritative_adapter": "aave_v3",
+            "position": {"health_factor": 1.1},
+        },
+        evidence=[
+            evidence(
+                "direct_rpc",
+                engine_version="shared-1.1.0",
+                calculation_version="protocol-native-1.1.0",
+            )
+        ],
+        provider_consensus="SINGLE_SOURCE",
+    )
+    monkeypatch.setattr(live_f3, "run_live_f3", lambda _: authoritative)
+
+    r = ENGINES[EngineId.F3](
+        {
+            "protocol_adapter": "aave_v3",
+            "user_address": "0x1111111111111111111111111111111111111111",
+        },
+        False,
+    )
+    assert r.status == AnalysisStatus.PARTIAL
+    assert r.risk_score == 72
+    assert r.metrics["authoritative_adapter"] == "aave_v3"
+    assert r.engine_version == "1.3.0"
+    assert r.evidence[0].engine_version == "1.3.0"
+    assert r.evidence[0].calculation_version == "protocol-native-1.1.0"
+
+
 def test_every_declared_live_engine_has_an_explicit_canonical_version():
     assert set(LIVE_ENGINE_VERSIONS) == set(EngineId)
     assert all(version.count(".") == 2 for version in LIVE_ENGINE_VERSIONS.values())
