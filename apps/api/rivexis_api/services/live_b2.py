@@ -9,11 +9,10 @@ from rivexis_api.models.engine import EngineResult
 from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, Severity
 from rivexis_api.models.evidence import EvidenceRecord
 from rivexis_api.provider_clients import BlockaidClient, EtherscanClient, ProviderCall, ProviderError, hex_to_int
-from rivexis_api.providers import ADAPTERS, resolve_provider, select_rpc_client
+from rivexis_api.providers import resolve_provider, select_rpc_client
 from rivexis_api.services.security_intel import blockaid_risk, normalize_blockaid
 
 MAX_UINT256 = 2**256 - 1
-
 
 
 def _evidence(call: ProviderCall, source_type: str, normalized: Any, chain_id: int, block_number: int | None, confidence: float, endpoint: str) -> EvidenceRecord:
@@ -35,6 +34,28 @@ def _evidence(call: ProviderCall, source_type: str, normalized: Any, chain_id: i
         freshness=FreshnessStatus.LIVE,
         license_classification="external-provider-evidence",
     )
+
+
+def _evm_address(value: object) -> str | None:
+    raw = str(value or "").strip().lower()
+    if len(raw) != 42 or not raw.startswith("0x"):
+        return None
+    try:
+        int(raw[2:], 16)
+    except ValueError:
+        return None
+    return raw
+
+
+def _transaction_hash(value: object) -> str | None:
+    raw = str(value or "").strip().lower()
+    if len(raw) != 66 or not raw.startswith("0x"):
+        return None
+    try:
+        int(raw[2:], 16)
+    except ValueError:
+        return None
+    return raw
 
 
 def _decode_approval(data: str | None) -> dict[str, Any] | None:
@@ -89,8 +110,30 @@ def run_live_b2(input_data: dict[str, Any]) -> EngineResult:
     tx = input_data.get("transaction") if isinstance(input_data.get("transaction"), dict) else dict(input_data)
     for key in ("chain", "network", "transaction", "transaction_hash", "tx_hash"):
         tx.pop(key, None)
-    tx_hash = input_data.get("transaction_hash") or input_data.get("tx_hash")
-    target = input_data.get("contract") or input_data.get("address") or tx.get("to")
+
+    raw_tx_hash = input_data.get("transaction_hash") or input_data.get("tx_hash")
+    tx_hash = None
+    if raw_tx_hash not in (None, ""):
+        tx_hash = _transaction_hash(raw_tx_hash)
+        if tx_hash is None:
+            return _insufficient(
+                "Transaction hash must be a 32-byte 0x-prefixed hexadecimal value"
+            )
+
+    explicit_target = input_data.get("contract") or input_data.get("address") or tx.get("to")
+    target = None
+    if explicit_target not in (None, ""):
+        target = _evm_address(explicit_target)
+        if target is None:
+            return _insufficient("Target address must be a valid 20-byte EVM address")
+
+    sender = tx.get("from")
+    if sender not in (None, "") and _evm_address(sender) is None:
+        return _insufficient("Transaction from address must be a valid 20-byte EVM address")
+    if sender not in (None, ""):
+        tx["from"] = _evm_address(sender)
+    if tx.get("to") not in (None, ""):
+        tx["to"] = _evm_address(tx.get("to"))
 
     evidence: list[EvidenceRecord] = []
     statuses: list[dict[str, Any]] = []
@@ -111,7 +154,22 @@ def run_live_b2(input_data: dict[str, Any]) -> EngineResult:
             tx_call = rpc.call("eth_getTransactionByHash", [tx_hash])
             if tx_call.result:
                 tx = dict(tx_call.result)
-                target = tx.get("to") or target
+                resolved_target = tx.get("to") or target
+                if resolved_target not in (None, ""):
+                    target = _evm_address(resolved_target)
+                    if target is None:
+                        return _insufficient(
+                            "Resolved transaction destination is not a valid 20-byte EVM address"
+                        )
+                resolved_sender = tx.get("from")
+                if resolved_sender not in (None, "") and _evm_address(resolved_sender) is None:
+                    return _insufficient(
+                        "Resolved transaction sender is not a valid 20-byte EVM address"
+                    )
+                if resolved_sender not in (None, ""):
+                    tx["from"] = _evm_address(resolved_sender)
+                if target is not None:
+                    tx["to"] = target
                 evidence.append(_evidence(tx_call, "direct_state", {k: tx.get(k) for k in ("hash", "from", "to", "input", "value", "blockNumber")}, chain.chain_id, hex_to_int(tx.get("blockNumber")), 99, "eth_getTransactionByHash"))
             else:
                 warnings.append("Transaction hash was not found by the selected RPC provider.")
@@ -134,9 +192,6 @@ def run_live_b2(input_data: dict[str, Any]) -> EngineResult:
 
     if not target:
         return _insufficient("Provide a contract/address, transaction destination, or transaction hash for live B2 analysis")
-    target = str(target).lower()
-    if len(target) != 42 or not target.startswith("0x"):
-        return _insufficient("Target address must be a valid 20-byte EVM address")
 
     code_present = False
     try:
