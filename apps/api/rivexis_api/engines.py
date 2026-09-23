@@ -23,7 +23,7 @@ ENGINE_NAMES = {
 # Canonical versions for NEW live runs. Historical persisted analyses retain the
 # version that was stored with them; this map is applied only at live dispatch.
 LIVE_ENGINE_VERSIONS = {
-    EngineId.B1: "1.2.0",
+    EngineId.B1: "1.3.0",
     EngineId.B2: "1.1.0",
     EngineId.B3: "1.1.0",
     EngineId.B4: "1.0.0",
@@ -51,9 +51,9 @@ def _sev(score):
 def _b1_transaction_effects_summary(metrics: dict) -> dict:
     """Build a conservative canonical B1 effects summary from existing evidence.
 
-    This does not infer token/NFT events that were never observed. It only reshapes
-    already-normalized calldata, call-trace and prestate-diff evidence into a stable
-    summary for downstream UI/report consumers.
+    The summary reshapes normalized calldata, call-trace, state-diff and standard
+    event-log evidence. It never invents token metadata or decodes unknown logs by
+    analogy with a known standard.
     """
 
     calldata = metrics.get("calldata_decode")
@@ -65,6 +65,14 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
     state_diff = metrics.get("state_diff")
     if not isinstance(state_diff, dict):
         state_diff = None
+    event_effects = metrics.get("event_effects")
+    if not isinstance(event_effects, dict):
+        event_effects = None
+    event_logs_normalized = bool(
+        event_effects
+        and event_effects.get("logs_available")
+        and event_effects.get("status") == "NORMALIZED_STANDARD_EVENT_LOGS"
+    )
 
     entry_approval = None
     signature = calldata.get("signature")
@@ -80,15 +88,28 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
     approvals = ([entry_approval] if entry_approval else []) + internal_approvals
     native_transfers = list(trace.get("native_value_transfers") or []) if trace else []
     changes = list(state_diff.get("changes") or []) if state_diff else []
+    asset_changes = list(event_effects.get("asset_changes") or []) if event_effects else []
+    approval_events = list(event_effects.get("approval_events") or []) if event_effects else []
 
     limitations = []
     if trace is None:
         limitations.append("Internal call trace was not available or not requested.")
     if state_diff is None or state_diff.get("status") != "NORMALIZED_PRESTATE_DIFF":
         limitations.append("Before/after contract-state diff was not available or not requested.")
-    limitations.append(
-        "Token/NFT transfer-event normalization is not proven by call traces alone; event/log evidence is not represented as a canonical asset-change list here."
-    )
+    if not event_logs_normalized:
+        limitations.append(
+            "Canonical standard token/NFT event-log effects were not available from this run; call traces alone are not treated as proof of asset changes."
+        )
+    else:
+        limitations.append(
+            "Event amounts and token IDs are raw on-chain integers; token decimals, symbols, prices and ownership semantics are not inferred beyond the emitted standard event."
+        )
+        if event_effects.get("unknown_log_count"):
+            limitations.append("Unrecognized/non-standard event logs remain semantically unclassified.")
+        if event_effects.get("malformed_log_count"):
+            limitations.append("Malformed standard-signature logs were excluded from canonical effects.")
+        if event_effects.get("truncated"):
+            limitations.append("Large event batches were output-capped; total effect counts remain authoritative for the normalized log set.")
 
     return {
         "entry_method": {
@@ -111,6 +132,20 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
         },
         "native_value_transfers": native_transfers,
         "approval_candidates": approvals,
+        "asset_changes": asset_changes,
+        "approval_events": approval_events,
+        "event_logs": {
+            "available": event_logs_normalized,
+            "source": event_effects.get("source") if event_effects else None,
+            "outcome": event_effects.get("outcome") if event_effects else None,
+            "input_log_count": event_effects.get("input_log_count") if event_effects else None,
+            "decoded_log_count": event_effects.get("decoded_log_count") if event_effects else None,
+            "asset_change_count": event_effects.get("asset_change_count") if event_effects else None,
+            "approval_event_count": event_effects.get("approval_event_count") if event_effects else None,
+            "unknown_log_count": event_effects.get("unknown_log_count") if event_effects else None,
+            "malformed_log_count": event_effects.get("malformed_log_count") if event_effects else None,
+            "truncated": event_effects.get("truncated") if event_effects else None,
+        },
         "state_changes": {
             "available": bool(state_diff and state_diff.get("status") == "NORMALIZED_PRESTATE_DIFF"),
             "addresses_touched": state_diff.get("addresses_touched") if state_diff else None,
@@ -122,7 +157,8 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
             "entry_calldata_decoded": bool(calldata.get("status") and calldata.get("status") not in {"NO_CALLDATA", "NO_SELECTOR", "UNKNOWN_SELECTOR"}),
             "internal_call_trace": trace is not None,
             "state_diff": bool(state_diff and state_diff.get("status") == "NORMALIZED_PRESTATE_DIFF"),
-            "canonical_token_nft_event_changes": False,
+            "canonical_token_nft_event_changes": event_logs_normalized,
+            "canonical_approval_events": event_logs_normalized,
         },
         "limitations": limitations,
     }
