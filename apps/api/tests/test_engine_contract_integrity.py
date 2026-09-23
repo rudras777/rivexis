@@ -87,6 +87,39 @@ def test_conflicts_override_source_count_when_deriving_consensus():
         )
     )
     assert normalized.provider_consensus == "CONFLICTING"
+    assert normalized.status == AnalysisStatus.CONFLICTING_DATA
+
+
+def test_live_conflicts_promote_completed_or_partial_but_preserve_stale_primary_gate():
+    conflict = SourceConflict(
+        metric="entity_identity",
+        source_a="nansen",
+        value_a="Entity A",
+        source_b="arkham",
+        value_b="Entity B",
+        resolution_method="unresolved_external_attribution_conflict",
+        resolution_confidence=0,
+    )
+    for original_status in (AnalysisStatus.COMPLETED, AnalysisStatus.PARTIAL):
+        r = result(
+            EngineId.B4,
+            evidence_rows=[evidence("nansen"), evidence("arkham")],
+            conflicts=[conflict],
+        )
+        r.status = original_status
+        normalized = _normalize_current_live_contract(r)
+        assert normalized.status == AnalysisStatus.CONFLICTING_DATA
+        assert normalized.provider_consensus == "CONFLICTING"
+
+    stale = result(
+        EngineId.F3,
+        evidence_rows=[evidence("oracle"), evidence("market")],
+        conflicts=[conflict],
+    )
+    stale.status = AnalysisStatus.STALE_DATA
+    normalized_stale = _normalize_current_live_contract(stale)
+    assert normalized_stale.status == AnalysisStatus.STALE_DATA
+    assert normalized_stale.provider_consensus == "CONFLICTING"
 
 
 def test_current_live_failure_paths_use_canonical_engine_versions_without_provider_calls():
