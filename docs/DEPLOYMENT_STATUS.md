@@ -5,7 +5,7 @@ Last updated: 2026-09-23
 | Environment | Status | Evidence / meaning |
 |---|---|---|
 | Local development | AVAILABLE, NOT VERIFIED IN THIS CHAT | Repository contains SQLite/local and Docker/PostgreSQL development paths. No local shell execution was used for this update. |
-| GitHub CI | PASS FOR CURRENT MILESTONE SLICE | Latest engine-integrity gate: PR #24 head `dc8a481ca2136db83e13ee6b24c5ccf1b7e1bc04`, CI #255 (`35851151093`), with API, web/Playwright/Axe, invariants/secret/migration checks and PostgreSQL migration/runtime-control jobs all passing. |
+| GitHub CI | PASS FOR CURRENT MILESTONE SLICE | Latest engine-integrity gate: PR #30 head `efbff97df9574bd15c4e1b6c74850fcc59bd2c3f`, CI #293 (`35897012617`), with API, web/Playwright/Axe, invariants/secret/migration checks and PostgreSQL migration/runtime-control jobs all passing. |
 | Free frontend preview | LIVE, SOURCE MERGED / DEPLOYMENT UNVERIFIED | `https://rivexis-web.rudrasingh0718.workers.dev` was previously reachable. Current Milestone F source is merged and CI-verified but is not claimed live until a Cloudflare deployment is independently verified. |
 | Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` previously returned `status=degraded`; application routes intentionally return 503. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`; 53 product + 2 runtime-control tables previously verified. |
@@ -26,13 +26,15 @@ Last updated: 2026-09-23
 
 - Milestone E repository implementation is complete through PR #12.
 - Milestone F remains the active repository milestone; its ten-engine audit is recorded in `docs/TEN_ENGINE_CONTRACT_AUDIT.md`.
-- PRs #13–#15 established the shared live version/consensus/conflict and explicit F3-adapter trust boundaries.
-- PRs #16–#20 added engine-specific integrity coverage for B1, F1, B5, B2 and B3.
-- PR #21 (`F5 treasury input integrity`) CI #235 (`35849027346`) PASS; merged as `7e00dfd174d9d45a15f9ac8e24b8f81be5ea4ca0`.
-- PR #22 (`F4 selector/freshness integrity`) CI #241 (`35849611567`) PASS; merged as `6b08418e2721d8f9cffeca406db5953746272cfc`. Its initial API audit attempt failed only at `pip-audit`; rerunning the same failed job on the unchanged dependency graph passed, and the full workflow concluded success before merge.
-- PR #23 (`F2 provider payload/freshness integrity`) CI #249 (`35850515073`) PASS; merged as `f0676d0a911398a396aa5f32b187a1f14b5ee187`.
-- PR #24 (`B4 entity/fund-flow provider integrity`) final head `dc8a481ca2136db83e13ee6b24c5ccf1b7e1bc04`; CI #255 (`35851151093`) PASS; merged as `683ff4d67a4923338d82c4be4656d62a81413adc`.
-- All ten engines now have targeted repository-level integrity coverage for the contract/input/provider/freshness defects identified by the Milestone F audit. Remaining work is deeper evidence/capability completion, not a claim that all engine functionality is complete.
+- PRs #13–#15 established shared live version/consensus/conflict and explicit F3-adapter trust boundaries.
+- PRs #16–#25 established the first engine-depth/integrity campaign and synchronized the durable state.
+- PR #26 (`B1 canonical standard event effects`) CI #271 (`35857083832`) PASS before merge.
+- PR #27 (`F1 numeric/completeness integrity`) CI #277 (`35861080306`) PASS before merge.
+- PR #28 (`B4 token identity and counterparty-flow integrity`) CI #282 (`35895021465`) PASS; merged as `d8bb045800ee534d182acc88d094589bafa816a2`.
+- PR #29 (`B1 event parser ABI/input bounds`) CI #287 (`35896050913`) PASS; merged as `0d56ba9ca80e340b21ea48f6f990aa7d04d77b3e`.
+- PR #30 (`B3 monitoring runtime integrity`) final head `efbff97df9574bd15c4e1b6c74850fcc59bd2c3f`; CI #293 (`35897012617`) PASS; merged as `042f08376f3b27cbd87dec0df6fb72ed063cdb52`.
+- All ten engines retain targeted repository-level contract/input/provider/freshness integrity coverage. Recent slices deepen B1 standard-event parsing, B3 malformed-state/oracle semantics, B4 fund-flow identity/counterparty semantics and F1 completeness/numeric boundaries.
+- Remaining Milestone F work is capability depth requiring approved evidence sources or additional deterministic normalization; it is not a claim that all ten engines are production-complete.
 - These are repository-level implementation and CI findings only. They are not live-provider or production certification evidence.
 - Real deployed browser/auth/workspace/analysis certification remains blocked until a live FastAPI runtime exists.
 - No paid Cloudflare feature, new vendor, production credential, email send or external provider activation was performed by these slices.
