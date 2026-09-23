@@ -98,8 +98,16 @@ def test_live_b5_normalizes_lifi_quote(monkeypatch):
         def quote(self, params):
             return ProviderCall("lifi","req-lifi","https://li.quest/v1/quote",{
                 "id":"route-1","tool":"across","toolDetails":{"name":"Across"},
-                "action":{"fromAmount":"1000000","fromToken":{"symbol":"USDC"},"toToken":{"symbol":"USDC"}},
-                "estimate":{"toAmount":"998000","toAmountMin":"993000","executionDuration":45,"gasCosts":[{"amountUSD":"1.25"}],"feeCosts":[{"amountUSD":"0.75"}],"approvalAddress":"0x4444444444444444444444444444444444444444"},
+                "action":{
+                    "fromChainId":1,"toChainId":42161,
+                    "fromAmount":"1000000",
+                    "fromAddress":"0x1111111111111111111111111111111111111111",
+                    "toAddress":"0x1111111111111111111111111111111111111111",
+                    "slippage":0.005,
+                    "fromToken":{"symbol":"USDC","coinKey":"USDC"},
+                    "toToken":{"symbol":"USDC","coinKey":"USDC"}
+                },
+                "estimate":{"fromAmount":"1000000","toAmount":"998000","toAmountMin":"993000","executionDuration":45,"gasCosts":[{"amountUSD":"1.25"}],"feeCosts":[{"amountUSD":"0.75"}],"approvalAddress":"0x4444444444444444444444444444444444444444"},
                 "includedSteps":[{"id":"1"},{"id":"2"}]
             },11.5)
     monkeypatch.setattr(live_b1, "LifiClient", getattr(live_b1, "LifiClient", None), raising=False)
@@ -109,6 +117,7 @@ def test_live_b5_normalizes_lifi_quote(monkeypatch):
     assert r.status==AnalysisStatus.PARTIAL and r.demo is False
     assert r.metrics["expected_to_amount"]=="998000"
     assert r.metrics["gas_cost_usd"]==1.25
+    assert r.metrics["integrity"]["status"]=="MATCHED"
     assert r.evidence[0].provider=="lifi"
 
 
