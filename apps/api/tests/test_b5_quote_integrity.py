@@ -83,11 +83,14 @@ def test_b5_matching_quote_remains_partial_and_records_integrity(monkeypatch):
     result = live_b5.run_live_b5(payload())
 
     assert result.status == AnalysisStatus.PARTIAL
-    assert result.engine_version == "1.2.0"
+    assert result.engine_version == "1.3.0"
     assert result.metrics["integrity"] == {"status": "MATCHED", "conflict_count": 0}
     assert result.metrics["from_chain"] == 1
     assert result.metrics["to_chain"] == 42161
     assert result.metrics["requested"]["from_amount"] == "1000000"
+    assert result.metrics["gas_cost_usd"] == 0.0
+    assert result.metrics["fee_cost_usd"] == 0.0
+    assert result.metrics["execution_duration_seconds"] == 45.0
     assert result.provider_conflicts == []
     assert result.risk_score > 0
     assert FakeLifi.calls[0]["toAddress"] == WALLET
@@ -114,7 +117,7 @@ def test_b5_mismatched_quote_fails_closed_and_discards_route_scoring(monkeypatch
     assert "route.from_amount" in metrics
     assert "route.from_address" in metrics
     assert result.metrics["integrity"]["status"] == "CONFLICTING"
-    assert "request-consistent cross-chain route quote" in result.missing_data
+    assert "request-consistent and internally valid cross-chain route quote" in result.missing_data
 
 
 def test_b5_rejects_internally_impossible_minimum_above_expected(monkeypatch):
@@ -124,10 +127,68 @@ def test_b5_rejects_internally_impossible_minimum_above_expected(monkeypatch):
     assert result.status == AnalysisStatus.CONFLICTING_DATA
     assert result.risk_score == 0
     assert result.severity == Severity.UNKNOWN
-    assert any(
-        conflict.metric == "route.minimum_not_above_expected"
-        for conflict in result.provider_conflicts
+    assert any(conflict.metric == "route.minimum_not_above_expected" for conflict in result.provider_conflicts)
+
+
+def test_b5_rejects_malformed_or_untrustworthy_cost_metadata(monkeypatch):
+    bad_cost_sets = [
+        [{"amountUSD": -1}],
+        [{"amountUSD": "NaN"}],
+        [{"amountUSD": "Infinity"}],
+        [{"amountUSD": None}],
+        ["not-a-cost-row"],
+        {"amountUSD": "1"},
+    ]
+    for gas_costs in bad_cost_sets:
+        install(monkeypatch, quote_body(estimate__gasCosts=gas_costs))
+        result = live_b5.run_live_b5(payload())
+        assert result.status == AnalysisStatus.CONFLICTING_DATA
+        assert result.risk_score == 0
+        assert result.severity == Severity.UNKNOWN
+        assert any(conflict.metric == "route.gas_costs" for conflict in result.provider_conflicts)
+
+    install(monkeypatch, quote_body(estimate__feeCosts=[{"amountUSD": "NaN"}]))
+    result = live_b5.run_live_b5(payload())
+    assert result.status == AnalysisStatus.CONFLICTING_DATA
+    assert any(conflict.metric == "route.fee_costs" for conflict in result.provider_conflicts)
+
+
+def test_b5_sums_only_finite_non_negative_provider_costs(monkeypatch):
+    install(
+        monkeypatch,
+        quote_body(
+            estimate__gasCosts=[{"amountUSD": "1.25"}, {"amountUSD": 0.75}],
+            estimate__feeCosts=[{"amountUSD": "2.50"}],
+        ),
     )
+    result = live_b5.run_live_b5(payload())
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert result.metrics["gas_cost_usd"] == 2.0
+    assert result.metrics["fee_cost_usd"] == 2.5
+
+
+def test_b5_rejects_invalid_execution_duration_and_step_structure(monkeypatch):
+    for duration in (-1, "NaN", "Infinity", None, True):
+        install(monkeypatch, quote_body(estimate__executionDuration=duration))
+        result = live_b5.run_live_b5(payload())
+        assert result.status == AnalysisStatus.CONFLICTING_DATA
+        assert any(conflict.metric == "route.execution_duration" for conflict in result.provider_conflicts)
+
+    for steps in (None, {}, [None], [{}], ["step"]):
+        install(monkeypatch, quote_body(includedSteps=steps))
+        result = live_b5.run_live_b5(payload())
+        assert result.status == AnalysisStatus.CONFLICTING_DATA
+        assert any(conflict.metric == "route.included_steps" for conflict in result.provider_conflicts)
+
+
+def test_b5_non_finite_requested_slippage_fails_before_provider_call(monkeypatch):
+    install(monkeypatch, quote_body())
+    for bad in ("NaN", "Infinity", "-Infinity"):
+        result = live_b5.run_live_b5(payload(slippage=bad))
+        assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+        assert result.severity == Severity.UNKNOWN
+    assert FakeLifi.calls == []
 
 
 def test_b5_invalid_amount_and_wallet_fail_before_provider_call(monkeypatch):
@@ -148,7 +209,7 @@ def test_b5_dispatch_preserves_current_contract_and_evidence_versions(monkeypatc
     install(monkeypatch, quote_body())
     result = ENGINES[EngineId.B5](payload(), False)
 
-    assert result.engine_version == "1.2.0"
-    assert {e.engine_version for e in result.evidence} == {"1.2.0"}
-    assert {e.calculation_version for e in result.evidence} == {"b5-live-1.2.0"}
+    assert result.engine_version == "1.3.0"
+    assert {e.engine_version for e in result.evidence} == {"1.3.0"}
+    assert {e.calculation_version for e in result.evidence} == {"b5-live-1.3.0"}
     assert result.status == AnalysisStatus.PARTIAL
