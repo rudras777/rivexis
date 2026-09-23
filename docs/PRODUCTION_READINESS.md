@@ -9,7 +9,10 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Repository baseline and source control | PASS | Private repo, `main` verified at `daa5cc1` before this milestone. |
 | Durable execution planning | PASS | Build plan, backlog, architecture decisions, deployment status and this readiness matrix are maintained in-repo. |
 | Ten-engine architecture | PASS | Repository preserves exactly B1–B5 and F1–F5 plus existing invariant coverage. |
-| Deterministic decision/UNKNOWN policy | PASS | Existing domain and verification docs/tests preserve explicit UNKNOWN and evidence-first outcomes. |
+| Deterministic decision/UNKNOWN policy | PASS | Incomplete, stale, conflicting or unavailable requested evidence no longer becomes PROCEED/MODIFY/AVOID through aggregate scoring; it remains WAIT/UNKNOWN except where an explicit hard blocker independently requires AVOID. |
+| Canonical persisted decision inputs | PASS | PR #10 rehydrates persisted analysis IDs before decision scoring; adversarial API coverage proves a forged client copy cannot replace stored risk/confidence/blocker/conflict data. Duplicate analysis IDs or duplicate specialist engines cannot silently skew aggregate weighting. |
+| Versioned analysis/decision provenance | PASS | Engine results persist `analysis_framework_version`; decisions persist `decision_methodology_version`, analysis IDs, engine versions/statuses/framework versions, evidence sources/count, unresolved conflict count and canonical-persistence verification. Grounded explanations expose the same provenance. |
+| Analysis/report provenance presentation | NOT STARTED | Canonical provenance now exists in the API model, but decision HTML/PDF and the engine-result UI still need structured, truthful presentation of versions, status, evidence sources, conflicts and missing data. |
 | Supabase project health | PASS | Project is `ACTIVE_HEALTHY` in `ap-south-1`. |
 | Supabase schema/runtime controls | PASS | 53 product tables + 2 runtime-control tables; runtime-control migration present. |
 | Supabase browser-role exposure review | PASS | Security advisor has no findings; direct check found no explicit `anon`/`authenticated` table grants. Re-check if grants/Data API exposure changes. |
@@ -24,7 +27,7 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Provider state boundary | PASS | Shared/global provider registry configuration is separated from active-workspace runtime telemetry; empty runtime state is explicit and no provider activity/readiness is fabricated. |
 | In-place workspace switching across audited tools | PASS | Engine, monitor, investigation and protocol-history local result state is reset/guarded by workspace identity; delayed old-workspace responses are discarded and Playwright proves no reload is used to obtain isolation. |
 | Workspace dashboard/activity/settings completion | PASS | Dashboard separates static product metadata from authorized active-workspace History activity; History and Saved Analyses use supported-field summaries; Settings lists authorized workspace/organization data, membership roles and creation outcomes without implying unsupported member administration. PR #9 browser coverage preserves in-place switch isolation across these surfaces. |
-| Current milestone CI | PASS | PR #9 CI run #129 (`35828771358`) passed API, web/Playwright/Axe, invariants/secret scan and PostgreSQL migration/runtime-control jobs. |
+| Current milestone CI | PASS | PR #10 CI run #144 (`35830902047`) passed API, web/Playwright/Axe, invariants/secret scan and PostgreSQL migration/runtime-control jobs. |
 | Live deployment of current milestone | BLOCKED | Source is CI-green but this change has not yet been verified on the Cloudflare Worker; no deployment action is claimed. |
 | Live FastAPI runtime | BLOCKED | Cloudflare Containers requires Workers Paid; no paid activation authorized. |
 | Production custom domain/TLS | BLOCKED | No domain owned/configured for Rivexis. |
