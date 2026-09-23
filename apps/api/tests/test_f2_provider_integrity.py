@@ -98,7 +98,6 @@ def test_f2_uses_actual_tvl_timestamp_for_freshness(monkeypatch):
 
 
 def test_f2_does_not_claim_current_when_provider_observation_time_is_unusable(monkeypatch):
-    # Epoch=1 is treated as unusable/corrupt observation metadata, not centuries-old live data.
     install_result(monkeypatch, valid_record(observed_at=1))
     result = live_f2.run_live_f2({"protocol": "aave"})
 
@@ -197,3 +196,47 @@ def test_f2_recent_valid_record_remains_partial_screening(monkeypatch):
     assert result.data_freshness["status"] == "CURRENT"
     assert result.provider_consensus == "SINGLE_SOURCE"
     assert any("not independent proof" in assumption for assumption in result.assumptions)
+
+
+def test_f2_boolean_tvl_is_malformed_not_numeric_provider_evidence(monkeypatch):
+    for boolean_tvl in (True, False):
+        install_result(monkeypatch, valid_record(tvl=boolean_tvl))
+        result = live_f2.run_live_f2({"protocol": "aave"})
+
+        assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+        assert result.severity == Severity.UNKNOWN
+        assert result.risk_score == 0
+        assert result.missing_data == ["finite non-negative protocol TVL"]
+        assert result.provider_status[0]["status"] == "MALFORMED_PROTOCOL_RECORD"
+
+
+def test_f2_boolean_tvl_timestamp_stays_unknown(monkeypatch):
+    install_result(monkeypatch, valid_record(observed_at=True))
+    result = live_f2.run_live_f2({"protocol": "aave"})
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert result.evidence[0].freshness == FreshnessStatus.UNKNOWN
+    assert result.data_freshness["status"] == "UNKNOWN"
+    assert result.data_freshness["provider_observation_timestamp_present"] is False
+    assert result.data_freshness["age_seconds"] is None
+    assert result.data_confidence == 62
+
+
+def test_f2_boolean_current_chain_tvl_is_malformed(monkeypatch):
+    record = {
+        "name": "Aave",
+        "category": "Lending",
+        "chains": ["Ethereum"],
+        "audits": "1",
+        "audit_links": ["https://example.com/audit.pdf"],
+        "latestFetchIsOk": True,
+        "currentChainTvls": {"Ethereum": True},
+    }
+    install_result(monkeypatch, record)
+
+    result = live_f2.run_live_f2({"protocol": "aave"})
+
+    assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert result.severity == Severity.UNKNOWN
+    assert result.risk_score == 0
+    assert result.missing_data == ["finite non-negative protocol TVL"]
