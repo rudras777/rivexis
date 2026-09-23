@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 UINT256_MAX = 2**256 - 1
+_MAX_DYNAMIC_ARRAY_ITEMS = 4096
 
 
 def _word(data: str, index: int) -> str | None:
@@ -49,7 +50,10 @@ def _malformed_standard(selector: str, signature: str) -> dict[str, Any]:
         "selector": selector,
         "signature": signature,
         "confidence": 0,
-        "note": "One or more static ABI words were not canonically encoded; Rivexis did not normalize them into plausible parameters.",
+        "note": (
+            "One or more static ABI words were not canonically encoded; "
+            "Rivexis did not normalize them into plausible parameters."
+        ),
     }
 
 
@@ -92,7 +96,10 @@ def decode_common_calldata(calldata: str | None) -> dict[str, Any]:
             "selector": selector,
             "signature": signature,
             "standard": "ERC20_OR_ERC721_AMBIGUOUS_WITHOUT_CONTRACT_INTERFACE",
-            "parameters": {"spender_or_approved": spender, "amount_or_token_id": amount},
+            "parameters": {
+                "spender_or_approved": spender,
+                "amount_or_token_id": amount,
+            },
             "unlimited_approval_candidate": amount == UINT256_MAX,
             "confidence": 88,
         }
@@ -194,185 +201,566 @@ def decode_common_calldata(calldata: str | None) -> dict[str, Any]:
         "status": "UNKNOWN_SELECTOR",
         "selector": selector,
         "confidence": 0,
-        "note": "No ABI or verified signature evidence was used; Rivexis will not guess the method.",
+        "note": (
+            "No ABI or verified signature evidence was used; "
+            "Rivexis will not guess the method."
+        ),
     }
 
 
 _KECCAK_RC = [
-    0x0000000000000001,0x0000000000008082,0x800000000000808A,0x8000000080008000,
-    0x000000000000808B,0x0000000080000001,0x8000000080008081,0x8000000000008009,
-    0x000000000000008A,0x0000000000000088,0x0000000080008009,0x000000008000000A,
-    0x000000008000808B,0x800000000000008B,0x8000000000008089,0x8000000000008003,
-    0x8000000000008002,0x8000000000000080,0x000000000000800A,0x800000008000000A,
-    0x8000000080008081,0x8000000000008080,0x0000000080000001,0x8000000080008008,
+    0x0000000000000001, 0x0000000000008082, 0x800000000000808A,
+    0x8000000080008000, 0x000000000000808B, 0x0000000080000001,
+    0x8000000080008081, 0x8000000000008009, 0x000000000000008A,
+    0x0000000000000088, 0x0000000080008009, 0x000000008000000A,
+    0x000000008000808B, 0x800000000000008B, 0x8000000000008089,
+    0x8000000000008003, 0x8000000000008002, 0x8000000000000080,
+    0x000000000000800A, 0x800000008000000A, 0x8000000080008081,
+    0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
 ]
 _KECCAK_ROT = [
-    [0,36,3,41,18],[1,44,10,45,2],[62,6,43,15,61],[28,55,25,21,56],[27,20,39,8,14]
+    [0, 36, 3, 41, 18],
+    [1, 44, 10, 45, 2],
+    [62, 6, 43, 15, 61],
+    [28, 55, 25, 21, 56],
+    [27, 20, 39, 8, 14],
 ]
-_MASK64=(1<<64)-1
+_MASK64 = (1 << 64) - 1
 
-def _rol64(value:int,shift:int)->int:
-    shift%=64
-    return ((value<<shift)|(value>>(64-shift if shift else 64)))&_MASK64
 
-def _keccak_f(state:list[int])->None:
+def _rol64(value: int, shift: int) -> int:
+    shift %= 64
+    return (
+        (value << shift) | (value >> (64 - shift if shift else 64))
+    ) & _MASK64
+
+
+def _keccak_f(state: list[int]) -> None:
     for rc in _KECCAK_RC:
-        c=[state[x]^state[x+5]^state[x+10]^state[x+15]^state[x+20] for x in range(5)]
-        d=[c[(x-1)%5]^_rol64(c[(x+1)%5],1) for x in range(5)]
+        c = [
+            state[x]
+            ^ state[x + 5]
+            ^ state[x + 10]
+            ^ state[x + 15]
+            ^ state[x + 20]
+            for x in range(5)
+        ]
+        d = [c[(x - 1) % 5] ^ _rol64(c[(x + 1) % 5], 1) for x in range(5)]
         for x in range(5):
-            for y in range(5):state[x+5*y]^=d[x]
-        b=[0]*25
+            for y in range(5):
+                state[x + 5 * y] ^= d[x]
+        b = [0] * 25
         for x in range(5):
-            for y in range(5):b[y+5*((2*x+3*y)%5)]=_rol64(state[x+5*y],_KECCAK_ROT[x][y])
+            for y in range(5):
+                b[y + 5 * ((2 * x + 3 * y) % 5)] = _rol64(
+                    state[x + 5 * y], _KECCAK_ROT[x][y]
+                )
         for x in range(5):
-            for y in range(5):state[x+5*y]=b[x+5*y]^((~b[(x+1)%5+5*y])&b[(x+2)%5+5*y])
-        state[0]^=rc
+            for y in range(5):
+                state[x + 5 * y] = b[x + 5 * y] ^ (
+                    (~b[(x + 1) % 5 + 5 * y]) & b[(x + 2) % 5 + 5 * y]
+                )
+        state[0] ^= rc
 
-def keccak256(data:bytes)->bytes:
-    rate=136;state=[0]*25
-    padded=bytearray(data);padded.append(0x01)
-    while len(padded)%rate != rate-1:padded.append(0)
+
+def keccak256(data: bytes) -> bytes:
+    rate = 136
+    state = [0] * 25
+    padded = bytearray(data)
+    padded.append(0x01)
+    while len(padded) % rate != rate - 1:
+        padded.append(0)
     padded.append(0x80)
-    for offset in range(0,len(padded),rate):
-        block=padded[offset:offset+rate]
-        for i in range(rate//8):state[i]^=int.from_bytes(block[i*8:(i+1)*8],"little")
+    for offset in range(0, len(padded), rate):
+        block = padded[offset : offset + rate]
+        for i in range(rate // 8):
+            state[i] ^= int.from_bytes(block[i * 8 : (i + 1) * 8], "little")
         _keccak_f(state)
-    out=bytearray()
-    while len(out)<32:
-        for i in range(rate//8):
-            out.extend(state[i].to_bytes(8,"little"))
-            if len(out)>=32:return bytes(out[:32])
+    out = bytearray()
+    while len(out) < 32:
+        for i in range(rate // 8):
+            out.extend(state[i].to_bytes(8, "little"))
+            if len(out) >= 32:
+                return bytes(out[:32])
         _keccak_f(state)
     return bytes(out[:32])
 
-def function_selector(signature:str)->str:
-    return "0x"+keccak256(signature.encode()).hex()[:8]
 
-def _canonical_abi_type(param:dict[str,Any])->str:
-    typ=str(param.get("type") or "")
+def function_selector(signature: str) -> str:
+    return "0x" + keccak256(signature.encode()).hex()[:8]
+
+
+def _canonical_abi_type(param: dict[str, Any]) -> str:
+    typ = str(param.get("type") or "")
     if typ.startswith("tuple"):
-        suffix=typ[5:]
-        inner=",".join(_canonical_abi_type(x) for x in (param.get("components") or []))
+        suffix = typ[5:]
+        inner = ",".join(
+            _canonical_abi_type(x) for x in (param.get("components") or [])
+        )
         return f"({inner}){suffix}"
     return typ
 
-def _abi_int_width(typ:str,prefix:str)->int|None:
-    suffix=typ[len(prefix):]
-    if suffix=="":return 256
-    if not suffix.isdigit():return None
-    bits=int(suffix)
-    return bits if 8<=bits<=256 and bits%8==0 else None
 
-def _decode_abi_static(typ:str,word:str)->Any:
-    if typ=="address":return _address(word)
-    if typ=="bool":return _bool(word)
+def _abi_int_width(typ: str, prefix: str) -> int | None:
+    suffix = typ[len(prefix) :]
+    if suffix == "":
+        return 256
+    if not suffix.isdigit():
+        return None
+    bits = int(suffix)
+    return bits if 8 <= bits <= 256 and bits % 8 == 0 else None
+
+
+def _decode_abi_static(typ: str, word: str) -> Any:
+    if len(word) != 64:
+        return None
+    if typ == "address":
+        return _address(word)
+    if typ == "bool":
+        return _bool(word)
     if typ.startswith("uint"):
-        raw=_uint(word);bits=_abi_int_width(typ,"uint")
-        if raw is None or bits is None or raw >= (1<<bits):return None
+        raw = _uint(word)
+        bits = _abi_int_width(typ, "uint")
+        if raw is None or bits is None or raw >= (1 << bits):
+            return None
         return raw
     if typ.startswith("int"):
-        raw=_uint(word);bits=_abi_int_width(typ,"int")
-        if raw is None or bits is None:return None
-        low_mask=(1<<bits)-1;low=raw&low_mask;negative=bool(low&(1<<(bits-1)))
-        expected=low
-        if negative and bits<256:expected|=((1<<(256-bits))-1)<<bits
-        if raw!=expected:return None
-        return low-(1<<bits) if negative else low
+        raw = _uint(word)
+        bits = _abi_int_width(typ, "int")
+        if raw is None or bits is None:
+            return None
+        low_mask = (1 << bits) - 1
+        low = raw & low_mask
+        negative = bool(low & (1 << (bits - 1)))
+        expected = low
+        if negative and bits < 256:
+            expected |= ((1 << (256 - bits)) - 1) << bits
+        if raw != expected:
+            return None
+        return low - (1 << bits) if negative else low
     if typ.startswith("bytes") and typ[5:].isdigit():
-        size=int(typ[5:])
-        if not 1<=size<=32 or len(word)!=64:return None
-        used=size*2
-        if any(ch!="0" for ch in word[used:]):return None
-        return "0x"+word[:used]
-    return "0x"+word
+        size = int(typ[5:])
+        if not 1 <= size <= 32:
+            return None
+        used = size * 2
+        if any(ch != "0" for ch in word[used:]):
+            return None
+        return "0x" + word[:used]
+    return None
 
-def _is_dynamic_type(typ:str)->bool:
-    return typ in {"bytes","string"} or typ.endswith("[]") or typ.startswith("tuple")
 
-def decode_verified_abi_calldata(calldata:str|None,abi:Any)->dict[str,Any]:
-    if not isinstance(calldata,str) or not calldata.startswith("0x") or len(calldata)<10:
-        return {"status":"NO_SELECTOR"}
-    if isinstance(abi,str):
+def _supported_static_type(typ: str) -> bool:
+    if typ in {"address", "bool"}:
+        return True
+    if typ.startswith("uint"):
+        return _abi_int_width(typ, "uint") is not None
+    if typ.startswith("int"):
+        return _abi_int_width(typ, "int") is not None
+    if typ.startswith("bytes") and typ[5:].isdigit():
+        size = int(typ[5:])
+        return 1 <= size <= 32
+    return False
+
+
+def _dynamic_array_element_type(typ: str) -> str | None:
+    if not typ.endswith("[]"):
+        return None
+    element_type = typ[:-2]
+    return element_type if _supported_static_type(element_type) else None
+
+
+def _is_supported_dynamic_type(typ: str) -> bool:
+    return typ in {"bytes", "string"} or _dynamic_array_element_type(typ) is not None
+
+
+def _is_composite_or_dynamic_type(typ: str) -> bool:
+    return (
+        typ in {"bytes", "string"}
+        or "[" in typ
+        or "]" in typ
+        or typ.startswith("(")
+    )
+
+
+def _padded_bytes(length: int) -> int:
+    return ((length + 31) // 32) * 32
+
+
+def _decode_dynamic_value(
+    *,
+    typ: str,
+    payload: str,
+    offset: int,
+    head_size_bytes: int,
+) -> tuple[Any, str | None]:
+    payload_bytes = len(payload) // 2
+
+    if offset % 32 != 0:
+        return None, "dynamic ABI offset is not 32-byte aligned"
+    if offset < head_size_bytes:
+        return None, "dynamic ABI offset points into the static head"
+    if offset + 32 > payload_bytes:
+        return None, "dynamic ABI offset does not contain a complete length word"
+
+    start = offset * 2
+    length = _uint(payload[start : start + 64])
+    if length is None:
+        return None, "dynamic ABI length word is malformed"
+
+    data_start_bytes = offset + 32
+    data_start = start + 64
+
+    if typ in {"bytes", "string"}:
+        padded = _padded_bytes(length)
+        padded_end_bytes = data_start_bytes + padded
+        if padded_end_bytes > payload_bytes:
+            return None, "dynamic bytes/string length exceeds calldata tail bounds"
+        raw = payload[data_start : data_start + length * 2]
+        if len(raw) != length * 2:
+            return None, "dynamic bytes/string payload is truncated"
+        padding = payload[data_start + length * 2 : padded_end_bytes * 2]
+        if any(ch != "0" for ch in padding):
+            return None, "dynamic bytes/string padding is non-zero"
+        if typ == "bytes":
+            return "0x" + raw, None
+        try:
+            return bytes.fromhex(raw).decode("utf-8"), None
+        except UnicodeDecodeError:
+            return {"hex": "0x" + raw, "length": length}, None
+        except ValueError:
+            return None, "dynamic string payload is not hexadecimal"
+
+    element_type = _dynamic_array_element_type(typ)
+    if element_type is not None:
+        if length > _MAX_DYNAMIC_ARRAY_ITEMS:
+            return None, "dynamic array exceeds the bounded decoder item limit"
+        array_end_bytes = data_start_bytes + length * 32
+        if array_end_bytes > payload_bytes:
+            return None, "dynamic array length exceeds calldata tail bounds"
+        values = []
+        for index in range(length):
+            word_start = data_start + index * 64
+            word = payload[word_start : word_start + 64]
+            value = _decode_abi_static(element_type, word)
+            if value is None:
+                return None, (
+                    f"dynamic array element {index} is not canonically encoded "
+                    f"as {element_type}"
+                )
+            values.append(value)
+        return values, None
+
+    return None, f"verified ABI dynamic type {typ} is not supported by the bounded decoder"
+
+
+def _malformed_verified_abi(
+    *,
+    selector: str,
+    signature: str,
+    function_name: Any,
+    parameters: list[dict[str, Any]],
+    reason: str,
+) -> dict[str, Any]:
+    return {
+        "status": "MALFORMED_VERIFIED_ABI_CALLDATA",
+        "selector": selector,
+        "signature": signature,
+        "function": function_name,
+        "parameters": parameters,
+        "confidence": 0,
+        "note": (
+            "Verified ABI calldata failed canonical bounds/encoding validation; "
+            "Rivexis did not coerce it into valid parameters."
+        ),
+        "malformed_reason": reason,
+    }
+
+
+def decode_verified_abi_calldata(
+    calldata: str | None, abi: Any
+) -> dict[str, Any]:
+    if not isinstance(calldata, str) or not calldata.startswith("0x") or len(calldata) < 10:
+        return {"status": "NO_SELECTOR"}
+
+    if isinstance(abi, str):
         import json
-        try:abi=json.loads(abi)
-        except Exception:return {"status":"INVALID_ABI"}
-    if not isinstance(abi,list):return {"status":"INVALID_ABI"}
-    selector=calldata[:10].lower();payload=calldata[10:]
+
+        try:
+            abi = json.loads(abi)
+        except Exception:
+            return {"status": "INVALID_ABI"}
+    if not isinstance(abi, list):
+        return {"status": "INVALID_ABI"}
+
+    selector = calldata[:10].lower()
+    payload = calldata[10:].lower()
+
     for item in abi:
-        if not isinstance(item,dict) or item.get("type")!="function" or not item.get("name"):continue
-        inputs=item.get("inputs") or []
-        signature=f"{item['name']}({','.join(_canonical_abi_type(x) for x in inputs)})"
-        if function_selector(signature)!=selector:continue
-        decoded=[];malformed_static=False
-        for index,param in enumerate(inputs):
-            typ=_canonical_abi_type(param);word=payload[index*64:(index+1)*64]
-            value=None
-            if len(word)==64:
-                if _is_dynamic_type(typ):
-                    offset=_uint(word)
-                    if offset is not None:
-                        pos=offset*2
-                        length_word=payload[pos:pos+64]
-                        length=_uint(length_word)
-                        if length is not None and typ in {"bytes","string"}:
-                            raw=payload[pos+64:pos+64+length*2]
-                            if typ=="string":
-                                try:value=bytes.fromhex(raw).decode("utf-8")
-                                except Exception:value={"hex":"0x"+raw,"length":length}
-                            else:value="0x"+raw
-                        else:value={"dynamic_offset":offset,"length":length}
-                else:
-                    value=_decode_abi_static(typ,word)
-                    if value is None:malformed_static=True
-            elif not _is_dynamic_type(typ):
-                malformed_static=True
-            decoded.append({"name":param.get("name") or f"arg{index}","type":typ,"value":value})
-        if malformed_static:
+        if (
+            not isinstance(item, dict)
+            or item.get("type") != "function"
+            or not item.get("name")
+        ):
+            continue
+        inputs = item.get("inputs") or []
+        if not isinstance(inputs, list) or not all(isinstance(x, dict) for x in inputs):
+            continue
+
+        signature = (
+            f"{item['name']}({','.join(_canonical_abi_type(x) for x in inputs)})"
+        )
+        if function_selector(signature) != selector:
+            continue
+
+        abi_types = [_canonical_abi_type(param) for param in inputs]
+        unsupported = next(
+            (
+                typ
+                for typ in abi_types
+                if not _supported_static_type(typ)
+                and not _is_supported_dynamic_type(typ)
+            ),
+            None,
+        )
+        if unsupported is not None:
+            note = (
+                f"Verified ABI type {unsupported} requires tuple/fixed-array/"
+                "nested-dynamic decoding that Rivexis does not currently claim."
+                if _is_composite_or_dynamic_type(unsupported)
+                else f"Verified ABI type {unsupported} is not supported by the bounded decoder."
+            )
             return {
-                "status":"MALFORMED_VERIFIED_ABI_CALLDATA",
-                "selector":selector,
-                "signature":signature,
-                "function":item.get("name"),
-                "parameters":decoded,
-                "confidence":0,
-                "note":"One or more static ABI parameters were not canonically encoded; Rivexis did not coerce them into valid values.",
+                "status": "UNSUPPORTED_VERIFIED_ABI_TYPE",
+                "selector": selector,
+                "signature": signature,
+                "function": item.get("name"),
+                "parameters": [
+                    {
+                        "name": param.get("name") or f"arg{index}",
+                        "type": abi_types[index],
+                        "value": None,
+                    }
+                    for index, param in enumerate(inputs)
+                ],
+                "confidence": 0,
+                "note": note,
             }
-        return {"status":"DECODED_VERIFIED_ABI","selector":selector,"signature":signature,"function":item.get("name"),"parameters":decoded,"confidence":99}
-    return {"status":"SELECTOR_NOT_FOUND_IN_VERIFIED_ABI","selector":selector,"confidence":0}
 
-def normalize_call_trace(trace:Any)->dict[str,Any]:
-    calls=[];native_transfers=[];approval_candidates=[]
-    def walk(node:Any,parent:int|None=None,depth:int=0):
-        if not isinstance(node,dict):return
-        idx=len(calls);data=node.get("input") or "0x";decoded=decode_common_calldata(data)
-        value_raw=node.get("value") or "0x0"
-        try:value=int(value_raw,16) if isinstance(value_raw,str) and value_raw.startswith("0x") else int(value_raw or 0)
-        except Exception:value=0
-        item={"trace_index":idx,"parent_trace_index":parent,"depth":depth,"call_type":str(node.get("type") or "CALL").upper(),"from":node.get("from"),"to":node.get("to"),"value_wei":value,"gas":_uint_hex(node.get("gas")),"gas_used":_uint_hex(node.get("gasUsed")),"error":node.get("error"),"selector":decoded.get("selector"),"calldata_decode":decoded}
+        decoded: list[dict[str, Any]] = []
+        if len(payload) % 64 != 0:
+            return _malformed_verified_abi(
+                selector=selector,
+                signature=signature,
+                function_name=item.get("name"),
+                parameters=decoded,
+                reason="ABI argument payload is not a whole number of 32-byte words",
+            )
+        try:
+            int(payload or "0", 16)
+        except ValueError:
+            return _malformed_verified_abi(
+                selector=selector,
+                signature=signature,
+                function_name=item.get("name"),
+                parameters=decoded,
+                reason="ABI argument payload contains non-hexadecimal characters",
+            )
+
+        head_size_bytes = len(inputs) * 32
+
+        for index, param in enumerate(inputs):
+            typ = abi_types[index]
+            entry = {
+                "name": param.get("name") or f"arg{index}",
+                "type": typ,
+                "value": None,
+            }
+            word = payload[index * 64 : (index + 1) * 64]
+            if len(word) != 64:
+                decoded.append(entry)
+                return _malformed_verified_abi(
+                    selector=selector,
+                    signature=signature,
+                    function_name=item.get("name"),
+                    parameters=decoded,
+                    reason=f"ABI head word {index} is missing or truncated",
+                )
+
+            if _supported_static_type(typ):
+                value = _decode_abi_static(typ, word)
+                entry["value"] = value
+                decoded.append(entry)
+                if value is None:
+                    return _malformed_verified_abi(
+                        selector=selector,
+                        signature=signature,
+                        function_name=item.get("name"),
+                        parameters=decoded,
+                        reason=f"static ABI parameter {index} is not canonically encoded as {typ}",
+                    )
+                continue
+
+            if _is_supported_dynamic_type(typ):
+                offset = _uint(word)
+                if offset is None:
+                    decoded.append(entry)
+                    return _malformed_verified_abi(
+                        selector=selector,
+                        signature=signature,
+                        function_name=item.get("name"),
+                        parameters=decoded,
+                        reason=f"dynamic ABI offset word {index} is malformed",
+                    )
+                value, error = _decode_dynamic_value(
+                    typ=typ,
+                    payload=payload,
+                    offset=offset,
+                    head_size_bytes=head_size_bytes,
+                )
+                entry["value"] = value
+                decoded.append(entry)
+                if error is not None:
+                    return _malformed_verified_abi(
+                        selector=selector,
+                        signature=signature,
+                        function_name=item.get("name"),
+                        parameters=decoded,
+                        reason=error,
+                    )
+                continue
+
+        return {
+            "status": "DECODED_VERIFIED_ABI",
+            "selector": selector,
+            "signature": signature,
+            "function": item.get("name"),
+            "parameters": decoded,
+            "confidence": 99,
+        }
+
+    return {
+        "status": "SELECTOR_NOT_FOUND_IN_VERIFIED_ABI",
+        "selector": selector,
+        "confidence": 0,
+    }
+
+
+def normalize_call_trace(trace: Any) -> dict[str, Any]:
+    calls = []
+    native_transfers = []
+    approval_candidates = []
+
+    def walk(node: Any, parent: int | None = None, depth: int = 0):
+        if not isinstance(node, dict):
+            return
+        idx = len(calls)
+        data = node.get("input") or "0x"
+        decoded = decode_common_calldata(data)
+        value_raw = node.get("value") or "0x0"
+        try:
+            value = (
+                int(value_raw, 16)
+                if isinstance(value_raw, str) and value_raw.startswith("0x")
+                else int(value_raw or 0)
+            )
+        except Exception:
+            value = 0
+        item = {
+            "trace_index": idx,
+            "parent_trace_index": parent,
+            "depth": depth,
+            "call_type": str(node.get("type") or "CALL").upper(),
+            "from": node.get("from"),
+            "to": node.get("to"),
+            "value_wei": value,
+            "gas": _uint_hex(node.get("gas")),
+            "gas_used": _uint_hex(node.get("gasUsed")),
+            "error": node.get("error"),
+            "selector": decoded.get("selector"),
+            "calldata_decode": decoded,
+        }
         calls.append(item)
-        if value>0:native_transfers.append({"trace_index":idx,"from":node.get("from"),"to":node.get("to"),"amount_wei":value})
-        if decoded.get("status") in {"DECODED_STANDARD_SELECTOR","PARTIALLY_DECODED_STANDARD_SELECTOR"} and decoded.get("signature") in {"approve(address,uint256)","setApprovalForAll(address,bool)"}:
-            approval_candidates.append({"trace_index":idx,"contract":node.get("to"),"decode":decoded})
-        for child in node.get("calls") or []:walk(child,idx,depth+1)
+        if value > 0:
+            native_transfers.append(
+                {
+                    "trace_index": idx,
+                    "from": node.get("from"),
+                    "to": node.get("to"),
+                    "amount_wei": value,
+                }
+            )
+        if (
+            decoded.get("status")
+            in {"DECODED_STANDARD_SELECTOR", "PARTIALLY_DECODED_STANDARD_SELECTOR"}
+            and decoded.get("signature")
+            in {"approve(address,uint256)", "setApprovalForAll(address,bool)"}
+        ):
+            approval_candidates.append(
+                {
+                    "trace_index": idx,
+                    "contract": node.get("to"),
+                    "decode": decoded,
+                }
+            )
+        for child in node.get("calls") or []:
+            walk(child, idx, depth + 1)
+
     walk(trace)
-    return {"calls":calls,"native_value_transfers":native_transfers,"approval_candidates":approval_candidates,"call_count":len(calls),"error_count":sum(1 for x in calls if x.get("error"))}
+    return {
+        "calls": calls,
+        "native_value_transfers": native_transfers,
+        "approval_candidates": approval_candidates,
+        "call_count": len(calls),
+        "error_count": sum(1 for x in calls if x.get("error")),
+    }
 
-def _uint_hex(value:Any)->int|None:
-    if value is None:return None
-    try:return int(value,16) if isinstance(value,str) and value.startswith("0x") else int(value)
-    except Exception:return None
 
-def summarize_prestate_diff(value:Any)->dict[str,Any]:
-    if not isinstance(value,dict):return {"status":"UNAVAILABLE"}
-    pre=value.get("pre") if isinstance(value.get("pre"),dict) else {}
-    post=value.get("post") if isinstance(value.get("post"),dict) else {}
-    addresses=sorted(set(pre)|set(post));changes=[]
+def _uint_hex(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        return (
+            int(value, 16)
+            if isinstance(value, str) and value.startswith("0x")
+            else int(value)
+        )
+    except Exception:
+        return None
+
+
+def summarize_prestate_diff(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {"status": "UNAVAILABLE"}
+    pre = value.get("pre") if isinstance(value.get("pre"), dict) else {}
+    post = value.get("post") if isinstance(value.get("post"), dict) else {}
+    addresses = sorted(set(pre) | set(post))
+    changes = []
     for address in addresses:
-        before=pre.get(address) or {};after=post.get(address) or {};fields=[]
-        for field in ("balance","nonce","code"):
-            if before.get(field)!=after.get(field):fields.append(field)
-        bstore=before.get("storage") if isinstance(before.get("storage"),dict) else {}
-        astore=after.get("storage") if isinstance(after.get("storage"),dict) else {}
-        changed_slots=sum(1 for slot in set(bstore)|set(astore) if bstore.get(slot)!=astore.get(slot))
-        if fields or changed_slots:changes.append({"address":address,"changed_fields":fields,"changed_storage_slots":changed_slots})
-    return {"status":"NORMALIZED_PRESTATE_DIFF","addresses_touched":len(addresses),"addresses_changed":len(changes),"changes":changes[:200],"truncated":len(changes)>200}
+        before = pre.get(address) or {}
+        after = post.get(address) or {}
+        fields = []
+        for field in ("balance", "nonce", "code"):
+            if before.get(field) != after.get(field):
+                fields.append(field)
+        bstore = before.get("storage") if isinstance(before.get("storage"), dict) else {}
+        astore = after.get("storage") if isinstance(after.get("storage"), dict) else {}
+        changed_slots = sum(
+            1
+            for slot in set(bstore) | set(astore)
+            if bstore.get(slot) != astore.get(slot)
+        )
+        if fields or changed_slots:
+            changes.append(
+                {
+                    "address": address,
+                    "changed_fields": fields,
+                    "changed_storage_slots": changed_slots,
+                }
+            )
+    return {
+        "status": "NORMALIZED_PRESTATE_DIFF",
+        "addresses_touched": len(addresses),
+        "addresses_changed": len(changes),
+        "changes": changes[:200],
+        "truncated": len(changes) > 200,
+    }
