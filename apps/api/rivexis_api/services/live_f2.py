@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from math import isfinite
 from typing import Any
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from rivexis_api.models.engine import EngineResult
@@ -10,6 +11,10 @@ from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, 
 from rivexis_api.models.evidence import EvidenceRecord
 from rivexis_api.provider_clients import DefiLlamaClient, ProviderCall, ProviderError
 from rivexis_api.services.protocol_native import collect_protocol_native, has_protocol_native_input
+
+
+_MAX_AUDIT_REFERENCES = 50
+_MAX_AUDIT_URL_LENGTH = 2048
 
 
 def _finite_float(value: Any) -> float | None:
@@ -89,6 +94,81 @@ def _latest_tvl_point(body: dict[str, Any]) -> tuple[float | None, datetime | No
         if values:
             return sum(values), None, False
     return None, None, False
+
+
+def _normalize_audit_metadata(body: dict[str, Any]) -> tuple[int | None, list[str], bool, list[str]]:
+    """Normalize provider audit metadata without allowing malformed values to lower risk.
+
+    DefiLlama's audit fields are descriptive provider metadata, not independent proof that a
+    protocol is safe. Only bounded HTTPS references with internally sane metadata are allowed
+    to preserve the existing F2 audit-reference scoring signal. A declared count on its own,
+    malformed URLs, credential-bearing URLs, booleans, or contradictory counts never receive
+    that scoring benefit.
+    """
+
+    issues: list[str] = []
+    raw_declared_count = body.get("audits")
+    declared_count: int | None = None
+
+    if raw_declared_count not in (None, ""):
+        if isinstance(raw_declared_count, bool):
+            issues.append("AUDITS_COUNT_BOOLEAN")
+        elif isinstance(raw_declared_count, int):
+            if raw_declared_count < 0:
+                issues.append("AUDITS_COUNT_NEGATIVE")
+            else:
+                declared_count = raw_declared_count
+        elif isinstance(raw_declared_count, str):
+            stripped = raw_declared_count.strip()
+            if stripped.isdecimal():
+                declared_count = int(stripped)
+            else:
+                issues.append("AUDITS_COUNT_INVALID")
+        else:
+            issues.append("AUDITS_COUNT_INVALID")
+
+    raw_links = body.get("audit_links")
+    usable_links: list[str] = []
+    seen: set[str] = set()
+
+    if raw_links is not None:
+        if not isinstance(raw_links, list):
+            issues.append("AUDIT_LINKS_NOT_LIST")
+        else:
+            if len(raw_links) > _MAX_AUDIT_REFERENCES:
+                issues.append("AUDIT_LINKS_TRUNCATED")
+            for raw_link in raw_links[:_MAX_AUDIT_REFERENCES]:
+                if not isinstance(raw_link, str):
+                    issues.append("AUDIT_LINK_INVALID_TYPE")
+                    continue
+                candidate = raw_link.strip()
+                if not candidate or len(candidate) > _MAX_AUDIT_URL_LENGTH:
+                    issues.append("AUDIT_LINK_INVALID_URL")
+                    continue
+                try:
+                    parsed = urlsplit(candidate)
+                except ValueError:
+                    issues.append("AUDIT_LINK_INVALID_URL")
+                    continue
+                if (
+                    parsed.scheme.lower() != "https"
+                    or not parsed.hostname
+                    or parsed.username is not None
+                    or parsed.password is not None
+                ):
+                    issues.append("AUDIT_LINK_INVALID_URL")
+                    continue
+                if candidate not in seen:
+                    seen.add(candidate)
+                    usable_links.append(candidate)
+
+    if declared_count is not None and declared_count < len(usable_links):
+        issues.append("AUDIT_COUNT_LINK_CONFLICT")
+
+    # Any malformed/internally inconsistent audit metadata fails closed for scoring. A
+    # provider-declared count without a usable reference is still descriptive metadata only.
+    usable_for_scoring = bool(usable_links) and not issues
+    return declared_count, usable_links, usable_for_scoring, sorted(set(issues))
 
 
 def _evidence(
@@ -221,14 +301,8 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
         if isinstance(body.get("chains"), list)
         else []
     )
-    audit_links = body.get("audit_links") if isinstance(body.get("audit_links"), list) else []
-    audits = body.get("audits")
-    try:
-        audit_count = int(audits) if audits not in (None, "") else len(audit_links)
-    except (TypeError, ValueError):
-        audit_count = len(audit_links)
-    if audit_count < 0:
-        audit_count = 0
+    audit_declared_count, audit_links, audit_metadata_usable, audit_metadata_issues = _normalize_audit_metadata(body)
+    audit_count = len(audit_links) if audit_metadata_usable else 0
 
     normalized = {
         "slug": slug,
@@ -239,6 +313,9 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
         "chains": chains,
         "audit_count": audit_count,
         "audit_links_count": len(audit_links),
+        "audit_declared_count": audit_declared_count,
+        "audit_metadata_usable_for_scoring": audit_metadata_usable,
+        "audit_metadata_issues": audit_metadata_issues,
         "oracles": body.get("oracles"),
         "latest_fetch_ok": latest_fetch_ok,
     }
@@ -252,9 +329,19 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
         warnings.append("Observed TVL is below $1M; economic/liquidity resilience requires deeper review.")
     elif tvl < 10_000_000:
         score += 15
+    if audit_metadata_issues:
+        warnings.append(
+            "DefiLlama audit metadata was malformed or internally inconsistent; Rivexis ignored it for risk scoring."
+        )
+    elif (audit_declared_count or 0) > 0 and not audit_links:
+        warnings.append(
+            "DefiLlama declared audits without usable HTTPS audit references; Rivexis did not treat the declaration as audit evidence."
+        )
     if audit_count == 0:
         score += 15
-        warnings.append("No audit evidence was present in the normalized DefiLlama record.")
+        warnings.append(
+            "No validated provider-supplied HTTPS audit reference was available in the normalized DefiLlama record."
+        )
     if len(chains) == 1:
         score += 5
     if latest_fetch_ok is False:
@@ -288,6 +375,7 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
     ]
     assumptions = [
         "DefiLlama metrics are external analytical evidence and are not treated as Rivexis-owned direct chain state.",
+        "Provider-supplied audit references are descriptive screening metadata, not independent proof of smart-contract security or protocol safety.",
         "When the provider record lacks a usable observation timestamp, evidence freshness is UNKNOWN; retrieval time is not treated as proof of observation time.",
     ]
     data_conf = 74.0 if freshness in {FreshnessStatus.CURRENT, FreshnessStatus.RECENT} else 62.0

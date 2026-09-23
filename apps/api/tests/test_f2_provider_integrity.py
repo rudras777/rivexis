@@ -27,7 +27,10 @@ def valid_record(*, tvl=100_000_000.0, observed_at=None, latest_fetch_ok=True):
         "category": "Lending",
         "chains": ["Ethereum", "Base"],
         "audits": "2",
-        "audit_links": ["audit-a", "audit-b"],
+        "audit_links": [
+            "https://example.com/audit-a.pdf",
+            "https://example.com/audit-b.pdf",
+        ],
         "latestFetchIsOk": latest_fetch_ok,
         "tvl": [
             {
@@ -119,6 +122,64 @@ def test_f2_provider_latest_fetch_failure_is_stale_gate_even_with_recent_tvl(mon
     assert any("latest protocol fetch is not healthy" in warning for warning in result.warnings)
 
 
+def test_f2_malformed_audit_metadata_cannot_reduce_risk(monkeypatch):
+    record = valid_record()
+    record["audits"] = True
+    install_result(monkeypatch, record)
+
+    result = live_f2.run_live_f2({"protocol": "aave"})
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert result.risk_score == 35
+    assert result.severity == Severity.MODERATE
+    assert result.metrics["audit_count"] == 0
+    assert result.metrics["audit_links_count"] == 2
+    assert result.metrics["audit_declared_count"] is None
+    assert result.metrics["audit_metadata_usable_for_scoring"] is False
+    assert result.metrics["audit_metadata_issues"] == ["AUDITS_COUNT_BOOLEAN"]
+    assert any("ignored it for risk scoring" in warning for warning in result.warnings)
+    assert any("No validated provider-supplied HTTPS audit reference" in warning for warning in result.warnings)
+
+
+def test_f2_declared_audits_without_usable_references_do_not_count(monkeypatch):
+    record = valid_record()
+    record["audit_links"] = []
+    install_result(monkeypatch, record)
+
+    result = live_f2.run_live_f2({"protocol": "aave"})
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert result.risk_score == 35
+    assert result.metrics["audit_count"] == 0
+    assert result.metrics["audit_links_count"] == 0
+    assert result.metrics["audit_declared_count"] == 2
+    assert result.metrics["audit_metadata_usable_for_scoring"] is False
+    assert result.metrics["audit_metadata_issues"] == []
+    assert any("declared audits without usable HTTPS audit references" in warning for warning in result.warnings)
+
+
+def test_f2_invalid_or_contradictory_audit_links_fail_closed(monkeypatch):
+    record = valid_record()
+    record["audits"] = "1"
+    record["audit_links"] = [
+        "https://example.com/audit-a.pdf",
+        "https://example.com/audit-b.pdf",
+        "http://example.com/insecure-audit.pdf",
+    ]
+    install_result(monkeypatch, record)
+
+    result = live_f2.run_live_f2({"protocol": "aave"})
+
+    assert result.risk_score == 35
+    assert result.metrics["audit_count"] == 0
+    assert result.metrics["audit_links_count"] == 2
+    assert result.metrics["audit_metadata_usable_for_scoring"] is False
+    assert result.metrics["audit_metadata_issues"] == [
+        "AUDIT_COUNT_LINK_CONFLICT",
+        "AUDIT_LINK_INVALID_URL",
+    ]
+
+
 def test_f2_recent_valid_record_remains_partial_screening(monkeypatch):
     install_result(monkeypatch, valid_record())
     result = live_f2.run_live_f2({"protocol": "aave"})
@@ -126,6 +187,13 @@ def test_f2_recent_valid_record_remains_partial_screening(monkeypatch):
     assert result.status == AnalysisStatus.PARTIAL
     assert result.metrics["name"] == "Aave"
     assert result.metrics["tvl_usd"] == 100_000_000.0
+    assert result.metrics["audit_count"] == 2
+    assert result.metrics["audit_links_count"] == 2
+    assert result.metrics["audit_declared_count"] == 2
+    assert result.metrics["audit_metadata_usable_for_scoring"] is True
+    assert result.metrics["audit_metadata_issues"] == []
+    assert result.risk_score == 20
     assert result.evidence[0].freshness == FreshnessStatus.CURRENT
     assert result.data_freshness["status"] == "CURRENT"
     assert result.provider_consensus == "SINGLE_SOURCE"
+    assert any("not independent proof" in assumption for assumption in result.assumptions)
