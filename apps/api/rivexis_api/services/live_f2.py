@@ -19,7 +19,7 @@ _MAX_AUDIT_URL_LENGTH = 2048
 
 def _finite_float(value: Any) -> float | None:
     try:
-        if value in (None, ""):
+        if value in (None, "") or isinstance(value, bool):
             return None
         parsed = float(value)
         return parsed if isfinite(parsed) else None
@@ -191,7 +191,7 @@ def _evidence(
         observed_at=observed_at or retrieved,
         raw_reference=f"provider:defillama;request:{call.request_id}",
         normalized_value=normalized,
-        calculation_version="f2-live-1.2.0",
+        calculation_version="f2-live-1.3.0",
         engine_version="1.2.0",
         confidence=86 if freshness in {FreshnessStatus.CURRENT, FreshnessStatus.RECENT} else 70,
         freshness=freshness,
