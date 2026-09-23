@@ -584,12 +584,12 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
             warnings.append(
                 "Previous snapshot code_sha256 is missing or malformed; bytecode-change detection was not run."
             )
-        elif old_hash != code_hash:
+        elif old_hash.lower() != code_hash:
             signals.append(
                 {
                     "type": "runtime_bytecode_changed",
                     "severity": "critical",
-                    "previous_sha256": old_hash,
+                    "previous_sha256": old_hash.lower(),
                     "current_sha256": code_hash,
                 }
             )
@@ -782,11 +782,14 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
         )
         else AnalysisStatus.PARTIAL
     )
-    overall_freshness = (
-        oracle_freshness.value
-        if status == AnalysisStatus.STALE_DATA
-        else FreshnessStatus.LIVE.value
-    )
+    if status == AnalysisStatus.STALE_DATA:
+        overall_freshness = (
+            oracle_freshness.value
+            if oracle_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}
+            else FreshnessStatus.STALE.value
+        )
+    else:
+        overall_freshness = FreshnessStatus.LIVE.value
 
     return EngineResult(
         engine_id=EngineId.B3,
