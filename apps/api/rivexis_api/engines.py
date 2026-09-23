@@ -67,6 +67,16 @@ def _normalize_current_live_contract(result: EngineResult) -> EngineResult:
                 f"{result.engine_id.value.lower()}-live-{expected_version}"
             )
 
+    # Unresolved provider conflicts are a first-class analysis state. A fresh live
+    # result must not describe itself as ordinary COMPLETED/PARTIAL while also
+    # carrying unresolved SourceConflict records. Preserve STALE_DATA and terminal
+    # unavailable/failure states because they communicate a stronger primary gate.
+    if result.provider_conflicts and result.status in {
+        AnalysisStatus.COMPLETED,
+        AnalysisStatus.PARTIAL,
+    }:
+        result.status = AnalysisStatus.CONFLICTING_DATA
+
     providers = {e.provider for e in result.evidence if e.provider}
     if result.provider_conflicts:
         result.provider_consensus = "CONFLICTING"
