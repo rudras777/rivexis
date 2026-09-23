@@ -1,6 +1,7 @@
 from statistics import fmean
 
 from rivexis_api.models.decision import DecisionRequest, RivexisDecision
+from rivexis_api.models.engine import EngineResult
 from rivexis_api.models.enums import AnalysisStatus, DecisionState
 
 USABLE_STATUSES = {
@@ -11,7 +12,26 @@ USABLE_STATUSES = {
 }
 
 
-def _provenance(results):
+def _canonicalize_persisted(results: list[EngineResult]) -> tuple[list[EngineResult], bool]:
+    # API callers submit full EngineResult objects for backward compatibility, but
+    # decisions must never trust client-supplied scores/confidence/blockers once an
+    # analysis_id has been persisted. The API router already authorizes each ID;
+    # this layer rehydrates the canonical stored payload before scoring it.
+    from rivexis_api.services.store import analysis_record
+
+    canonical: list[EngineResult] = []
+    persisted = 0
+    for submitted in results:
+        record = analysis_record(submitted.analysis_id)
+        if record:
+            canonical.append(EngineResult.model_validate(record["payload"]))
+            persisted += 1
+        else:
+            canonical.append(submitted)
+    return canonical, bool(canonical) and persisted == len(canonical)
+
+
+def _provenance(results: list[EngineResult], canonical_persistence_verified: bool):
     return {
         "analysis_ids": [r.analysis_id for r in results],
         "engine_versions": {r.engine_id.value: r.engine_version for r in results},
@@ -20,13 +40,29 @@ def _provenance(results):
         "evidence_sources": sorted({e.provider for r in results for e in r.evidence}),
         "unresolved_conflict_count": sum(len(r.provider_conflicts) for r in results),
         "evidence_count": sum(len(r.evidence) for r in results),
+        "canonical_persistence_verified": canonical_persistence_verified,
         "demo": any(r.demo for r in results),
     }
 
 
+def _duplicate_reference_decision(results: list[EngineResult], reason: str, canonical: bool) -> RivexisDecision:
+    provenance = _provenance(results, canonical)
+    return RivexisDecision(
+        decision=DecisionState.UNKNOWN,
+        overall_risk_score=0,
+        decision_confidence=0,
+        data_confidence=round(fmean(r.data_confidence for r in results), 2) if results else 0,
+        executive_summary="Decision inputs contain duplicate analytical references and cannot be weighted safely.",
+        why=[reason],
+        recommended_action="Use one unique persisted result per specialist engine before requesting a decision.",
+        missing_data=["unique decision-grade specialist engine results"],
+        **provenance,
+    )
+
+
 def analyze_decision(req: DecisionRequest) -> RivexisDecision:
-    results = req.engine_results
-    if not results:
+    submitted = req.engine_results
+    if not submitted:
         return RivexisDecision(
             decision=DecisionState.UNKNOWN,
             overall_risk_score=0,
@@ -37,14 +73,23 @@ def analyze_decision(req: DecisionRequest) -> RivexisDecision:
             missing_data=["engine results"],
         )
 
+    results, canonical = _canonicalize_persisted(submitted)
     analysis_ids = [r.analysis_id for r in results]
     if len(set(analysis_ids)) != len(analysis_ids):
-        raise ValueError("A decision cannot weight the same persisted analysis more than once")
+        return _duplicate_reference_decision(
+            results,
+            "The same persisted analysis_id was submitted more than once; repeated references are not additional evidence.",
+            canonical,
+        )
     engine_ids = [r.engine_id.value for r in results]
     if len(set(engine_ids)) != len(engine_ids):
-        raise ValueError("A decision requires at most one persisted result from each specialist engine")
+        return _duplicate_reference_decision(
+            results,
+            "Multiple results from the same specialist engine were supplied; the shared decision model does not silently overweight one engine.",
+            canonical,
+        )
 
-    provenance = _provenance(results)
+    provenance = _provenance(results, canonical)
     usable = [r for r in results if r.status in USABLE_STATUSES]
     if not usable:
         return RivexisDecision(
@@ -53,6 +98,7 @@ def analyze_decision(req: DecisionRequest) -> RivexisDecision:
             decision_confidence=0,
             data_confidence=round(fmean(r.data_confidence for r in results), 2),
             executive_summary="Required evidence is insufficient to support a Rivexis decision.",
+            why=["No submitted specialist result is in a decision-usable evidence state."],
             recommended_action="Obtain fresh normalized provider evidence.",
             missing_data=sorted({x for r in results for x in r.missing_data}),
             **provenance,
@@ -68,7 +114,7 @@ def analyze_decision(req: DecisionRequest) -> RivexisDecision:
 
     # A material hard blocker is independently actionable. Otherwise Rivexis never
     # turns partial/stale/conflicting/unavailable evidence into PROCEED/MODIFY/AVOID;
-    # uncertainty remains an explicit WAIT/UNKNOWN state until evidence is complete.
+    # uncertainty remains WAIT/UNKNOWN until the requested evidence is decision-grade.
     if hard:
         state = DecisionState.AVOID
     elif data_conf < 35:
@@ -113,7 +159,7 @@ def analyze_decision(req: DecisionRequest) -> RivexisDecision:
         overall_risk_score=round(risk, 2),
         decision_confidence=round(decision_conf, 2),
         data_confidence=round(data_conf, 2),
-        executive_summary=f"Rivexis evaluated {len(results)} persisted specialist engine result(s) and returned {state.value}.",
+        executive_summary=f"Rivexis evaluated {len(results)} specialist engine result(s) and returned {state.value}.",
         critical_findings=hard + warnings,
         positive_findings=positives,
         risk_breakdown={r.engine_id.value: r.risk_score for r in usable},
