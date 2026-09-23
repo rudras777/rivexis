@@ -12,8 +12,8 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - CI covers API lint/tests/pip-audit, frontend type/build/vinext/npm-audit/Playwright/Axe, invariants/secret/migration checks, and real PostgreSQL migration/runtime-control checks.
 - Milestone E repository framework is complete through PR #12 / CI #164 (`35832725687`).
 - Milestone F cross-engine contract slices PR #13–#15 are merged and full-CI certified.
-- Milestone F engine-specific integrity slices PR #16–#24 are merged. Latest code gate: PR #24 final head `dc8a481ca2136db83e13ee6b24c5ccf1b7e1bc04`, CI #255 (`35851151093`), merge `683ff4d67a4923338d82c4be4656d62a81413adc`.
-- Recent exact full-CI evidence also includes PR #21 CI #235 (`35849027346`), PR #22 CI #241 (`35849611567`), and PR #23 CI #249 (`35850515073`). PR #22's first API audit attempt was transiently red only at `pip-audit`; rerunning the identical failed API job passed without dependency changes, and the workflow concluded success before merge.
+- Milestone F engine-specific integrity/depth slices now extend through PR #30. Latest code gate: PR #30 final head `efbff97df9574bd15c4e1b6c74850fcc59bd2c3f`, CI #293 (`35897012617`), merge `042f08376f3b27cbd87dec0df6fb72ed063cdb52`.
+- Recent exact full-CI evidence includes PR #26 CI #271 (`35857083832`), PR #27 CI #277 (`35861080306`), PR #28 CI #282 (`35895021465`), PR #29 CI #287 (`35896050913`) and PR #30 CI #293 (`35897012617`).
 
 ## Milestone sequence
 
@@ -34,11 +34,11 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 Milestone E is complete at repository-test level. The shared analysis/decision framework preserves canonical evidence, uncertainty, versioning and provenance from persisted engine output through decisioning, explanations, reports, engine-result UI and workspace History.
 
-Milestone F is **in progress**. The repository-level contract, input-validation, provider-payload, freshness and conflict-state audit has now produced targeted, CI-certified integrity coverage across all ten specialist engines. This does **not** mean all engine-depth capabilities are complete; the remaining backlog is deeper evidence collection/normalization that requires approved sources or additional deterministic implementation.
+Milestone F is **in progress**. Repository-level input/provider/freshness/parser/runtime integrity is now deeply regression-tested across all ten specialist engines. This still does **not** mean all engine-depth capabilities are complete; the remaining backlog is deeper evidence collection/normalization that requires approved sources or additional deterministic implementation.
 
 ### Milestone F acceptance targets
 
-- audit all ten specialist engines B1–B5 and F1–F5 against their intended live-provider/direct-state contracts, deterministic/demo behavior and current tests;
+- audit all ten specialist engines B1–B5 and F1–F5 against intended live-provider/direct-state contracts, deterministic/demo behavior and current tests;
 - identify exact repository-level gaps rather than treating absent commercial credentials as code defects;
 - ensure each engine has a versioned output contract, explicit evidence/provider provenance, deterministic missing-data semantics and safe `PARTIAL`, `STALE_DATA`, `CONFLICTING_DATA`, `PROVIDER_UNAVAILABLE` or other UNKNOWN-compatible states where evidence is incomplete;
 - prohibit synthetic provider facts, unsupported “safe” conclusions and silent fallback from live mode to demo assumptions or a different evidence model;
@@ -61,25 +61,25 @@ Milestone F is **in progress**. The repository-level contract, input-validation,
 - `docs/TEN_ENGINE_CONTRACT_AUDIT.md` records B1–B5/F1–F5 current live versions, grounding sources, safe states, known depth gaps and external non-code gates.
 - Cross-engine live dispatch normalizes current engine/evidence versions, derives source consensus from evidence actually present, preserves intentional user-input-only states, and promotes unresolved provider conflicts from ordinary `COMPLETED`/`PARTIAL` to `CONFLICTING_DATA` while leaving historical persisted analyses unchanged.
 - F3 explicit authoritative protocol-adapter requests fail closed if the requested adapter does not actually return an authoritative position; generic modeled fallback is not substituted silently.
-- **B1:** deterministic transaction-effects summary exposes observed call/value/approval/state-diff coverage without inferring unproven token/NFT effects.
+- **B1:** canonical transaction-effects output now includes standard ERC-20/ERC-721/ERC-1155 transfer/approval effects only from validated raw event logs. Mined receipt events are observed evidence; Tenderly simulation events are predicted evidence. Parser integrity requires canonical ERC-1155 batch ABI layout, bounds input-log processing and reports omitted/truncated coverage without inferring decimals/symbols/prices/ownership.
 - **B2:** malformed EVM addresses/transaction hashes are rejected before provider use; transaction addresses resolved from RPC are revalidated before security analysis.
-- **B3:** previous snapshots must match entity/network and relevant dependency identity before change detection can produce signals.
-- **B4:** malformed RPC/indexed numeric state no longer becomes zero; malformed identity-provider responses do not become healthy no-label evidence; valid no-label responses do not boost attribution confidence; external indexer/label evidence without normalized provider timestamps remains `UNKNOWN` freshness; identity conflicts remain first-class conflicting evidence.
+- **B3:** prior snapshots must match entity/network/dependencies; direct block/balance/bytecode/supply state and monitoring thresholds are validated; future Chainlink timestamps stay UNKNOWN; stale/expired/policy-aged oracle evidence becomes `STALE_DATA`; malformed prior fields suppress only the affected delta instead of fabricating signals.
+- **B4:** malformed RPC/indexed state no longer becomes zero; ERC-20 asset identity is contract-based rather than symbol-based; conflicting token decimals are excluded; activity risk uses only valid normalized rows; directional counterparty flow and descriptive concentration are exposed without treating concentration as risk/identity evidence; external label freshness/identity conflicts remain explicit.
 - **B5:** LI.FI quote chain/token/amount/address/slippage and minimum-output integrity are checked against the caller's route contract; mismatches fail closed as `CONFLICTING_DATA`/UNKNOWN rather than being scored normally.
-- **F1:** caller-declared direct ERC-20 `balanceOf(address)` evidence is supported without inventing token identity/decimals; same-market positions are aggregated before concentration/HHI calculations.
-- **F2:** unusable DefiLlama protocol records, malformed provider-health metadata and non-finite/negative TVL fail closed; actual provider TVL timestamps drive freshness when credible; stale/expired/degraded fundamentals become `STALE_DATA`.
-- **F3:** authoritative-adapter trust boundary plus existing oracle/conflict/staleness semantics remain covered.
+- **F1:** caller-declared manual/native/ERC-20 exposures require valid non-negative quantities and complete positive pricing before concentration/HHI; explicitly requested wallet/token read failures prevent subset scoring; duplicate/conflicting token metadata is handled deterministically.
+- **F2:** unusable DefiLlama protocol records, malformed provider-health metadata and non-finite/negative TVL fail closed; provider TVL timestamps drive freshness; stale/expired/degraded fundamentals become `STALE_DATA`.
+- **F3:** authoritative-adapter trust boundary plus oracle/conflict/staleness semantics remain covered.
 - **F4:** broad yield selectors must resolve uniquely, core APY/TVL must be finite, stale/expired pool evidence becomes `STALE_DATA`, and future-dated timestamps are not called current.
 - **F5:** treasury model inputs must be finite/economically valid; derived weights require complete positive pricing rather than silently assigning zero exposure; stale market references become `STALE_DATA`.
-- PRs #21–#24 each passed the full CI matrix before merge; latest engine-integrity gate is PR #24 CI #255 (`35851151093`).
+- PRs #26–#30 each passed the full CI matrix before merge; latest engine-integrity gate is PR #30 CI #293 (`35897012617`).
 
 ## Remaining Milestone F work
 
 These are capability-depth items, not currently known hidden build/test errors:
 
-- B1 canonical event/log asset-change normalization beyond call-trace candidates.
-- B2/B3 deeper independent external threat/security evidence where an approved provider contract exists.
-- B4 richer cross-chain activity, counterparty attribution and protocol-semantic classification.
+- B1 deeper internal-call/state/security semantics beyond standard transfer/approval event normalization.
+- B2/B3 deeper independent external threat/security evidence where an approved provider contract exists; B3 remains point-in-time rather than continuous monitoring.
+- B4 cross-chain activity and richer protocol-semantic/counterparty attribution beyond validated single-chain indexed history.
 - B5 independent bridge-security, liquidity and incident evidence beyond route-aggregator evidence.
 - F1 automatic/indexed token discovery plus NFT/DeFi position ingestion from approved evidence sources.
 - F2/F4/F5 deeper independent dependency, liquidity, governance/counterparty and strategy evidence.
@@ -108,4 +108,4 @@ These are capability-depth items, not currently known hidden build/test errors:
 
 ## Next action
 
-Continue Milestone F with evidence-depth work that can be implemented without fabricating capability. Prioritize deterministic normalization over unsupported provider claims, keep commercial/credential/customer-contract dependencies explicitly partial or blocked, and full-CI gate every slice. Do not advance to Milestone G until the remaining engine-depth acceptance work is explicitly closed.
+Continue Milestone F with evidence-depth work that can be implemented without fabricating capability. Prioritize approved/deterministic normalization over unsupported provider claims, keep commercial/credential/customer-contract dependencies explicitly partial or blocked, and full-CI gate every slice. Do not advance to Milestone G until remaining engine-depth acceptance work is explicitly closed.
