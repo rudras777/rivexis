@@ -257,18 +257,20 @@ def test_live_f4_uses_attributed_yield_data_without_calling_apy_safe(monkeypatch
 
 
 def test_live_f5_treasury_screening_uses_current_market_refs(monkeypatch):
+    from time import time
     from rivexis_api.services import live_f5
 
     class FakeCG:
         def simple_price(self, ids, vs_currency="usd"):
+            now = int(time())
             return ProviderCall(
                 "coingecko",
                 "req-f5",
                 "https://api.coingecko.com/api/v3/simple/price",
                 {
-                    "bitcoin": {"usd": 80000, "last_updated_at": 1},
-                    "ethereum": {"usd": 2500, "last_updated_at": 1},
-                    "usd-coin": {"usd": 1.0, "last_updated_at": 1},
+                    "bitcoin": {"usd": 80000, "last_updated_at": now},
+                    "ethereum": {"usd": 2500, "last_updated_at": now},
+                    "usd-coin": {"usd": 1.0, "last_updated_at": now},
                 },
                 4.2,
             )

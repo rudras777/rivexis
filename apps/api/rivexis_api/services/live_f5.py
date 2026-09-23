@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from math import isfinite
 from uuid import uuid4
 
 from rivexis_api.models.engine import EngineResult
@@ -14,7 +15,8 @@ def _num(v, default=None):
     try:
         if v in (None, ""):
             return default
-        return float(v)
+        parsed = float(v)
+        return parsed if isfinite(parsed) else default
     except (TypeError, ValueError):
         return default
 
@@ -30,7 +32,9 @@ def _price_freshness(prices: dict, ids: list[str]):
         raw = (prices.get(cid) or {}).get("last_updated_at") if isinstance(prices.get(cid), dict) else None
         try:
             if raw not in (None, ""):
-                stamps.append(float(raw))
+                parsed = float(raw)
+                if isfinite(parsed):
+                    stamps.append(parsed)
         except (TypeError, ValueError):
             pass
     if not stamps:
@@ -39,6 +43,23 @@ def _price_freshness(prices: dict, ids: list[str]):
     age = max(0.0, (now - observed).total_seconds())
     status = FreshnessStatus.LIVE if age <= 120 else FreshnessStatus.CURRENT if age <= 900 else FreshnessStatus.RECENT if age <= 3600 else FreshnessStatus.STALE if age <= 21600 else FreshnessStatus.EXPIRED
     return status, age, observed
+
+
+def _invalid_input(message: str) -> EngineResult:
+    return EngineResult(
+        engine_id=EngineId.F5,
+        engine_version="1.2.0",
+        status=AnalysisStatus.INSUFFICIENT_DATA,
+        risk_score=0,
+        data_confidence=0,
+        engine_confidence=0,
+        severity=Severity.UNKNOWN,
+        summary=message,
+        warnings=["No treasury allocation or scenario metric was fabricated."],
+        missing_data=["valid F5 treasury input"],
+        provider_consensus="UNAVAILABLE",
+        demo=False,
+    )
 
 
 def run_live_f5(data: dict) -> EngineResult:
@@ -58,8 +79,58 @@ def run_live_f5(data: dict) -> EngineResult:
             demo=False,
         )
 
-    allocations = [a for a in raw if isinstance(a, dict)]
-    ids = sorted({str(a.get("coingecko_id") or "").strip() for a in allocations if a.get("coingecko_id")})
+    allocations: list[dict] = []
+    for index, allocation in enumerate(raw):
+        if not isinstance(allocation, dict):
+            return _invalid_input(f"Allocation {index} must be an object")
+
+        quantity_raw = allocation.get("quantity")
+        quantity = _num(quantity_raw)
+        if quantity_raw not in (None, "") and quantity is None:
+            return _invalid_input(f"Allocation {index} quantity must be a finite number")
+        if quantity is not None and quantity < 0:
+            return _invalid_input(f"Allocation {index} quantity cannot be negative")
+
+        weight_raw = allocation.get("weight_pct")
+        weight = _num(weight_raw)
+        if weight_raw not in (None, "") and weight is None:
+            return _invalid_input(f"Allocation {index} weight_pct must be a finite number")
+        if weight is not None and weight < 0:
+            return _invalid_input(f"Allocation {index} weight_pct cannot be negative")
+
+        stablecoin_raw = allocation.get("stablecoin", False)
+        if not isinstance(stablecoin_raw, bool):
+            return _invalid_input(
+                f"Allocation {index} stablecoin must be a JSON boolean, not a truthy/falsy string or number"
+            )
+
+        cid = str(allocation.get("coingecko_id") or "").strip()
+        allocations.append({
+            "coingecko_id": cid,
+            "symbol": allocation.get("symbol") or cid or "UNKNOWN",
+            "quantity": quantity,
+            "weight_pct": weight,
+            "stablecoin": stablecoin_raw,
+            "protocol": allocation.get("protocol"),
+            "chain": allocation.get("chain"),
+        })
+
+    capital_raw = data.get("capital_usd")
+    capital = _num(capital_raw)
+    if capital_raw not in (None, "") and (capital is None or capital <= 0):
+        return _invalid_input("capital_usd must be a positive finite number when supplied")
+
+    max_concentration = _num(data.get("max_concentration_pct", 35.0))
+    if max_concentration is None or not 0 < max_concentration <= 100:
+        return _invalid_input("max_concentration_pct must be a finite number greater than 0 and at most 100")
+    market_shock = _num(data.get("market_shock_pct", 30.0))
+    if market_shock is None or not 0 <= market_shock <= 100:
+        return _invalid_input("market_shock_pct must be a finite percentage between 0 and 100")
+    depeg_shock = _num(data.get("stablecoin_depeg_pct", 10.0))
+    if depeg_shock is None or not 0 <= depeg_shock <= 100:
+        return _invalid_input("stablecoin_depeg_pct must be a finite percentage between 0 and 100")
+
+    ids = sorted({a["coingecko_id"] for a in allocations if a["coingecko_id"]})
     prices: dict = {}
     call = None
     if ids:
@@ -82,15 +153,16 @@ def run_live_f5(data: dict) -> EngineResult:
                 demo=False,
             )
 
-    capital = _num(data.get("capital_usd"))
     normalized: list[dict] = []
     value_total = 0.0
     explicit_weights = True
-    for a in allocations:
-        cid = str(a.get("coingecko_id") or "").strip()
+    for allocation in allocations:
+        cid = allocation["coingecko_id"]
         price = _num((prices.get(cid) or {}).get("usd")) if cid else None
-        quantity = _num(a.get("quantity"))
-        weight = _num(a.get("weight_pct"))
+        if price is not None and price <= 0:
+            price = None
+        quantity = allocation["quantity"]
+        weight = allocation["weight_pct"]
         value = None
         if quantity is not None and price is not None:
             value = quantity * price
@@ -99,33 +171,55 @@ def run_live_f5(data: dict) -> EngineResult:
             explicit_weights = False
         normalized.append({
             "coingecko_id": cid or None,
-            "symbol": a.get("symbol") or cid or "UNKNOWN",
+            "symbol": allocation["symbol"],
             "quantity": quantity,
             "price_usd": price,
             "value_usd": value,
             "weight_pct": weight,
-            "stablecoin": bool(a.get("stablecoin", False)),
-            "protocol": a.get("protocol"),
-            "chain": a.get("chain"),
+            "stablecoin": allocation["stablecoin"],
+            "protocol": allocation["protocol"],
+            "chain": allocation["chain"],
         })
 
     if not explicit_weights:
+        incomplete = [
+            row["symbol"]
+            for row in normalized
+            if row["quantity"] is None or not row["coingecko_id"] or row["price_usd"] is None
+        ]
+        if incomplete:
+            return EngineResult(
+                engine_id=EngineId.F5,
+                engine_version="1.2.0",
+                status=AnalysisStatus.INSUFFICIENT_DATA,
+                risk_score=0,
+                data_confidence=30 if call else 0,
+                engine_confidence=0,
+                severity=Severity.UNKNOWN,
+                summary="Treasury weights cannot be derived because one or more allocations lack a usable quantity and positive market price.",
+                warnings=["Rivexis did not silently assign a zero weight to an unvalued allocation."],
+                missing_data=[f"complete quantity + CoinGecko price inputs for: {', '.join(incomplete)}"],
+                provider_consensus="UNAVAILABLE",
+                provider_status=([{"provider_id": call.provider_id, "status": "HEALTHY", "latency_ms": call.latency_ms}] if call else []),
+                demo=False,
+            )
         if value_total <= 0:
             return EngineResult(
                 engine_id=EngineId.F5,
+                engine_version="1.2.0",
                 status=AnalysisStatus.INSUFFICIENT_DATA,
                 risk_score=0,
                 data_confidence=25,
                 engine_confidence=30,
                 severity=Severity.UNKNOWN,
                 summary="Treasury weights could not be derived from the supplied allocations.",
-                warnings=["Provide weight_pct for every allocation or quantity plus a CoinGecko id."],
-                missing_data=["allocation weights"],
-                provider_consensus="SINGLE SOURCE" if call else "UNAVAILABLE",
+                warnings=["Provide positive-valued positions or explicit weight_pct for every allocation."],
+                missing_data=["positive allocation value"],
+                provider_consensus="UNAVAILABLE",
                 demo=False,
             )
         for row in normalized:
-            row["weight_pct"] = ((row["value_usd"] or 0.0) / value_total) * 100
+            row["weight_pct"] = (row["value_usd"] / value_total) * 100
         capital = capital or value_total
     else:
         weight_sum = sum(float(r["weight_pct"] or 0) for r in normalized)
@@ -158,9 +252,6 @@ def run_live_f5(data: dict) -> EngineResult:
         if r.get("chain"):
             chain_weights[str(r["chain"])] = chain_weights.get(str(r["chain"]), 0.0) + float(r["weight_pct"] or 0)
 
-    max_concentration = _num(data.get("max_concentration_pct"), 35.0) or 35.0
-    market_shock = abs(_num(data.get("market_shock_pct"), 30.0) or 30.0)
-    depeg_shock = abs(_num(data.get("stablecoin_depeg_pct"), 10.0) or 10.0)
     nonstable_weight = 100.0 - stable_weight
     market_scenario_loss_pct = nonstable_weight / 100 * market_shock
     depeg_scenario_loss_pct = stable_weight / 100 * depeg_shock
@@ -230,13 +321,16 @@ def run_live_f5(data: dict) -> EngineResult:
     if native_metrics:
         risk=min(100.0,risk+min(25.0,native_risk_delta))
 
+    if market_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}:
+        warnings.append("Market-reference timestamps are stale; refresh price evidence before treasury decisioning.")
     data_conf = (72 if market_freshness in {FreshnessStatus.LIVE, FreshnessStatus.CURRENT} else 64 if call and ids else 48)
     if native_metrics:
         data_conf=min(92,max(data_conf+8,native_confidence))
+    status = AnalysisStatus.STALE_DATA if market_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED} else AnalysisStatus.PARTIAL
     return EngineResult(
         engine_id=EngineId.F5,
         engine_version="1.2.0",
-        status=AnalysisStatus.PARTIAL,
+        status=status,
         risk_score=risk,
         data_confidence=data_conf,
         engine_confidence=68,
@@ -263,7 +357,7 @@ def run_live_f5(data: dict) -> EngineResult:
         safer_alternatives=mitigations[:],
         evidence=evidence,
         provider_consensus="SINGLE SOURCE" if evidence else "USER_INPUT_ONLY",
-        data_freshness={"status": market_freshness.value if evidence else "UNKNOWN", "provider": "coingecko" if evidence else None, "age_seconds": market_age},
+        data_freshness={"status": market_freshness.value if evidence else "UNKNOWN", "provider": "coingecko" if call else None, "age_seconds": market_age},
         missing_data=[
             "independent protocol and smart-contract risk for each deployment",
             "bridge and cross-chain dependency risk where applicable",
