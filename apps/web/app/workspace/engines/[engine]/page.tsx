@@ -22,6 +22,77 @@ const liveDefaults:Partial<Record<EngineId,object>>={
   F5:{capital_usd:1000000,max_concentration_pct:35,market_shock_pct:30,stablecoin_depeg_pct:10,allocations:[{coingecko_id:"bitcoin",symbol:"BTC",weight_pct:30,stablecoin:false},{coingecko_id:"ethereum",symbol:"ETH",weight_pct:25,stablecoin:false},{coingecko_id:"usd-coin",symbol:"USDC",weight_pct:45,stablecoin:true}]}
 };
 
+function stringValue(value:unknown,fallback="—"){
+  return typeof value==="string"&&value.trim()?value:fallback;
+}
+
+function numberValue(value:unknown){
+  return typeof value==="number"&&Number.isFinite(value)?value:null;
+}
+
+function stringList(value:unknown){
+  return Array.isArray(value)?value.filter((item):item is string=>typeof item==="string"&&Boolean(item.trim())):[];
+}
+
+function evidenceProviders(value:unknown){
+  if(!Array.isArray(value))return [];
+  return [...new Set(value.map(item=>item&&typeof item==="object"&&"provider" in item?(item as {provider?:unknown}).provider:null).filter((provider):provider is string=>typeof provider==="string"&&Boolean(provider.trim())))].sort();
+}
+
+function conflictCount(value:unknown){
+  return Array.isArray(value)?value.length:0;
+}
+
+function ResultSummary({result}:{result:Record<string,unknown>}){
+  const demo=result.demo===true;
+  const status=stringValue(result.status,"UNKNOWN");
+  const evidence=Array.isArray(result.evidence)?result.evidence:[];
+  const providers=evidenceProviders(result.evidence);
+  const conflicts=conflictCount(result.provider_conflicts);
+  const missing=stringList(result.missing_data);
+  const blockers=stringList(result.hard_blockers);
+  const warnings=stringList(result.warnings);
+  const assumptions=stringList(result.assumptions);
+  const risk=numberValue(result.risk_score);
+  const dataConfidence=numberValue(result.data_confidence);
+  const engineConfidence=numberValue(result.engine_confidence);
+  const providerConsensus=stringValue(result.provider_consensus,"UNAVAILABLE");
+  const hasProviderEvidence=evidence.length>0;
+  let banner="NO PROVIDER EVIDENCE RECORDED";
+  if(demo)banner="DEMONSTRATION RESULT — NOT LIVE DATA";
+  else if(status==="PROVIDER_UNAVAILABLE")banner="PROVIDER UNAVAILABLE — NO DECISION-GRADE PROVIDER RESULT";
+  else if(status==="CONFLICTING_DATA")banner="CONFLICTING EVIDENCE — REVIEW BEFORE ACTING";
+  else if(status==="STALE_DATA")banner="STALE EVIDENCE — REFRESH BEFORE ACTING";
+  else if(status==="PARTIAL")banner="PARTIAL EVIDENCE — ANALYSIS IS INCOMPLETE";
+  else if(hasProviderEvidence)banner=`${status} — ${evidence.length} RECORDED EVIDENCE ITEM${evidence.length===1?"":"S"}`;
+  else banner=`${status} — NO PROVIDER EVIDENCE RECORDED`;
+
+  const rows=[
+    ["Status",status],
+    ["Risk score",risk===null?"—":`${risk}/100`],
+    ["Severity",stringValue(result.severity,"unknown")],
+    ["Data confidence",dataConfidence===null?"—":`${dataConfidence}%`],
+    ["Engine confidence",engineConfidence===null?"—":`${engineConfidence}%`],
+    ["Engine version",stringValue(result.engine_version)],
+    ["Analysis framework",stringValue(result.analysis_framework_version)],
+    ["Provider consensus",providerConsensus],
+    ["Evidence records",String(evidence.length)],
+    ["Evidence sources",providers.length?providers.join(", "):"None recorded"],
+    ["Unresolved source conflicts",String(conflicts)],
+  ];
+
+  return <div data-testid="engine-result-summary">
+    <div className={demo?"demoBanner":""} role="status">{banner}</div>
+    <p>{stringValue(result.summary,"No summary was returned.")}</p>
+    <div className="tableWrap"><table><tbody>{rows.map(([label,value])=><tr key={label}><th scope="row">{label}</th><td>{value}</td></tr>)}</tbody></table></div>
+    {blockers.length>0&&<><h3>Hard blockers</h3><ul>{blockers.map(item=><li key={item}>{item}</li>)}</ul></>}
+    {warnings.length>0&&<><h3>Warnings</h3><ul>{warnings.map(item=><li key={item}>{item}</li>)}</ul></>}
+    {missing.length>0&&<><h3>Missing data</h3><ul>{missing.map(item=><li key={item}>{item}</li>)}</ul></>}
+    {assumptions.length>0&&<><h3>Assumptions</h3><ul>{assumptions.map(item=><li key={item}>{item}</li>)}</ul></>}
+    <details><summary>Raw normalized JSON</summary><pre className="result">{JSON.stringify(result,null,2)}</pre></details>
+  </div>;
+}
+
 export default function Engine(){
   const id=(useParams().engine as string).toUpperCase() as EngineId;
   const {workspaceId,workspace}=useWorkspace();
@@ -65,6 +136,6 @@ export default function Engine(){
     <div className="workspaceHeader"><div><h1>{id} Engine</h1><p>{mode==="demo"?"Run a clearly labelled synthetic demonstration.":"Run against configured provider evidence. Rivexis will return provider-unavailable/partial states rather than inventing data."}</p></div><span className="badge">{workspace.name} · {mode==="demo"?"DEMONSTRATION":"LIVE INPUT"}</span></div>
     <section className="panel"><h2>Execution mode</h2><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className="button" onClick={()=>switchMode("demo")} aria-pressed={mode==="demo"}>Demonstration</button><button className="button" disabled={!liveEnabled} onClick={()=>switchMode("live")} aria-pressed={mode==="live"}>Live provider analysis {liveEnabled?"":"(coming next)"}</button></div>{mode==="demo"&&<div className="demoBanner" style={{marginTop:12}}>DEMO DATA / DEMONSTRATION RESULT — not live institutional analysis.</div>}{mode==="live"&&<p className="muted">B1: Tenderly/RPC simulation. B2: direct chain state + deterministic approval rules + optional Etherscan verification. B3: live RPC threat snapshots with prior-state change detection and optional Chainlink feed monitoring; continuous threat streaming still requires a commercial threat provider. B4: direct wallet state + optional Etherscan indexed history with UNKNOWN ADDRESS preserved. B5: LI.FI quote normalization. F1: CoinGecko valuation with optional native-wallet balances. F2: DefiLlama protocol screening. F3: direct Chainlink-compatible feed state with optional CoinGecko cross-check. F4: attributed DefiLlama yield-pool evidence. F5: CoinGecko-referenced allocation and stress screening. Missing institutional evidence remains explicit.</p>}</section>
     <section className="panel"><h2>Input</h2><label className="field">JSON scenario / provider input<textarea value={text} onChange={e=>setText(e.target.value)} aria-label="Engine input JSON"/></label><button className="button" onClick={run} disabled={running} style={{marginTop:12}}>{running?"Running…":`Run ${id}`}</button>{error&&<p className="error" role="alert">{error}</p>}</section>
-    {result&&<section className="panel" data-testid="engine-result"><h2>Normalized engine output</h2><div className={result.demo?"demoBanner":""}>{result.demo?"DEMONSTRATION RESULT":"Provider-grounded result / explicit degraded state"}</div><pre className="result">{JSON.stringify(result,null,2)}</pre></section>}
+    {result&&<section className="panel" data-testid="engine-result"><h2>Normalized engine output</h2><ResultSummary result={result}/></section>}
   </>;
 }
