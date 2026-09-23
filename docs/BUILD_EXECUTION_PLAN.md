@@ -24,6 +24,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 - PR #7 (`Complete safe in-place workspace switching`) passed CI run #105 (`35800016602`) and merged as `40950c29037ad35689c1d19a33924d430107c256`.
 - PR #9 (`Complete truthful workspace dashboard and settings summaries`) passed CI run #129 (`35828771358`) and merged as `22a999d018e8c84dd907d48a973d58406aa5ed33`.
 - PR #10 (`Harden decision evidence integrity and uncertainty semantics`) passed CI run #144 (`35830902047`) and merged as `deca453077f51101ef853161d07836a26472778d`.
+- PR #11 (`Expose truthful analysis provenance in reports and engine results`) passed CI run #154 (`35831726073`) and merged as `5795344fea5b4e3b83103114fbdb7891a223e399`.
 
 ## Milestone sequence
 
@@ -42,7 +43,7 @@ Authoritative project mandate: `Rivexis_Master_Build_Prompt.txt`
 
 **Milestone E — Analysis framework: evidence, provenance, conflicts, decisions and versioned outputs**
 
-Milestone D is complete at repository-test level. Milestone E now has a first CI-verified integrity slice: persisted analyses are the canonical decision inputs, duplicate evidence references cannot distort aggregate weighting, uncertainty cannot silently become a positive/negative recommendation, and framework/methodology provenance is persisted with the resulting decision.
+Milestone D is complete at repository-test level. Milestone E now has two CI-verified slices: canonical persisted evidence/uncertainty semantics at the decision boundary, plus truthful version/evidence provenance in decision reports and engine result UI.
 
 Acceptance targets for Milestone E:
 - audit the shared analysis request/result/decision models and UI so evidence, provenance, confidence, conflicts and UNKNOWN conditions are represented consistently rather than engine-by-engine ad hoc;
@@ -55,30 +56,24 @@ Acceptance targets for Milestone E:
 
 ## Completed evidence
 
-- Milestone A repository/service audit and durable execution controls are complete.
-- Milestone B global availability, fail-closed workspace shell, responsive/keyboard behavior and authenticated-shell accessibility are CI-verified.
-- Milestone C browser auth/onboarding/session/logout/revocation is complete in the runnable repository harness; real deployed browser certification remains blocked without a live FastAPI runtime.
-- Milestone D workspace foundations are complete at repository-test level.
+- Milestones A–D are complete at repository-test level; production/browser certification remains separately gated by real deployment evidence.
 - Browser web auth uses HttpOnly cookies plus CSRF; no bearer token is introduced into browser storage.
-- Email verification and password recovery remain explicitly unavailable until a real approved delivery path exists; no fake delivery capability is claimed.
-- The authenticated shell exposes a typed workspace context plus workspace-scoped React Query namespace and clears workspace query memory on logout/revocation and before workspace changes.
-- History, Saved Analyses and provider runtime explicitly carry the active workspace ID; foreign workspace reads fail closed.
-- Provider Health separates shared/global registry configuration from active-workspace runtime telemetry; empty runtime state is explicit.
-- Engine, monitor, investigation and protocol-history delayed results are guarded against rendering after a workspace switch; switching is in-place and does not use a browser reload as an isolation mechanism.
-- Workspace dashboard product constants are labeled as static product metadata; recent activity is loaded from the active workspace's authorized History API and is workspace-keyed.
-- History renders supported analysis/decision fields and explicitly states the 50-record API cap is not a lifetime total.
-- Saved Analyses renders only supported active saved-reference fields and states that archived entries are excluded by the API default.
-- Settings renders authorized workspace and organization lists, organization membership roles and creation outcomes while explicitly stating member administration is not exposed on that page.
-- Playwright covers dashboard activity switching, structured History/Saved rendering, organization membership/creation truthfulness, prior workspace collection isolation and delayed-response switch races.
-- PR #9 final head `55dbcb2a2ba1373dc0504734e802d75826de0048` passed CI run #129 (`35828771358`) and merged as `22a999d018e8c84dd907d48a973d58406aa5ed33`.
-- Shared engine outputs now persist `analysis_framework_version`; decisions persist a separate `decision_methodology_version` plus analysis IDs, engine versions/statuses, framework versions, evidence providers/count, unresolved conflict count and whether all decision inputs were rehydrated from canonical persisted storage.
+- The authenticated shell is workspace-query-scoped; foreign workspace reads fail closed; delayed engine/monitor/investigation/protocol-history results cannot render after a switch.
+- Dashboard/History/Saved/Settings surfaces are workspace-authorized and truthful; provider registry state remains separated from workspace runtime telemetry.
+- Shared engine outputs persist `analysis_framework_version`; decisions persist `decision_methodology_version` plus analysis IDs, engine versions/statuses/framework versions, evidence providers/count, unresolved conflict count and canonical-persistence verification.
 - Persisted `analysis_id` values are rehydrated from server-side analysis storage before decision scoring. Client-submitted changes to risk score, confidence, severity, blockers, warnings, conflicts or summary cannot override the stored analysis payload.
-- Repeating one persisted analysis ID, or submitting multiple results from the same specialist engine, no longer silently changes weighting; the shared decision model returns an explicit UNKNOWN state instead.
-- Requested evidence in `PARTIAL`, `STALE_DATA`, `CONFLICTING_DATA`, provider-unavailable or other non-COMPLETED states no longer becomes PROCEED/MODIFY/AVOID from aggregate scoring. It stays WAIT/UNKNOWN until resolved, except where an explicit hard blocker independently requires AVOID.
-- Grounded explanations expose the same methodology/provenance fields without generating a new risk score.
-- API/domain regression coverage includes an adversarial test that persists a high-risk B2 result, submits a forged safe copy under the same analysis ID, and proves the decision remains based on the canonical persisted high-risk result.
-- PR #10 final head `c817b0a9774faf1612faa4da61269d3b99911e4d` passed CI run #144 (`35830902047`) across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
-- PR #10 merged to `main` as `deca453077f51101ef853161d07836a26472778d`.
+- Repeating one persisted analysis ID, or submitting multiple results from the same specialist engine, returns explicit UNKNOWN instead of silently changing aggregate weighting.
+- Requested evidence in `PARTIAL`, `STALE_DATA`, `CONFLICTING_DATA`, provider-unavailable or other non-COMPLETED states remains WAIT/UNKNOWN until resolved, except where an explicit hard blocker independently requires AVOID.
+- Grounded explanations expose decision methodology/provenance without generating a new risk score.
+- API/domain regression coverage includes an adversarial forged-safe-payload test proving a high-risk persisted B2 result remains authoritative.
+- PR #10 final head `c817b0a9774faf1612faa4da61269d3b99911e4d` passed CI run #144 (`35830902047`) and merged as `deca453077f51101ef853161d07836a26472778d`.
+- Decision HTML/PDF now disclose methodology version, canonical-persistence verification, evidence count/sources, unresolved conflicts, specialist engine status/version/framework and persisted analysis references.
+- Engine result UI now renders structured status/risk/confidence/version/evidence/conflict/missing-data/assumption fields and keeps raw normalized JSON behind an explicit disclosure rather than using raw JSON as the only result presentation.
+- Engine result banners are derived from actual result state: demo, provider unavailable, partial, conflicting, stale, completed-with-recorded-evidence, or completed-with-no-recorded-evidence. A zero-evidence result is never called provider-grounded.
+- Playwright proves a provider-unavailable result with zero evidence says no evidence is recorded, and a partial B5 result names `lifi` only because that provider appears in the returned evidence array.
+- Report tests prove canonical verification wording is driven by the persisted flag and PDF generation remains self-contained.
+- PR #11 final head `c57b93b89326922a1dab28d49b71199f1e20ed45` passed CI run #154 (`35831726073`) across API regression/audit, frontend type/build/vinext/audit/Playwright/Axe, invariants/secret checks and PostgreSQL migration/runtime-control certification.
+- PR #11 merged to `main` as `5795344fea5b4e3b83103114fbdb7891a223e399`.
 
 ## Dependencies and blockers
 
@@ -92,4 +87,4 @@ Acceptance targets for Milestone E:
 
 ## Next action
 
-Continue Milestone E by carrying the new evidence/provenance contract through decision reports and engine-result UI. Decision HTML/PDF must disclose methodology version, input engine statuses/versions, evidence sources/count, unresolved conflicts and canonical-persistence verification. Engine result surfaces should replace the raw-only presentation with a truthful structured summary that distinguishes demo, provider-grounded, partial/conflicting and provider-unavailable states without claiming evidence that was not used. Add targeted report/API/Playwright coverage and gate the slice on full CI.
+Finish the Milestone E audit by carrying persisted analysis status/provenance into workspace History without exposing raw payloads. History should distinguish demo/live, status, framework/engine version, evidence count/sources, provider consensus and conflict count using only canonical persisted fields; decision history should expose decision state/methodology/canonical-input verification where supported. Preserve the existing 50-record cap disclosure, workspace isolation and in-place switch behavior, then gate the slice on full CI before deciding whether Milestone E can advance to Milestone F.
