@@ -6,8 +6,8 @@ Last updated: 2026-09-24
 |---|---|---|
 | Local development | AVAILABLE, NOT VERIFIED IN THIS CHAT | Repository contains SQLite/local and Docker/PostgreSQL development paths. No local shell execution was used for this update. |
 | GitHub repository | PUBLIC / MAIN ACTIVE | `rudras777/rivexis` is currently public. The GitHub Pages fallback files are preserved on `main`. |
-| GitHub CI | B1 DYNAMIC-ABI LINEAGE UNDER FINAL STATE CERTIFICATION | B1 implementation parent `bab6bf2b56fbdef7bfc059f9e6e5c169da567838` passed full CI #342 (`35933008604`). Focused dynamic-ABI regressions were added at `e285b83af7d3a70f4052d9c8e41d298456869bf6`; the current durable-state lineage is full-CI gated before certification. |
-| GitHub Pages fallback | ENABLED / PASSING / NOT APPLICATION CERTIFICATION | Pages deployment #14 (`35933039521`) passed on the B1 source/test head. This does not establish parity with the Cloudflare Next.js deployment or provide the authoritative FastAPI runtime. |
+| GitHub CI | PASS FOR LATEST CERTIFIED STATE | `149f37d6243d435eb6d42f106e3d1b14b899e2e7` passed full CI #349 (`35933475754`): API ruff/pytest/pip-audit, web type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification. This includes the B1 dynamic-ABI source and focused regression tests. |
+| GitHub Pages fallback | ENABLED / PASSING / NOT APPLICATION CERTIFICATION | Pages deployment #20 (`35933475211`) passed on the latest certified state. This does not establish parity with the Cloudflare Next.js deployment or provide the authoritative FastAPI runtime. |
 | Free Cloudflare frontend preview | LIVE, DEPLOYMENT DRIFT DETECTED | `https://rivexis-web.rudrasingh0718.workers.dev` was previously reachable with public pages working, but unauthenticated `/workspace` showed an older generic/demo-safe shell rather than current-main access-withholding behavior. No private user/analysis data was observed. Current-main source is not claimed live there. |
 | Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` previously reported the intentional degraded state because the approved free-tier stack does not host the authoritative FastAPI runtime. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY AT LAST VERIFIED CHECK | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`, PostgreSQL 17.6.1; prior direct grant/security checks preserved least-privilege behavior. |
@@ -28,9 +28,9 @@ Last updated: 2026-09-24
 
 ## Current Milestone F verification
 
-The latest continuation deepened B1 verified-ABI decoding without claiming unsupported composite semantics:
+The latest certified continuation deepened B1 verified-ABI decoding without claiming unsupported composite semantics:
 
-- **B1:** canonical engine remains `1.3.0`. Verified-ABI dynamic `bytes`/`string` enforce aligned offsets, static-head separation, bounded tails and zero padding. Dynamic arrays of supported one-word static elementary types are bounded and element-validated. Invalid offset/bounds/padding/element layouts become `MALFORMED_VERIFIED_ABI_CALLDATA`; tuple/fixed-array/nested/composite dynamic types return explicit `UNSUPPORTED_VERIFIED_ABI_TYPE` with zero confidence instead of plausible raw values. The implementation parent passed full CI #342 and focused regressions are included in the current state lineage.
+- **B1:** canonical engine remains `1.3.0`. Verified-ABI dynamic `bytes`/`string` enforce aligned offsets, static-head separation, bounded tails and zero padding. Dynamic arrays of supported one-word static elementary types are bounded and element-validated. Invalid offset/bounds/padding/element layouts become `MALFORMED_VERIFIED_ABI_CALLDATA`; tuple/fixed-array/nested/composite dynamic types return explicit `UNSUPPORTED_VERIFIED_ABI_TYPE` with zero confidence instead of plausible raw values. This source/test lineage is fully certified by CI #349.
 
 Earlier B2/B3/F3/F2, F1/B1/B4 and B5/F4/F5 hardening remains intact. All ten engines retain targeted repository-level input/provider/freshness/runtime integrity coverage. Remaining Milestone F work is capability depth rather than a claim that all engines are production-complete.
 
@@ -74,3 +74,7 @@ A plugin-directory recheck also returned no callable native Cloudflare plugin in
 - **Brevo:** phone/account verification is not the blocker; owned-domain sender authentication, secrets and delivery-lifecycle certification remain outstanding.
 - **Providers:** production credentials/licenses/customer contracts are still required where applicable; unavailable capabilities must remain explicit.
 - **Release certification:** complete real-target deployment/browser/provider/email evidence remains outstanding.
+
+## Next deployment-adjacent repository target
+
+Until authenticated Cloudflare access exists, Milestone F continues in repository code. The next audited deterministic target is B4: external indexed/entity evidence should not inherit the captured RPC block or an overall LIVE freshness claim when the provider supplies no observation timestamp.

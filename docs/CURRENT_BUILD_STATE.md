@@ -8,9 +8,10 @@ This file is the compact resume point for the dedicated normal-ChatGPT productio
 
 - Repository: public `rudras777/rivexis`, branch `main`.
 - Public GitHub Pages fallback work remains preserved and operational. It is a public fallback/navigation surface, not proof of Cloudflare deployment parity or FastAPI production readiness.
-- B1 dynamic-ABI source/test head: `e285b83af7d3a70f4052d9c8e41d298456869bf6`.
-- The B1 implementation parent `bab6bf2b56fbdef7bfc059f9e6e5c169da567838` passed full CI #342 (`35933008604`) across API ruff/pytest/pip-audit, web typechecks/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification.
-- The following test commit adds focused B1 dynamic-ABI regressions. GitHub Pages deployment #14 (`35933039521`) passed on that source/test head. The current durable state lineage is full-CI gated before it is treated as certified.
+- Latest fully certified application/state head before this documentation-only sync: `149f37d6243d435eb6d42f106e3d1b14b899e2e7`.
+- CI #349 (`35933475754`) completed successfully on that head across API ruff/pytest/pip-audit, web typechecks/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification.
+- GitHub Pages deployment #20 (`35933475211`) also completed successfully on `149f37d6243d435eb6d42f106e3d1b14b899e2e7`.
+- This certified lineage includes the B1 dynamic-ABI implementation `bab6bf2b56fbdef7bfc059f9e6e5c169da567838` and focused regression commit `e285b83af7d3a70f4052d9c8e41d298456869bf6`.
 - Prior B2/B3/F3/F2, F1/B1/B4 and B5/F4/F5 campaigns remain preserved.
 
 ## Latest Milestone F continuation — B1 verified ABI dynamic decoding
@@ -61,10 +62,10 @@ The plugin directory also exposed no callable native Cloudflare connector in thi
 
 Milestone F — Ten-engine completion remains active. Deterministic repository integrity is materially deeper across all ten engines, but evidence/capability depth is not declared complete.
 
-Remaining depth includes deeper B1 internal-call/state/security semantics and tuple/fixed/nested ABI support only where justified; approved independent B2/B3 threat/security evidence and continuous monitoring; B4 cross-chain/protocol-semantic attribution; B5 independent bridge-security/liquidity/incident evidence; F1 automatic/indexed discovery plus NFT/DeFi positions; and deeper independent F2/F4/F5 dependency, liquidity, governance/counterparty and strategy evidence.
+Remaining depth includes deeper B1 internal-call/state/security semantics and tuple/fixed/nested ABI support only where justified; approved independent B2/B3 threat/security evidence and continuous monitoring; B4 cross-chain/protocol-semantic attribution plus stricter external-evidence provenance/freshness; B5 independent bridge-security/liquidity/incident evidence; F1 automatic/indexed discovery plus NFT/DeFi positions; and deeper independent F2/F4/F5 dependency, liquidity, governance/counterparty and strategy evidence.
 
 ## Next execution order
 
 1. If authenticated Cloudflare access becomes available, inspect the established `rivexis-web` configuration, deploy current `main` only through the existing safe project, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior.
 2. Keep Brevo authentication mail inactive until owned-domain/sender and delivery-lifecycle gates are certified.
-3. Otherwise continue Milestone F capability depth through the highest-value deterministic slice, preserving explicit UNKNOWN/unavailable states where provider contracts or credentials are absent.
+3. Otherwise continue Milestone F capability depth through the highest-value deterministic slice; the next audited target is B4 external indexed/entity evidence provenance and aggregate freshness, while preserving explicit UNKNOWN/unavailable states where provider contracts or credentials are absent.
