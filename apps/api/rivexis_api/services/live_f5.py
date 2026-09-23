@@ -9,6 +9,9 @@ from rivexis_api.models.evidence import EvidenceRecord
 from rivexis_api.provider_clients import CoinGeckoClient, ProviderError
 from rivexis_api.services.protocol_native import collect_protocol_native, has_protocol_native_input
 
+ENGINE_VERSION = "1.3.0"
+CALCULATION_VERSION = "f5-live-1.3.0"
+
 
 def _num(v, default=None):
     try:
@@ -41,11 +44,43 @@ def _price_freshness(prices: dict, ids: list[str]):
     return status, age, observed
 
 
+def _worst_evidence_freshness(evidence: list[EvidenceRecord]) -> FreshnessStatus:
+    if not evidence:
+        return FreshnessStatus.UNKNOWN
+    rank = {
+        FreshnessStatus.LIVE: 0,
+        FreshnessStatus.CURRENT: 1,
+        FreshnessStatus.RECENT: 2,
+        FreshnessStatus.STALE: 3,
+        FreshnessStatus.EXPIRED: 4,
+        FreshnessStatus.UNKNOWN: 5,
+    }
+    return max((item.freshness for item in evidence), key=lambda status: rank.get(status, 5))
+
+
+def _evidence_provenance(evidence: list[EvidenceRecord], *, market_call, market_age: float | None) -> tuple[str, dict]:
+    providers = sorted({item.provider for item in evidence if item.provider})
+    if not providers or providers == ["user_input"]:
+        consensus = "USER_INPUT_ONLY"
+    elif len(providers) == 1:
+        consensus = "SINGLE_SOURCE"
+    else:
+        consensus = "MULTI_SOURCE"
+    overall_freshness = _worst_evidence_freshness(evidence)
+    return consensus, {
+        "status": overall_freshness.value,
+        "providers": providers,
+        "market_reference_provider": "coingecko" if market_call is not None else None,
+        "market_price_age_seconds": market_age if market_call is not None else None,
+    }
+
+
 def run_live_f5(data: dict) -> EngineResult:
     raw = data.get("allocations")
     if not isinstance(raw, list) or not raw:
         return EngineResult(
             engine_id=EngineId.F5,
+            engine_version=ENGINE_VERSION,
             status=AnalysisStatus.INSUFFICIENT_DATA,
             risk_score=0,
             data_confidence=0,
@@ -69,6 +104,7 @@ def run_live_f5(data: dict) -> EngineResult:
         except ProviderError as exc:
             return EngineResult(
                 engine_id=EngineId.F5,
+                engine_version=ENGINE_VERSION,
                 status=AnalysisStatus.PROVIDER_UNAVAILABLE,
                 risk_score=0,
                 data_confidence=0,
@@ -113,6 +149,7 @@ def run_live_f5(data: dict) -> EngineResult:
         if value_total <= 0:
             return EngineResult(
                 engine_id=EngineId.F5,
+                engine_version=ENGINE_VERSION,
                 status=AnalysisStatus.INSUFFICIENT_DATA,
                 risk_score=0,
                 data_confidence=25,
@@ -121,7 +158,7 @@ def run_live_f5(data: dict) -> EngineResult:
                 summary="Treasury weights could not be derived from the supplied allocations.",
                 warnings=["Provide weight_pct for every allocation or quantity plus a CoinGecko id."],
                 missing_data=["allocation weights"],
-                provider_consensus="SINGLE SOURCE" if call else "UNAVAILABLE",
+                provider_consensus="SINGLE_SOURCE" if call else "UNAVAILABLE",
                 demo=False,
             )
         for row in normalized:
@@ -132,6 +169,7 @@ def run_live_f5(data: dict) -> EngineResult:
         if weight_sum <= 0:
             return EngineResult(
                 engine_id=EngineId.F5,
+                engine_version=ENGINE_VERSION,
                 status=AnalysisStatus.INSUFFICIENT_DATA,
                 risk_score=0,
                 data_confidence=0,
@@ -139,6 +177,7 @@ def run_live_f5(data: dict) -> EngineResult:
                 severity=Severity.UNKNOWN,
                 summary="Treasury allocation weights must sum to a positive value.",
                 missing_data=["valid allocation weights"],
+                provider_consensus="UNAVAILABLE",
                 demo=False,
             )
         # Normalize deliberately instead of silently assuming the user summed to 100.
@@ -199,6 +238,8 @@ def run_live_f5(data: dict) -> EngineResult:
             retrieved_at=now,
             observed_at=market_observed,
             normalized_value={cid: {"usd": (prices.get(cid) or {}).get("usd"), "last_updated_at": (prices.get(cid) or {}).get("last_updated_at")} for cid in ids},
+            calculation_version=CALCULATION_VERSION,
+            engine_version=ENGINE_VERSION,
             confidence=72,
             freshness=market_freshness,
             license_classification="external-provider-attributed",
@@ -230,13 +271,27 @@ def run_live_f5(data: dict) -> EngineResult:
     if native_metrics:
         risk=min(100.0,risk+min(25.0,native_risk_delta))
 
-    data_conf = (72 if market_freshness in {FreshnessStatus.LIVE, FreshnessStatus.CURRENT} else 64 if call and ids else 48)
+    if market_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}:
+        warnings.append("Market-reference timestamps are stale or expired; valuation provenance is not current.")
+    if market_freshness in {FreshnessStatus.LIVE, FreshnessStatus.CURRENT}:
+        data_conf = 72
+    elif market_freshness == FreshnessStatus.RECENT:
+        data_conf = 64
+    elif market_freshness == FreshnessStatus.STALE:
+        data_conf = 50
+    elif market_freshness == FreshnessStatus.EXPIRED:
+        data_conf = 35
+    else:
+        data_conf = 48
     if native_metrics:
         data_conf=min(92,max(data_conf+8,native_confidence))
+
+    provider_consensus, data_freshness = _evidence_provenance(evidence, market_call=call, market_age=market_age)
+    result_status = AnalysisStatus.STALE_DATA if evidence and _worst_evidence_freshness(evidence) in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED} else AnalysisStatus.PARTIAL
     return EngineResult(
         engine_id=EngineId.F5,
-        engine_version="1.2.0",
-        status=AnalysisStatus.PARTIAL,
+        engine_version=ENGINE_VERSION,
+        status=result_status,
         risk_score=risk,
         data_confidence=data_conf,
         engine_confidence=68,
@@ -262,8 +317,8 @@ def run_live_f5(data: dict) -> EngineResult:
         mitigations=mitigations,
         safer_alternatives=mitigations[:],
         evidence=evidence,
-        provider_consensus="SINGLE SOURCE" if evidence else "USER_INPUT_ONLY",
-        data_freshness={"status": market_freshness.value if evidence else "UNKNOWN", "provider": "coingecko" if evidence else None, "age_seconds": market_age},
+        provider_consensus=provider_consensus,
+        data_freshness=data_freshness,
         missing_data=[
             "independent protocol and smart-contract risk for each deployment",
             "bridge and cross-chain dependency risk where applicable",
