@@ -40,4 +40,5 @@ class RivexisDecision(BaseModel):
     evidence_sources: list[str] = Field(default_factory=list)
     unresolved_conflict_count: int = 0
     evidence_count: int = 0
+    canonical_persistence_verified: bool = False
     demo: bool = False
