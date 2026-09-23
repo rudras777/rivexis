@@ -13,11 +13,11 @@ from rivexis_api.services.protocol_native import collect_protocol_native, has_pr
 
 def _num(v, default=None):
     try:
-        if v in (None, ""):
+        if v in (None, "") or isinstance(v, bool):
             return default
         parsed = float(v)
         return parsed if isfinite(parsed) else default
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return default
 
 
@@ -26,19 +26,31 @@ def _severity(score: float) -> Severity:
 
 
 def _price_freshness(prices: dict, ids: list[str]):
+    """Require timestamp coverage for every requested market reference before asserting freshness."""
     now = datetime.now(timezone.utc)
-    stamps = []
-    for cid in ids:
-        raw = (prices.get(cid) or {}).get("last_updated_at") if isinstance(prices.get(cid), dict) else None
-        try:
-            if raw not in (None, ""):
-                parsed = float(raw)
-                if isfinite(parsed):
-                    stamps.append(parsed)
-        except (TypeError, ValueError):
-            pass
-    if not stamps:
+    if not ids:
         return FreshnessStatus.UNKNOWN, None, now
+    stamps: list[float] = []
+    for cid in ids:
+        row = prices.get(cid)
+        if not isinstance(row, dict):
+            return FreshnessStatus.UNKNOWN, None, now
+        raw = row.get("last_updated_at")
+        if raw in (None, "") or isinstance(raw, bool):
+            return FreshnessStatus.UNKNOWN, None, now
+        try:
+            parsed = float(raw)
+        except (TypeError, ValueError, OverflowError):
+            return FreshnessStatus.UNKNOWN, None, now
+        if not isfinite(parsed):
+            return FreshnessStatus.UNKNOWN, None, now
+        try:
+            observed = datetime.fromtimestamp(parsed, tz=timezone.utc)
+        except (ValueError, OSError, OverflowError):
+            return FreshnessStatus.UNKNOWN, None, now
+        if (observed - now).total_seconds() > 300:
+            return FreshnessStatus.UNKNOWN, None, observed
+        stamps.append(parsed)
     observed = datetime.fromtimestamp(min(stamps), tz=timezone.utc)
     age = max(0.0, (now - observed).total_seconds())
     status = FreshnessStatus.LIVE if age <= 120 else FreshnessStatus.CURRENT if age <= 900 else FreshnessStatus.RECENT if age <= 3600 else FreshnessStatus.STALE if age <= 21600 else FreshnessStatus.EXPIRED
@@ -235,7 +247,6 @@ def run_live_f5(data: dict) -> EngineResult:
                 missing_data=["valid allocation weights"],
                 demo=False,
             )
-        # Normalize deliberately instead of silently assuming the user summed to 100.
         for row in normalized:
             row["weight_pct"] = (float(row["weight_pct"] or 0) / weight_sum) * 100
             if capital is not None:
@@ -323,6 +334,8 @@ def run_live_f5(data: dict) -> EngineResult:
 
     if market_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}:
         warnings.append("Market-reference timestamps are stale; refresh price evidence before treasury decisioning.")
+    elif call and ids and market_freshness == FreshnessStatus.UNKNOWN:
+        warnings.append("Market-reference timestamp coverage is incomplete, invalid, or future-dated; Rivexis does not assert that treasury prices are current.")
     data_conf = (72 if market_freshness in {FreshnessStatus.LIVE, FreshnessStatus.CURRENT} else 64 if call and ids else 48)
     if native_metrics:
         data_conf=min(92,max(data_conf+8,native_confidence))
