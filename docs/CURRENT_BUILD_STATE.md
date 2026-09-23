@@ -7,60 +7,55 @@ This file is the compact resume point for the dedicated normal-ChatGPT productio
 ## Repository and CI
 
 - Repository: private `rudras777/rivexis`, branch `main`.
-- Current fully certified implementation head before this state update: `e01fa907b58a8adbecfe604d5545f677d2e4a6d8`.
-- CI #316 (`35923236659`) passed the complete matrix on that head: API ruff/pytest/pip-audit, web typechecks/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and real PostgreSQL migration/runtime-control certification.
-- The API suite completed 100% and pip-audit reported no known vulnerabilities for installed non-editable dependencies.
-- Documentation commits may be ahead of `e01fa907`; they do not supersede that implementation certification unless a later implementation head is separately CI-certified.
+- Current fully certified implementation head before this state commit: `c9baf68a045b194b9c8adb1557ac77091ae20b00`.
+- CI #328 (`35928391144`) passed the complete matrix on that head: API ruff/pytest/pip-audit, web typechecks/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and real PostgreSQL migration/runtime-control certification.
+- The earlier B5/F4/F5 campaign remains preserved; this continuation added F1, B1 and B4 deterministic trust-boundary hardening without changing external provider scope.
 
-## Bulk Milestone F integrity campaign — 2026-09-24
+## Milestone F integrity campaign — latest continuation
 
-### B5 — Cross-Chain Route
+### F1 — Portfolio & Exposure
 
-- Canonical engine contract remains `1.2.0`; hardened calculation evidence is versioned `b5-live-1.3.0`.
-- LI.FI gas/fee rows must now be a valid list of rows with finite, non-negative USD amounts; malformed, boolean, negative, NaN or infinite economics cannot disappear from the route.
-- Execution duration must be finite and non-negative; included route steps must be a list of non-empty objects.
-- Requested/quoted slippage must be finite and request-consistent.
-- Route request/economic/structural contradictions fail closed as `CONFLICTING_DATA`, UNKNOWN severity and zero route score.
-- CI #312 (`35922406982`) passed the full matrix after aligning the calculation hardening with the canonical `1.2.0` engine contract.
+- Canonical engine contract remains `1.2.0`; direct portfolio evidence calculation generation is now `f1-live-1.3.0`.
+- F1 now captures one `eth_blockNumber` and uses that exact hex block tag for every requested native balance and ERC-20 `balanceOf` read in the portfolio snapshot.
+- Evidence records include the block tag and block number; no `latest` balance read can be stamped as though it came from the earlier captured block.
+- Explicit wallet/token all-or-nothing semantics, positive finite pricing and complete CoinGecko timestamp coverage remain preserved.
+- CI #322 (`35927503622`) passed the complete matrix for the F1 snapshot slice; the same changes are included in final CI #328.
 
-### F4 — Yield & Strategy Risk
+### B1 — Transaction Simulation / ABI decoding
 
-- Engine contract remains `1.2.0`.
-- Optional `apyReward` and `sigma` provider values are now trust-boundary inputs rather than permissive hints.
-- Present-but-non-finite values, negative reward APY, negative sigma, boolean numeric values, or reward APY above headline APY fail closed as `CONFLICTING_DATA` instead of being clamped or allowed to distort scoring.
-- A valid reward component is used as its exact ratio; no artificial normalization hides contradictory provider evidence.
-- CI #314 (`35922900454`) passed API, web/E2E, invariants and PostgreSQL certification.
+- Canonical B1 engine contract remains `1.3.0`.
+- ABI-free standard calldata decoding now requires canonical 32-byte address encoding: the high 12 bytes of an address word must be zero.
+- ABI booleans must be encoded as exactly `0` or `1`; other values remain malformed instead of becoming truthy.
+- Malformed standard transfer/approval-shaped calldata is returned as `MALFORMED_STANDARD_CALLDATA` and is not promoted into call-trace approval candidates.
+- Verified-ABI static decoding now enforces narrow integer widths/sign extension and fixed-bytes right-zero padding. Out-of-range `uintN`, incorrectly sign-extended `intN`, and non-zero `bytesN` padding return `MALFORMED_VERIFIED_ABI_CALLDATA` rather than plausible values.
+- Focused regression tests cover canonical and malformed address/bool/integer/fixed-bytes behavior. Final CI #328 passed with these changes.
 
-### F5 — Treasury Allocation & Scenario
+### B4 — Entity & Fund Flow
 
-- Engine contract remains `1.2.0`.
-- Python/JSON booleans can no longer masquerade as numeric quantity, weight, capital, concentration or scenario-shock values.
-- `stablecoin` remains a strict JSON boolean.
-- CoinGecko freshness is asserted only when every requested market-reference asset has a usable timestamp.
-- Missing, malformed, boolean, non-finite or materially future timestamps keep market freshness `UNKNOWN`; they are not clamped into LIVE/CURRENT evidence.
-- The oldest usable timestamp across the requested asset set is the freshness boundary when complete coverage exists.
-- Combined CI #316 (`35923236659`) passed the complete matrix on `e01fa907b58a8adbecfe604d5545f677d2e4a6d8`.
+- Canonical engine contract remains `1.0.0`.
+- B4 now validates the captured RPC block number before its direct wallet balance read and queries `eth_getBalance` at that exact block tag instead of `latest`.
+- Direct-state evidence records the block tag it actually queried, and an explicit assumption documents that the balance snapshot was pinned before evidence was stamped with a block reference.
+- Existing malformed-history, token-identity, metadata-conflict, attribution and descriptive-concentration semantics remain unchanged.
+- Final CI #328 passed the B4 single-block snapshot regression together with the F1/B1 changes.
+
+## Prior bulk Milestone F hardening retained
+
+- **B5:** canonical engine `1.2.0`; calculation generation `b5-live-1.3.0`; route request, gas/fee economics, duration and included-step contradictions fail closed as `CONFLICTING_DATA`/UNKNOWN with zero score.
+- **F4:** engine `1.2.0`; invalid/non-finite/negative reward APY or sigma and reward APY above headline APY fail closed as contradictory evidence.
+- **F5:** engine `1.2.0`; booleans cannot become numeric treasury values and CoinGecko freshness requires valid timestamp coverage for every requested asset.
+- **F2:** provider audit metadata remains bounded/descriptive only; malformed, insecure, contradictory or declaration-only audit claims cannot suppress missing-audit risk.
 
 ## Transactional email status
 
-Brevo owner-side phone/account verification remains recorded as complete.
+Brevo owner-side phone/account verification remains recorded as complete. SMTP relay and an active sender were verified; the observed sender is Gmail and is not evidence of an authenticated Rivexis-owned domain. Template `1` (`Rivexis — Account verification code`) and template `2` (`Rivexis — Password reset`) exist but remain intentionally inactive.
 
-Verified Brevo state:
-
-- SMTP relay is enabled;
-- an active sender exists, currently a Gmail address; this is not evidence of owned Rivexis domain authentication;
-- template `1`: `Rivexis — Account verification code`, tag `rivexis-auth-verification`, intentionally inactive;
-- template `2`: `Rivexis — Password reset`, tag `rivexis-auth-password-reset`, intentionally inactive.
-
-Repository implementation includes `apps/api/rivexis_api/services/transactional_email.py`, targeted tests, disabled-by-default `.env.example` configuration and `docs/TRANSACTIONAL_EMAIL.md`.
-
-Important semantics remain unchanged: Brevo API success is `accepted`/`sandbox_accepted`, never proof of delivery; true delivered/bounced/failed lifecycle state requires transactional-event/webhook evidence. No production verification/reset endpoint has been exposed and no real authentication email was sent. Templates remain inactive pending owned-domain sender authentication, runtime secret installation, sandbox certification and controlled real delivery verification.
+The repository contains the fail-closed transactional transport, targeted tests, disabled-by-default environment contract and `docs/TRANSACTIONAL_EMAIL.md`. Brevo API success is treated only as `accepted`/`sandbox_accepted`, never as delivered. No production verification/reset endpoint has been exposed and no real authentication email was sent. Activation remains gated on owned-domain sender authentication, runtime secret installation, sandbox certification, controlled real delivery and transactional lifecycle-event evidence.
 
 ## Cloudflare / live frontend
 
-The P1 deployment drift remains unresolved. Earlier live verification showed an older generic/demo-safe workspace shell at unauthenticated `/workspace`, while current source withholds workspace navigation/content until `/api/v1/workspaces` authorizes access.
+The P1 deployment drift remains unresolved. Earlier live verification showed an older generic/demo-safe workspace shell at unauthenticated `/workspace`, while current source withholds authenticated workspace content until `/api/v1/workspaces` authorizes access.
 
-A fresh Cloudflare dashboard check during this bulk pass again redirected to sign-in. No authenticated Cloudflare browser session was available, so the existing `rivexis-web` project, GitHub/main integration and deployed commit could not be inspected or changed. No deployment, DNS, billing, environment-variable, secret, route, project or API Worker change was made.
+A Cloudflare dashboard check during the preceding bulk pass again redirected to sign-in. A plugin-directory recheck during this continuation also exposed no callable Cloudflare plugin in this chat runtime. Therefore the existing `rivexis-web` project, Git/main integration and deployed commit remain unverified. No deployment, DNS, billing, environment-variable, secret, route, project or API Worker setting was changed.
 
 ## Other production gates retained
 
@@ -72,12 +67,12 @@ A fresh Cloudflare dashboard check during this bulk pass again redirected to sig
 
 ## Active product milestone
 
-Milestone F — Ten-engine completion remains active. Repository-level integrity coverage is materially deeper after the B5/F4/F5 campaign, but capability depth is not declared complete.
+Milestone F — Ten-engine completion remains active. Repository-level integrity coverage is materially deeper, but capability depth is not declared complete.
 
-Remaining depth includes B1 internal-call/state/security semantics; B2/B3 independent threat/security evidence and continuous monitoring; B4 cross-chain/protocol-semantic attribution; B5 independent bridge-security/liquidity/incident evidence; F1 automatic/indexed discovery plus NFT/DeFi positions; and deeper independent F2/F4/F5 dependency, liquidity, governance/counterparty and strategy evidence.
+Remaining depth includes deeper B1 internal/state/security semantics beyond canonical standard/verified-ABI normalization; B2/B3 independent threat/security evidence and continuous monitoring; B4 cross-chain/protocol-semantic attribution beyond the now-consistent direct-state snapshot; B5 independent bridge-security/liquidity/incident evidence; F1 automatic/indexed token discovery plus NFT/DeFi positions; and deeper independent F2/F4/F5 dependency, liquidity, governance/counterparty and strategy evidence.
 
 ## Next execution order
 
-1. If authenticated Cloudflare access becomes available, inspect the existing `rivexis-web` configuration, deploy current `main` only through the existing safe project, and re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior.
+1. If authenticated Cloudflare access becomes available, inspect the established `rivexis-web` configuration, deploy current `main` only through that existing safe project, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior.
 2. Keep Brevo authentication mail inactive until owned-domain/sender and delivery-lifecycle gates are certified.
-3. Otherwise continue the highest-value deterministic Milestone F depth slice, with full CI gating and no fabricated provider capability.
+3. Otherwise continue the highest-value deterministic Milestone F capability-depth slice, with full CI gating and no fabricated provider capability.

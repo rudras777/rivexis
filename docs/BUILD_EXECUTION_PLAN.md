@@ -6,12 +6,12 @@ Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt
 ## Current verified baseline
 
 - Repository: private `rudras777/rivexis`; default branch `main`.
-- Latest fully certified implementation head before documentation synchronization: `e01fa907b58a8adbecfe604d5545f677d2e4a6d8`.
+- Latest fully certified implementation head before this documentation commit: `c9baf68a045b194b9c8adb1557ac77091ae20b00`.
+- CI #328 (`35928391144`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and real PostgreSQL migration/runtime-control certification on that head.
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
 - API: FastAPI is the authoritative application backend. The free Cloudflare Worker API is an explicit degraded placeholder, not a replacement runtime.
 - Supabase project `ivszvufdonfgwjpfgwii` was previously verified `ACTIVE_HEALTHY` in `ap-south-1` with least-privilege application access and no security-advisor findings.
 - Brevo fail-closed transactional transport and disabled-by-default environment contract are implemented; verification/reset templates exist but remain intentionally inactive until production sender/domain and delivery-lifecycle certification.
-- CI #316 (`35923236659`) on `e01fa907b58a8adbecfe604d5545f677d2e4a6d8` passed API lint/tests/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and real PostgreSQL migration/runtime-control certification.
 
 ## Milestone sequence
 
@@ -32,9 +32,9 @@ Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt
 
 Milestone E remains complete at repository-test level. The shared analysis/decision framework preserves canonical evidence, uncertainty, versions and provenance from persisted engine output through decisions, explanations, reports and workspace history.
 
-Milestone F is **in progress**. Repository-level input/provider/freshness/parser/runtime integrity is deeply regression-tested across all ten specialist engines. This is not a declaration that all evidence-depth capabilities are complete; remaining work is deeper evidence collection/normalization through approved deterministic sources.
+Milestone F remains **in progress**. Repository-level input/provider/freshness/parser/runtime integrity is deeply regression-tested across all ten specialist engines. This is not a declaration that all evidence-depth capabilities are complete; remaining work is deeper evidence collection/normalization through approved deterministic sources.
 
-A live-production discrepancy remains open: earlier verification showed an older generic/demo-safe workspace shell on unauthenticated Cloudflare `/workspace`, while current `main` fails closed and withholds workspace content until access is authorized. A fresh 2026-09-24 Cloudflare dashboard attempt again reached sign-in without an authenticated session, so the existing `rivexis-web` deployment identity/Git integration could not be inspected or changed. No Cloudflare deployment, DNS, billing, secret, route, environment or project setting was modified.
+The live-production discrepancy remains open: earlier verification showed an older generic/demo-safe workspace shell on unauthenticated Cloudflare `/workspace`, while current `main` fails closed and withholds workspace content until access is authorized. Cloudflare dashboard access still requires an authenticated session, and the plugin directory currently exposes no callable Cloudflare connector to this chat. No Cloudflare deployment, DNS, billing, secret, route, environment or project setting has been modified by this program.
 
 ### Milestone F acceptance targets
 
@@ -42,7 +42,7 @@ A live-production discrepancy remains open: earlier verification showed an older
 - distinguish deterministic repository defects from credential/license/customer-contract gates;
 - maintain explicit versioned outputs, provenance, freshness and reproducible UNKNOWN-compatible failure states;
 - prohibit synthetic provider facts and unsupported safe conclusions;
-- fail closed on contradictory provider/request evidence rather than normalizing it into plausible scores;
+- fail closed on contradictory or non-canonical provider/request evidence rather than normalizing it into plausible scores or parameters;
 - preserve workspace authorization, canonical persistence and workspace-switch isolation;
 - require full CI before advancing from integrity hardening to a deeper capability claim;
 - do not advance to Milestone G until remaining engine-depth acceptance work is explicitly closed.
@@ -50,24 +50,24 @@ A live-production discrepancy remains open: earlier verification showed an older
 ## Milestone F completed evidence so far
 
 - Cross-engine dispatch enforces canonical current engine/evidence versions, evidence-derived provider consensus and first-class unresolved conflict semantics.
-- **B1:** standard ERC-20/ERC-721/ERC-1155 effects are normalized only from validated event logs; receipt vs simulation evidence is distinguished; ERC-1155 layout and log bounds are enforced.
+- **B1:** validated raw logs remain the only source of canonical standard token effects. ABI-free and verified-ABI static calldata now fail closed on non-canonical address padding, non-0/1 booleans, narrow integer overflow/sign-extension errors and non-zero fixed-bytes padding; malformed approval-shaped calls are not promoted into approval candidates. These changes are included in CI #328.
 - **B2:** malformed addresses/hashes are rejected before provider use; RPC-resolved transaction addresses are revalidated.
 - **B3:** current/prior state and monitoring thresholds are validated; stale/future oracle semantics fail closed without fabricated deltas.
-- **B4:** malformed indexed state is excluded, token identity is contract-based, conflicting decimals are skipped, and concentration is descriptive only.
-- **B5:** canonical engine contract remains `1.2.0`, while hardened route calculation evidence is `b5-live-1.3.0`. In addition to chain/token/amount/address/slippage/output checks, gas/fee rows must be valid finite non-negative USD values; execution duration and step structure are validated. Any contradiction becomes `CONFLICTING_DATA`/UNKNOWN with zero route score. CI #312 (`35922406982`) passed.
-- **F1:** explicitly requested reads cannot be silently subset-scored; positive exposures require complete positive finite pricing before weights/HHI/concentration.
+- **B4:** malformed indexed state is excluded, token identity is contract-based, conflicting decimals are skipped, and concentration is descriptive only. Direct native-balance evidence is now pinned to the exact captured RPC block rather than reading `latest` and stamping an earlier block reference. CI #328 covers the snapshot invariant.
+- **B5:** engine contract remains `1.2.0`; route calculation evidence `b5-live-1.3.0` validates request identity, output, gas/fee economics, duration and step structure. Contradictions become `CONFLICTING_DATA`/UNKNOWN with zero route score. CI #312 passed.
+- **F1:** engine contract remains `1.2.0`; direct evidence generation is `f1-live-1.3.0`. One captured RPC block now pins every requested native and ERC-20 holdings read. Explicit reads remain all-or-nothing and positive exposures require complete positive finite pricing. F1 slice CI #322 and combined CI #328 passed.
 - **F2:** unusable fundamentals, degraded freshness and malformed audit metadata fail closed; provider audit links remain descriptive screening metadata only.
 - **F3:** explicit authoritative adapter requests cannot silently fall back to generic modeled positions.
-- **F4:** unique pool selection and core APY/TVL integrity are preserved. Optional reward APY and sigma now fail closed when non-finite, boolean, negative or internally contradictory; reward APY above headline APY is not clamped into a plausible score. CI #314 (`35922900454`) passed.
-- **F5:** treasury numeric fields reject booleans as economic values; stablecoin remains strict boolean. Market freshness is asserted only with usable timestamp coverage for every requested CoinGecko asset; missing/malformed/future timestamps remain `UNKNOWN`. Combined CI #316 (`35923236659`) passed the complete matrix on `e01fa907`.
+- **F4:** unique pool selection and core APY/TVL integrity are preserved; invalid or contradictory optional reward APY/sigma fails closed. CI #314 passed.
+- **F5:** treasury numeric fields reject booleans and market freshness requires usable timestamp coverage for every requested CoinGecko asset. CI #316 passed.
 
 ## Remaining Milestone F work
 
 These are capability-depth items, not currently known hidden build/test errors:
 
-- B1 deeper internal-call/state/security semantics beyond standard transfer/approval normalization.
+- B1 deeper internal-call/state/security semantics and additional complex/dynamic ABI depth where it materially improves transaction understanding.
 - B2/B3 deeper independent external threat/security evidence where an approved provider contract exists; B3 remains point-in-time rather than continuous provider-native monitoring.
-- B4 cross-chain activity and richer protocol-semantic/counterparty attribution.
+- B4 cross-chain activity and richer protocol-semantic/counterparty attribution beyond the now-consistent direct-state snapshot.
 - B5 independent bridge-security, liquidity and incident evidence beyond route-aggregator evidence.
 - F1 automatic/indexed token discovery plus NFT/DeFi position ingestion from approved sources.
 - F2/F4/F5 deeper independent dependency, liquidity, governance/counterparty and strategy evidence.
@@ -83,7 +83,7 @@ These are capability-depth items, not currently known hidden build/test errors:
 
 ## Dependencies and blockers
 
-- **Cloudflare production deployment drift:** BLOCKED on authenticated Cloudflare dashboard access. The latest browser check again redirected to sign-in; `rivexis-web` Git/main integration and deployed commit remain unverified. No Cloudflare changes were made.
+- **Cloudflare production deployment drift:** BLOCKED on authenticated Cloudflare dashboard access. `rivexis-web` Git/main integration and deployed commit remain unverified; no callable Cloudflare plugin was exposed by a fresh directory check. No Cloudflare changes were made.
 - **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable production path. The current API Worker remains a degraded health/503 boundary.
 - **Custom domain:** BLOCKED on domain choice/ownership/configuration.
 - **Production email:** Brevo phone/account verification is complete; fail-closed transport, environment contract and inactive templates are implemented. Owned-domain sender authentication, production runtime secret installation, sandbox certification, real delivery verification and transactional lifecycle-event evidence remain outstanding.
@@ -95,4 +95,4 @@ These are capability-depth items, not currently known hidden build/test errors:
 
 ## Next action
 
-If authenticated Cloudflare access becomes available, inspect the established `rivexis-web` project/Git integration and deploy current `main` only through that existing safe configuration, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior. Otherwise continue Milestone F capability depth through deterministic repository work, prioritizing B1/B4/F1 or another unblocked integrity/depth slice without inventing provider evidence. Keep Brevo authentication templates inactive until sender/domain and delivery-lifecycle gates are certified. Full-CI gate every implementation slice.
+If authenticated Cloudflare access becomes available, inspect the established `rivexis-web` project/Git integration and deploy current `main` only through that existing safe configuration, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior. Otherwise continue Milestone F capability depth through deterministic repository work, prioritizing the highest-value remaining B1/B4/F1 or other unblocked evidence-depth slice without inventing provider evidence. Keep Brevo authentication templates inactive until sender/domain and delivery-lifecycle gates are certified. Full-CI gate every implementation slice.
