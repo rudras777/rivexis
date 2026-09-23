@@ -163,3 +163,56 @@ def test_call_trace_does_not_promote_malformed_approval_candidate():
     assert out["call_count"] == 2
     assert out["calls"][1]["calldata_decode"]["status"] == "MALFORMED_STANDARD_CALLDATA"
     assert out["approval_candidates"] == []
+
+
+def test_verified_abi_rejects_uint8_overflow_in_256_bit_word():
+    from rivexis_api.services.evm_decode import decode_verified_abi_calldata, function_selector
+
+    signature = "setLevel(uint8)"
+    calldata = function_selector(signature) + word(256)
+    abi = [{"type": "function", "name": "setLevel", "inputs": [{"name": "level", "type": "uint8"}], "outputs": []}]
+
+    out = decode_verified_abi_calldata(calldata, abi)
+
+    assert out["status"] == "MALFORMED_VERIFIED_ABI_CALLDATA"
+    assert out["parameters"][0]["value"] is None
+
+
+def test_verified_abi_rejects_non_sign_extended_int8_word():
+    from rivexis_api.services.evm_decode import decode_verified_abi_calldata, function_selector
+
+    signature = "setDelta(int8)"
+    calldata = function_selector(signature) + word(255)
+    abi = [{"type": "function", "name": "setDelta", "inputs": [{"name": "delta", "type": "int8"}], "outputs": []}]
+
+    out = decode_verified_abi_calldata(calldata, abi)
+
+    assert out["status"] == "MALFORMED_VERIFIED_ABI_CALLDATA"
+    assert out["parameters"][0]["value"] is None
+
+
+def test_verified_abi_accepts_canonically_sign_extended_negative_int8():
+    from rivexis_api.services.evm_decode import decode_verified_abi_calldata, function_selector
+
+    signature = "setDelta(int8)"
+    calldata = function_selector(signature) + ("f" * 64)
+    abi = [{"type": "function", "name": "setDelta", "inputs": [{"name": "delta", "type": "int8"}], "outputs": []}]
+
+    out = decode_verified_abi_calldata(calldata, abi)
+
+    assert out["status"] == "DECODED_VERIFIED_ABI"
+    assert out["parameters"][0]["value"] == -1
+
+
+def test_verified_abi_rejects_nonzero_fixed_bytes_padding():
+    from rivexis_api.services.evm_decode import decode_verified_abi_calldata, function_selector
+
+    signature = "setTag(bytes4)"
+    malformed_word = "aabbccdd" + ("0" * 54) + "01"
+    calldata = function_selector(signature) + malformed_word
+    abi = [{"type": "function", "name": "setTag", "inputs": [{"name": "tag", "type": "bytes4"}], "outputs": []}]
+
+    out = decode_verified_abi_calldata(calldata, abi)
+
+    assert out["status"] == "MALFORMED_VERIFIED_ABI_CALLDATA"
+    assert out["parameters"][0]["value"] is None
