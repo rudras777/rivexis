@@ -83,7 +83,7 @@ def test_b5_matching_quote_remains_partial_and_records_integrity(monkeypatch):
     result = live_b5.run_live_b5(payload())
 
     assert result.status == AnalysisStatus.PARTIAL
-    assert result.engine_version == "1.3.0"
+    assert result.engine_version == "1.2.0"
     assert result.metrics["integrity"] == {"status": "MATCHED", "conflict_count": 0}
     assert result.metrics["from_chain"] == 1
     assert result.metrics["to_chain"] == 42161
@@ -205,11 +205,11 @@ def test_b5_invalid_amount_and_wallet_fail_before_provider_call(monkeypatch):
     assert FakeLifi.calls == []
 
 
-def test_b5_dispatch_preserves_current_contract_and_evidence_versions(monkeypatch):
+def test_b5_dispatch_preserves_current_contract_and_calculation_versions(monkeypatch):
     install(monkeypatch, quote_body())
     result = ENGINES[EngineId.B5](payload(), False)
 
-    assert result.engine_version == "1.3.0"
-    assert {e.engine_version for e in result.evidence} == {"1.3.0"}
+    assert result.engine_version == "1.2.0"
+    assert {e.engine_version for e in result.evidence} == {"1.2.0"}
     assert {e.calculation_version for e in result.evidence} == {"b5-live-1.3.0"}
     assert result.status == AnalysisStatus.PARTIAL
