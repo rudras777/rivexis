@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from math import isfinite
 from typing import Any
 from uuid import uuid4
 
@@ -54,17 +55,41 @@ def ev(
     )
 
 
+def _finite_number(value: object) -> float | None:
+    if value in (None, "") or isinstance(value, bool):
+        return None
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if isfinite(parsed) else None
+
+
+def _rpc_quantity(value: object) -> int | None:
+    if value in (None, "") or isinstance(value, bool):
+        return None
+    try:
+        parsed = hex_to_int(value)
+    except (TypeError, ValueError):
+        return None
+    if parsed is None or parsed < 0:
+        return None
+    return parsed
+
+
 def _market_freshness(prices: dict[str, Any], ids: list[str]):
     now = datetime.now(timezone.utc)
-    stamps = []
+    now_ts = now.timestamp()
+    stamps: list[float] = []
     for cid in ids:
         row = prices.get(cid)
         raw = row.get("last_updated_at") if isinstance(row, dict) else None
-        try:
-            if raw not in (None, ""):
-                stamps.append(float(raw))
-        except (TypeError, ValueError):
-            pass
+        parsed = _finite_number(raw)
+        # Freshness is an all-requested-assets contract. One missing/corrupt or
+        # materially future observation timestamp means the aggregate is UNKNOWN.
+        if parsed is None or parsed <= 0 or parsed > now_ts + 300:
+            return FreshnessStatus.UNKNOWN, None, now
+        stamps.append(parsed)
     if not stamps:
         return FreshnessStatus.UNKNOWN, None, now
     observed = datetime.fromtimestamp(min(stamps), tz=timezone.utc)
@@ -109,12 +134,7 @@ def _balance_of_calldata(wallet: str) -> str:
 
 
 def _aggregate_positions(positions: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Aggregate one economic exposure before concentration scoring.
-
-    Multiple wallets, or a manual position plus an observed wallet balance, must not
-    appear as independent diversification merely because they were collected as
-    separate rows.
-    """
+    """Aggregate one economic exposure before concentration scoring."""
 
     grouped: dict[str, dict[str, Any]] = {}
     for position in positions:
@@ -128,48 +148,95 @@ def _aggregate_positions(positions: list[dict[str, Any]]) -> list[dict[str, Any]
                 "sources": [],
             },
         )
-        row["quantity"] += float(position.get("quantity") or 0)
+        row["quantity"] += float(position["quantity"])
         source = str(position.get("source") or "unknown")
         if source not in row["sources"]:
             row["sources"].append(source)
-    return list(grouped.values())
+    return [row for row in grouped.values() if row["quantity"] > 0]
 
 
-def _erc20_specs(input_data: dict[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
+def _erc20_specs(input_data: dict[str, Any]) -> tuple[list[dict[str, Any]], str | None]:
     raw = input_data.get("erc20_tokens") or input_data.get("token_contracts") or []
     if raw and not isinstance(raw, list):
-        return [], ["erc20_tokens must be a list"]
-    specs = []
-    missing = []
+        return [], "erc20_tokens must be a list"
+    specs: list[dict[str, Any]] = []
+    seen_contracts: dict[str, tuple[str, int]] = {}
     for index, item in enumerate(raw):
         if not isinstance(item, dict):
-            missing.append(f"valid ERC-20 token descriptor at index {index}")
-            continue
+            return [], f"ERC-20 token descriptor at index {index} must be an object"
         contract = _address(item.get("contract_address") or item.get("contract"))
-        asset_id = item.get("coingecko_id") or item.get("asset_id")
+        asset_id = str(item.get("coingecko_id") or item.get("asset_id") or "").strip()
         decimals = item.get("decimals")
-        if contract is None or asset_id is None or decimals is None:
-            missing.append(
-                f"ERC-20 descriptor {index} requires contract_address, coingecko_id, and decimals"
-            )
-            continue
+        if contract is None or not asset_id or decimals is None:
+            return [], f"ERC-20 descriptor {index} requires contract_address, coingecko_id, and decimals"
+        if isinstance(decimals, bool):
+            return [], f"ERC-20 decimals for {asset_id} must be an integer"
         try:
             decimals = int(decimals)
         except (TypeError, ValueError):
-            missing.append(f"numeric ERC-20 decimals for {asset_id}")
-            continue
+            return [], f"ERC-20 decimals for {asset_id} must be an integer"
         if decimals < 0 or decimals > 36:
-            missing.append(f"ERC-20 decimals between 0 and 36 for {asset_id}")
+            return [], f"ERC-20 decimals for {asset_id} must be between 0 and 36"
+        identity = (asset_id, decimals)
+        previous = seen_contracts.get(contract)
+        if previous is not None:
+            if previous != identity:
+                return [], f"ERC-20 contract {contract} has conflicting asset identity/decimals descriptors"
             continue
+        seen_contracts[contract] = identity
         specs.append(
             {
                 "contract": contract,
-                "id": str(asset_id),
+                "id": asset_id,
                 "label": str(item.get("symbol") or asset_id),
                 "decimals": decimals,
             }
         )
-    return specs, missing
+    return specs, None
+
+
+def _requested_wallets(input_data: dict[str, Any]) -> tuple[list[str], str | None]:
+    raw = input_data.get("wallets")
+    if raw is None:
+        raw = [] if input_data.get("wallet") in (None, "") else [input_data.get("wallet")]
+    if not isinstance(raw, list):
+        return [], "wallets must be a list"
+    wallets: list[str] = []
+    for index, value in enumerate(raw):
+        wallet = _address(value)
+        if wallet is None:
+            return [], f"wallet at index {index} must be a valid EVM address"
+        if wallet not in wallets:
+            wallets.append(wallet)
+    return wallets, None
+
+
+def _provider_unavailable(
+    *,
+    summary: str,
+    warnings: list[str],
+    missing: list[str],
+    evidence: list[EvidenceRecord],
+    statuses: list[dict[str, Any]],
+    provider_id: str,
+    code: str,
+) -> EngineResult:
+    return EngineResult(
+        engine_id=EngineId.F1,
+        engine_version="1.2.0",
+        status=AnalysisStatus.PROVIDER_UNAVAILABLE,
+        risk_score=0,
+        data_confidence=0,
+        engine_confidence=0,
+        severity=Severity.UNKNOWN,
+        summary=summary,
+        warnings=warnings,
+        evidence=evidence,
+        missing_data=sorted(set(missing)),
+        provider_consensus="UNAVAILABLE",
+        provider_status=statuses + [{"provider_id": provider_id, "status": code}],
+        demo=False,
+    )
 
 
 def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
@@ -184,39 +251,41 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
     if manual and not isinstance(manual, list):
         return _fail("manual_positions must be a list")
     manual_used = False
-    for pos in manual:
+    for index, pos in enumerate(manual):
         if not isinstance(pos, dict):
-            continue
-        gid = pos.get("coingecko_id") or pos.get("asset_id")
-        qty = pos.get("quantity")
-        if gid is None or qty is None:
-            missing.append("manual position coingecko_id/quantity")
-            continue
-        try:
-            qty = float(qty)
-        except (TypeError, ValueError):
-            missing.append(f"numeric quantity for {gid}")
+            return _fail(f"manual position at index {index} must be an object")
+        gid = str(pos.get("coingecko_id") or pos.get("asset_id") or "").strip()
+        qty = _finite_number(pos.get("quantity"))
+        if not gid:
+            return _fail(f"manual position at index {index} requires coingecko_id/asset_id")
+        if qty is None:
+            return _fail(f"manual position quantity for {gid} must be a finite number")
+        if qty < 0:
+            return _fail(f"manual position quantity for {gid} cannot be negative")
+        manual_used = True
+        if qty == 0:
             continue
         positions.append(
             {
-                "id": str(gid),
+                "id": gid,
                 "label": str(pos.get("symbol") or gid),
                 "quantity": qty,
                 "source": "manual",
             }
         )
-        manual_used = True
 
-    token_specs, token_spec_errors = _erc20_specs(input_data)
-    missing.extend(token_spec_errors)
-    wallets = input_data.get("wallets") or (
-        [] if not input_data.get("wallet") else [input_data.get("wallet")]
-    )
+    token_specs, token_spec_error = _erc20_specs(input_data)
+    if token_spec_error:
+        return _fail(token_spec_error)
+    wallets, wallet_error = _requested_wallets(input_data)
+    if wallet_error:
+        return _fail(wallet_error)
+    if token_specs and not wallets:
+        return _fail("wallet address is required for explicitly requested ERC-20 balance reads")
+
     chain = None
     block_number = None
     if wallets:
-        if not isinstance(wallets, list):
-            return _fail("wallets must be a list")
         try:
             chain = normalize_chain(input_data.get("chain") or "ethereum")
         except ValueError as exc:
@@ -232,7 +301,13 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                 for x in fallbacks
             )
             block = rpc.call("eth_blockNumber")
-            block_number = hex_to_int(block.result)
+            block_number = _rpc_quantity(block.result)
+            if block_number is None:
+                raise ProviderError(
+                    "RPC returned a malformed block number",
+                    provider_id=pid,
+                    code="MALFORMED_RESPONSE",
+                )
             evidence.append(
                 ev(
                     block,
@@ -245,16 +320,17 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                     "eth_blockNumber",
                 )
             )
+
             total_native = 0.0
-            valid_wallets = []
             for wallet in wallets:
-                w = _address(wallet)
-                if w is None:
-                    missing.append(f"valid wallet address: {wallet}")
-                    continue
-                valid_wallets.append(w)
-                bal = rpc.call("eth_getBalance", [w, "latest"])
-                wei = hex_to_int(bal.result) or 0
+                bal = rpc.call("eth_getBalance", [wallet, "latest"])
+                wei = _rpc_quantity(bal.result)
+                if wei is None:
+                    raise ProviderError(
+                        "RPC returned a malformed native balance",
+                        provider_id=pid,
+                        code="MALFORMED_RESPONSE",
+                    )
                 native = wei / 1e18
                 total_native += native
                 evidence.append(
@@ -263,7 +339,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                         pid,
                         "direct_state",
                         {
-                            "wallet": w,
+                            "wallet": wallet,
                             "native_balance": native,
                             "native_symbol": chain.native_symbol,
                         },
@@ -284,61 +360,53 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                 )
 
             for spec in token_specs:
-                for wallet in valid_wallets:
-                    try:
-                        token_call = rpc.call(
-                            "eth_call",
-                            [
-                                {
-                                    "to": spec["contract"],
-                                    "data": _balance_of_calldata(wallet),
-                                },
-                                "latest",
-                            ],
+                for wallet in wallets:
+                    token_call = rpc.call(
+                        "eth_call",
+                        [
+                            {
+                                "to": spec["contract"],
+                                "data": _balance_of_calldata(wallet),
+                            },
+                            "latest",
+                        ],
+                    )
+                    raw_balance = _rpc_quantity(token_call.result)
+                    if raw_balance is None:
+                        raise ProviderError(
+                            "ERC-20 balanceOf returned a malformed quantity",
+                            provider_id=pid,
+                            code="INVALID_TOKEN_BALANCE",
                         )
-                        raw_balance = hex_to_int(token_call.result)
-                        if raw_balance is None:
-                            raise ProviderError(
-                                "ERC-20 balanceOf returned a non-quantity result",
-                                provider_id=pid,
-                                code="INVALID_TOKEN_BALANCE",
-                            )
-                        quantity = raw_balance / (10 ** spec["decimals"])
-                        evidence.append(
-                            ev(
-                                token_call,
-                                pid,
-                                "direct_token_balance",
-                                {
-                                    "wallet": wallet,
-                                    "token_contract": spec["contract"],
-                                    "coingecko_id": spec["id"],
-                                    "symbol": spec["label"],
-                                    "decimals": spec["decimals"],
-                                    "raw_balance": raw_balance,
-                                    "quantity": quantity,
-                                },
-                                chain.chain_id,
-                                block_number,
-                                96,
-                                "eth_call balanceOf(address)",
-                            )
+                    quantity = raw_balance / (10 ** spec["decimals"])
+                    evidence.append(
+                        ev(
+                            token_call,
+                            pid,
+                            "direct_token_balance",
+                            {
+                                "wallet": wallet,
+                                "token_contract": spec["contract"],
+                                "coingecko_id": spec["id"],
+                                "symbol": spec["label"],
+                                "decimals": spec["decimals"],
+                                "raw_balance": raw_balance,
+                                "quantity": quantity,
+                            },
+                            chain.chain_id,
+                            block_number,
+                            96,
+                            "eth_call balanceOf(address)",
                         )
-                        if quantity > 0:
-                            positions.append(
-                                {
-                                    "id": spec["id"],
-                                    "label": spec["label"],
-                                    "quantity": quantity,
-                                    "source": "wallet-erc20-balance",
-                                }
-                            )
-                    except ProviderError as exc:
-                        warnings.append(
-                            f"ERC-20 balance read failed for {spec['label']} at {spec['contract']}: {exc.code}."
-                        )
-                        missing.append(
-                            f"ERC-20 balance for {spec['label']} at {spec['contract']}"
+                    )
+                    if quantity > 0:
+                        positions.append(
+                            {
+                                "id": spec["id"],
+                                "label": spec["label"],
+                                "quantity": quantity,
+                                "source": "wallet-erc20-balance",
+                            }
                         )
 
             statuses.append(
@@ -356,16 +424,15 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                 ]
             )
         except ProviderError as exc:
-            statuses.append(
-                {
-                    "provider_id": exc.provider_id,
-                    "status": "UNAVAILABLE",
-                    "detail": f"{exc.code}: {exc}",
-                }
+            return _provider_unavailable(
+                summary="One or more explicitly requested wallet/token holdings could not be observed; Rivexis did not score an incomplete portfolio.",
+                warnings=[f"{exc.code}: {exc}"],
+                missing=[*missing, "complete explicitly requested wallet/token balance evidence"],
+                evidence=evidence,
+                statuses=statuses,
+                provider_id=exc.provider_id,
+                code=exc.code,
             )
-            missing.append("live wallet balances")
-    elif token_specs:
-        missing.append("wallet address required for ERC-20 balance reads")
 
     if not positions:
         return EngineResult(
@@ -376,11 +443,12 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
             data_confidence=0,
             engine_confidence=0,
             severity=Severity.UNKNOWN,
-            summary="No usable portfolio positions were available.",
+            summary="No positive portfolio positions were available.",
             warnings=["No portfolio value was fabricated."],
-            missing_data=sorted(set(missing + ["manual positions or wallet balances"])),
+            missing_data=sorted(set(missing + ["positive manual positions or wallet balances"])),
             provider_consensus="UNAVAILABLE",
             provider_status=statuses,
+            demo=False,
         )
 
     positions = _aggregate_positions(positions)
@@ -409,17 +477,41 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                     "detail": f"{exc.code}: {exc}",
                 }
             ],
+            demo=False,
         )
-    prices = price_call.result if isinstance(price_call.result, dict) else {}
-    normalized_prices = {
-        k: {
-            "usd": v.get("usd"),
-            "last_updated_at": v.get("last_updated_at"),
-            "usd_24h_change": v.get("usd_24h_change"),
+
+    if not isinstance(price_call.result, dict):
+        return EngineResult(
+            engine_id=EngineId.F1,
+            engine_version="1.2.0",
+            status=AnalysisStatus.PROVIDER_UNAVAILABLE,
+            risk_score=0,
+            data_confidence=0,
+            engine_confidence=0,
+            severity=Severity.UNKNOWN,
+            summary="Market-reference provider returned an unusable payload; no portfolio valuation was produced.",
+            warnings=["CoinGecko response was not an object."],
+            evidence=evidence,
+            missing_data=sorted(set(missing + ["usable market-reference payload"])),
+            provider_consensus="UNAVAILABLE",
+            provider_status=statuses + [{"provider_id": "coingecko", "status": "MALFORMED_RESPONSE"}],
+            demo=False,
+        )
+    prices = price_call.result
+
+    normalized_prices: dict[str, dict[str, Any]] = {}
+    invalid_price_ids: list[str] = []
+    for cid in ids:
+        row = prices.get(cid)
+        px = _finite_number(row.get("usd")) if isinstance(row, dict) else None
+        if px is None or px <= 0:
+            invalid_price_ids.append(cid)
+        normalized_prices[cid] = {
+            "usd": px,
+            "last_updated_at": _finite_number(row.get("last_updated_at")) if isinstance(row, dict) else None,
+            "usd_24h_change": _finite_number(row.get("usd_24h_change")) if isinstance(row, dict) else None,
         }
-        for k, v in prices.items()
-        if isinstance(v, dict)
-    }
+
     market_freshness, market_age, market_observed = _market_freshness(prices, ids)
     evidence.append(
         ev(
@@ -436,19 +528,44 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
     statuses.append(
         {
             "provider_id": "coingecko",
-            "status": "HEALTHY",
+            "status": "HEALTHY" if not invalid_price_ids else "INCOMPLETE_RESPONSE",
             "latency_ms": round(price_call.latency_ms, 2),
         }
     )
+
+    if invalid_price_ids:
+        return EngineResult(
+            engine_id=EngineId.F1,
+            engine_version="1.2.0",
+            status=AnalysisStatus.INSUFFICIENT_DATA,
+            risk_score=0,
+            data_confidence=30,
+            engine_confidence=0,
+            severity=Severity.UNKNOWN,
+            summary="Portfolio concentration cannot be scored because one or more observed exposures lack a positive finite market price.",
+            warnings=["Rivexis did not silently exclude an unvalued exposure from portfolio weights."],
+            evidence=evidence,
+            missing_data=sorted(set(missing + [f"positive finite market price for: {', '.join(invalid_price_ids)}"])),
+            provider_consensus=("MULTI_SOURCE" if len({e.provider for e in evidence}) > 1 else "SINGLE_SOURCE"),
+            provider_status=statuses,
+            data_freshness={
+                "status": market_freshness.value,
+                "price_provider": "coingecko",
+                "price_age_seconds": market_age,
+                "block_number": block_number,
+            },
+            demo=False,
+        )
+
     valued = []
     total = 0.0
     for position in positions:
-        row = prices.get(position["id"])
-        px = row.get("usd") if isinstance(row, dict) else None
-        if px is None:
-            missing.append(f"price for {position['id']}")
-            continue
+        px = normalized_prices[position["id"]]["usd"]
         value = float(px) * position["quantity"]
+        # px and quantity have already passed finite/positive validation, so this
+        # is defensive against unexpected floating-point overflow.
+        if not isfinite(value) or value <= 0:
+            return _fail(f"Position value for {position['id']} is not a positive finite number")
         total += value
         valued.append(
             {
@@ -457,8 +574,9 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                 "value_usd": round(value, 6),
             }
         )
-    if total <= 0:
-        return _fail("Positions were found, but no positive USD portfolio value could be calculated")
+    if not isfinite(total) or total <= 0:
+        return _fail("Positions were found, but no positive finite USD portfolio value could be calculated")
+
     for position in valued:
         position["weight_pct"] = round(100 * position["value_usd"] / total, 4)
     largest = max((p["weight_pct"] for p in valued), default=0.0)
@@ -480,6 +598,14 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
         warnings.append(
             "Market reference timestamps are stale; valuation confidence is reduced."
         )
+    elif market_freshness == FreshnessStatus.UNKNOWN:
+        warnings.append(
+            "One or more market-reference observation timestamps are missing, invalid or materially future-dated; freshness is UNKNOWN."
+        )
+        assumptions.append(
+            "HTTP retrieval time is not treated as proof that all market-reference observations are current."
+        )
+
     data_conf = (
         82
         if market_freshness in {FreshnessStatus.LIVE, FreshnessStatus.CURRENT}
@@ -501,7 +627,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
         engine_confidence=78 if token_specs else 76,
         severity=_sev(score),
         summary=(
-            "F1 valued aggregated manual and directly observed native/ERC-20 wallet holdings with provider market references where available; automatic token discovery, NFT and DeFi positions remain partial."
+            "F1 valued aggregated manual and fully observed requested native/ERC-20 wallet holdings with provider market references; automatic token discovery, NFT and DeFi positions remain partial."
         ),
         metrics={
             "portfolio_value_usd": round(total, 2),
@@ -530,6 +656,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
         missing_data=sorted(set(missing)),
         provider_status=statuses,
         assumptions=assumptions,
+        demo=False,
     )
 
 
@@ -548,4 +675,5 @@ def _fail(
         warnings=["No portfolio metric was fabricated."],
         missing_data=["valid F1 portfolio input"],
         provider_consensus="UNAVAILABLE",
+        demo=False,
     )
