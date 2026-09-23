@@ -5,7 +5,7 @@ Last updated: 2026-09-23
 | Environment | Status | Evidence / meaning |
 |---|---|---|
 | Local development | AVAILABLE, NOT VERIFIED IN THIS CHAT | Repository contains SQLite/local and Docker/PostgreSQL development paths. No local shell execution was used for this update. |
-| GitHub CI | PASS FOR CURRENT MILESTONE SLICE | PR #15 CI run #187 (`35836050226`) passed API, web/Playwright/Axe, invariants and PostgreSQL migration/runtime-control jobs after PR #13/#14 also passed their full gates. |
+| GitHub CI | PASS FOR CURRENT MILESTONE SLICE | Latest engine-integrity gate: PR #24 head `dc8a481ca2136db83e13ee6b24c5ccf1b7e1bc04`, CI #255 (`35851151093`), with API, web/Playwright/Axe, invariants/secret/migration checks and PostgreSQL migration/runtime-control jobs all passing. |
 | Free frontend preview | LIVE, SOURCE MERGED / DEPLOYMENT UNVERIFIED | `https://rivexis-web.rudrasingh0718.workers.dev` was previously reachable. Current Milestone F source is merged and CI-verified but is not claimed live until a Cloudflare deployment is independently verified. |
 | Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` previously returned `status=degraded`; application routes intentionally return 503. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`; 53 product + 2 runtime-control tables previously verified. |
@@ -25,16 +25,17 @@ Last updated: 2026-09-23
 ## Current milestone verification
 
 - Milestone E repository implementation is complete through PR #12.
-- Milestone F ten-engine contract audit is active and recorded in `docs/TEN_ENGINE_CONTRACT_AUDIT.md`.
-- PR #13 (`Normalize ten-engine live evidence contracts`) final head `195dbdd39db9dffa13eba0626a31a569bbeeb32c`; CI #175 (`35834716319`) PASS; merged as `7571776acc222f53458823b8a2fe962d5f22cb29`.
-- PR #14 (`Fail closed on explicit F3 protocol-adapter requests`) final head `a6e86cd23b57d1eaf1b1131c46b09d4ac1792595`; CI #181 (`35835418949`) PASS; merged as `3f3a637c1e3e5ff55b5d1211db7780e43fd69943`.
-- PR #15 (`Promote unresolved live provider conflicts to conflicting status`) final head `34f66a0abd9794efd9352b73e733212cc5a2a350`; CI #187 (`35836050226`) PASS; merged as `faf0652cf6834a59c7e55d09759bdbf13689218f`.
-- Current live-dispatch contract now aligns current result/evidence engine versions, preserves specific calculation versions, derives provider consensus from actual evidence, promotes unresolved provider conflicts to `CONFLICTING_DATA`, and keeps historical persisted analyses unchanged.
-- F3 explicit authoritative adapter requests no longer silently fall through to a generic modeled risk conclusion; missing authoritative adapter evidence fails closed.
-- B4 external identity-label disagreement no longer remains an ordinary partial state; conflict consensus and status now agree.
+- Milestone F remains the active repository milestone; its ten-engine audit is recorded in `docs/TEN_ENGINE_CONTRACT_AUDIT.md`.
+- PRs #13–#15 established the shared live version/consensus/conflict and explicit F3-adapter trust boundaries.
+- PRs #16–#20 added engine-specific integrity coverage for B1, F1, B5, B2 and B3.
+- PR #21 (`F5 treasury input integrity`) CI #235 (`35849027346`) PASS; merged as `7e00dfd174d9d45a15f9ac8e24b8f81be5ea4ca0`.
+- PR #22 (`F4 selector/freshness integrity`) CI #241 (`35849611567`) PASS; merged as `6b08418e2721d8f9cffeca406db5953746272cfc`. Its initial API audit attempt failed only at `pip-audit`; rerunning the same failed job on the unchanged dependency graph passed, and the full workflow concluded success before merge.
+- PR #23 (`F2 provider payload/freshness integrity`) CI #249 (`35850515073`) PASS; merged as `f0676d0a911398a396aa5f32b187a1f14b5ee187`.
+- PR #24 (`B4 entity/fund-flow provider integrity`) final head `dc8a481ca2136db83e13ee6b24c5ccf1b7e1bc04`; CI #255 (`35851151093`) PASS; merged as `683ff4d67a4923338d82c4be4656d62a81413adc`.
+- All ten engines now have targeted repository-level integrity coverage for the contract/input/provider/freshness defects identified by the Milestone F audit. Remaining work is deeper evidence/capability completion, not a claim that all engine functionality is complete.
 - These are repository-level implementation and CI findings only. They are not live-provider or production certification evidence.
 - Real deployed browser/auth/workspace/analysis certification remains blocked until a live FastAPI runtime exists.
-- No paid Cloudflare feature, new vendor, production credential, email send or external provider activation was performed.
+- No paid Cloudflare feature, new vendor, production credential, email send or external provider activation was performed by these slices.
 - The live Worker is not claimed to contain the current merged source until a real deployment is verified.
 
 ## Supabase verification notes
