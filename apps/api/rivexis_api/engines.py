@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+from rivexis_api.chains import normalize_chain
 from rivexis_api.models.engine import EngineResult
 from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, Severity
 from rivexis_api.models.evidence import EvidenceRecord, SourceConflict
@@ -125,6 +126,93 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
         },
         "limitations": limitations,
     }
+
+
+def _b3_snapshot_contract_error(input_data: dict) -> EngineResult | None:
+    """Reject B3 change detection against an unrelated prior snapshot."""
+
+    previous = input_data.get("previous_snapshot")
+    if previous is None:
+        return None
+    if not isinstance(previous, dict):
+        return _b3_snapshot_failure("previous_snapshot must be an object produced by B3")
+
+    current_entity = str(
+        input_data.get("entity")
+        or input_data.get("address")
+        or input_data.get("wallet")
+        or input_data.get("contract")
+        or ""
+    ).strip().lower()
+    previous_entity = str(previous.get("entity") or "").strip().lower()
+    if not previous_entity:
+        return _b3_snapshot_failure(
+            "previous_snapshot is missing the monitored entity identity"
+        )
+    if current_entity and previous_entity != current_entity:
+        return _b3_snapshot_failure(
+            "previous_snapshot belongs to a different monitored entity"
+        )
+
+    try:
+        current_chain = normalize_chain(
+            input_data.get("chain") or input_data.get("network")
+        )
+    except ValueError:
+        return None
+    try:
+        previous_chain_id = int(previous.get("chain_id"))
+    except (TypeError, ValueError):
+        return _b3_snapshot_failure(
+            "previous_snapshot is missing a valid chain_id identity"
+        )
+    if previous_chain_id != current_chain.chain_id:
+        return _b3_snapshot_failure(
+            "previous_snapshot belongs to a different blockchain network"
+        )
+
+    current_token = str(input_data.get("token_contract") or "").strip().lower()
+    previous_token = str(previous.get("token_contract") or "").strip().lower()
+    if current_token and previous_token and current_token != previous_token:
+        return _b3_snapshot_failure(
+            "previous_snapshot token_contract does not match the current monitor"
+        )
+
+    current_oracle = str(input_data.get("oracle_feed") or "").strip().lower()
+    previous_oracle_data = previous.get("oracle")
+    previous_oracle = (
+        str(previous_oracle_data.get("feed") or "").strip().lower()
+        if isinstance(previous_oracle_data, dict)
+        else ""
+    )
+    if current_oracle and previous_oracle and current_oracle != previous_oracle:
+        return _b3_snapshot_failure(
+            "previous_snapshot oracle feed does not match the current monitor"
+        )
+    return None
+
+
+def _b3_snapshot_failure(message: str) -> EngineResult:
+    return EngineResult(
+        engine_id=EngineId.B3,
+        engine_version=LIVE_ENGINE_VERSIONS[EngineId.B3],
+        status=AnalysisStatus.INSUFFICIENT_DATA,
+        risk_score=0,
+        data_confidence=0,
+        engine_confidence=0,
+        severity=Severity.UNKNOWN,
+        summary=message,
+        warnings=[
+            "B3 change detection was not run because prior-state identity could not be proven."
+        ],
+        missing_data=["same-entity same-chain prior B3 snapshot"],
+        provider_consensus="UNAVAILABLE",
+        data_freshness={"status": FreshnessStatus.UNKNOWN.value},
+        assumptions=[
+            "Rivexis does not compare monitoring snapshots across different or unverified entities/networks."
+        ],
+        demo=False,
+    )
 
 
 def _normalize_current_live_contract(result: EngineResult) -> EngineResult:
@@ -346,7 +434,8 @@ def _run_live(engine_id: EngineId, input_data: dict) -> EngineResult:
     elif engine_id == EngineId.B3:
         from rivexis_api.services.live_b3 import run_live_b3
 
-        result = run_live_b3(input_data)
+        snapshot_error = _b3_snapshot_contract_error(input_data)
+        result = snapshot_error or run_live_b3(input_data)
     elif engine_id == EngineId.B4:
         from rivexis_api.services.live_b4 import run_live_b4
 
