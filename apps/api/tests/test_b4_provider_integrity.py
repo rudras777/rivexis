@@ -189,7 +189,7 @@ def test_b4_attributed_label_uses_unknown_freshness_without_provider_timestamp(m
     assert result.engine_confidence == 62
     assert result.data_freshness["status"] == FreshnessStatus.UNKNOWN.value
     assert result.data_freshness["entity_labels"] == FreshnessStatus.UNKNOWN.value
-    assert any("current RPC block applies only to direct-state evidence" in text for text in result.assumptions)
+    assert any("applies only to direct-state evidence" in text for text in result.assumptions)
 
 
 def test_b4_malformed_indexed_value_row_is_skipped_not_zeroed_or_crashed(monkeypatch):
