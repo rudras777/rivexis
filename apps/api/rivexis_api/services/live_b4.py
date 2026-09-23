@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import defaultdict
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -352,54 +352,120 @@ def run_live_b4(data: dict) -> EngineResult:
         provider_status.append({"provider_id": "etherscan", "status": "CREDENTIALS_REQUIRED"})
         missing.append("indexed transaction/token-transfer history (Etherscan key not configured)")
 
-    counterparties = Counter()
+    counterparty_flows: dict[str, dict] = defaultdict(
+        lambda: {
+            "normal_in_count": 0,
+            "normal_out_count": 0,
+            "token_in_count": 0,
+            "token_out_count": 0,
+            "native_in": 0.0,
+            "native_out": 0.0,
+            "token_assets": {},
+        }
+    )
     native_in = native_out = 0.0
     malformed_history_rows = 0
+    token_metadata_conflicts = 0
+    normalized_normal_rows = 0
+    normalized_token_rows = 0
+
     for tx in normal_txs:
         frm = _address(tx.get("from"))
         to = _address(tx.get("to"))
         raw_value = _uint_decimal(tx.get("value") or 0)
-        if raw_value is None:
+        if raw_value is None or (frm != wallet and to != wallet):
             malformed_history_rows += 1
             continue
         value = raw_value / 10**18
+        normalized_normal_rows += 1
         if frm == wallet:
             native_out += value
             if to:
-                counterparties[to] += 1
+                row = counterparty_flows[to]
+                row["normal_out_count"] += 1
+                row["native_out"] += value
         elif to == wallet:
             native_in += value
             if frm:
-                counterparties[frm] += 1
+                row = counterparty_flows[frm]
+                row["normal_in_count"] += 1
+                row["native_in"] += value
 
-    tokens = defaultdict(lambda: {"in": 0.0, "out": 0.0, "count": 0, "contract": None})
+    tokens: dict[str, dict] = {}
     for tx in token_txs:
+        contract = _address(tx.get("contractAddress"))
         raw_amount = _uint_decimal(tx.get("value") or 0)
         decimals = _uint_decimal(tx.get("tokenDecimal"), maximum=255)
-        if raw_amount is None or decimals is None:
-            malformed_history_rows += 1
-            continue
-        amount = raw_amount / (10**decimals)
-        symbol = str(tx.get("tokenSymbol") or "UNKNOWN")[:64]
-        row = tokens[symbol]
-        row["contract"] = _address(tx.get("contractAddress")) or tx.get("contractAddress")
-        row["count"] += 1
         frm = _address(tx.get("from"))
         to = _address(tx.get("to"))
+        if (
+            contract is None
+            or raw_amount is None
+            or decimals is None
+            or (frm != wallet and to != wallet)
+        ):
+            malformed_history_rows += 1
+            continue
+
+        symbol = str(tx.get("tokenSymbol") or "UNKNOWN").strip()[:64] or "UNKNOWN"
+        existing = tokens.get(contract)
+        if existing is not None and existing["decimals"] != decimals:
+            malformed_history_rows += 1
+            token_metadata_conflicts += 1
+            continue
+
+        amount = raw_amount / (10**decimals)
+        if existing is None:
+            existing = {
+                "contract": contract,
+                "symbols": set(),
+                "decimals": decimals,
+                "in": 0.0,
+                "out": 0.0,
+                "count": 0,
+            }
+            tokens[contract] = existing
+        existing["symbols"].add(symbol)
+        existing["count"] += 1
+        normalized_token_rows += 1
+
         if frm == wallet:
-            row["out"] += amount
-            if to:
-                counterparties[to] += 1
-        elif to == wallet:
-            row["in"] += amount
-            if frm:
-                counterparties[frm] += 1
+            existing["out"] += amount
+            counterparty = to
+            direction = "out"
+        else:
+            existing["in"] += amount
+            counterparty = frm
+            direction = "in"
+
+        if counterparty:
+            counterparty_row = counterparty_flows[counterparty]
+            counterparty_row[f"token_{direction}_count"] += 1
+            asset_row = counterparty_row["token_assets"].setdefault(
+                contract,
+                {
+                    "contract": contract,
+                    "symbols": set(),
+                    "decimals": decimals,
+                    "in": 0.0,
+                    "out": 0.0,
+                    "count": 0,
+                },
+            )
+            asset_row["symbols"].add(symbol)
+            asset_row["count"] += 1
+            asset_row[direction] += amount
 
     if malformed_history_rows:
         warnings.append(
-            f"Skipped {malformed_history_rows} indexed history row(s) with malformed value/decimal fields; no zero-value substitution was made."
+            f"Skipped {malformed_history_rows} indexed history row(s) with malformed identity/value/decimal fields; no zero-value substitution was made."
         )
         missing.append("fully normalized indexed transaction/token-transfer values")
+    if token_metadata_conflicts:
+        warnings.append(
+            f"Skipped {token_metadata_conflicts} ERC-20 transfer row(s) whose decimals conflicted with another row for the same token contract."
+        )
+        missing.append("consistent indexed ERC-20 metadata for every transfer")
 
     identity_sources: list[dict] = []
     conflicts: list[SourceConflict] = []
@@ -520,16 +586,88 @@ def run_live_b4(data: dict) -> EngineResult:
                 "External entity providers disagree on the address identity; Rivexis did not silently choose one label."
             )
 
-    top_counterparties = [
-        {"address": address, "interaction_count": count, "identity": "UNKNOWN ADDRESS"}
-        for address, count in counterparties.most_common(10)
-    ]
-    token_flows = [
-        {"symbol": symbol, **row, "net": row["in"] - row["out"]}
-        for symbol, row in sorted(tokens.items())
-    ]
-    activity_count = len(normal_txs) + len(token_txs)
-    data_conf = 82 if normal_txs or token_txs else 58
+    def asset_rows(asset_map: dict[str, dict]) -> list[dict]:
+        rows = []
+        for contract, row in sorted(asset_map.items()):
+            symbols = sorted(row["symbols"])
+            rows.append(
+                {
+                    "contract": contract,
+                    "symbol": symbols[0] if len(symbols) == 1 else None,
+                    "symbols": symbols,
+                    "decimals": row["decimals"],
+                    "in": row["in"],
+                    "out": row["out"],
+                    "net": row["in"] - row["out"],
+                    "count": row["count"],
+                }
+            )
+        return rows
+
+    counterparty_counts = {
+        address: (
+            row["normal_in_count"]
+            + row["normal_out_count"]
+            + row["token_in_count"]
+            + row["token_out_count"]
+        )
+        for address, row in counterparty_flows.items()
+    }
+    indexed_records_with_counterparty = sum(counterparty_counts.values())
+    ordered_counterparties = sorted(
+        counterparty_flows,
+        key=lambda address: (-counterparty_counts[address], address),
+    )
+    top_counterparties = []
+    for address in ordered_counterparties[:10]:
+        row = counterparty_flows[address]
+        count = counterparty_counts[address]
+        top_counterparties.append(
+            {
+                "address": address,
+                "identity": "UNKNOWN ADDRESS",
+                "interaction_count": count,
+                "interaction_share_pct": (
+                    round((count / indexed_records_with_counterparty) * 100, 4)
+                    if indexed_records_with_counterparty
+                    else 0.0
+                ),
+                "inbound_record_count": row["normal_in_count"] + row["token_in_count"],
+                "outbound_record_count": row["normal_out_count"] + row["token_out_count"],
+                "normal_transaction_counts": {
+                    "in": row["normal_in_count"],
+                    "out": row["normal_out_count"],
+                },
+                "erc20_transfer_counts": {
+                    "in": row["token_in_count"],
+                    "out": row["token_out_count"],
+                },
+                "native_in": row["native_in"],
+                "native_out": row["native_out"],
+                "native_net": row["native_in"] - row["native_out"],
+                "token_assets": asset_rows(row["token_assets"]),
+            }
+        )
+
+    token_flows = asset_rows(tokens)
+    shares = (
+        [count / indexed_records_with_counterparty for count in counterparty_counts.values()]
+        if indexed_records_with_counterparty
+        else []
+    )
+    ordered_shares = sorted(shares, reverse=True)
+    counterparty_concentration = {
+        "unique_counterparties": len(counterparty_counts),
+        "indexed_records_with_counterparty": indexed_records_with_counterparty,
+        "top_counterparty_share_pct": round(ordered_shares[0] * 100, 4) if ordered_shares else 0.0,
+        "top3_share_pct": round(sum(ordered_shares[:3]) * 100, 4) if ordered_shares else 0.0,
+        "interaction_hhi": round(sum(share * share for share in shares) * 10000, 2),
+        "basis": "validated indexed normal-transaction and ERC-20 transfer records with a normalized opposite address",
+        "risk_interpretation": "descriptive_only_not_scored",
+    }
+
+    activity_count = normalized_normal_rows + normalized_token_rows
+    data_conf = 82 if activity_count else 58
     if malformed_history_rows:
         data_conf = max(35, data_conf - 10)
     if attributed:
@@ -582,12 +720,17 @@ def run_live_b4(data: dict) -> EngineResult:
             "activity": {
                 "indexed_normal_transactions": len(normal_txs),
                 "indexed_erc20_transfers": len(token_txs),
+                "normalized_normal_transactions": normalized_normal_rows,
+                "normalized_erc20_transfers": normalized_token_rows,
+                "normalized_activity_records": activity_count,
                 "malformed_indexed_rows_skipped": malformed_history_rows,
+                "token_metadata_conflicts_skipped": token_metadata_conflicts,
                 "native_in": native_in,
                 "native_out": native_out,
                 "native_net": native_in - native_out,
             },
             "top_counterparties": top_counterparties,
+            "counterparty_concentration": counterparty_concentration,
             "token_flows": token_flows,
         },
         warnings=warnings,
@@ -600,6 +743,7 @@ def run_live_b4(data: dict) -> EngineResult:
         assumptions=[
             "Provider-attributed labels are evidence, not absolute truth. Absence of a label is not evidence of benign or malicious ownership.",
             "External indexer/entity-label responses without a normalized provider observation timestamp are recorded with UNKNOWN evidence freshness rather than CURRENT.",
+            "Counterparty concentration is descriptive concentration of validated indexed records, not economic exposure, ownership or maliciousness, and is not used in the B4 risk score.",
         ],
         demo=False,
     )
