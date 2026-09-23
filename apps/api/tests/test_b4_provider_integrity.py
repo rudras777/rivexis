@@ -12,8 +12,10 @@ class FakeRpc:
     def __init__(self, *, block="0x64", balance="0xde0b6b3a7640000"):
         self.block = block
         self.balance = balance
+        self.calls: list[tuple[str, list | None]] = []
 
     def call(self, method, params=None):
+        self.calls.append((method, params))
         if method == "eth_blockNumber":
             return ProviderCall("direct_rpc", "block", "http://rpc.test", self.block, 1.0)
         if method == "eth_getBalance":
@@ -28,6 +30,7 @@ def install_rpc(monkeypatch, rpc=None):
         "select_rpc_client",
         lambda chain: ("direct_rpc", rpc, ProviderCall("direct_rpc", "probe", "http://rpc.test", "0x1", 1.0), []),
     )
+    return rpc
 
 
 class NoEtherscan:
@@ -76,6 +79,25 @@ def test_b4_malformed_rpc_numeric_state_does_not_become_zero_balance(monkeypatch
     assert result.risk_score == 0
     assert result.provider_status[0]["status"] == "MALFORMED_RESPONSE"
     assert "direct blockchain state" in result.missing_data
+
+
+def test_b4_native_balance_is_pinned_to_captured_rpc_block(monkeypatch):
+    rpc = install_rpc(monkeypatch)
+    install_optional_none(monkeypatch)
+
+    result = live_b4.run_live_b4({"wallet": WALLET})
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert ("eth_getBalance", [WALLET, "0x64"]) in rpc.calls
+    assert not any(
+        method == "eth_getBalance" and params and params[-1] == "latest"
+        for method, params in rpc.calls
+    )
+    direct = next(item for item in result.evidence if item.source_type == "direct_state")
+    assert direct.block_number == 100
+    assert direct.normalized_value["block_tag"] == "0x64"
+    assert result.data_freshness["block_number"] == 100
+    assert any("pinned to captured RPC block 0x64" in text for text in result.assumptions)
 
 
 def test_b4_non_object_nansen_response_is_not_healthy_no_label_evidence(monkeypatch):
