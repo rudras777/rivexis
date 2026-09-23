@@ -89,6 +89,71 @@ def _normalize_current_live_contract(result: EngineResult) -> EngineResult:
     return result
 
 
+def _explicit_f3_adapter_requested(input_data: dict) -> bool:
+    return bool(
+        input_data.get("protocol_adapter")
+        and (input_data.get("user_address") or input_data.get("wallet"))
+    )
+
+
+def _enforce_explicit_f3_adapter_contract(
+    result: EngineResult, input_data: dict
+) -> EngineResult:
+    """Reject silent generic fallback for an explicitly requested F3 adapter.
+
+    The F3 service can use a caller-modeled oracle path when no authoritative
+    protocol adapter is requested. If the caller explicitly requests a protocol
+    adapter, however, a generic modeled result must not be presented as though the
+    requested authoritative position evidence succeeded.
+    """
+
+    if not _explicit_f3_adapter_requested(input_data):
+        return result
+
+    metrics = result.metrics if isinstance(result.metrics, dict) else {}
+    authoritative_adapter = metrics.get("authoritative_adapter")
+    position = metrics.get("position")
+    if authoritative_adapter and isinstance(position, dict):
+        return result
+
+    requested = str(input_data.get("protocol_adapter"))
+    return EngineResult(
+        engine_id=EngineId.F3,
+        engine_version=LIVE_ENGINE_VERSIONS[EngineId.F3],
+        status=(
+            AnalysisStatus.PROVIDER_UNAVAILABLE
+            if result.status == AnalysisStatus.PROVIDER_UNAVAILABLE
+            else AnalysisStatus.INSUFFICIENT_DATA
+        ),
+        risk_score=0,
+        data_confidence=0,
+        engine_confidence=0,
+        severity=Severity.UNKNOWN,
+        summary=(
+            "F3 was asked to use an authoritative protocol adapter, but that "
+            "adapter did not yield an authoritative position. The generic "
+            "caller-modeled fallback was discarded."
+        ),
+        metrics={
+            "requested_protocol_adapter": requested,
+            "discarded_fallback_status": result.status.value,
+        },
+        warnings=[
+            "Explicit protocol_adapter requests fail closed when authoritative "
+            "position evidence is unavailable; remove protocol_adapter only if "
+            "you intentionally want the separately disclosed generic modeled path."
+        ],
+        missing_data=["authoritative protocol-native position evidence"],
+        provider_consensus="UNAVAILABLE",
+        data_freshness={"status": FreshnessStatus.UNKNOWN.value},
+        assumptions=[
+            "No generic position-risk conclusion is substituted for an explicitly "
+            "requested protocol-adapter result."
+        ],
+        demo=False,
+    )
+
+
 def _demo_evidence(engine_id, input_data):
     return EvidenceRecord(
         evidence_id=str(uuid4()),
@@ -206,7 +271,9 @@ def _run_live(engine_id: EngineId, input_data: dict) -> EngineResult:
     elif engine_id == EngineId.F3:
         from rivexis_api.services.live_f3 import run_live_f3
 
-        result = run_live_f3(input_data)
+        result = _enforce_explicit_f3_adapter_contract(
+            run_live_f3(input_data), input_data
+        )
     elif engine_id == EngineId.F4:
         from rivexis_api.services.live_f4 import run_live_f4
 
