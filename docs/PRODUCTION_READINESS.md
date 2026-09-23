@@ -7,8 +7,9 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Area | State | Evidence / blocker |
 |---|---|---|
 | Repository baseline and source control | PASS | Private repository; durable milestone evidence is maintained in-repo. |
-| Durable execution planning | PASS | Build plan, deployment status and readiness matrix are maintained in-repo. |
-| Ten-engine architecture | PASS | Repository preserves exactly B1–B5 and F1–F5 plus invariant coverage. Milestone F now audits completion quality engine by engine. |
+| Durable execution planning | PASS | Build plan, deployment status, ten-engine contract audit and readiness matrix are maintained in-repo. |
+| Ten-engine architecture | PASS | Repository preserves exactly B1–B5 and F1–F5 plus invariant coverage. Milestone F audits completion quality engine by engine. |
+| Ten-engine live contract integrity | PASS | PRs #13–#15 normalize current live result/evidence versions and source consensus, fail closed on explicit F3 authoritative-adapter failure, and promote unresolved provider conflicts to `CONFLICTING_DATA`. Latest full gate: PR #15 CI #187 (`35836050226`). |
 | Deterministic decision/UNKNOWN policy | PASS | Incomplete, stale, conflicting or unavailable requested evidence cannot become PROCEED/MODIFY/AVOID through aggregate scoring; it remains WAIT/UNKNOWN except where an explicit hard blocker independently requires AVOID. |
 | Canonical persisted decision inputs | PASS | Persisted analysis IDs are rehydrated before decision scoring; adversarial API coverage proves a forged client copy cannot replace stored risk/confidence/blocker/conflict data. Duplicate analyses/engines cannot silently skew weighting. |
 | Versioned analysis/decision provenance | PASS | Engine results persist analysis framework version; decisions persist methodology, analysis IDs, engine versions/statuses/framework versions, evidence sources/count, unresolved conflicts and canonical-input verification. |
@@ -24,8 +25,8 @@ Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 | Workspace collection/query isolation | PASS | Workspace-keyed queries and API authorization prevent foreign-workspace collection/detail reuse. |
 | In-place workspace switching across audited tools | PASS | Engine, monitor, investigation, protocol-history and History provenance state are reset/guarded by workspace identity; browser tests prove old-workspace state cannot satisfy new-workspace views. |
 | Provider state boundary | PASS | Global provider registry configuration remains separate from workspace runtime telemetry; absence remains explicit. |
-| Current milestone CI | PASS | PR #12 final head `b7c3b7e3c974ea901c3d920278b1c42f6396fcbc` passed full CI run #164 (`35832725687`) after a prior TypeScript-only run was corrected and discarded as merge evidence. |
-| Milestone F — Ten-engine completion | NOT STARTED | Active next milestone. Requires engine-by-engine live contract/evidence/freshness/confidence/UNKNOWN audit and targeted completion work before PASS. |
+| Current milestone CI | PASS | PR #15 final head `34f66a0abd9794efd9352b73e733212cc5a2a350` passed API, web/Playwright/Axe, invariants/secret scan and PostgreSQL migration/runtime-control CI #187 (`35836050226`). PR #13/#14 also passed full CI before merge. |
+| Milestone F — Ten-engine completion | NOT STARTED | Cross-engine integrity work is PASS, but the full milestone is not complete. Remaining work is engine-depth capability/certification from `docs/TEN_ENGINE_CONTRACT_AUDIT.md`—for example richer B1 execution-effect normalization and broader F1 on-chain position ingestion—while external credential/license/customer-contract gaps remain explicitly partial or blocked. |
 | Live deployment of current merged source | BLOCKED | Current source is CI-green but has not been independently verified on the Cloudflare Worker; no deployment claim is made. |
 | Live FastAPI runtime | BLOCKED | Cloudflare Containers requires Workers Paid or another approved FastAPI-capable platform; no paid activation authorized. |
 | Production custom domain/TLS | BLOCKED | No Rivexis production domain is configured. |
