@@ -14,6 +14,10 @@ WALLET = "0x1111111111111111111111111111111111111111"
 TOKEN = "0x2222222222222222222222222222222222222222"
 
 
+def abi_word(value: int) -> str:
+    return "0x" + format(value, "064x")
+
+
 class EthPrice:
     def __init__(self, *, price=1000.0, timestamp=None):
         self.price = price
@@ -84,7 +88,13 @@ def test_f1_rejects_conflicting_duplicate_erc20_contract_metadata():
 
 @pytest.mark.parametrize(
     ("block_result", "native_result"),
-    [("not-a-quantity", "0x0"), ("0x64", "0xnothex"), ("0x64", -1)],
+    [
+        ("not-a-quantity", "0x0"),
+        ("0x64", "0xnothex"),
+        ("0x64", -1),
+        (hex(2**256), "0x0"),
+        ("0x64", hex(2**256)),
+    ],
 )
 def test_f1_malformed_direct_chain_quantities_fail_closed(monkeypatch, block_result, native_result):
     rpc = NativeRpc(native_result=native_result, block_result=block_result)
@@ -163,11 +173,22 @@ class TokenQuantityRpc(NativeRpc):
 
     def call(self, method, params=None):
         if method == "eth_call":
+            if params[0]["data"] == live_f1.DECIMALS_SELECTOR:
+                return ProviderCall(
+                    "direct_rpc",
+                    "token-decimals",
+                    "http://rpc.test",
+                    abi_word(6),
+                    1.0,
+                )
             return ProviderCall("direct_rpc", "token", "http://rpc.test", self.token_result, 1.0)
         return super().call(method, params)
 
 
-@pytest.mark.parametrize("token_result", ["0xnothex", -1, None, True])
+@pytest.mark.parametrize(
+    "token_result",
+    ["0xnothex", -1, None, True, "0x1", "0x" + ("00" * 33)],
+)
 def test_f1_malformed_erc20_balance_cannot_become_zero_exposure(monkeypatch, token_result):
     rpc = TokenQuantityRpc(token_result)
     monkeypatch.setattr(live_f1, "select_rpc_client", lambda chain: _select(rpc))
@@ -188,6 +209,51 @@ def test_f1_malformed_erc20_balance_cannot_become_zero_exposure(monkeypatch, tok
     assert result.status == AnalysisStatus.PROVIDER_UNAVAILABLE
     assert result.risk_score == 0
     assert result.severity == Severity.UNKNOWN
+    assert result.provider_status[-1]["status"] == "INVALID_TOKEN_BALANCE"
+
+
+class TokenDecimalsRpc(NativeRpc):
+    def __init__(self, decimals_result):
+        super().__init__(native_result="0x0")
+        self.decimals_result = decimals_result
+
+    def call(self, method, params=None):
+        if method == "eth_call":
+            return ProviderCall(
+                "direct_rpc",
+                "token-decimals",
+                "http://rpc.test",
+                self.decimals_result,
+                1.0,
+            )
+        return super().call(method, params)
+
+
+@pytest.mark.parametrize(
+    "decimals_result",
+    ["0x6", "0xnothex", None, True, abi_word(37), "0x" + ("00" * 33)],
+)
+def test_f1_malformed_or_unsupported_onchain_decimals_fail_closed(monkeypatch, decimals_result):
+    rpc = TokenDecimalsRpc(decimals_result)
+    monkeypatch.setattr(live_f1, "select_rpc_client", lambda chain: _select(rpc))
+
+    result = live_f1.run_live_f1(
+        {
+            "chain": "ethereum",
+            "wallet": WALLET,
+            "erc20_tokens": [
+                {
+                    "contract_address": TOKEN,
+                    "coingecko_id": "usd-coin",
+                    "decimals": 6,
+                }
+            ],
+        }
+    )
+
+    assert result.status == AnalysisStatus.PROVIDER_UNAVAILABLE
+    assert result.risk_score == 0
+    assert result.provider_status[-1]["status"] == "INVALID_TOKEN_DECIMALS"
 
 
 class TwoAssetPrices:
