@@ -13,8 +13,8 @@ from sqlalchemy import text
 
 from rivexis_api.services.db import engine
 
-EXPECTED_ALEMBIC_HEAD = "0012_postgres_performance_hardening"
-EXPECTED_APPLICATION_TABLES = 55
+EXPECTED_ALEMBIC_HEAD = "0013_auth_email_lifecycle"
+EXPECTED_APPLICATION_TABLES = 56
 
 
 def _scalar(connection, sql: str):
@@ -109,11 +109,57 @@ def main() -> int:
                 ),
                 0,
             )
+            _assert_equal(
+                "auth-state RLS/force-RLS contract",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_class c
+                    JOIN pg_namespace n ON n.oid=c.relnamespace
+                    WHERE n.nspname='public'
+                      AND c.relname='user_auth_state'
+                      AND c.relrowsecurity
+                      AND c.relforcerowsecurity
+                    """,
+                ),
+                1,
+            )
+            _assert_equal(
+                "auth-state service policy",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_policies
+                    WHERE schemaname='public'
+                      AND tablename='user_auth_state'
+                      AND policyname='rivexis_auth_state_service'
+                      AND roles = ARRAY['rivexis_app']::name[]
+                    """,
+                ),
+                1,
+            )
+            _assert_equal(
+                "public auth-state grants",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM information_schema.role_table_grants
+                    WHERE table_schema='public'
+                      AND table_name='user_auth_state'
+                      AND grantee IN ('anon','authenticated','PUBLIC','service_role')
+                    """,
+                ),
+                0,
+            )
 
         print(
             "PostgreSQL migrated-schema verification: PASS "
             f"(head={EXPECTED_ALEMBIC_HEAD}; tables={EXPECTED_APPLICATION_TABLES}; "
-            "FK indexes covered; redundant indexes absent; RLS lookup rewrite present)"
+            "FK indexes covered; auth-state FORCE RLS/service policy certified; "
+            "redundant indexes absent; RLS lookup rewrite present)"
         )
         return 0
     except Exception as exc:  # noqa: BLE001 - certification converts every failure into an explicit gate
