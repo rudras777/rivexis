@@ -80,7 +80,7 @@ def _evidence(
         chain_id=chain_id,
         raw_reference=f"provider:{call.provider_id};request:{call.request_id}",
         normalized_value=normalized_value,
-        calculation_version="b1-live-1.4.0",
+        calculation_version="b1-live-1.5.0",
         engine_version="1.3.0",
         confidence=confidence,
         freshness=freshness,

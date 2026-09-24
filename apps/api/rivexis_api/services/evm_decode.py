@@ -5,6 +5,7 @@ from typing import Any
 UINT256_MAX = 2**256 - 1
 _MAX_DYNAMIC_ARRAY_ITEMS = 4096
 _MAX_FIXED_ARRAY_ITEMS = 4096
+_MAX_STATIC_TUPLE_ITEMS = 4096
 
 
 def _word(data: str, index: int) -> str | None:
@@ -291,12 +292,19 @@ def function_selector(signature: str) -> str:
     return "0x" + keccak256(signature.encode()).hex()[:8]
 
 
-def _canonical_abi_type(param: dict[str, Any]) -> str:
+def _canonical_abi_type(param: Any) -> str:
+    if not isinstance(param, dict):
+        return ""
     typ = str(param.get("type") or "")
     if typ.startswith("tuple"):
+        components = param.get("components")
+        if not isinstance(components, list) or not all(
+            isinstance(component, dict) for component in components
+        ):
+            return typ
         suffix = typ[5:]
         inner = ",".join(
-            _canonical_abi_type(x) for x in (param.get("components") or [])
+            _canonical_abi_type(component) for component in components
         )
         return f"({inner}){suffix}"
     return typ
@@ -390,6 +398,33 @@ def _static_head_words(typ: str) -> int | None:
         return 1
     fixed_array = _fixed_array_spec(typ)
     return fixed_array[1] if fixed_array is not None else None
+
+
+def _static_tuple_components(param: dict[str, Any]) -> list[tuple[str, str]] | None:
+    if param.get("type") != "tuple":
+        return None
+    components = param.get("components")
+    if (
+        not isinstance(components, list)
+        or not 1 <= len(components) <= _MAX_STATIC_TUPLE_ITEMS
+        or not all(isinstance(component, dict) for component in components)
+    ):
+        return None
+    normalized = []
+    for index, component in enumerate(components):
+        typ = _canonical_abi_type(component)
+        if not _supported_static_type(typ):
+            return None
+        normalized.append((component.get("name") or f"item{index}", typ))
+    return normalized
+
+
+def _static_param_words(param: dict[str, Any], typ: str) -> int | None:
+    words = _static_head_words(typ)
+    if words is not None:
+        return words
+    tuple_components = _static_tuple_components(param)
+    return len(tuple_components) if tuple_components is not None else None
 
 
 def _is_supported_dynamic_type(typ: str) -> bool:
@@ -539,8 +574,8 @@ def decode_verified_abi_calldata(
         unsupported = next(
             (
                 typ
-                for typ in abi_types
-                if _static_head_words(typ) is None
+                for param, typ in zip(inputs, abi_types, strict=True)
+                if _static_param_words(param, typ) is None
                 and not _is_supported_dynamic_type(typ)
             ),
             None,
@@ -590,7 +625,8 @@ def decode_verified_abi_calldata(
             )
 
         head_size_bytes = sum(
-            _static_head_words(typ) or 1 for typ in abi_types
+            _static_param_words(param, typ) or 1
+            for param, typ in zip(inputs, abi_types, strict=True)
         ) * 32
         head_word_index = 0
 
@@ -651,6 +687,49 @@ def decode_verified_abi_calldata(
                 entry["value"] = values if error is None else None
                 decoded.append(entry)
                 head_word_index += length
+                if error is not None:
+                    return _malformed_verified_abi(
+                        selector=selector,
+                        signature=signature,
+                        function_name=item.get("name"),
+                        parameters=decoded,
+                        reason=error,
+                    )
+                continue
+
+            tuple_components = _static_tuple_components(param)
+            if tuple_components is not None:
+                values = []
+                error = None
+                for component_index, (component_name, component_type) in enumerate(
+                    tuple_components
+                ):
+                    component_word_index = head_word_index + component_index
+                    component_word = payload[
+                        component_word_index * 64 : (component_word_index + 1) * 64
+                    ]
+                    if len(component_word) != 64:
+                        error = (
+                            f"static tuple component {component_index} is missing or truncated"
+                        )
+                        break
+                    value = _decode_abi_static(component_type, component_word)
+                    if value is None:
+                        error = (
+                            f"static tuple component {component_index} is not canonically "
+                            f"encoded as {component_type}"
+                        )
+                        break
+                    values.append(
+                        {
+                            "name": component_name,
+                            "type": component_type,
+                            "value": value,
+                        }
+                    )
+                entry["value"] = values if error is None else None
+                decoded.append(entry)
+                head_word_index += len(tuple_components)
                 if error is not None:
                     return _malformed_verified_abi(
                         selector=selector,

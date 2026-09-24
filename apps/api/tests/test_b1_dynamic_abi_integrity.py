@@ -161,7 +161,7 @@ def test_verified_abi_dynamic_array_rejects_noncanonical_bool_element():
     assert "bool" in result["malformed_reason"]
 
 
-def test_verified_abi_does_not_fake_decode_static_tuple():
+def test_verified_abi_decodes_static_tuple():
     signature = "setPair((uint256,address))"
     abi = [
         {
@@ -185,9 +185,183 @@ def test_verified_abi_does_not_fake_decode_static_tuple():
 
     result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
 
+    assert result["status"] == "DECODED_VERIFIED_ABI"
+    assert result["parameters"][0]["value"] == [
+        {"name": "amount", "type": "uint256", "value": 7},
+        {"name": "recipient", "type": "address", "value": recipient},
+    ]
+
+
+def test_verified_abi_static_tuple_expands_head_before_dynamic_offset():
+    signature = "setPairAndNote((uint256,address),string)"
+    abi = [
+        {
+            "type": "function",
+            "name": "setPairAndNote",
+            "inputs": [
+                {
+                    "name": "pair",
+                    "type": "tuple",
+                    "components": [
+                        {"name": "amount", "type": "uint256"},
+                        {"name": "recipient", "type": "address"},
+                    ],
+                },
+                {"name": "note", "type": "string"},
+            ],
+            "outputs": [],
+        }
+    ]
+    recipient = "0x3333333333333333333333333333333333333333"
+    payload = word(7) + address_word(recipient) + word(96) + word(2) + "6f6b" + ("00" * 30)
+
+    result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
+
+    assert result["status"] == "DECODED_VERIFIED_ABI"
+    assert result["parameters"][0]["value"][1]["value"] == recipient
+    assert result["parameters"][1]["value"] == "ok"
+
+
+def test_verified_abi_static_tuple_rejects_noncanonical_component():
+    signature = "setPair((bool,address))"
+    abi = [
+        {
+            "type": "function",
+            "name": "setPair",
+            "inputs": [
+                {
+                    "name": "pair",
+                    "type": "tuple",
+                    "components": [
+                        {"name": "enabled", "type": "bool"},
+                        {"name": "recipient", "type": "address"},
+                    ],
+                }
+            ],
+            "outputs": [],
+        }
+    ]
+    payload = word(2) + address_word("0x3333333333333333333333333333333333333333")
+
+    result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
+
+    assert result["status"] == "MALFORMED_VERIFIED_ABI_CALLDATA"
+    assert "component 0" in result["malformed_reason"]
+    assert "bool" in result["malformed_reason"]
+
+
+def test_verified_abi_keeps_nested_tuple_unsupported():
+    signature = "setNested((uint256,(address,bool)))"
+    abi = [
+        {
+            "type": "function",
+            "name": "setNested",
+            "inputs": [
+                {
+                    "name": "outer",
+                    "type": "tuple",
+                    "components": [
+                        {"name": "amount", "type": "uint256"},
+                        {
+                            "name": "inner",
+                            "type": "tuple",
+                            "components": [
+                                {"name": "recipient", "type": "address"},
+                                {"name": "enabled", "type": "bool"},
+                            ],
+                        },
+                    ],
+                }
+            ],
+            "outputs": [],
+        }
+    ]
+    payload = word(1) + address_word("0x3333333333333333333333333333333333333333") + word(1)
+
+    result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
+
     assert result["status"] == "UNSUPPORTED_VERIFIED_ABI_TYPE"
     assert result["confidence"] == 0
     assert "tuple" in result["note"]
+
+
+def test_verified_abi_keeps_dynamic_tuple_member_unsupported():
+    signature = "setProfile((uint256,string))"
+    abi = [
+        {
+            "type": "function",
+            "name": "setProfile",
+            "inputs": [
+                {
+                    "name": "profile",
+                    "type": "tuple",
+                    "components": [
+                        {"name": "level", "type": "uint256"},
+                        {"name": "label", "type": "string"},
+                    ],
+                }
+            ],
+            "outputs": [],
+        }
+    ]
+    payload = word(32) + word(1) + word(64) + word(2) + "6f6b" + ("00" * 30)
+
+    result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
+
+    assert result["status"] == "UNSUPPORTED_VERIFIED_ABI_TYPE"
+    assert result["confidence"] == 0
+    assert "tuple" in result["note"]
+
+
+def test_verified_abi_keeps_tuple_array_unsupported():
+    signature = "setPairs((uint256,address)[])"
+    abi = [
+        {
+            "type": "function",
+            "name": "setPairs",
+            "inputs": [
+                {
+                    "name": "pairs",
+                    "type": "tuple[]",
+                    "components": [
+                        {"name": "amount", "type": "uint256"},
+                        {"name": "recipient", "type": "address"},
+                    ],
+                }
+            ],
+            "outputs": [],
+        }
+    ]
+    payload = word(32) + word(0)
+
+    result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
+
+    assert result["status"] == "UNSUPPORTED_VERIFIED_ABI_TYPE"
+    assert result["confidence"] == 0
+    assert "tuple" in result["note"]
+
+
+def test_verified_abi_malformed_tuple_components_fail_closed_without_exception():
+    signature = "setPair(tuple)"
+    abi = [
+        {
+            "type": "function",
+            "name": "setPair",
+            "inputs": [
+                {
+                    "name": "pair",
+                    "type": "tuple",
+                    "components": [{"name": "amount", "type": "uint256"}, "bad"],
+                }
+            ],
+            "outputs": [],
+        }
+    ]
+
+    result = decode_verified_abi_calldata(function_selector(signature), abi)
+
+    assert result["status"] == "UNSUPPORTED_VERIFIED_ABI_TYPE"
+    assert result["confidence"] == 0
 
 
 def test_verified_abi_decodes_fixed_array_of_static_elements():

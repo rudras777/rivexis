@@ -72,7 +72,7 @@ Live inspection found:
 
 ## Engine integrity
 
-All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0` and advances to calculation `b1-live-1.4.0`: its verified-ABI decoder now supports bounded one-dimensional fixed arrays of canonical elementary static types, accounts for their exact multiword head width, and leaves tuple/nested composites explicitly unsupported. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
+All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0` and advances to calculation `b1-live-1.5.0`: its verified-ABI decoder supports bounded one-dimensional fixed arrays and top-level static tuples composed of canonical elementary types, accounts for their exact multiword head width, and leaves tuple arrays, nested tuples and dynamic tuple members explicitly unsupported. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
 
 ## Current execution gates
 
