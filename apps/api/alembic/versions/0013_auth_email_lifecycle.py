@@ -25,8 +25,6 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("user_id"),
-        sa.UniqueConstraint("verification_token_digest", name="uq_user_auth_state_verification_digest"),
-        sa.UniqueConstraint("password_reset_token_digest", name="uq_user_auth_state_reset_digest"),
     )
     op.create_index("ix_user_auth_state_verification_token_digest", "user_auth_state", ["verification_token_digest"], unique=True)
     op.create_index("ix_user_auth_state_password_reset_token_digest", "user_auth_state", ["password_reset_token_digest"], unique=True)
