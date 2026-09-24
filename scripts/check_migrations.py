@@ -15,6 +15,7 @@ SCHEMA = ROOT / "infrastructure" / "db" / "schema.sql"
 expected = set(re.findall(r"^CREATE TABLE\s+([a-zA-Z0-9_]+)", SCHEMA.read_text(), re.MULTILINE))
 assert len(expected) == 53, f"Expected 53 blueprint tables, found {len(expected)}"
 runtime_tables = {"runtime_rate_events", "runtime_provider_circuits"}
+security_tables = {"user_auth_state"}
 
 with tempfile.TemporaryDirectory(prefix="rivexis-migration-") as tmp:
     db_path = Path(tmp) / "migration.db"
@@ -29,7 +30,7 @@ with tempfile.TemporaryDirectory(prefix="rivexis-migration-") as tmp:
                 "select name from sqlite_master where type='table' and name not like 'sqlite_%' and name!='alembic_version'"
             )
         }
-    physical_expected = expected | runtime_tables
+    physical_expected = expected | runtime_tables | security_tables
     assert actual == physical_expected, (
         f"Migration/schema mismatch missing={sorted(physical_expected-actual)} "
         f"extra={sorted(actual-physical_expected)}"
@@ -44,4 +45,4 @@ with tempfile.TemporaryDirectory(prefix="rivexis-migration-") as tmp:
         }
     assert not remaining, f"Downgrade left tables: {sorted(remaining)}"
 
-print("Alembic/schema parity: PASS (53/53 blueprint tables + 2 runtime-control tables; clean downgrade)")
+print("Alembic/schema parity: PASS (53/53 blueprint tables + 2 runtime-control tables + auth security state; clean downgrade)")
