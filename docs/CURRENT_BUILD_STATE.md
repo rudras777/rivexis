@@ -7,8 +7,8 @@ This is the compact production resume point. Live provider state and current `ma
 ## Repository and certification
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest certified application head: `37fd1e4097cc5c621d9a847e40ce8a24b3ead9e1` (`Complete frontend auth recovery flows`).
-- CI #380 (`36056453140`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification.
+- Latest certified application head: `3e6285fbfc9398f00fbfc9146bb600700750c9b7` (`Complete free auth email activation state`).
+- CI #383 (`36058345297`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #54 (`36058344900`) also passed on the exact head.
 - Pages #51 is the fallback/navigation deployment for the same source lineage; Pages is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -35,7 +35,7 @@ Authoritative public frontend:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-Cloudflare Worker version `b6f5f845-a9fa-4f03-8622-ece8364db633` receives 100% traffic. It was deployed only after CI #380 passed. Live probes verified `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/verify-email`, and `/workspace` return 200, an unknown route returns 404, HTTPS/HSTS/CSP/nosniff headers remain present, and browser inspection found the deployed recovery UI without page console errors. Cloudflare observability now has query-string redaction enabled so recovery tokens are not retained in request URLs; the durable Wrangler configuration carries the same setting.
+Cloudflare Worker version `0d86a100-a115-4bca-a8ef-69d73be7a72d` receives 100% traffic. It was deployed only after CI #383 passed. Live probes verified `/`, `/login?verified=1`, `/forgot-password`, `/reset-password`, `/verify-email`, and `/workspace` return 200, an unknown route returns 404, HTTPS/HSTS/CSP/nosniff headers remain present, and browser inspection found the deployed verification notice and recovery UI without page console errors. Cloudflare observability has query-string redaction enabled so recovery tokens are not retained in request URLs; the durable Wrangler configuration carries the same setting.
 
 The web application is configured to call `https://rivexis-api.rudrasingh0718.workers.dev`.
 
@@ -43,7 +43,7 @@ The web application is configured to call `https://rivexis-api.rudrasingh0718.wo
 
 Backend source implements signup/login/cookie session/CSRF/logout/revocation plus email verification and password-reset request/confirm flows. Production schema support is applied at 0013.
 
-Head `37fd1e4...` completes the corresponding frontend lifecycle:
+Head `3e6285f...` completes the corresponding frontend lifecycle:
 
 - verification-required signup no longer assumes an authenticated session;
 - `/verify-email` supports one-time code confirmation and enumeration-safe resend;
