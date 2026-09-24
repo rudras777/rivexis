@@ -70,6 +70,7 @@ Unresolved provider conflicts are first-class analysis state. Fresh live results
 - `2d0e2338e75114089e94c8623bb76fe7c8d79bf5` — certified B1 verified-ABI dynamic decoder lineage — CI #350 (`35933971343`) PASS; Pages #21 PASS.
 - `61b728edf259ccafda256f2ab6f221e918e1f0ef` — B4 external indexed/entity evidence provenance + aggregate freshness — CI #353 (`35934430946`) PASS; Pages #24 (`35934430378`) PASS.
 - `7a5f6aa284b35f8388915788ce1f444410f5ae4d` — F1 on-chain ERC-20 decimals/ABI-word integrity and redaction-compatible regressions — CI #358 (`35977258512`) PASS; Pages #29 (`35977258067`) PASS.
+- `8141666ac6a21d4a6d75702ebd830af489c4a1fd` — B1 bounded fixed-array verified-ABI decoding and expanded-head integrity — CI #385 (`36060099835`) PASS; Pages #56 (`36060099631`) PASS.
 
 ## Remaining Milestone F work
 

@@ -7,9 +7,9 @@ This is the compact production resume point. Live provider state and current `ma
 ## Repository and certification
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest certified application head: `3e6285fbfc9398f00fbfc9146bb600700750c9b7` (`Complete free auth email activation state`).
-- CI #383 (`36058345297`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #54 (`36058344900`) also passed on the exact head.
-- Pages #51 is the fallback/navigation deployment for the same source lineage; Pages is not the authoritative runtime.
+- Latest certified repository head: `8141666ac6a21d4a6d75702ebd830af489c4a1fd` (`Decode bounded B1 verified ABI fixed arrays`).
+- CI #385 (`36060099835`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #56 (`36060099631`) also passed on the exact head.
+- Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
 
@@ -72,7 +72,7 @@ Live inspection found:
 
 ## Engine integrity
 
-All B1-B5/F1-F5 integrity controls remain intact. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
+All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0` and advances to calculation `b1-live-1.4.0`: its verified-ABI decoder now supports bounded one-dimensional fixed arrays of canonical elementary static types, accounts for their exact multiword head width, and leaves tuple/nested composites explicitly unsupported. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
 
 ## Current execution gates
 
