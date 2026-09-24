@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import os
 import secrets
+from urllib.parse import quote, urlsplit
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -86,18 +87,46 @@ def email_verification_required() -> bool:
     return _bool_env("RIVEXIS_EMAIL_VERIFICATION_REQUIRED", False)
 
 
+def _production() -> bool:
+    return os.getenv("RIVEXIS_ENV", str(settings.environment or "development")).strip().lower() in {
+        "production",
+        "prod",
+    }
+
+
+def _public_web_url(*, required: bool) -> str | None:
+    raw = os.getenv("RIVEXIS_PUBLIC_WEB_URL", "").strip().rstrip("/")
+    if not raw:
+        if required:
+            raise EmailConfigurationError(
+                "RIVEXIS_PUBLIC_WEB_URL is required before password-reset email can send"
+            )
+        return None
+    parts = urlsplit(raw)
+    if parts.scheme not in ({"https"} if _production() else {"http", "https"}):
+        raise EmailConfigurationError("RIVEXIS_PUBLIC_WEB_URL must use an approved scheme")
+    if not parts.hostname or parts.username or parts.password or parts.query or parts.fragment:
+        raise EmailConfigurationError("RIVEXIS_PUBLIC_WEB_URL must be a clean web origin")
+    if parts.path not in {"", "/"}:
+        raise EmailConfigurationError("RIVEXIS_PUBLIC_WEB_URL must not contain a path")
+    return raw
+
+
 def validate_auth_email_runtime() -> dict[str, object]:
     verification_required = email_verification_required()
     verification_ttl = _ttl("RIVEXIS_EMAIL_VERIFICATION_TTL_SECONDS", 1800)
     reset_ttl = _ttl("RIVEXIS_PASSWORD_RESET_TTL_SECONDS", 1800)
+    cfg = EmailSettings.from_env()
+    status = validate_email_configuration(cfg)
+    if status.get("enabled") and cfg.password_reset_template_id:
+        _public_web_url(required=True)
     if not verification_required:
         return {
             "verification_required": False,
             "verification_ttl_seconds": verification_ttl,
             "password_reset_ttl_seconds": reset_ttl,
+            "email_provider": status.get("provider"),
         }
-    cfg = EmailSettings.from_env()
-    status = validate_email_configuration(cfg)
     if not status.get("enabled") or not cfg.verification_template_id:
         raise EmailConfigurationError(
             "Email verification cannot be required until Brevo and the verification template are configured"
@@ -122,6 +151,10 @@ def _digest(raw_token: str, purpose: str) -> str:
 
 def _new_token() -> str:
     return secrets.token_urlsafe(32)
+
+
+def _expiry_minutes(expires_at: datetime) -> int:
+    return max(1, int((expires_at - now()).total_seconds() // 60))
 
 
 def _aware(value: datetime | None) -> datetime | None:
@@ -186,12 +219,14 @@ def issue_verification_email(user: UserRow) -> EmailAcceptance:
     return send_template_email(
         recipient=user.email,
         kind="verification",
-        params={"verification_token": raw_token, "expires_in_minutes": max(1, int((expires_at - now()).total_seconds() // 60))},
+        params={"code": raw_token, "expiry_minutes": _expiry_minutes(expires_at)},
         idempotency_key=f"verify:{token_digest[:32]}",
     )
 
 
 def issue_password_reset_email(user: UserRow) -> EmailAcceptance:
+    base_url = _public_web_url(required=True)
+    assert base_url is not None
     raw_token = _new_token()
     token_digest = _digest(raw_token, "password-reset")
     expires_at = now() + timedelta(
@@ -206,10 +241,11 @@ def issue_password_reset_email(user: UserRow) -> EmailAcceptance:
         row.password_reset_expires_at = expires_at
         row.updated_at = now()
         db.commit()
+    reset_url = f"{base_url}/reset-password?token={quote(raw_token, safe='')}"
     return send_template_email(
         recipient=user.email,
         kind="password_reset",
-        params={"reset_token": raw_token, "expires_in_minutes": max(1, int((expires_at - now()).total_seconds() // 60))},
+        params={"reset_url": reset_url, "expiry_minutes": _expiry_minutes(expires_at)},
         idempotency_key=f"reset:{token_digest[:32]}",
     )
 
