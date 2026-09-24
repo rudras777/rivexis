@@ -40,7 +40,7 @@ export default function Login(){
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" disabled={isSubmitting}>{isSubmitting?"Logging in…":"Log in"}</button>
       </form>
-      <p className="authNote">Password recovery is not enabled on this preview. Need an account? <Link href="/signup">Create one</Link>.</p>
+      <p className="authNote"><Link href="/forgot-password">Forgot your password?</Link> Need an account? <Link href="/signup">Create one</Link>.</p>
     </section>
   </main>;
 }

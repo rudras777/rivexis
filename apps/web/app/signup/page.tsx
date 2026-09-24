@@ -9,6 +9,7 @@ import {api,setCsrfToken} from "@/lib/api";
 import {authErrorMessage} from "@/lib/auth";
 
 type Form={email:string;password:string;role:string};
+type SignupResponse={csrf_token?:string;verification_required?:boolean;email_status?:string};
 
 export default function Signup(){
   const {register,handleSubmit,formState:{isSubmitting}}=useForm<Form>({defaultValues:{role:"Individual"}});
@@ -18,10 +19,16 @@ export default function Signup(){
   async function submit(v:Form){
     try{
       setError("");
-      const r=await api<{csrf_token:string}>("/api/v1/auth/web/signup",{
+      const r=await api<SignupResponse>("/api/v1/auth/web/signup",{
         method:"POST",
         body:JSON.stringify(v),
       });
+      if(r.verification_required){
+        sessionStorage.setItem("rivexis_pending_verification_email",v.email);
+        router.replace(`/verify-email?sent=${r.email_status==="accepted"?"1":"0"}`);
+        return;
+      }
+      if(!r.csrf_token)throw new Error("Missing authenticated signup session");
       setCsrfToken(r.csrf_token);
       router.replace("/onboarding");
     }catch(e){
@@ -41,7 +48,7 @@ export default function Signup(){
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" disabled={isSubmitting}>{isSubmitting?"Creating account…":"Continue"}</button>
       </form>
-      <p className="authNote">Email verification and recovery are not enabled until the approved delivery path is configured. Already registered? <Link href="/login">Log in</Link>.</p>
+      <p className="authNote">We verify new accounts before workspace access. Already registered? <Link href="/login">Log in</Link>.</p>
     </section>
   </main>;
 }

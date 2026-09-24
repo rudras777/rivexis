@@ -32,7 +32,7 @@ test.describe("browser authentication and onboarding",()=>{
     const alert=page.locator(".formCard .error[role='alert']");
     await expect(alert).toHaveText("Invalid email or password.");
     await expect(alert).not.toContainText("alice@example.com");
-    await expect(page.getByText("Password recovery is not enabled on this preview.")).toBeVisible();
+    await expect(page.getByRole("link",{name:"Forgot your password?"})).toHaveAttribute("href","/forgot-password");
 
     const storage=await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)));
     expect(storage).not.toHaveProperty("rivexis_token");
@@ -61,7 +61,65 @@ test.describe("browser authentication and onboarding",()=>{
     const alert=page.locator(".formCard .error[role='alert']");
     await expect(alert).toHaveText("Unable to create account with those details.");
     await expect(alert).not.toContainText("already registered");
-    await expect(page.getByText(/Email verification and recovery are not enabled/)).toBeVisible();
+    await expect(page.getByText(/We verify new accounts/)).toBeVisible();
+  });
+
+  test("verification-required signup does not create a browser session",async({page})=>{
+    await mockHealthyService(page);
+    await page.route("**/api/v1/auth/web/signup",route=>route.fulfill({
+      status:200,
+      contentType:"application/json",
+      headers:corsHeaders,
+      body:JSON.stringify({verification_required:true,email_status:"accepted",user:{id:"u1",email:"new@example.com",role:"Individual"}}),
+    }));
+
+    await page.goto("/signup");
+    await page.getByLabel("Email").fill("new@example.com");
+    await page.getByLabel("Password").fill("correct-horse-battery");
+    await page.getByRole("button",{name:"Continue"}).click();
+
+    await expect(page).toHaveURL(/\/verify-email\?sent=1$/);
+    await expect(page.getByLabel("Email")).toHaveValue("new@example.com");
+    expect(await page.evaluate(()=>sessionStorage.getItem("rivexis_pending_verification_email"))).toBe("new@example.com");
+  });
+
+  test("password reset request remains enumeration safe",async({page})=>{
+    await mockHealthyService(page);
+    let csrfCalls=0;
+    await page.route("**/api/v1/auth/web/csrf",route=>{csrfCalls+=1;return route.fulfill({status:500,body:"unexpected"});});
+    await page.route("**/api/v1/auth/password-reset/request",route=>route.fulfill({
+      status:202,
+      contentType:"application/json",
+      headers:corsHeaders,
+      body:JSON.stringify({status:"accepted"}),
+    }));
+
+    await page.goto("/forgot-password");
+    await page.getByLabel("Email").fill("unknown@example.com");
+    await page.getByRole("button",{name:"Send reset link"}).click();
+
+    await expect(page.getByRole("status")).toContainText("If an eligible account exists");
+    expect(csrfCalls).toBe(0);
+  });
+
+  test("expired recovery token returns a safe actionable error",async({page})=>{
+    await mockHealthyService(page);
+    await page.route("**/api/v1/auth/password-reset/confirm",route=>route.fulfill({
+      status:400,
+      contentType:"application/json",
+      headers:corsHeaders,
+      body:JSON.stringify({detail:"internal token digest mismatch"}),
+    }));
+
+    await page.goto("/reset-password?token=expired-token");
+    await expect(page.getByLabel("Recovery token")).toHaveValue("expired-token");
+    await page.getByLabel("New password",{exact:true}).fill("new-correct-horse");
+    await page.getByLabel("Confirm new password").fill("new-correct-horse");
+    await page.getByRole("button",{name:"Update password"}).click();
+
+    const alert=page.locator(".formCard .error[role='alert']");
+    await expect(alert).toHaveText("This recovery link is invalid or expired. Request a new one.");
+    await expect(alert).not.toContainText("digest");
   });
 
   test("onboarding resumes an existing workspace instead of creating a duplicate",async({page})=>{

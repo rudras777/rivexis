@@ -17,7 +17,14 @@ export function clearActiveWorkspaceId(){if(typeof window!=="undefined")localSto
 let csrfToken:string|null=null;
 export function setCsrfToken(token:string|null){csrfToken=token}
 const UNSAFE=new Set(["POST","PUT","PATCH","DELETE"]);
-function webAuthBootstrap(path:string){return path==="/api/v1/auth/web/login"||path==="/api/v1/auth/web/signup"}
+const AUTH_CSRF_EXEMPT=new Set([
+ "/api/v1/auth/web/login",
+ "/api/v1/auth/web/signup",
+ "/api/v1/auth/email-verification/request",
+ "/api/v1/auth/email-verification/confirm",
+ "/api/v1/auth/password-reset/request",
+ "/api/v1/auth/password-reset/confirm",
+]);
 
 async function responseError(r:Response):Promise<ApiError>{
  let msg=`Request failed (${r.status})`;
@@ -41,7 +48,7 @@ export async function api<T>(path:string,init:RequestInit={}):Promise<T>{
  const method=(init.method??"GET").toUpperCase();
  const headers=new Headers(init.headers);
  if(init.body!=null&&!headers.has("Content-Type"))headers.set("Content-Type","application/json");
- if(UNSAFE.has(method)&&!webAuthBootstrap(path))headers.set("X-Rivexis-CSRF",await ensureCsrfToken());
+ if(UNSAFE.has(method)&&!AUTH_CSRF_EXEMPT.has(path))headers.set("X-Rivexis-CSRF",await ensureCsrfToken());
  const r=await fetch(`${API}${path}`,{...init,headers,credentials:"include",cache:"no-store"});
  if(!r.ok)throw await responseError(r);
  if(r.status===204)return undefined as T;
