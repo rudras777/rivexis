@@ -21,6 +21,7 @@ for binding in [
  'RIVEXIS_EMAIL_VERIFICATION_REQUIRED',
  'RIVEXIS_EMAIL_VERIFICATION_TTL_SECONDS',
  'RIVEXIS_PASSWORD_RESET_TTL_SECONDS',
+ 'RIVEXIS_PUBLIC_WEB_URL',
 ]:
  assert f'"{binding}"' in cloudflare_runtime, f'missing Cloudflare runtime binding: {binding}'
 assert '"RIVEXIS_MIGRATION_DATABASE_URL"' not in cloudflare_runtime, 'migration credential must never enter API runtime container'
