@@ -74,10 +74,5 @@ jobs:
         run: python scripts/certify_postgres_distributed_controls.py
       - name: Verify migrated PostgreSQL schema
         env:
-          PGPASSWORD: ci_only
-        run: |
-          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc 'select version_num from alembic_version')" = '0012_postgres_performance_hardening'
-          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc "select count(*) from pg_tables where schemaname='public' and tablename<>'alembic_version'")" = 55
-          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc \"select count(*) from pg_constraint c where c.contype='f' and c.connamespace='public'::regnamespace and not exists (select 1 from pg_index i where i.indrelid=c.conrelid and i.indisvalid and i.indnkeyatts >= cardinality(c.conkey) and not exists (select 1 from generate_subscripts(c.conkey,1) s where i.indkey[s-1] <> c.conkey[s]))\")" = 0
-          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc \"select count(*) from pg_indexes where schemaname='public' and indexname in ('ix_users_email','ix_workspaces_owner_user_id')\")" = 0
-          test "$(psql -h 127.0.0.1 -U rivexis_migrator -d rivexis_ci -tAc \"select count(*) from pg_policies where schemaname='public' and tablename in ('workspaces','organizations','organization_members','profiles') and (position('NULLIF(current_setting' in coalesce(qual,'')) > 0 or position('NULLIF(current_setting' in coalesce(with_check,'')) > 0)\")" = 0
+          DATABASE_URL: postgresql+psycopg://rivexis_migrator:ci_only@127.0.0.1:5432/rivexis_ci
+        run: python scripts/verify_postgres_migrated_schema.py
