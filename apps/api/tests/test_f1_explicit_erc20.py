@@ -169,7 +169,8 @@ def test_f1_rejects_caller_decimals_that_disagree_with_contract(monkeypatch):
     assert result.risk_score == 0
     assert result.engine_confidence == 0
     assert result.provider_status[-1]["status"] == "TOKEN_METADATA_MISMATCH"
-    assert any("do not match on-chain decimals 18" in warning for warning in result.warnings)
+    assert any("TOKEN_METADATA_MISMATCH: Provider request failed" in warning for warning in result.warnings)
+    assert all("on-chain decimals 18" not in warning for warning in result.warnings)
 
 
 def test_f1_aggregates_duplicate_asset_rows_before_concentration_scoring(monkeypatch):
