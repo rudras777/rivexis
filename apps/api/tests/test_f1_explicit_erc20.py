@@ -9,9 +9,14 @@ from rivexis_api.services import live_f1
 
 
 class PortfolioRpc:
-    def __init__(self, token_balance: int = 1_500_000):
+    def __init__(self, token_balance: int = 1_500_000, token_decimals: int = 6):
         self.token_balance = token_balance
+        self.token_decimals = token_decimals
         self.balance_calls: list[tuple[str, list | None]] = []
+
+    @staticmethod
+    def _word(value: int) -> str:
+        return "0x" + format(value, "064x")
 
     def call(self, method, params=None):
         self.balance_calls.append((method, params))
@@ -22,11 +27,20 @@ class PortfolioRpc:
         if method == "eth_getBalance":
             return ProviderCall("direct_rpc", "native", "http://rpc.test", "0x0", 1.0)
         if method == "eth_call":
+            data = params[0]["data"]
+            if data == live_f1.DECIMALS_SELECTOR:
+                return ProviderCall(
+                    "direct_rpc",
+                    "token-decimals",
+                    "http://rpc.test",
+                    self._word(self.token_decimals),
+                    1.0,
+                )
             return ProviderCall(
                 "direct_rpc",
                 "token-balance",
                 "http://rpc.test",
-                hex(self.token_balance),
+                self._word(self.token_balance),
                 1.0,
             )
         raise AssertionError((method, params))
@@ -91,6 +105,15 @@ def test_f1_reads_explicit_erc20_balance_from_rpc_without_claiming_wallet_discov
             "weight_pct": 100.0,
         }
     ]
+
+    metadata_evidence = [e for e in result.evidence if e.source_type == "direct_token_metadata"]
+    assert len(metadata_evidence) == 1
+    assert metadata_evidence[0].normalized_value["token_contract"] == token
+    assert metadata_evidence[0].normalized_value["caller_supplied_decimals"] == 6
+    assert metadata_evidence[0].normalized_value["onchain_decimals"] == 6
+    assert metadata_evidence[0].normalized_value["block_tag"] == "0x64"
+    assert metadata_evidence[0].block_number == 100
+
     token_evidence = [e for e in result.evidence if e.source_type == "direct_token_balance"]
     assert len(token_evidence) == 1
     assert token_evidence[0].normalized_value["token_contract"] == token
@@ -102,9 +125,10 @@ def test_f1_reads_explicit_erc20_balance_from_rpc_without_claiming_wallet_discov
     native_calls = [params for method, params in rpc.balance_calls if method == "eth_getBalance"]
     eth_calls = [params for method, params in rpc.balance_calls if method == "eth_call"]
     assert native_calls == [[wallet, "0x64"]]
-    assert eth_calls[0][0]["to"] == token
-    assert eth_calls[0][0]["data"] == live_f1.BALANCE_OF_SELECTOR + ("0" * 24) + wallet[2:]
-    assert eth_calls[0][1] == "0x64"
+    assert eth_calls[0] == [{"to": token, "data": live_f1.DECIMALS_SELECTOR}, "0x64"]
+    assert eth_calls[1][0]["to"] == token
+    assert eth_calls[1][0]["data"] == live_f1.BALANCE_OF_SELECTOR + ("0" * 24) + wallet[2:]
+    assert eth_calls[1][1] == "0x64"
     assert all(
         params[-1] != "latest"
         for method, params in rpc.balance_calls
@@ -113,8 +137,39 @@ def test_f1_reads_explicit_erc20_balance_from_rpc_without_claiming_wallet_discov
     assert "automatic ERC-20 token discovery outside explicitly supplied contracts" in result.missing_data
     assert "NFT positions for wallet ingestion" in result.missing_data
     assert "DeFi protocol positions for wallet ingestion" in result.missing_data
-    assert any("caller-supplied metadata" in text for text in result.assumptions)
+    assert any("decimals are verified directly" in text for text in result.assumptions)
     assert any("pinned to captured RPC block 0x64" in text for text in result.assumptions)
+
+
+def test_f1_rejects_caller_decimals_that_disagree_with_contract(monkeypatch):
+    rpc = PortfolioRpc(token_balance=1_500_000, token_decimals=18)
+    monkeypatch.setattr(live_f1, "select_rpc_client", lambda chain: _select(rpc))
+
+    class ShouldNotPrice:
+        def simple_price(self, ids, vs_currency="usd"):
+            raise AssertionError("market pricing must not run after token metadata mismatch")
+
+    monkeypatch.setattr(live_f1, "CoinGeckoClient", ShouldNotPrice)
+    result = live_f1.run_live_f1(
+        {
+            "chain": "ethereum",
+            "wallet": "0x1111111111111111111111111111111111111111",
+            "erc20_tokens": [
+                {
+                    "contract_address": "0x2222222222222222222222222222222222222222",
+                    "coingecko_id": "usd-coin",
+                    "symbol": "USDC",
+                    "decimals": 6,
+                }
+            ],
+        }
+    )
+
+    assert result.status == AnalysisStatus.PROVIDER_UNAVAILABLE
+    assert result.risk_score == 0
+    assert result.engine_confidence == 0
+    assert result.provider_status[-1]["status"] == "TOKEN_METADATA_MISMATCH"
+    assert any("do not match on-chain decimals 18" in warning for warning in result.warnings)
 
 
 def test_f1_aggregates_duplicate_asset_rows_before_concentration_scoring(monkeypatch):
@@ -179,4 +234,4 @@ def test_f1_dispatch_preserves_new_contract_version_and_evidence_version(monkeyp
 
     assert result.engine_version == "1.2.0"
     assert {e.engine_version for e in result.evidence} == {"1.2.0"}
-    assert any(e.calculation_version == "f1-live-1.3.0" for e in result.evidence)
+    assert any(e.calculation_version == "f1-live-1.4.0" for e in result.evidence)
