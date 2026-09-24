@@ -8,17 +8,17 @@ Last updated: 2026-09-24
 | GitHub repository | PUBLIC / MAIN ACTIVE | `rudras777/rivexis` is currently public. The GitHub Pages fallback files are preserved on `main`. |
 | GitHub CI | PASS FOR LATEST APPLICATION HEAD | `7a5f6aa284b35f8388915788ce1f444410f5ae4d` passed full CI #358 (`35977258512`): API ruff/pytest/pip-audit, web type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification. |
 | GitHub Pages fallback | ENABLED / PASSING / NOT APPLICATION CERTIFICATION | Pages deployment #29 (`35977258067`) passed on the same application head. This does not establish parity with the Cloudflare Next.js deployment or provide the authoritative FastAPI runtime. |
-| Free Cloudflare frontend preview | LIVE, DEPLOYMENT DRIFT DETECTED | `https://rivexis-web.rudrasingh0718.workers.dev` was previously reachable with public pages working, but unauthenticated `/workspace` showed an older generic/demo-safe shell rather than current-main access-withholding behavior. No private user/analysis data was observed. Current-main source is not claimed live there. |
-| Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` previously reported the intentional degraded state because the approved free-tier stack does not host the authoritative FastAPI runtime. |
-| Supabase PostgreSQL | ACTIVE_HEALTHY AT LAST VERIFIED CHECK | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`, PostgreSQL 17.6.1; prior direct grant/security checks preserved least-privilege behavior. |
+| Free Cloudflare frontend preview | LIVE / CURRENT APPLICATION SOURCE | `https://rivexis-web.rudrasingh0718.workers.dev` serves Worker version `258a0507-177e-43ae-84da-ebc037d29d03`, rebuilt from application head `e6e8fea6162ae6b00e3915a165423096ab404aba`. Unauthenticated `/workspace` now withholds protected content. Preview URLs are disabled. |
+| Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` returns HTTP 200 with explicit `degraded` state; application/auth endpoints return 503 because the approved free-tier stack does not host the authoritative FastAPI runtime. |
+| Supabase PostgreSQL | ACTIVE_HEALTHY / SCHEMA VERIFIED | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`, PostgreSQL 17.6.1; 55 application tables and migration `0011_postgres_runtime_controls` verified. Security advisors returned no findings and `anon`/`authenticated` have no public-table grants. |
 | Brevo transactional layer | IMPLEMENTED, NOT ACTIVATED | Fail-closed transport/environment contract are implemented and CI-certified. Verification/reset templates 1 and 2 remain intentionally inactive. Owned-domain sender authentication, runtime secrets, sandbox/real-delivery and lifecycle-event certification remain outstanding. |
 | Staging | PARTIAL | Supabase exists, but there is no independently certified live FastAPI staging runtime with complete provider/browser/email evidence. |
-| Production | BLOCKED | Cloudflare frontend parity is unverified, authoritative FastAPI runtime is absent, custom domain is unresolved, Brevo production sender/delivery certification is incomplete, and the release certification campaign is incomplete. |
+| Production | PARTIAL / BLOCKED ON APPLICATION RUNTIME | Cloudflare frontend parity is repaired. The authoritative FastAPI runtime is absent, custom domain is unresolved, Brevo production sender/delivery certification is incomplete, and the release certification campaign is incomplete. |
 
 ## Current deployed topology
 
 - **Public repository/Pages:** GitHub repository is public and Pages fallback/navigation files deploy successfully. This surface is not the production application runtime.
-- **Web application:** existing Cloudflare Worker `rivexis-web` via vinext, but deployed commit/Git-main parity is not currently verified.
+- **Web application:** Cloudflare Worker `rivexis-web` via vinext; current application head is deployed as version `258a0507-177e-43ae-84da-ebc037d29d03` at 100% traffic.
 - **API hostname:** Cloudflare Worker `rivexis-api`.
 - **API free-tier behavior:** explicit degraded health/application boundary; it is not a substitute for FastAPI.
 - **Database:** Supabase PostgreSQL.
@@ -38,18 +38,9 @@ Earlier B2/B3/F3/F2, F1/B1/B4 and B5/F4/F5 hardening remains intact. All ten eng
 
 ## Live browser / Cloudflare verification — 2026-09-24
 
-Earlier browser verification established that homepage, login, signup, platform and security pages were reachable and the API health endpoint truthfully reported degraded runtime state. It also discovered the unauthenticated `/workspace` Cloudflare deployment drift described above.
+Cloudflare account/API and dashboard inspection identified two Workers, no Pages projects, no custom Worker domains and no custom routes. `rivexis-web` has only the `ASSETS` binding; `rivexis-api` has no bindings or secrets and remains the intentional degraded placeholder.
 
-The freshest Cloudflare dashboard automation was run against `https://dash.cloudflare.com/` using the available browser profile and vault. Cloudflare stopped the automation at its own security-verification page showing `Performing security verification` and `Verifying...`. The automation did not bypass the challenge. Consequently:
-
-- the dashboard/account state could not be inspected;
-- existing `rivexis-web` project details could not be inspected;
-- GitHub repository/branch integration could not be verified;
-- deployed Cloudflare commit/version could not be verified;
-- no Cloudflare production deployment was triggered;
-- no DNS, custom-domain, billing/plan, environment-variable, secret, route, API Worker or project setting was changed.
-
-A plugin-directory recheck also returned no callable native Cloudflare plugin in this chat runtime. The GitHub Pages fallback does not resolve this P1 Cloudflare live-certification blocker.
+Current application source was built with `NEXT_PUBLIC_RIVEXIS_API_URL=https://rivexis-api.rudrasingh0718.workers.dev` and deployed to `rivexis-web`. Live checks passed for `/`, `/login`, `/signup`, `/workspace`, `/platform`, `/security`, `/methodology` and `/defi-risk`; an unknown route returned 404. Unauthenticated `/workspace` now displays `Application services unavailable` and withholds protected navigation/content. A safe invalid-login probe produced `Authentication service is temporarily unavailable`; the browser console had no warnings or errors. Worker preview URLs were explicitly disabled after deployment and verified disabled through the Cloudflare API.
 
 ## Supabase verification notes retained
 
@@ -71,7 +62,7 @@ A plugin-directory recheck also returned no callable native Cloudflare plugin in
 
 ## Production activation gates
 
-- **Cloudflare frontend deployment drift:** authenticated Cloudflare access past the security-verification challenge is required to inspect/deploy the established `rivexis-web` project and re-certify live auth/workspace behavior. The latest automation could not pass the Cloudflare CAPTCHA-style verification page.
+- **Cloudflare frontend deployment drift:** RESOLVED. Current application source is deployed and live behavior is re-certified; CI/CD remains manual rather than repository-connected.
 - **FastAPI runtime:** explicit approval for Workers Paid or another approved FastAPI-capable production path is required; do not replace FastAPI with a fake Worker implementation.
 - **Custom domain:** domain choice/ownership/configuration remains unresolved.
 - **Brevo:** phone/account verification is not the blocker; owned-domain sender authentication, secrets and delivery-lifecycle certification remain outstanding.

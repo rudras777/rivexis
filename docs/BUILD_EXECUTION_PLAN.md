@@ -36,7 +36,7 @@ Milestone E remains complete at repository-test level. The shared analysis/decis
 
 Milestone F remains **in progress**. Repository-level input/provider/freshness/parser/runtime integrity is deeply regression-tested across all ten specialist engines. This does not claim that all evidence-depth capabilities are complete; remaining work is deeper evidence collection/normalization through approved deterministic sources.
 
-The live-production discrepancy remains open: earlier verification showed an older generic/demo-safe workspace shell on unauthenticated Cloudflare `/workspace`, while current source fails closed and withholds workspace content until access is authorized. The public GitHub Pages fallback does not establish Cloudflare parity. The freshest Cloudflare browser run on 2026-09-24 was stopped by Cloudflare's `Performing security verification` / `Verifying...` CAPTCHA-style security challenge before dashboard inspection. The plugin directory also exposed no callable native Cloudflare connector. No Cloudflare deployment or configuration was changed.
+The Cloudflare frontend discrepancy was closed on 2026-09-24. Current application head `e6e8fea6162ae6b00e3915a165423096ab404aba` was rebuilt with the intended HTTPS API origin and deployed to `rivexis-web` as version `258a0507-177e-43ae-84da-ebc037d29d03` at 100% traffic. Live unauthenticated `/workspace` now fails closed and withholds navigation/content while the API is unavailable. Per-version preview URLs are explicitly disabled and verified disabled.
 
 ### Milestone F acceptance targets
 
@@ -88,7 +88,7 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Dependencies and blockers
 
-- **Cloudflare production deployment drift:** BLOCKED on authenticated dashboard access past Cloudflare's security-verification challenge. The freshest browser automation reached only `Performing security verification` / `Verifying...`; `rivexis-web` Git/main integration and deployed commit remain unverified. No challenge bypass was attempted. GitHub Pages is not a substitute for this certification.
+- **Cloudflare production deployment drift:** RESOLVED for the frontend. Worker version `258a0507-177e-43ae-84da-ebc037d29d03` serves the current application source, uses the intended API origin, and passes live route/workspace checks. The Worker remains manually deployed rather than Git-integrated CI/CD.
 - **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable production path. The current API Worker remains a degraded health/503 boundary.
 - **Custom domain:** BLOCKED on domain choice/ownership/configuration.
 - **Production email:** Brevo phone/account verification is complete; fail-closed transport, environment contract and inactive templates are implemented. Owned-domain sender authentication, production runtime secret installation, sandbox certification, real delivery verification and transactional lifecycle-event evidence remain outstanding.
@@ -100,4 +100,4 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Next action
 
-If authenticated Cloudflare access becomes available past the security challenge, inspect the established `rivexis-web` project/Git integration and deploy current `main` only through that existing safe configuration, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior. Otherwise continue Milestone F capability depth through the highest-value deterministic unblocked slice without inventing provider evidence. For F1, the next meaningful capability depth is approved automatic/indexed asset discovery plus NFT/DeFi positions and independent token-identity mapping; otherwise select the strongest repository-verifiable gap across the remaining engines. Keep Brevo authentication templates inactive until sender/domain and delivery-lifecycle gates are certified. Full-CI gate every implementation slice.
+Deploy the authoritative FastAPI runtime on an explicitly approved production target, then configure exact HTTPS origins, PostgreSQL application credentials, distributed controls and Brevo secrets there before running authenticated browser and email-delivery certification. Keep Brevo templates inactive until owned-domain/sender and delivery-lifecycle gates are certified. Full-CI gate every implementation slice.

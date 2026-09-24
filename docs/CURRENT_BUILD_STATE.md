@@ -67,11 +67,9 @@ The repository contains fail-closed transactional transport, targeted tests, a d
 
 ## Cloudflare / live frontend
 
-The P1 Cloudflare deployment drift remains unresolved. Earlier live verification showed an older generic/demo-safe workspace shell at unauthenticated `/workspace`, while current source withholds authenticated workspace content until `/api/v1/workspaces` authorizes access.
+The P1 Cloudflare frontend drift was repaired on 2026-09-24. The `rivexis-web` Worker was rebuilt from current application head `e6e8fea6162ae6b00e3915a165423096ab404aba` with `NEXT_PUBLIC_RIVEXIS_API_URL=https://rivexis-api.rudrasingh0718.workers.dev` and deployed as Worker version `258a0507-177e-43ae-84da-ebc037d29d03` at 100% traffic.
 
-The freshest Cloudflare dashboard automation on 2026-09-24 used the available browser profile/vault but was stopped by Cloudflare's own `Performing security verification` / `Verifying...` CAPTCHA-style security challenge before the dashboard could be inspected. The automation did not bypass the challenge. The existing `rivexis-web` project, GitHub/main integration and deployed commit/version therefore could not be inspected or redeployed. No Cloudflare deployment, DNS, billing, environment-variable, secret, route, project or API Worker setting was changed.
-
-The plugin directory also exposed no callable native Cloudflare connector in this chat runtime. GitHub Pages success does not resolve Cloudflare deployment parity.
+Live browser verification confirmed that unauthenticated `/workspace` now withholds navigation and workspace content while the FastAPI runtime is unavailable. Homepage, login, signup and key public routes return successfully; a safe invalid-login probe reports temporary authentication-service unavailability without browser console errors. Per-version Worker preview URLs are explicitly disabled in `wrangler.jsonc` and verified disabled through the Cloudflare API. No DNS, custom domain, billing plan, secret, API Worker or database setting was changed.
 
 ## Other production gates retained
 
@@ -89,6 +87,6 @@ Remaining depth includes deeper B1 internal-call/state/security semantics and bo
 
 ## Next execution order
 
-1. If authenticated Cloudflare access becomes available past the dashboard security challenge, inspect the established `rivexis-web` configuration, deploy current `main` only through the existing safe project, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior.
-2. Keep Brevo authentication mail inactive until owned-domain/sender and delivery-lifecycle gates are certified.
-3. Otherwise continue Milestone F with the highest-value deterministic capability-depth slice, preferring repository-verifiable evidence improvements over speculative provider integrations and preserving explicit UNKNOWN/unavailable states when provider contracts or credentials are absent.
+1. Deploy the authoritative FastAPI application runtime on an explicitly approved paid Workers or other FastAPI-capable production target; the current free API Worker remains an honest degraded health/503 boundary.
+2. Keep Brevo authentication mail inactive until owned-domain/sender, runtime secret and delivery-lifecycle gates are certified.
+3. Continue Milestone F with the highest-value deterministic capability-depth slice, preserving explicit UNKNOWN/unavailable states when provider contracts or credentials are absent.
