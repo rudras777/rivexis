@@ -15,7 +15,7 @@ Last updated: 2026-09-25
 
 ## Live frontend verification
 
-The deployment exposes the new verification and recovery routes and retains the existing degraded-service disclosure. Live HTTP probes on 2026-09-25 returned 200 for `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/verify-email`, and `/workspace`; an unknown route returned 404. Responses retained HSTS, CSP, `X-Content-Type-Options`, and HTTPS. Browser inspection confirmed the login recovery link and recovery form with no observed page console errors.
+The deployment exposes the new verification and recovery routes and retains the existing degraded-service disclosure. Live HTTP probes on 2026-09-25 returned 200 for `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/verify-email`, and `/workspace`; an unknown route returned 404. Responses retained HSTS, CSP, `X-Content-Type-Options`, and HTTPS. Browser inspection confirmed the login recovery link and recovery form with no observed page console errors. Cloudflare query-string redaction is enabled and verified for Worker observability; the committed Wrangler configuration preserves it on future deploys.
 
 ## Production database postflight
 

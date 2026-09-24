@@ -35,7 +35,7 @@ Authoritative public frontend:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-Cloudflare Worker version `b6f5f845-a9fa-4f03-8622-ece8364db633` receives 100% traffic. It was deployed only after CI #380 passed. Live probes verified `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/verify-email`, and `/workspace` return 200, an unknown route returns 404, HTTPS/HSTS/CSP/nosniff headers remain present, and browser inspection found the deployed recovery UI without page console errors.
+Cloudflare Worker version `b6f5f845-a9fa-4f03-8622-ece8364db633` receives 100% traffic. It was deployed only after CI #380 passed. Live probes verified `/`, `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/verify-email`, and `/workspace` return 200, an unknown route returns 404, HTTPS/HSTS/CSP/nosniff headers remain present, and browser inspection found the deployed recovery UI without page console errors. Cloudflare observability now has query-string redaction enabled so recovery tokens are not retained in request URLs; the durable Wrangler configuration carries the same setting.
 
 The web application is configured to call `https://rivexis-api.rudrasingh0718.workers.dev`.
 
