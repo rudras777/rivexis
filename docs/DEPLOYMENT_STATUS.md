@@ -10,7 +10,7 @@ Last updated: 2026-09-25
 | Cloudflare API Free | LIVE / DEGRADED BY DESIGN | `/health` reports degraded; application endpoints return 503. It is not the FastAPI runtime. |
 | Authoritative FastAPI | SOURCE READY / BILLING GATED | Existing Docker + Cloudflare Container `lite` design requires Workers Paid; scrypt will not be weakened for Free. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY / CURRENT | Project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1, production Alembic head `0013_auth_email_lifecycle`; 0012 and 0013 postflight verified. |
-| Brevo | RELAY/SENDER READY / TEMPLATES INACTIVE | Relay enabled; active Gmail sender; templates #1/#2 exist but remain inactive; owned-domain identity and inbox delivery are uncertified. |
+| Brevo | TEMPLATES ACTIVE / TEST DELIVERY VERIFIED | Relay enabled; active Gmail sender; templates #1/#2 active with sender name `Rivexis`. Both controlled template tests reached Gmail; the verification message also shows `Sent` and `Delivered` in Brevo logs. Owned-domain identity and application-triggered parameter substitution remain uncertified. |
 | Production | PARTIAL | Frontend and schema are current; authoritative API, real auth, transactional delivery, and workspace runtime remain blocked by the paid backend gate and email activation/identity gates. |
 
 ## Live frontend verification
@@ -25,6 +25,6 @@ Production reports migration `0013_auth_email_lifecycle`, 56 application tables,
 
 - **FastAPI runtime:** explicit authorization for the minimum Workers Paid plan change.
 - **Runtime configuration:** restricted `DATABASE_URL`, strong auth secret, exact origins, DEMO off, PostgreSQL distributed controls on, Brevo bindings, and trusted public web URL.
-- **Brevo:** activate existing templates; an owned-domain sender is still absent; controlled API-to-provider-to-inbox delivery remains unverified.
+- **Brevo:** an owned-domain sender is still absent. Template-test delivery is verified, but application-triggered parameter substitution remains blocked with the backend.
 - **Auth E2E:** frontend and backend source exist, but the authoritative API is not deployed, so real signup/login/session/reset cannot yet be certified.
 - **Provider contracts:** missing credentials/licensing remain explicit UNKNOWN/unavailable states.

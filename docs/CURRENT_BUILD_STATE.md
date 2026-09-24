@@ -65,10 +65,10 @@ Live inspection found:
 - SMTP relay enabled;
 - free account with 300 daily send credits at inspection time;
 - one active `Rivexis` sender using the owner's Gmail address;
-- verification template #1 and password-reset template #2 exist and match the runtime parameter contract;
-- both templates remain inactive pending explicit save/activation confirmation;
+- verification template #1 and password-reset template #2 are active, use sender name `Rivexis`, and match the runtime parameter contract;
 - no Rivexis-owned authenticated sending domain exists, so Brevo warns it will substitute a `brevosend.com` sender domain;
-- no controlled production delivery has been sent or inbox-certified.
+- controlled template tests were accepted by Brevo and both messages reached the owner Gmail inbox; Brevo logs independently showed the verification message as `Sent` and `Delivered`;
+- template-test sends do not inject runtime parameters, so production link/code substitution and the full application-triggered lifecycle remain uncertified until the backend is deployed.
 
 ## Engine integrity
 
@@ -78,13 +78,13 @@ All B1-B5/F1-F5 integrity controls remain intact. F1 remains engine contract `1.
 
 1. Authoritative FastAPI deployment requires explicit Workers Paid authorization.
 2. Runtime production secrets must be configured without exposing migration credentials.
-3. Brevo templates need activation; the Gmail sender is not an owned authenticated domain.
+3. The Gmail sender is not an owned authenticated domain.
 4. Real signup/login/session/logout/recovery/email E2E cannot be certified until the backend is deployed.
 5. Provider credentials/licenses remain explicit; unavailable evidence stays UNKNOWN.
 
 ## Next execution order
 
-1. Activate the two existing Brevo transactional templates when confirmed, without sending mail.
-2. When Workers Paid is authorized, deploy the existing FastAPI Container with restricted runtime credentials and production bindings.
-3. Run real auth, session, reset, inbox-delivery, workspace, and safe engine E2E.
-4. Continue the highest-value deterministic engine hardening while external gates remain.
+1. Continue free authentication UX and deterministic engine hardening while the runtime is billing-gated.
+2. If a zero-cost authoritative runtime becomes technically compatible without weakening controls, certify it before any architecture change.
+3. If paid deployment is later authorized, deploy the existing FastAPI Container with restricted runtime credentials and production bindings.
+4. Run real auth, session, reset, inbox-delivery, workspace, and safe engine E2E after an authoritative backend exists.

@@ -64,6 +64,27 @@ test.describe("browser authentication and onboarding",()=>{
     await expect(page.getByText(/We verify new accounts/)).toBeVisible();
   });
 
+  test("login distinguishes the verified-account gate without leaking backend detail",async({page})=>{
+    await mockHealthyService(page);
+    await page.route("**/api/v1/auth/web/login",route=>route.fulfill({
+      status:403,
+      contentType:"application/json",
+      headers:corsHeaders,
+      body:JSON.stringify({detail:"Email verification required for internal user u1"}),
+    }));
+
+    await page.goto("/login?verified=1");
+    await expect(page.getByRole("status")).toHaveText("Email verified. Log in to continue.");
+    await expect(page.getByRole("link",{name:"Verify an existing account"})).toHaveAttribute("href","/verify-email");
+    await page.getByLabel("Email").fill("pending@example.com");
+    await page.getByLabel("Password").fill("correct-horse-battery");
+    await page.getByRole("button",{name:"Log in"}).click();
+
+    const alert=page.locator(".formCard .error[role='alert']");
+    await expect(alert).toHaveText("Email verification is required before login.");
+    await expect(alert).not.toContainText("u1");
+  });
+
   test("verification-required signup does not create a browser session",async({page})=>{
     await mockHealthyService(page);
     await page.route("**/api/v1/auth/web/signup",route=>route.fulfill({

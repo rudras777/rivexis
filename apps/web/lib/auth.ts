@@ -7,6 +7,7 @@ export function authErrorMessage(error:unknown,surface:AuthSurface):string{
 
   if(surface==="login"){
     if(status===401)return "Invalid email or password.";
+    if(status===403)return "Email verification is required before login.";
     if(status===429)return "Too many login attempts. Try again shortly.";
     if(status===503)return "Authentication service is temporarily unavailable.";
     return "Unable to log in. Try again.";
