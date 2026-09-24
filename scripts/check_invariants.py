@@ -18,8 +18,11 @@ for binding in [
  'RIVEXIS_BREVO_PASSWORD_RESET_TEMPLATE_ID',
  'RIVEXIS_BREVO_TIMEOUT_SECONDS',
  'RIVEXIS_BREVO_SANDBOX',
+ 'RIVEXIS_EMAIL_VERIFICATION_REQUIRED',
+ 'RIVEXIS_EMAIL_VERIFICATION_TTL_SECONDS',
+ 'RIVEXIS_PASSWORD_RESET_TTL_SECONDS',
 ]:
  assert f'"{binding}"' in cloudflare_runtime, f'missing Cloudflare runtime binding: {binding}'
 assert '"RIVEXIS_MIGRATION_DATABASE_URL"' not in cloudflare_runtime, 'migration credential must never enter API runtime container'
 
-print('Rivexis invariants: PASS (10 engines; required docs present; Cloudflare email bindings complete; migration credential isolated)')
+print('Rivexis invariants: PASS (10 engines; required docs present; Cloudflare auth/email bindings complete; migration credential isolated)')
