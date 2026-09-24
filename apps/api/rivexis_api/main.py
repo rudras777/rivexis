@@ -32,11 +32,16 @@ from rivexis_api.services.db import init_db, validate_application_database_role
 from rivexis_api.services.explanations import grounded_explanation
 from rivexis_api.services.reports import decision_html, decision_pdf, protocol_investigation_html, protocol_investigation_pdf, protocol_review_html, protocol_review_pdf
 from rivexis_api.services.alert_delivery import process_due_alerts
+from rivexis_api.services.auth_email import (
+    email_verification_required, initialize_user_auth_state, is_email_verified,
+    issue_verification_email, router as auth_email_router, validate_auth_email_runtime,
+)
 from rivexis_api.services.auth_rate_limit import clear_login_attempts, consume_login_attempt
 from rivexis_api.services.protocol_adapters import protocol_adapter_capabilities
 from rivexis_api.services.deployment_registry import list_protocol_deployments, REGISTRY_VERSION
 from rivexis_api.services.registry_governance import registry_fingerprint
 from rivexis_api.services.protocol_history import protocol_event_timeline, compare_protocol_configuration
+from rivexis_api.services.transactional_email import EmailConfigurationError, EmailDeliveryError
 from rivexis_api.version import API_VERSION
 from rivexis_api.services.store import (
     add_organization_member, add_organization_member_by_claim, analysis_by_id, analysis_record, audit, bump_user_token_version, create_alert, create_monitor,
@@ -57,6 +62,7 @@ DUMMY_PASSWORD_HASH=hash_password("rivexis-login-timing-dummy-password")
 @asynccontextmanager
 async def lifespan(_:FastAPI):
     validate_runtime_security()
+    validate_auth_email_runtime()
     init_db()
     validate_application_database_role()
     init_telemetry()
@@ -66,6 +72,7 @@ async def lifespan(_:FastAPI):
         shutdown_telemetry()
 
 app=FastAPI(title="Rivexis API",version=API_VERSION,lifespan=lifespan)
+app.include_router(auth_email_router)
 
 
 def _production() -> bool:
@@ -109,6 +116,32 @@ def _enforce_login_budget(email: str) -> None:
         raise HTTPException(429,"Too many login attempts")
 
 
+def _enforce_verified_email(user) -> None:
+    if email_verification_required() and not is_email_verified(user.id):
+        raise HTTPException(403,"Email verification required")
+
+
+def _signup_auth_result(user, response: Response | None = None) -> dict[str, object]:
+    verification_required=email_verification_required()
+    initialize_user_auth_state(user.id,verified=not verification_required)
+    base={"id":user.id,"email":user.email,"role":user.role}
+    if verification_required:
+        try:
+            accepted=issue_verification_email(user)
+            email_status=accepted.status
+        except (EmailConfigurationError,EmailDeliveryError,ValueError):
+            # The account exists and remains safely unusable until verification. A
+            # resend endpoint is available, so a transient provider failure does not
+            # create a duplicate-account retry trap.
+            email_status="unavailable"
+        return {"verification_required":True,"email_status":email_status,"user":base}
+    token=create_token(user.email,user.role,user.token_version)
+    if response is not None:
+        _set_session_cookie(response,token)
+        return {"csrf_token":create_csrf_token(token),"verification_required":False,"user":base}
+    return {"access_token":token,"token_type":"bearer","verification_required":False,"user":base}
+
+
 @app.middleware("http")
 async def request_context_and_security_headers(request:Request,call_next):
     if request.method.upper() in {"POST","PUT","PATCH","DELETE"} and request.url.path.startswith("/api/v1/"):
@@ -116,6 +149,8 @@ async def request_context_and_security_headers(request:Request,call_next):
         bearer_present=bool(request.headers.get("Authorization","").strip())
         csrf_exempt=request.url.path in {
             "/api/v1/auth/web/signup", "/api/v1/auth/web/login",
+            "/api/v1/auth/email-verification/request", "/api/v1/auth/email-verification/confirm",
+            "/api/v1/auth/password-reset/request", "/api/v1/auth/password-reset/confirm",
             "/api/v1/integrations/hypernative/events",
         }
         if session_token and not bearer_present and not csrf_exempt:
@@ -195,9 +230,9 @@ def signup(req:SignupRequest):
     try: u=create_user(req.email,hash_password(req.password),req.role)
     except ValueError as exc: raise HTTPException(409,str(exc)) from exc
     clear_login_attempts(req.email)
-    token=create_token(u.email,u.role,u.token_version)
-    audit("signup","user",u.id,actor=u.email,actor_user_id=u.id)
-    return {"access_token":token,"token_type":"bearer","user":{"id":u.id,"email":u.email,"role":u.role}}
+    result=_signup_auth_result(u)
+    audit("signup","user",u.id,actor=u.email,actor_user_id=u.id,detail={"verification_required":bool(result.get("verification_required"))})
+    return result
 
 @app.post("/api/v1/auth/login")
 def login(req:LoginRequest):
@@ -206,6 +241,7 @@ def login(req:LoginRequest):
     encoded=u.password_hash if u else DUMMY_PASSWORD_HASH
     valid=verify_password(req.password,encoded)
     if not u or not valid: raise HTTPException(401,"Invalid credentials")
+    _enforce_verified_email(u)
     clear_login_attempts(req.email)
     audit("login","user",u.id,actor=u.email,actor_user_id=u.id)
     return {"access_token":create_token(u.email,u.role,u.token_version),"token_type":"bearer","user":{"id":u.id,"email":u.email,"role":u.role}}
@@ -220,10 +256,9 @@ def web_signup(req:SignupRequest,response:Response):
     try: u=create_user(req.email,hash_password(req.password),req.role)
     except ValueError as exc: raise HTTPException(409,"Unable to create account with those details") from exc
     clear_login_attempts(req.email)
-    token=create_token(u.email,u.role,u.token_version)
-    _set_session_cookie(response,token)
-    audit("signup","user",u.id,actor=u.email,actor_user_id=u.id,detail={"session":"cookie"})
-    return {"csrf_token":create_csrf_token(token),"user":{"id":u.id,"email":u.email,"role":u.role}}
+    result=_signup_auth_result(u,response)
+    audit("signup","user",u.id,actor=u.email,actor_user_id=u.id,detail={"session":"cookie" if not result.get("verification_required") else "pending_verification"})
+    return result
 
 @app.post("/api/v1/auth/web/login")
 def web_login(req:LoginRequest,response:Response):
@@ -232,6 +267,7 @@ def web_login(req:LoginRequest,response:Response):
     encoded=u.password_hash if u else DUMMY_PASSWORD_HASH
     valid=verify_password(req.password,encoded)
     if not u or not valid: raise HTTPException(401,"Invalid credentials")
+    _enforce_verified_email(u)
     clear_login_attempts(req.email)
     token=create_token(u.email,u.role,u.token_version)
     _set_session_cookie(response,token)
@@ -253,7 +289,7 @@ def logout(request:Request,response:Response,user=Depends(current_user)):
     return {"status":"revoked","scope":"all_current_sessions_for_user"}
 
 @app.get("/api/v1/me")
-def me(user=Depends(current_user)): return {"id":user.id,"email":user.email,"role":user.role}
+def me(user=Depends(current_user)): return {"id":user.id,"email":user.email,"role":user.role,"email_verified":is_email_verified(user.id)}
 
 @app.post("/api/v1/organizations/{organization_id}/membership-claim")
 def organization_membership_claim(organization_id:str,user=Depends(current_user)):
