@@ -190,7 +190,7 @@ def test_verified_abi_does_not_fake_decode_static_tuple():
     assert "tuple" in result["note"]
 
 
-def test_verified_abi_does_not_fake_decode_fixed_array():
+def test_verified_abi_decodes_fixed_array_of_static_elements():
     signature = "setLevels(uint256[2])"
     abi = [
         {
@@ -204,6 +204,65 @@ def test_verified_abi_does_not_fake_decode_fixed_array():
 
     result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
 
+    assert result["status"] == "DECODED_VERIFIED_ABI"
+    assert result["parameters"][0]["value"] == [1, 2]
+
+
+def test_verified_abi_fixed_array_expands_head_before_dynamic_offset():
+    signature = "setLevelsAndNote(uint256[2],string)"
+    abi = [
+        {
+            "type": "function",
+            "name": "setLevelsAndNote",
+            "inputs": [
+                {"name": "levels", "type": "uint256[2]"},
+                {"name": "note", "type": "string"},
+            ],
+            "outputs": [],
+        }
+    ]
+    payload = word(1) + word(2) + word(96) + word(2) + "6f6b" + ("00" * 30)
+
+    result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
+
+    assert result["status"] == "DECODED_VERIFIED_ABI"
+    assert result["parameters"][0]["value"] == [1, 2]
+    assert result["parameters"][1]["value"] == "ok"
+
+
+def test_verified_abi_fixed_array_rejects_noncanonical_element():
+    signature = "setFlags(bool[2])"
+    abi = [
+        {
+            "type": "function",
+            "name": "setFlags",
+            "inputs": [{"name": "flags", "type": "bool[2]"}],
+            "outputs": [],
+        }
+    ]
+    payload = word(1) + word(2)
+
+    result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
+
+    assert result["status"] == "MALFORMED_VERIFIED_ABI_CALLDATA"
+    assert "element 1" in result["malformed_reason"]
+    assert "bool" in result["malformed_reason"]
+
+
+def test_verified_abi_keeps_nested_fixed_array_unsupported():
+    signature = "setMatrix(uint256[2][2])"
+    abi = [
+        {
+            "type": "function",
+            "name": "setMatrix",
+            "inputs": [{"name": "matrix", "type": "uint256[2][2]"}],
+            "outputs": [],
+        }
+    ]
+    payload = word(1) + word(2) + word(3) + word(4)
+
+    result = decode_verified_abi_calldata(function_selector(signature) + payload, abi)
+
     assert result["status"] == "UNSUPPORTED_VERIFIED_ABI_TYPE"
     assert result["confidence"] == 0
-    assert "fixed-array" in result["note"]
+    assert "nested-dynamic" in result["note"]

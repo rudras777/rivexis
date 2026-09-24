@@ -55,7 +55,7 @@ The Cloudflare frontend discrepancy was closed on 2026-09-24. Current applicatio
 ## Milestone F completed evidence so far
 
 - Cross-engine dispatch enforces canonical current engine/evidence versions, evidence-derived provider consensus and first-class unresolved conflict semantics.
-- **B1:** standard event effects are validated/log-grounded; canonical address/bool/integer/fixed-bytes ABI rules prevent malformed permission-shaped calls from becoming plausible approvals. Verified-ABI dynamic `bytes`/`string` and dynamic arrays of supported one-word static elementary types validate alignment, static-head boundaries, tail lengths, padding and elements under a bounded decoder. Unsupported tuple/fixed-array/nested dynamic layouts remain explicit. Certified in CI #350.
+- **B1:** engine `1.3.0`, calculation `b1-live-1.4.0`. Standard event effects are validated/log-grounded; canonical address/bool/integer/fixed-bytes ABI rules prevent malformed permission-shaped calls from becoming plausible approvals. Verified-ABI dynamic `bytes`/`string`, dynamic arrays and bounded one-dimensional fixed arrays of supported one-word static elementary types validate alignment, expanded static-head boundaries, tail lengths, padding and elements. Unsupported tuple and nested/composite layouts remain explicit.
 - **B2:** engine `1.1.0`, calculation `b2-live-1.2.0`. Target/sender/hash and RPC transaction bodies validate; contract bytecode is valid hex read at the captured block; approval rules reuse canonical calldata decoding.
 - **B3:** engine `1.1.0`, calculation `b3-live-1.2.0`. Native balance, code, optional total supply and supplied Chainlink reads share one captured block tag. Future/stale oracle behavior and prior-snapshot validation remain fail-closed.
 - **B4:** engine `1.0.0`. Direct native balance remains pinned/LIVE at the captured RPC block. Etherscan history and Nansen/Arkham label evidence no longer inherit that block without provider-specific proof; timestamp-less external evidence remains UNKNOWN and drives aggregate freshness to UNKNOWN while direct-state freshness remains separately LIVE. Focused regressions passed CI #353.
@@ -70,7 +70,7 @@ The Cloudflare frontend discrepancy was closed on 2026-09-24. Current applicatio
 
 These are primarily capability-depth items rather than known hidden build/test failures:
 
-- B1 deeper internal-call/state/security semantics; tuple/fixed-array/nested ABI decoding only where it materially improves transaction understanding and can remain bounded/canonical.
+- B1 deeper internal-call/state/security semantics; tuple and nested/composite ABI decoding only where it materially improves transaction understanding and can remain bounded/canonical.
 - B2/B3 deeper independent external threat/security evidence where an approved provider contract exists; B3 remains point-in-time rather than continuous provider-native monitoring.
 - B4 cross-chain activity and richer protocol-semantic/counterparty attribution beyond the now-correct direct/external provenance boundary.
 - B5 independent bridge-security, liquidity and incident evidence beyond route-aggregator evidence.

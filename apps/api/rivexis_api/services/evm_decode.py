@@ -4,6 +4,7 @@ from typing import Any
 
 UINT256_MAX = 2**256 - 1
 _MAX_DYNAMIC_ARRAY_ITEMS = 4096
+_MAX_FIXED_ARRAY_ITEMS = 4096
 
 
 def _word(data: str, index: int) -> str | None:
@@ -369,6 +370,28 @@ def _dynamic_array_element_type(typ: str) -> str | None:
     return element_type if _supported_static_type(element_type) else None
 
 
+def _fixed_array_spec(typ: str) -> tuple[str, int] | None:
+    if not typ.endswith("]") or "[" not in typ:
+        return None
+    element_type, separator, length_text = typ.rpartition("[")
+    if not separator or "[" in element_type or not length_text.endswith("]"):
+        return None
+    length_text = length_text[:-1]
+    if not length_text.isdigit() or not _supported_static_type(element_type):
+        return None
+    length = int(length_text)
+    if not 1 <= length <= _MAX_FIXED_ARRAY_ITEMS:
+        return None
+    return element_type, length
+
+
+def _static_head_words(typ: str) -> int | None:
+    if _supported_static_type(typ):
+        return 1
+    fixed_array = _fixed_array_spec(typ)
+    return fixed_array[1] if fixed_array is not None else None
+
+
 def _is_supported_dynamic_type(typ: str) -> bool:
     return typ in {"bytes", "string"} or _dynamic_array_element_type(typ) is not None
 
@@ -517,7 +540,7 @@ def decode_verified_abi_calldata(
             (
                 typ
                 for typ in abi_types
-                if not _supported_static_type(typ)
+                if _static_head_words(typ) is None
                 and not _is_supported_dynamic_type(typ)
             ),
             None,
@@ -566,7 +589,10 @@ def decode_verified_abi_calldata(
                 reason="ABI argument payload contains non-hexadecimal characters",
             )
 
-        head_size_bytes = len(inputs) * 32
+        head_size_bytes = sum(
+            _static_head_words(typ) or 1 for typ in abi_types
+        ) * 32
+        head_word_index = 0
 
         for index, param in enumerate(inputs):
             typ = abi_types[index]
@@ -575,7 +601,7 @@ def decode_verified_abi_calldata(
                 "type": typ,
                 "value": None,
             }
-            word = payload[index * 64 : (index + 1) * 64]
+            word = payload[head_word_index * 64 : (head_word_index + 1) * 64]
             if len(word) != 64:
                 decoded.append(entry)
                 return _malformed_verified_abi(
@@ -590,6 +616,7 @@ def decode_verified_abi_calldata(
                 value = _decode_abi_static(typ, word)
                 entry["value"] = value
                 decoded.append(entry)
+                head_word_index += 1
                 if value is None:
                     return _malformed_verified_abi(
                         selector=selector,
@@ -597,6 +624,40 @@ def decode_verified_abi_calldata(
                         function_name=item.get("name"),
                         parameters=decoded,
                         reason=f"static ABI parameter {index} is not canonically encoded as {typ}",
+                    )
+                continue
+
+            fixed_array = _fixed_array_spec(typ)
+            if fixed_array is not None:
+                element_type, length = fixed_array
+                values = []
+                error = None
+                for element_index in range(length):
+                    element_word_index = head_word_index + element_index
+                    element_word = payload[
+                        element_word_index * 64 : (element_word_index + 1) * 64
+                    ]
+                    if len(element_word) != 64:
+                        error = f"fixed array element {element_index} is missing or truncated"
+                        break
+                    value = _decode_abi_static(element_type, element_word)
+                    if value is None:
+                        error = (
+                            f"fixed array element {element_index} is not canonically "
+                            f"encoded as {element_type}"
+                        )
+                        break
+                    values.append(value)
+                entry["value"] = values if error is None else None
+                decoded.append(entry)
+                head_word_index += length
+                if error is not None:
+                    return _malformed_verified_abi(
+                        selector=selector,
+                        signature=signature,
+                        function_name=item.get("name"),
+                        parameters=decoded,
+                        reason=error,
                     )
                 continue
 
@@ -619,6 +680,7 @@ def decode_verified_abi_calldata(
                 )
                 entry["value"] = value
                 decoded.append(entry)
+                head_word_index += 1
                 if error is not None:
                     return _malformed_verified_abi(
                         selector=selector,
