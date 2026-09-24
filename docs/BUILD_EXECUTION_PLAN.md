@@ -7,9 +7,9 @@ Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt
 
 - Repository: public `rudras777/rivexis`; default branch `main`.
 - Public GitHub Pages fallback files are preserved; they provide a public navigation fallback and do not replace or certify the Cloudflare application deployment.
-- Latest fully certified application head before this documentation-only state sync: `61b728edf259ccafda256f2ab6f221e918e1f0ef`.
-- CI #353 (`35934430946`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
-- GitHub Pages deployment #24 (`35934430378`) also passed on that head.
+- Latest fully certified application head before this documentation-only state sync: `7a5f6aa284b35f8388915788ce1f444410f5ae4d`.
+- CI #358 (`35977258512`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
+- GitHub Pages deployment #29 (`35977258067`) also passed on that head.
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
 - API: FastAPI is the authoritative application backend. The free Cloudflare Worker API is an explicit degraded placeholder, not a replacement runtime.
 - Supabase project `ivszvufdonfgwjpfgwii` was previously verified `ACTIVE_HEALTHY` in `ap-south-1` with least-privilege application access and no security-advisor findings.
@@ -36,7 +36,7 @@ Milestone E remains complete at repository-test level. The shared analysis/decis
 
 Milestone F remains **in progress**. Repository-level input/provider/freshness/parser/runtime integrity is deeply regression-tested across all ten specialist engines. This does not claim that all evidence-depth capabilities are complete; remaining work is deeper evidence collection/normalization through approved deterministic sources.
 
-The live-production discrepancy remains open: earlier verification showed an older generic/demo-safe workspace shell on unauthenticated Cloudflare `/workspace`, while current source fails closed and withholds workspace content until access is authorized. The public GitHub Pages fallback does not establish Cloudflare parity. A fresh Cloudflare browser run on 2026-09-24 terminated because the available saved browser account/profile had no configured Cloudflare credentials. The plugin directory also exposed no callable native Cloudflare connector. No Cloudflare deployment or configuration was changed.
+The live-production discrepancy remains open: earlier verification showed an older generic/demo-safe workspace shell on unauthenticated Cloudflare `/workspace`, while current source fails closed and withholds workspace content until access is authorized. The public GitHub Pages fallback does not establish Cloudflare parity. The freshest Cloudflare browser run on 2026-09-24 was stopped by Cloudflare's `Performing security verification` / `Verifying...` CAPTCHA-style security challenge before dashboard inspection. The plugin directory also exposed no callable native Cloudflare connector. No Cloudflare deployment or configuration was changed.
 
 ### Milestone F acceptance targets
 
@@ -47,6 +47,7 @@ The live-production discrepancy remains open: earlier verification showed an old
 - fail closed on contradictory, malformed or non-canonical provider/request evidence rather than normalizing it into plausible scores or parameters;
 - keep point-in-time state internally block-consistent where an EVM block reference is claimed;
 - separate direct-state provenance/freshness from external indexer/intelligence provenance rather than spreading one source's block/time across another;
+- verify contract-derived scaling metadata before turning raw token balances into economic quantities;
 - preserve workspace authorization, canonical persistence and workspace-switch isolation;
 - require full CI before advancing from integrity hardening to a deeper capability claim;
 - do not advance to Milestone G until remaining engine-depth acceptance work is explicitly closed.
@@ -59,7 +60,7 @@ The live-production discrepancy remains open: earlier verification showed an old
 - **B3:** engine `1.1.0`, calculation `b3-live-1.2.0`. Native balance, code, optional total supply and supplied Chainlink reads share one captured block tag. Future/stale oracle behavior and prior-snapshot validation remain fail-closed.
 - **B4:** engine `1.0.0`. Direct native balance remains pinned/LIVE at the captured RPC block. Etherscan history and Nansen/Arkham label evidence no longer inherit that block without provider-specific proof; timestamp-less external evidence remains UNKNOWN and drives aggregate freshness to UNKNOWN while direct-state freshness remains separately LIVE. Focused regressions passed CI #353.
 - **B5:** engine `1.2.0`, calculation `b5-live-1.3.0`. Request/output/economic/structural contradictions become `CONFLICTING_DATA`/UNKNOWN with zero route score.
-- **F1:** engine `1.2.0`, calculation `f1-live-1.3.0`. One captured block pins requested native/ERC-20 holdings and explicit holdings remain all-or-nothing for scoring.
+- **F1:** engine `1.2.0`, calculation `f1-live-1.4.0`. One captured block pins requested native state and every declared ERC-20 `decimals()`/`balanceOf` read. Token `eth_call` quantities must be canonical single-word ABI uint256 returns, caller decimals must match on-chain decimals before scaling, and direct RPC quantities are uint256-bounded. Metadata contradictions/malformed values fail closed before market valuation. Provider-facing errors remain redacted. Certified in CI #358.
 - **F2:** engine `1.2.0`, calculation `f2-live-1.3.0`. Identity/TVL/freshness/provider health and audit metadata fail closed; booleans cannot become numeric TVL/timestamps.
 - **F3:** engine `1.3.0`, calculation `f3-live-1.3.0`. Modeled quantities/debt price validate as finite non-boolean economics; Chainlink reads are block-pinned with exact ABI shape and truthful timestamp freshness; CoinGecko comparison evidence has independent price/timestamp integrity.
 - **F4:** engine `1.2.0`; unique pool selection and core/optional yield evidence integrity are preserved; impossible reward APY/sigma semantics fail closed.
@@ -73,7 +74,7 @@ These are primarily capability-depth items rather than known hidden build/test f
 - B2/B3 deeper independent external threat/security evidence where an approved provider contract exists; B3 remains point-in-time rather than continuous provider-native monitoring.
 - B4 cross-chain activity and richer protocol-semantic/counterparty attribution beyond the now-correct direct/external provenance boundary.
 - B5 independent bridge-security, liquidity and incident evidence beyond route-aggregator evidence.
-- F1 automatic/indexed token discovery plus NFT/DeFi position ingestion from approved sources.
+- F1 automatic/indexed token discovery plus NFT/DeFi position ingestion and independent token-identity/CoinGecko mapping from approved sources.
 - F2/F4/F5 deeper independent dependency, liquidity, governance/counterparty and strategy evidence.
 - Complete engine-depth certification before advancing to Milestone G.
 
@@ -87,7 +88,7 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Dependencies and blockers
 
-- **Cloudflare production deployment drift:** BLOCKED on authenticated Cloudflare access. Fresh browser automation confirmed the available saved profile/vault has no configured Cloudflare credentials; `rivexis-web` Git/main integration and deployed commit remain unverified. GitHub Pages is not a substitute for this certification.
+- **Cloudflare production deployment drift:** BLOCKED on authenticated dashboard access past Cloudflare's security-verification challenge. The freshest browser automation reached only `Performing security verification` / `Verifying...`; `rivexis-web` Git/main integration and deployed commit remain unverified. No challenge bypass was attempted. GitHub Pages is not a substitute for this certification.
 - **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable production path. The current API Worker remains a degraded health/503 boundary.
 - **Custom domain:** BLOCKED on domain choice/ownership/configuration.
 - **Production email:** Brevo phone/account verification is complete; fail-closed transport, environment contract and inactive templates are implemented. Owned-domain sender authentication, production runtime secret installation, sandbox certification, real delivery verification and transactional lifecycle-event evidence remain outstanding.
@@ -99,4 +100,4 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Next action
 
-If authenticated Cloudflare access becomes available, inspect the established `rivexis-web` project/Git integration and deploy current `main` only through that existing safe configuration, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior. Otherwise continue Milestone F capability depth through the highest-value deterministic unblocked slice without inventing provider evidence. Prefer evidence normalization/semantics that can be certified from the repository before adding credential-dependent integrations. Keep Brevo authentication templates inactive until sender/domain and delivery-lifecycle gates are certified. Full-CI gate every implementation slice.
+If authenticated Cloudflare access becomes available past the security challenge, inspect the established `rivexis-web` project/Git integration and deploy current `main` only through that existing safe configuration, then re-certify unauthenticated `/workspace`, login/signup and API-boundary behavior. Otherwise continue Milestone F capability depth through the highest-value deterministic unblocked slice without inventing provider evidence. For F1, the next meaningful capability depth is approved automatic/indexed asset discovery plus NFT/DeFi positions and independent token-identity mapping; otherwise select the strongest repository-verifiable gap across the remaining engines. Keep Brevo authentication templates inactive until sender/domain and delivery-lifecycle gates are certified. Full-CI gate every implementation slice.

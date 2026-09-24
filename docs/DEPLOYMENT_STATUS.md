@@ -6,8 +6,8 @@ Last updated: 2026-09-24
 |---|---|---|
 | Local development | AVAILABLE, NOT VERIFIED IN THIS CHAT | Repository contains SQLite/local and Docker/PostgreSQL development paths. No local shell execution was used for this update. |
 | GitHub repository | PUBLIC / MAIN ACTIVE | `rudras777/rivexis` is currently public. The GitHub Pages fallback files are preserved on `main`. |
-| GitHub CI | PASS FOR LATEST APPLICATION HEAD | `61b728edf259ccafda256f2ab6f221e918e1f0ef` passed full CI #353 (`35934430946`): API ruff/pytest/pip-audit, web type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification. |
-| GitHub Pages fallback | ENABLED / PASSING / NOT APPLICATION CERTIFICATION | Pages deployment #24 (`35934430378`) passed on the same application head. This does not establish parity with the Cloudflare Next.js deployment or provide the authoritative FastAPI runtime. |
+| GitHub CI | PASS FOR LATEST APPLICATION HEAD | `7a5f6aa284b35f8388915788ce1f444410f5ae4d` passed full CI #358 (`35977258512`): API ruff/pytest/pip-audit, web type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification. |
+| GitHub Pages fallback | ENABLED / PASSING / NOT APPLICATION CERTIFICATION | Pages deployment #29 (`35977258067`) passed on the same application head. This does not establish parity with the Cloudflare Next.js deployment or provide the authoritative FastAPI runtime. |
 | Free Cloudflare frontend preview | LIVE, DEPLOYMENT DRIFT DETECTED | `https://rivexis-web.rudrasingh0718.workers.dev` was previously reachable with public pages working, but unauthenticated `/workspace` showed an older generic/demo-safe shell rather than current-main access-withholding behavior. No private user/analysis data was observed. Current-main source is not claimed live there. |
 | Free API preview | LIVE / DEGRADED BY DESIGN | `https://rivexis-api.rudrasingh0718.workers.dev/health` previously reported the intentional degraded state because the approved free-tier stack does not host the authoritative FastAPI runtime. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY AT LAST VERIFIED CHECK | Project `ivszvufdonfgwjpfgwii`, region `ap-south-1`, PostgreSQL 17.6.1; prior direct grant/security checks preserved least-privilege behavior. |
@@ -28,9 +28,10 @@ Last updated: 2026-09-24
 
 ## Current Milestone F verification
 
-The latest certified continuation added two deterministic integrity/depth improvements:
+The latest certified continuation added F1 ERC-20 direct-state integrity on top of the prior B1/B4 work:
 
-- **B1:** verified-ABI dynamic `bytes`/`string` and supported static-element dynamic arrays are now bounded/canonical. Invalid offsets, tail lengths, padding and elements fail closed; unsupported tuple/fixed/nested composite layouts are explicit. Certified in CI #350 on `2d0e2338e75114089e94c8623bb76fe7c8d79bf5`.
+- **F1:** engine `1.2.0`, calculation `f1-live-1.4.0`. Explicit ERC-20 `decimals()` and `balanceOf(address)` reads share the captured RPC block; both must decode from canonical 32-byte ABI uint256 return words. Caller decimals must match on-chain decimals before raw balance scaling, generic block/native quantities are uint256-bounded, and mismatch/malformed state fails closed before valuation. Direct token-metadata evidence records the verified decimals at the captured block. Contract/symbol/CoinGecko identity remains caller-supplied rather than falsely “discovered.” Certified in CI #358 on `7a5f6aa284b35f8388915788ce1f444410f5ae4d`; Pages #29 also passed.
+- **B1:** verified-ABI dynamic `bytes`/`string` and supported static-element dynamic arrays are bounded/canonical. Invalid offsets, tail lengths, padding and elements fail closed; unsupported tuple/fixed/nested composite layouts are explicit. Certified in CI #350 on `2d0e2338e75114089e94c8623bb76fe7c8d79bf5`.
 - **B4:** direct native-balance evidence remains LIVE and block-pinned, while Etherscan/Nansen/Arkham evidence without provider-specific block/timestamp provenance no longer inherits the direct RPC block or a global LIVE freshness claim. External evidence is `UNKNOWN`, aggregate freshness is `UNKNOWN` when it is consumed, and the direct snapshot remains separately `LIVE` with `direct_state_block_number`. Certified in CI #353 on `61b728edf259ccafda256f2ab6f221e918e1f0ef`.
 
 Earlier B2/B3/F3/F2, F1/B1/B4 and B5/F4/F5 hardening remains intact. All ten engines retain targeted repository-level input/provider/freshness/runtime integrity coverage. Remaining Milestone F work is capability depth rather than a claim that all engines are production-complete.
@@ -39,8 +40,9 @@ Earlier B2/B3/F3/F2, F1/B1/B4 and B5/F4/F5 hardening remains intact. All ten eng
 
 Earlier browser verification established that homepage, login, signup, platform and security pages were reachable and the API health endpoint truthfully reported degraded runtime state. It also discovered the unauthenticated `/workspace` Cloudflare deployment drift described above.
 
-A fresh Cloudflare dashboard automation was run against `https://dash.cloudflare.com/` using the available saved browser profile and vault. The run completed without authenticating and returned the explicit blocker that no Cloudflare credentials are configured for the available browser account/profile. Consequently:
+The freshest Cloudflare dashboard automation was run against `https://dash.cloudflare.com/` using the available browser profile and vault. Cloudflare stopped the automation at its own security-verification page showing `Performing security verification` and `Verifying...`. The automation did not bypass the challenge. Consequently:
 
+- the dashboard/account state could not be inspected;
 - existing `rivexis-web` project details could not be inspected;
 - GitHub repository/branch integration could not be verified;
 - deployed Cloudflare commit/version could not be verified;
@@ -69,7 +71,7 @@ A plugin-directory recheck also returned no callable native Cloudflare plugin in
 
 ## Production activation gates
 
-- **Cloudflare frontend deployment drift:** authenticated Cloudflare access is required to inspect/deploy the established `rivexis-web` project and re-certify live auth/workspace behavior. The latest browser profile does not contain usable Cloudflare credentials.
+- **Cloudflare frontend deployment drift:** authenticated Cloudflare access past the security-verification challenge is required to inspect/deploy the established `rivexis-web` project and re-certify live auth/workspace behavior. The latest automation could not pass the Cloudflare CAPTCHA-style verification page.
 - **FastAPI runtime:** explicit approval for Workers Paid or another approved FastAPI-capable production path is required; do not replace FastAPI with a fake Worker implementation.
 - **Custom domain:** domain choice/ownership/configuration remains unresolved.
 - **Brevo:** phone/account verification is not the blocker; owned-domain sender authentication, secrets and delivery-lifecycle certification remain outstanding.
