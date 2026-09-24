@@ -1,92 +1,96 @@
 # Rivexis Current Build State
 
-Last updated: 2026-09-24
+Last updated: 2026-09-25
 
-This file is the compact resume point for the dedicated normal-ChatGPT production-build program. It supplements the historical execution plan and overrides stale point-in-time blocker wording where this file records newer verified evidence.
+This file is the compact resume point for the dedicated normal-ChatGPT production-build program. Runtime evidence and current `main` override older historical wording.
 
-## Repository and CI
+## Repository and certification
 
-- Repository: public `rudras777/rivexis`, branch `main`.
-- Public GitHub Pages fallback remains operational. It is a public navigation/fallback surface, not proof of Cloudflare application parity or FastAPI production readiness.
-- Latest fully certified application head before this documentation-only state sync: `7a5f6aa284b35f8388915788ce1f444410f5ae4d`.
-- CI #358 (`35977258512`) passed the complete matrix on that head: API ruff/pytest/pip-audit, web typechecks/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification.
-- GitHub Pages deployment #29 (`35977258067`) also passed on `7a5f6aa284b35f8388915788ce1f444410f5ae4d`.
-- This lineage includes the previously certified B1 dynamic-ABI and B4 provenance/freshness continuations plus the new F1 ERC-20 on-chain metadata/ABI integrity hardening.
+- Repository: public `rudras777/rivexis`; branch `main`. Repository visibility was not changed.
+- Latest certified application head before this state sync: `d6f7f96d695fd6e388da7518f810f7e230e13487` (`Wire transactional email into API container runtime`).
+- CI #363 (`36049102754`) passed the complete matrix on that head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright E2E; invariants/secret/migration checks; PostgreSQL migration, distributed runtime-control certification and migrated-schema verification.
+- GitHub Pages deployment #34 (`36049101430`) also passed on the same head. Pages remains a fallback/navigation surface, not the authoritative application runtime.
 
-## Latest Milestone F continuation
+## PostgreSQL migration 0012
 
-### F1 — explicit ERC-20 on-chain metadata and ABI integrity
+Migration `0012_postgres_performance_hardening` is fully repository/CI certified. CI #361 failed only because the old migrated-schema verification step embedded fragile SQL inside nested shell quoting after the migration and distributed-control certification had already succeeded. The repair moved those assertions into `scripts/verify_postgres_migrated_schema.py`; CI #362 (`36046845220`) then passed all lanes, and CI #363 re-certified the same migration path.
 
-- Canonical F1 engine contract remains `1.2.0`; calculation generation is now `f1-live-1.4.0`.
-- Every explicitly requested ERC-20 contract is queried for `decimals()` at the same captured RPC block used for its `balanceOf(address)` reads.
-- `decimals()` and `balanceOf(address)` must return canonical single-word ABI `uint256` data: exactly one 32-byte word. Short, oversized, non-hex or otherwise malformed `eth_call` return data fails closed rather than becoming a plausible quantity.
-- Caller-supplied token decimals are treated as claimed metadata only. A caller/on-chain decimals disagreement returns `TOKEN_METADATA_MISMATCH` and prevents portfolio scoring; malformed or unsupported on-chain decimals return `INVALID_TOKEN_DECIMALS`.
-- Direct JSON-RPC quantities used for block/native state are bounded to uint256; over-range values cannot enter valuation or block provenance.
-- Successful on-chain decimal verification is recorded as `direct_token_metadata` evidence at the captured block before balance scaling.
-- Contract address, symbol and CoinGecko ID remain caller-supplied identity/mapping metadata; Rivexis does not claim those identities were independently discovered merely because decimals matched on-chain.
-- Provider errors continue to honor the existing redaction contract: internal mismatch details are not leaked through ordinary user-facing warning strings.
-- Regression coverage includes metadata mismatch, malformed/oversized ABI words, unsupported decimals, over-uint256 direct quantities, exact same-block reads and preservation of market/completeness gates.
-- F1 source/test head `7a5f6aa284b35f8388915788ce1f444410f5ae4d` passed CI #358 and Pages #29.
+Production Supabase project `ivszvufdonfgwjpfgwii` is `ACTIVE_HEALTHY` in `ap-south-1`, PostgreSQL 17.6.1. Production is still at Alembic head `0011_postgres_runtime_controls`; `0012` is **not** claimed applied.
 
-### B1 — verified ABI dynamic decoding
+Production preflight before 0012 established:
 
-- Canonical B1 engine contract remains `1.3.0`.
-- Verified-ABI `bytes` and `string` parameters require canonical aligned offsets, offsets outside the static head, complete bounded tails and zero ABI right-padding.
-- Dynamic arrays of supported one-word static elementary types (`address`, `bool`, bounded `uintN`/`intN`, and `bytesN`) reuse canonical static decoding and are bounded to 4096 items.
-- Invalid offsets, truncated tails, impossible lengths, non-zero padding and malformed array elements return `MALFORMED_VERIFIED_ABI_CALLDATA` rather than plausible partial values.
-- Tuple, fixed-array and nested/composite dynamic types not supported by the bounded decoder return `UNSUPPORTED_VERIFIED_ABI_TYPE` with confidence 0 instead of fabricated decoding.
-- The full B1 source/test/state lineage was already certified by CI #350 (`35933971343`) on resume head `2d0e2338e75114089e94c8623bb76fe7c8d79bf5`.
+- 55 application tables;
+- 72 foreign keys lacking a valid leading-column covering index;
+- both intended redundant indexes still present: `ix_users_email` and `ix_workspaces_owner_user_id`;
+- the four target tenant RLS policies still use uncached per-row `current_setting` evaluation;
+- `anon`, `authenticated`, `PUBLIC` and `rivexis_app` have no public application-table grants;
+- `rivexis_app` remains standalone, `NOINHERIT`, `NOBYPASSRLS`, without schema CREATE authority;
+- tenant/application tables retain RLS/FORCE RLS as designed.
 
-### B4 — external indexed/entity evidence provenance and freshness
+A controlled Supabase management migration attempt failed immediately on `CREATE INDEX` with PostgreSQL ownership enforcement (`must be owner of table alerts`). The transaction rolled back completely: Alembic remained at 0011 and the 72/2/4 preflight counts were unchanged.
 
-- Canonical B4 engine contract remains `1.0.0`.
-- Direct native-balance state remains pinned to the captured RPC block and is explicitly reported as LIVE direct-state evidence.
-- Etherscan indexed-history evidence no longer inherits the current direct RPC block when the provider response does not establish one block-specific observation.
-- Nansen/Arkham entity-label evidence no longer inherits the current direct RPC block when the provider does not provide block-specific provenance.
-- Timestamp-less external indexed/entity evidence remains `UNKNOWN` freshness; retrieval time is retained only as the schema-required datetime fallback and is not treated as provider observation time.
-- Aggregate B4 freshness is now `UNKNOWN` whenever such external evidence is consumed, while direct-state freshness remains separately `LIVE` with `direct_state_block_number` preserved.
-- When no external evidence is consumed, the aggregate remains LIVE for the direct snapshot and unavailable external dimensions are stated explicitly rather than fabricated.
-- B4 source/test head `61b728edf259ccafda256f2ab6f221e918e1f0ef` passed CI #353 and Pages #24.
+The application tables and `alembic_version` are owned by the existing `rivexis_migrator` role. Supabase migration history confirms this role was deliberately created as a dedicated login owner for schema work and then switched to `NOLOGIN`. The restricted Supabase management executor cannot `SET ROLE rivexis_migrator` because role membership has `SET=false`. Rivexis will not broaden ownership/membership/grants to bypass this boundary. Production 0012 therefore requires the existing dedicated migration credential/path to be securely activated for one one-shot `alembic upgrade head`, then disabled again.
 
-## Previously certified Milestone F hardening retained
+## Authoritative backend runtime
 
-- **B2:** engine `1.1.0`, calculation `b2-live-1.2.0`; bytecode is validated/block-pinned, transaction identities validate, and approval decoding reuses canonical ABI rules.
-- **B3:** engine `1.1.0`, calculation `b3-live-1.2.0`; balance/code/supply/Chainlink reads share one captured block and timestamp semantics remain fail-closed.
-- **B5:** engine `1.2.0`, calculation `b5-live-1.3.0`; route request/economics/structure contradictions become `CONFLICTING_DATA`/UNKNOWN with zero route score.
-- **F1:** engine `1.2.0`, calculation `f1-live-1.4.0`; one captured block pins requested native/ERC-20 state, on-chain decimals are verified before balance scaling, ABI words are canonical/bounded, and incomplete or contradictory explicit holdings never receive subset scoring.
-- **F2:** engine `1.2.0`, calculation `f2-live-1.3.0`; boolean provider TVL/timestamps cannot become numeric facts and audit metadata remains bounded/descriptive only.
-- **F3:** engine `1.3.0`, calculation `f3-live-1.3.0`; modeled quantities reject bool/non-finite values, oracle reads are block-pinned, and Chainlink/CoinGecko freshness is explicit.
-- **F4:** engine `1.2.0`; invalid/contradictory optional APY/sigma evidence fails closed.
-- **F5:** engine `1.2.0`; booleans cannot become numeric treasury values and market freshness requires complete credible timestamp coverage.
+The free `rivexis-api` Worker remains an intentional degraded boundary, not the FastAPI application.
 
-## Transactional email status
+The repository already contains the approved authoritative Cloudflare runtime design:
 
-Brevo owner-side phone/account verification remains recorded as complete. SMTP relay and an active sender were verified; the observed sender is Gmail and is not evidence of an authenticated Rivexis-owned domain. Template `1` (`Rivexis — Account verification code`) and template `2` (`Rivexis — Password reset`) remain intentionally inactive.
+- FastAPI Docker image in `apps/api/Dockerfile`;
+- Cloudflare Container wrapper in `apps/api/cloudflare/src/index.ts`;
+- `instance_type = "lite"` in the production Wrangler configuration;
+- runtime `DATABASE_URL` is separate from migration credentials;
+- runtime startup explicitly refuses `RIVEXIS_MIGRATION_DATABASE_URL`;
+- production defaults force demo adapters off, PostgreSQL distributed auth/provider controls on, direct organization member add off, and schema auto-create off.
 
-The repository contains fail-closed transactional transport, targeted tests, a disabled-by-default environment contract and `docs/TRANSACTIONAL_EMAIL.md`. Brevo API acceptance is not treated as proof of delivery. Activation remains gated on owned-domain sender authentication, runtime secret installation, sandbox certification, controlled real delivery and delivered/bounced/failed lifecycle evidence.
+Current Cloudflare documentation confirms Containers require Workers Paid. Workers Free remains limited to 10 ms CPU/request, incompatible with Rivexis's deliberate scrypt authentication budget; Rivexis will not weaken scrypt/authentication to fit Free. The existing Container path is the preferred approved-stack backend deployment once the minimum Workers Paid authorization is granted.
 
-## Cloudflare / live frontend
+## Transactional email / Brevo
 
-The P1 Cloudflare frontend drift was repaired on 2026-09-24. The `rivexis-web` Worker was rebuilt from current application head `e6e8fea6162ae6b00e3915a165423096ab404aba` with `NEXT_PUBLIC_RIVEXIS_API_URL=https://rivexis-api.rudrasingh0718.workers.dev` and deployed as Worker version `258a0507-177e-43ae-84da-ebc037d29d03` at 100% traffic.
+Brevo owner-side phone/account verification remains complete. Live sender inspection on 2026-09-25 found one active sender: `Rivexis` using the existing Gmail address. This is not evidence of a Rivexis-owned authenticated sending domain. Template enumeration hit a connector network error during this continuation, so template activation/state was not changed.
 
-Live browser verification confirmed that unauthenticated `/workspace` now withholds navigation and workspace content while the FastAPI runtime is unavailable. Homepage, login, signup and key public routes return successfully; a safe invalid-login probe reports temporary authentication-service unavailability without browser console errors. Per-version Worker preview URLs are explicitly disabled in `wrangler.jsonc` and verified disabled through the Cloudflare API. No DNS, custom domain, billing plan, secret, API Worker or database setting was changed.
+Repository transport remains fail closed and does not equate Brevo API acceptance with downstream delivery. On head `d6f7f96d...`, the Cloudflare Container runtime now forwards the complete transactional-email contract when configured:
 
-## Other production gates retained
+- `RIVEXIS_EMAIL_PROVIDER`
+- `BREVO_API_KEY`
+- `RIVEXIS_BREVO_SENDER_EMAIL`
+- `RIVEXIS_BREVO_SENDER_NAME`
+- `RIVEXIS_BREVO_VERIFICATION_TEMPLATE_ID`
+- `RIVEXIS_BREVO_PASSWORD_RESET_TEMPLATE_ID`
+- `RIVEXIS_BREVO_TIMEOUT_SECONDS`
+- `RIVEXIS_BREVO_SANDBOX`
 
-- FastAPI production runtime remains blocked on an explicitly approved FastAPI-capable production path; the free-tier API Worker remains the intentional degraded boundary.
-- Custom domain remains unselected/unverified.
-- Owned-domain Brevo sender authentication and real delivery certification remain incomplete.
-- External provider credentials, commercial licenses and customer-specific contracts remain explicit gates where applicable.
-- Arkham remains license/terms-gated; Hypernative-native screening remains customer-schema/contract-gated where an exact approved contract is absent.
+CI invariants now require these bindings and prohibit `RIVEXIS_MIGRATION_DATABASE_URL` from entering the API runtime Container.
 
-## Active product milestone
+Authentication mail remains **not production activated**. Owned-domain sender authentication, production runtime secrets, sandbox certification, controlled real inbox receipt and delivered/bounced/failed lifecycle evidence remain gates. The current API has signup/login/cookie session/CSRF/logout/revocation, but verification/password-reset HTTP lifecycle wiring is not yet production complete.
 
-Milestone F — Ten-engine completion remains active. Deterministic repository integrity is materially deeper across all ten engines, but evidence/capability depth is not declared complete.
+## Frontend
 
-Remaining depth includes deeper B1 internal-call/state/security semantics and bounded tuple/fixed/nested ABI support only where justified; approved independent B2/B3 threat/security evidence and continuous monitoring; B4 cross-chain/protocol-semantic attribution; B5 independent bridge-security/liquidity/incident evidence; F1 automatic/indexed token discovery plus NFT/DeFi positions and independent token-identity mapping; and deeper independent F2/F4/F5 dependency, liquidity, governance/counterparty and strategy evidence.
+The Cloudflare frontend remains the previously certified deployment:
+
+`https://rivexis-web.rudrasingh0718.workers.dev/`
+
+Known certified Worker version: `258a0507-177e-43ae-84da-ebc037d29d03` at 100% traffic. It uses `https://rivexis-api.rudrasingh0718.workers.dev` as API origin. Current source was not unnecessarily redeployed during this continuation. Previous live certification established protected workspace content is withheld while the authoritative API is unavailable and public/auth routes fail safely.
+
+## Milestone F / engine integrity retained
+
+All prior B1-B5/F1-F5 integrity hardening remains intact. In particular F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 boundaries, caller/on-chain decimal conflict rejection, direct metadata evidence, uint256-bounded RPC quantities and fail-closed incomplete holdings semantics.
+
+Milestone F remains active; evidence/capability depth is not declared complete.
+
+## Current production gates
+
+1. **Production migration 0012:** requires the existing dedicated `rivexis_migrator` one-shot owner connection. Do not grant the Supabase management executor new SET/ownership authority as a workaround.
+2. **Authoritative FastAPI runtime:** requires Workers Paid for the repository's existing Cloudflare Container design; do not weaken scrypt/authentication for Workers Free.
+3. **Authentication lifecycle:** verification/password-reset endpoint and lifecycle wiring remains incomplete; mail transport/runtime bindings alone are not auth completion.
+4. **Brevo production identity/delivery:** Gmail sender is active but Rivexis-owned domain authentication and real delivery lifecycle remain uncertified.
+5. **Custom domain:** not yet selected/verified.
+6. **Provider licensing/credentials:** remain explicit where applicable; absent evidence stays UNKNOWN/unavailable.
 
 ## Next execution order
 
-1. Deploy the authoritative FastAPI application runtime on an explicitly approved paid Workers or other FastAPI-capable production target; the current free API Worker remains an honest degraded health/503 boundary.
-2. Keep Brevo authentication mail inactive until owned-domain/sender, runtime secret and delivery-lifecycle gates are certified.
-3. Continue Milestone F with the highest-value deterministic capability-depth slice, preserving explicit UNKNOWN/unavailable states when provider contracts or credentials are absent.
+1. Continue repository-level authentication lifecycle hardening without requiring a new database migration where safe.
+2. When the dedicated production migration credential/path is securely available, run the certified one-shot Alembic 0012 upgrade and repeat the full production postflight.
+3. When Workers Paid is authorized, deploy the existing FastAPI Container with restricted runtime DB credentials and production secrets, then execute real browser/auth/provider/email certification.
+4. Continue the highest-value unblocked Milestone F capability slice in parallel with external gates.
