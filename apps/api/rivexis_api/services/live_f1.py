@@ -20,6 +20,8 @@ NATIVE_GECKO = {
     "polygon": "polygon-ecosystem-token",
 }
 BALANCE_OF_SELECTOR = "0x70a08231"
+DECIMALS_SELECTOR = "0x313ce567"
+UINT256_MAX = 2**256 - 1
 
 
 def ev(
@@ -47,7 +49,7 @@ def ev(
         block_number=block,
         raw_reference=f"provider:{provider};request:{call.request_id}",
         normalized_value=value,
-        calculation_version="f1-live-1.3.0",
+        calculation_version="f1-live-1.4.0",
         engine_version="1.2.0",
         confidence=confidence,
         freshness=freshness,
@@ -72,9 +74,25 @@ def _rpc_quantity(value: object) -> int | None:
         parsed = hex_to_int(value)
     except (TypeError, ValueError):
         return None
-    if parsed is None or parsed < 0:
+    if parsed is None or parsed < 0 or parsed > UINT256_MAX:
         return None
     return parsed
+
+
+def _abi_uint256_word(value: object) -> int | None:
+    """Parse one canonical 32-byte ABI uint256 return word.
+
+    ``eth_call`` returns ABI data rather than a JSON-RPC quantity. Accepting short
+    or oversized hex values here would let malformed provider/contract responses
+    be interpreted as valid token metadata or balances.
+    """
+
+    if not isinstance(value, str) or len(value) != 66 or not value.startswith("0x"):
+        return None
+    try:
+        return int(value[2:], 16)
+    except ValueError:
+        return None
 
 
 def _block_tag(block_number: int) -> str:
@@ -366,6 +384,49 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                 )
 
             for spec in token_specs:
+                decimals_call = rpc.call(
+                    "eth_call",
+                    [
+                        {
+                            "to": spec["contract"],
+                            "data": DECIMALS_SELECTOR,
+                        },
+                        block_tag,
+                    ],
+                )
+                onchain_decimals = _abi_uint256_word(decimals_call.result)
+                if onchain_decimals is None or onchain_decimals > 36:
+                    raise ProviderError(
+                        "ERC-20 decimals() returned malformed or unsupported ABI data",
+                        provider_id=pid,
+                        code="INVALID_TOKEN_DECIMALS",
+                    )
+                if onchain_decimals != spec["decimals"]:
+                    raise ProviderError(
+                        f"ERC-20 descriptor decimals {spec['decimals']} do not match on-chain decimals {onchain_decimals}",
+                        provider_id=pid,
+                        code="TOKEN_METADATA_MISMATCH",
+                    )
+                evidence.append(
+                    ev(
+                        decimals_call,
+                        pid,
+                        "direct_token_metadata",
+                        {
+                            "token_contract": spec["contract"],
+                            "coingecko_id": spec["id"],
+                            "symbol": spec["label"],
+                            "caller_supplied_decimals": spec["decimals"],
+                            "onchain_decimals": onchain_decimals,
+                            "block_tag": block_tag,
+                        },
+                        chain.chain_id,
+                        block_number,
+                        98,
+                        "eth_call decimals()",
+                    )
+                )
+
                 for wallet in wallets:
                     token_call = rpc.call(
                         "eth_call",
@@ -377,14 +438,14 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                             block_tag,
                         ],
                     )
-                    raw_balance = _rpc_quantity(token_call.result)
+                    raw_balance = _abi_uint256_word(token_call.result)
                     if raw_balance is None:
                         raise ProviderError(
-                            "ERC-20 balanceOf returned a malformed quantity",
+                            "ERC-20 balanceOf returned malformed ABI data",
                             provider_id=pid,
                             code="INVALID_TOKEN_BALANCE",
                         )
-                    quantity = raw_balance / (10 ** spec["decimals"])
+                    quantity = raw_balance / (10**onchain_decimals)
                     evidence.append(
                         ev(
                             token_call,
@@ -395,7 +456,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                                 "token_contract": spec["contract"],
                                 "coingecko_id": spec["id"],
                                 "symbol": spec["label"],
-                                "decimals": spec["decimals"],
+                                "decimals": onchain_decimals,
                                 "raw_balance": raw_balance,
                                 "quantity": quantity,
                                 "block_tag": block_tag,
@@ -424,7 +485,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
                 }
             )
             assumptions.append(
-                f"All direct wallet and ERC-20 balance reads were pinned to captured RPC block {block_tag} ({block_number})."
+                f"All direct wallet and ERC-20 metadata/balance reads were pinned to captured RPC block {block_tag} ({block_number})."
             )
             missing.extend(
                 [
@@ -602,7 +663,7 @@ def run_live_f1(input_data: dict[str, Any]) -> EngineResult:
         )
     if token_specs:
         assumptions.append(
-            "ERC-20 contract addresses, decimals, symbols and CoinGecko IDs are caller-supplied metadata; balances are read directly on-chain but token identity metadata is not independently discovered."
+            "ERC-20 contract addresses, symbols and CoinGecko IDs remain caller-supplied identity metadata; decimals are verified directly from each contract at the captured block before balance scaling, but token identity/CoinGecko mapping is not independently discovered."
         )
     if market_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}:
         warnings.append(
