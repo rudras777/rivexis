@@ -331,6 +331,35 @@ def test_b1_effect_summary_is_explicit_when_trace_and_state_diff_are_missing():
     assert len(effects["limitations"]) == 3
 
 
+def test_b1_effect_summary_exposes_partial_state_diff_integrity():
+    effects = _b1_transaction_effects_summary(
+        {
+            "calldata_decode": {"status": "NO_CALLDATA"},
+            "state_diff": {
+                "status": "PARTIAL_PRESTATE_DIFF",
+                "addresses_touched": 2,
+                "addresses_changed": 1,
+                "changes": [
+                    {
+                        "address": "0x" + "11" * 20,
+                        "changed_fields": ["balance"],
+                        "changed_storage_slots": 0,
+                    }
+                ],
+                "malformed_address_count": 1,
+                "discarded_address_count": 1,
+                "truncated": False,
+            },
+        }
+    )
+
+    assert effects["state_changes"]["available"] is True
+    assert effects["state_changes"]["status"] == "PARTIAL_PRESTATE_DIFF"
+    assert effects["state_changes"]["malformed_address_count"] == 1
+    assert effects["coverage"]["state_diff"] is True
+    assert any("partially normalized" in item for item in effects["limitations"])
+
+
 def test_b1_effect_summary_does_not_promote_unavailable_trace_evidence():
     effects = _b1_transaction_effects_summary(
         {

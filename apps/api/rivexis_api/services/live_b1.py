@@ -80,7 +80,7 @@ def _evidence(
         chain_id=chain_id,
         raw_reference=f"provider:{call.provider_id};request:{call.request_id}",
         normalized_value=normalized_value,
-        calculation_version="b1-live-1.6.0",
+        calculation_version="b1-live-1.7.0",
         engine_version="1.3.0",
         confidence=confidence,
         freshness=freshness,
@@ -470,7 +470,15 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
         try:
             diff_call = rpc.call("debug_traceCall", [rpc_tx, block_tag, {"tracer": "prestateTracer", "tracerConfig": {"diffMode": True}, "timeout": "5s"}])
             state_diff = summarize_prestate_diff(diff_call.result)
-            evidence.append(_evidence(diff_call, source_type="state_diff", normalized_value=state_diff, chain_id=chain.chain_id, block_number=block_number, confidence=90, endpoint_method="debug_traceCall/prestateTracer"))
+            state_diff_status = state_diff.get("status")
+            state_diff_confidence = 90 if state_diff_status == "NORMALIZED_PRESTATE_DIFF" else 55 if state_diff_status == "PARTIAL_PRESTATE_DIFF" else 0
+            evidence.append(_evidence(diff_call, source_type="state_diff", normalized_value=state_diff, chain_id=chain.chain_id, block_number=block_number, confidence=state_diff_confidence, endpoint_method="debug_traceCall/prestateTracer"))
+            if state_diff_status == "PARTIAL_PRESTATE_DIFF":
+                warnings.append("State diff was only partially normalized; malformed or bounded state was excluded from the change summary.")
+                missing.append("complete canonical before/after contract state diff")
+            elif state_diff_status == "UNAVAILABLE_PRESTATE_DIFF":
+                warnings.append("RPC returned no usable before/after contract state diff.")
+                missing.append("before/after contract state diff")
         except ProviderError as exc:
             warnings.append(f"State-diff tracer unavailable from selected RPC: {exc.code}")
             missing.append("before/after contract state diff")

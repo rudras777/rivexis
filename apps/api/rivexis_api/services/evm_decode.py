@@ -8,6 +8,10 @@ _MAX_FIXED_ARRAY_ITEMS = 4096
 _MAX_STATIC_TUPLE_ITEMS = 4096
 _MAX_CALL_TRACE_NODES = 4096
 _MAX_CALL_TRACE_DEPTH = 128
+_MAX_PRESTATE_ADDRESSES = 4096
+_MAX_STORAGE_SLOTS_PER_ADDRESS = 8192
+_MAX_STATE_CODE_BYTES = 131072
+_MAX_STATE_DIFF_CHANGES = 200
 _TRACE_CALL_TYPES = {
     "CALL",
     "CALLCODE",
@@ -981,38 +985,230 @@ def _trace_quantity(value: Any) -> int | None:
 
 
 def summarize_prestate_diff(value: Any) -> dict[str, Any]:
-    if not isinstance(value, dict):
-        return {"status": "UNAVAILABLE"}
-    pre = value.get("pre") if isinstance(value.get("pre"), dict) else {}
-    post = value.get("post") if isinstance(value.get("post"), dict) else {}
-    addresses = sorted(set(pre) | set(post))
-    changes = []
-    for address in addresses:
-        before = pre.get(address) or {}
-        after = post.get(address) or {}
+    if not isinstance(value, dict) or not ({"pre", "post"} & value.keys()):
+        return _unavailable_prestate_diff()
+
+    malformed_section_count = 0
+    raw_pre = value.get("pre", {})
+    raw_post = value.get("post", {})
+    if not isinstance(raw_pre, dict):
+        raw_pre = {}
+        malformed_section_count += 1
+    if not isinstance(raw_post, dict):
+        raw_post = {}
+        malformed_section_count += 1
+    if malformed_section_count:
+        result = _unavailable_prestate_diff()
+        result["malformed_section_count"] = malformed_section_count
+        return result
+
+    malformed_address_count = 0
+    malformed_account_count = 0
+    malformed_field_count = 0
+    malformed_storage_entry_count = 0
+    discarded_address_count = 0
+    truncation_reasons: set[str] = set()
+    candidate_addresses: list[str] = []
+    seen_addresses: set[str] = set()
+    normalized_sections: list[dict[str, Any]] = []
+    for section in (raw_pre, raw_post):
+        normalized_section: dict[str, Any] = {}
+        for raw_address, raw_account in section.items():
+            address = _trace_address(raw_address)
+            if address is None:
+                malformed_address_count += 1
+                discarded_address_count += 1
+                continue
+            if address in normalized_section:
+                normalized_section[address] = None
+                malformed_address_count += 1
+                discarded_address_count += 1
+                continue
+            if address not in seen_addresses:
+                if len(candidate_addresses) >= _MAX_PRESTATE_ADDRESSES:
+                    discarded_address_count += 1
+                    truncation_reasons.add("address_limit")
+                    continue
+                seen_addresses.add(address)
+                candidate_addresses.append(address)
+            normalized_section[address] = raw_account
+        normalized_sections.append(normalized_section)
+    pre, post = normalized_sections
+
+    changes: list[dict[str, Any]] = []
+    valid_address_count = 0
+    for address in candidate_addresses:
+        before_present_account = address in pre
+        after_present_account = address in post
+        before = pre.get(address, {})
+        after = post.get(address, {})
+        if not isinstance(before, dict) or not isinstance(after, dict):
+            malformed_account_count += 1
+            discarded_address_count += 1
+            continue
+        valid_address_count += 1
         fields = []
-        for field in ("balance", "nonce", "code"):
-            if before.get(field) != after.get(field):
+        for field, validator in (
+            ("balance", _state_quantity),
+            ("nonce", _state_nonce),
+            ("code", _state_code),
+        ):
+            before_present = field in before
+            after_present = field in after
+            before_value = validator(before.get(field)) if before_present else None
+            after_value = validator(after.get(field)) if after_present else None
+            if (before_present and before_value is None) or (
+                after_present and after_value is None
+            ):
+                malformed_field_count += 1
+                continue
+            if not before_present_account and after_present:
                 fields.append(field)
-        bstore = before.get("storage") if isinstance(before.get("storage"), dict) else {}
-        astore = after.get("storage") if isinstance(after.get("storage"), dict) else {}
-        changed_slots = sum(
-            1
-            for slot in set(bstore) | set(astore)
-            if bstore.get(slot) != astore.get(slot)
+            elif before_present_account and not after_present_account and before_present:
+                fields.append(field)
+            elif after_present and (
+                not before_present or before_value != after_value
+            ):
+                fields.append(field)
+
+        bstore, before_storage_valid, before_malformed, before_truncated = (
+            _normalize_state_storage(before)
         )
-        if fields or changed_slots:
+        astore, after_storage_valid, after_malformed, after_truncated = (
+            _normalize_state_storage(after)
+        )
+        malformed_storage_entry_count += before_malformed + after_malformed
+        if before_truncated or after_truncated:
+            truncation_reasons.add("storage_slot_limit")
+        changed_slots = 0
+        if before_storage_valid and after_storage_valid:
+            storage_slots = set(bstore) | set(astore)
+            if len(storage_slots) > _MAX_STORAGE_SLOTS_PER_ADDRESS:
+                truncation_reasons.add("storage_slot_limit")
+            for slot in sorted(storage_slots)[:_MAX_STORAGE_SLOTS_PER_ADDRESS]:
+                if bstore.get(slot) != astore.get(slot):
+                    changed_slots += 1
+        change_type = (
+            "ACCOUNT_CREATED"
+            if not before_present_account
+            else "ACCOUNT_DELETED"
+            if not after_present_account
+            else "MODIFIED"
+        )
+        if fields or changed_slots or change_type != "MODIFIED":
             changes.append(
                 {
                     "address": address,
+                    "change_type": change_type,
                     "changed_fields": fields,
                     "changed_storage_slots": changed_slots,
                 }
             )
+
+    if len(changes) > _MAX_STATE_DIFF_CHANGES:
+        truncation_reasons.add("change_output_limit")
+    malformed = bool(
+        malformed_section_count
+        or malformed_address_count
+        or malformed_account_count
+        or malformed_field_count
+        or malformed_storage_entry_count
+    )
+    if not valid_address_count and (
+        candidate_addresses or malformed_address_count or malformed_account_count
+    ):
+        status = "UNAVAILABLE_PRESTATE_DIFF"
+    elif malformed or discarded_address_count or truncation_reasons:
+        status = "PARTIAL_PRESTATE_DIFF"
+    else:
+        status = "NORMALIZED_PRESTATE_DIFF"
     return {
-        "status": "NORMALIZED_PRESTATE_DIFF",
-        "addresses_touched": len(addresses),
+        "status": status,
+        "addresses_touched": valid_address_count,
         "addresses_changed": len(changes),
-        "changes": changes[:200],
-        "truncated": len(changes) > 200,
+        "changes": changes[:_MAX_STATE_DIFF_CHANGES],
+        "malformed_section_count": malformed_section_count,
+        "malformed_address_count": malformed_address_count,
+        "malformed_account_count": malformed_account_count,
+        "malformed_field_count": malformed_field_count,
+        "malformed_storage_entry_count": malformed_storage_entry_count,
+        "discarded_address_count": discarded_address_count,
+        "truncated": bool(truncation_reasons),
+        "truncation_reasons": sorted(truncation_reasons),
     }
+
+
+def _unavailable_prestate_diff() -> dict[str, Any]:
+    return {
+        "status": "UNAVAILABLE_PRESTATE_DIFF",
+        "addresses_touched": 0,
+        "addresses_changed": 0,
+        "changes": [],
+        "malformed_section_count": 0,
+        "malformed_address_count": 0,
+        "malformed_account_count": 0,
+        "malformed_field_count": 0,
+        "malformed_storage_entry_count": 0,
+        "discarded_address_count": 0,
+        "truncated": False,
+        "truncation_reasons": [],
+    }
+
+
+def _state_code(value: Any) -> str | None:
+    if not isinstance(value, str) or not value.startswith("0x"):
+        return None
+    digits = value[2:]
+    if len(digits) % 2 or len(digits) // 2 > _MAX_STATE_CODE_BYTES:
+        return None
+    try:
+        int(digits or "0", 16)
+    except ValueError:
+        return None
+    return value.lower()
+
+
+def _state_quantity(value: Any) -> int | None:
+    if not isinstance(value, str):
+        return None
+    return _trace_quantity(value)
+
+
+def _state_nonce(value: Any) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return value if 0 <= value <= 2**64 - 1 else None
+
+
+def _state_word(value: Any) -> str | None:
+    if not isinstance(value, str) or len(value) != 66 or not value.startswith("0x"):
+        return None
+    try:
+        int(value[2:], 16)
+    except ValueError:
+        return None
+    return value.lower()
+
+
+def _normalize_state_storage(
+    account: dict[str, Any],
+) -> tuple[dict[str, str], bool, int, bool]:
+    if "storage" not in account:
+        return {}, True, 0, False
+    raw_storage = account.get("storage")
+    if not isinstance(raw_storage, dict):
+        return {}, False, 1, False
+    normalized: dict[str, str] = {}
+    malformed = 0
+    truncated = False
+    for index, (raw_slot, raw_value) in enumerate(raw_storage.items()):
+        if index >= _MAX_STORAGE_SLOTS_PER_ADDRESS:
+            truncated = True
+            break
+        slot = _state_word(raw_slot)
+        stored_value = _state_word(raw_value)
+        if slot is None or stored_value is None:
+            malformed += 1
+            continue
+        normalized[slot] = stored_value
+    return normalized, not malformed and not truncated, malformed, truncated

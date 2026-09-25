@@ -70,6 +70,11 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
     state_diff = metrics.get("state_diff")
     if not isinstance(state_diff, dict):
         state_diff = None
+    state_diff_available = bool(
+        state_diff
+        and state_diff.get("status")
+        in {"NORMALIZED_PRESTATE_DIFF", "PARTIAL_PRESTATE_DIFF"}
+    )
     event_effects = metrics.get("event_effects")
     if not isinstance(event_effects, dict):
         event_effects = None
@@ -92,7 +97,7 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
     internal_approvals = list(trace.get("approval_candidates") or []) if trace_available else []
     approvals = ([entry_approval] if entry_approval else []) + internal_approvals
     native_transfers = list(trace.get("native_value_transfers") or []) if trace_available else []
-    changes = list(state_diff.get("changes") or []) if state_diff else []
+    changes = list(state_diff.get("changes") or []) if state_diff_available else []
     asset_changes = list(event_effects.get("asset_changes") or []) if event_effects else []
     approval_events = list(event_effects.get("approval_events") or []) if event_effects else []
 
@@ -103,8 +108,12 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
         limitations.append(
             "Internal call trace was only partially normalized; malformed or bounded nodes were excluded from promoted effects."
         )
-    if state_diff is None or state_diff.get("status") != "NORMALIZED_PRESTATE_DIFF":
+    if not state_diff_available:
         limitations.append("Before/after contract-state diff was not available or not requested.")
+    elif state_diff.get("status") == "PARTIAL_PRESTATE_DIFF":
+        limitations.append(
+            "Before/after contract-state diff was only partially normalized; malformed or bounded state was excluded from the change summary."
+        )
     if not event_logs_normalized:
         limitations.append(
             "Canonical standard token/NFT event-log effects were not available from this run; call traces alone are not treated as proof of asset changes."
@@ -161,16 +170,22 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
             "truncated": event_effects.get("truncated") if event_effects else None,
         },
         "state_changes": {
-            "available": bool(state_diff and state_diff.get("status") == "NORMALIZED_PRESTATE_DIFF"),
+            "available": state_diff_available,
+            "status": state_diff.get("status") if state_diff else None,
             "addresses_touched": state_diff.get("addresses_touched") if state_diff else None,
             "addresses_changed": state_diff.get("addresses_changed") if state_diff else None,
             "changes": changes,
+            "malformed_address_count": state_diff.get("malformed_address_count") if state_diff else None,
+            "malformed_account_count": state_diff.get("malformed_account_count") if state_diff else None,
+            "malformed_field_count": state_diff.get("malformed_field_count") if state_diff else None,
+            "malformed_storage_entry_count": state_diff.get("malformed_storage_entry_count") if state_diff else None,
+            "discarded_address_count": state_diff.get("discarded_address_count") if state_diff else None,
             "truncated": state_diff.get("truncated") if state_diff else None,
         },
         "coverage": {
             "entry_calldata_decoded": bool(calldata.get("status") and calldata.get("status") not in {"NO_CALLDATA", "NO_SELECTOR", "UNKNOWN_SELECTOR"}),
             "internal_call_trace": trace_available,
-            "state_diff": bool(state_diff and state_diff.get("status") == "NORMALIZED_PRESTATE_DIFF"),
+            "state_diff": state_diff_available,
             "canonical_token_nft_event_changes": event_logs_normalized,
             "canonical_approval_events": event_logs_normalized,
         },

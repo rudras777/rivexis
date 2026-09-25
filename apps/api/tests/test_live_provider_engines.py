@@ -400,7 +400,10 @@ def test_live_b1_optional_debug_trace_and_state_diff(monkeypatch):
                 if tracer=="callTracer":
                     return ProviderCall("direct_rpc","trace-1","http://rpc.test",{"type":"CALL","from":"0x"+"11"*20,"to":"0x"+"22"*20,"value":"0x0","input":"0x","calls":[{"type":"CALL","from":"0x"+"22"*20,"to":"0x"+"33"*20,"value":"0x5","input":"0x"}]},3.0)
                 if tracer=="prestateTracer":
-                    return ProviderCall("direct_rpc","diff-1","http://rpc.test",{"pre":{"0x"+"22"*20:{"balance":"0x10","storage":{"0x01":"0x01"}}},"post":{"0x"+"22"*20:{"balance":"0x0f","storage":{"0x01":"0x02"}}}},4.0)
+                    slot = "0x" + "0" * 63 + "1"
+                    before_value = "0x" + "0" * 63 + "1"
+                    after_value = "0x" + "0" * 63 + "2"
+                    return ProviderCall("direct_rpc","diff-1","http://rpc.test",{"pre":{"0x"+"22"*20:{"balance":"0x10","storage":{slot:before_value}}},"post":{"0x"+"22"*20:{"balance":"0xf","storage":{slot:after_value}}}},4.0)
             return super().call(method,params)
     fake=TraceRpc()
     monkeypatch.setattr(live_b1,"select_rpc_client",lambda chain:_select(fake))
@@ -409,6 +412,7 @@ def test_live_b1_optional_debug_trace_and_state_diff(monkeypatch):
     assert r.metrics["call_trace"]["call_count"]==2
     assert r.metrics["call_trace"]["native_value_transfers"][0]["amount_wei"]==5
     assert r.metrics["state_diff"]["addresses_changed"]==1
+    assert r.metrics["state_diff"]["status"]=="NORMALIZED_PRESTATE_DIFF"
     assert any(e.source_type=="execution_trace" for e in r.evidence)
     assert any(e.source_type=="state_diff" for e in r.evidence)
 
@@ -454,4 +458,48 @@ def test_live_b1_marks_malformed_debug_trace_unavailable(monkeypatch):
         item for item in result.evidence if item.source_type == "execution_trace"
     )
     assert trace_evidence.confidence == 0
-    assert trace_evidence.calculation_version == "b1-live-1.6.0"
+    assert trace_evidence.calculation_version == "b1-live-1.7.0"
+
+
+def test_live_b1_marks_malformed_state_diff_unavailable(monkeypatch):
+    class MalformedStateDiffRpc(FakeRpc):
+        def call(self, method, params=None):
+            if method == "debug_traceCall":
+                return ProviderCall(
+                    "direct_rpc",
+                    "diff-malformed",
+                    "http://rpc.test",
+                    {"pre": "not-an-object", "post": {}},
+                    3.0,
+                )
+            return super().call(method, params)
+
+    fake = MalformedStateDiffRpc()
+    monkeypatch.setattr(live_b1, "select_rpc_client", lambda chain: _select(fake))
+    monkeypatch.setattr(
+        live_b1,
+        "resolve_provider",
+        lambda *a, **k: Resolution(
+            "simulation", None, "PROVIDER_UNAVAILABLE", ["tenderly"]
+        ),
+    )
+
+    result = live_b1.run_live_b1(
+        {
+            "chain": "ethereum",
+            "from": "0x" + "11" * 20,
+            "to": "0x" + "22" * 20,
+            "data": "0x",
+            "state_diff": True,
+        }
+    )
+
+    assert result.metrics["state_diff"]["status"] == "UNAVAILABLE_PRESTATE_DIFF"
+    assert result.metrics["state_diff"]["changes"] == []
+    assert "before/after contract state diff" in result.missing_data
+    assert any("no usable before/after" in item for item in result.warnings)
+    diff_evidence = next(
+        item for item in result.evidence if item.source_type == "state_diff"
+    )
+    assert diff_evidence.confidence == 0
+    assert diff_evidence.calculation_version == "b1-live-1.7.0"
