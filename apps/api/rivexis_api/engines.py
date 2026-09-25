@@ -48,6 +48,207 @@ def _sev(score):
     )
 
 
+def _b1_canonical_address(value: object) -> str | None:
+    if not isinstance(value, str) or len(value) != 42 or not value.startswith("0x"):
+        return None
+    try:
+        int(value[2:], 16)
+    except ValueError:
+        return None
+    return value.lower()
+
+
+def _b1_approval_scope(candidate: dict) -> dict:
+    scoped = dict(candidate)
+    if "contract" in scoped:
+        scoped["contract"] = _b1_canonical_address(scoped.get("contract"))
+    decoded = candidate.get("decode")
+    if not isinstance(decoded, dict):
+        scoped["scope"] = "UNKNOWN"
+        return scoped
+    signature = decoded.get("signature")
+    parameters = decoded.get("parameters")
+    if not isinstance(parameters, dict):
+        scoped["scope"] = "UNKNOWN"
+        return scoped
+    if signature == "approve(address,uint256)":
+        amount = parameters.get("amount_or_token_id")
+        if not isinstance(amount, int) or isinstance(amount, bool) or amount < 0:
+            scoped["scope"] = "UNKNOWN"
+            return scoped
+        scoped["scope"] = (
+            "UINT256_MAX_CANDIDATE"
+            if decoded.get("unlimited_approval_candidate") is True
+            else "BOUNDED_AMOUNT_OR_TOKEN_ID"
+        )
+        scoped["enabled"] = amount > 0
+        return scoped
+    if signature == "setApprovalForAll(address,bool)":
+        enabled = parameters.get("approved")
+        if not isinstance(enabled, bool):
+            scoped["scope"] = "UNKNOWN"
+            return scoped
+        scoped["scope"] = "ALL_ASSETS_OPERATOR" if enabled else "OPERATOR_REVOCATION"
+        scoped["enabled"] = enabled
+        return scoped
+    scoped["scope"] = "UNKNOWN"
+    return scoped
+
+
+def _b1_security_observations(
+    *,
+    calldata: dict,
+    trace: dict | None,
+    trace_available: bool,
+    state_diff: dict | None,
+    state_diff_available: bool,
+    approvals: list[dict],
+) -> dict:
+    signals: list[dict] = []
+    trace_status = trace.get("status") if trace else None
+    canonical_trace_available = bool(
+        trace_available
+        and trace_status in {"NORMALIZED_CALL_TRACE", "PARTIAL_CALL_TRACE"}
+        and trace.get("valid_call_count")
+    )
+    valid_calls = []
+    if canonical_trace_available and isinstance(trace.get("calls"), list):
+        valid_calls = [
+            call
+            for call in trace["calls"]
+            if isinstance(call, dict) and call.get("integrity") == "VALID"
+        ]
+
+    patterns = (
+        ("DELEGATECALL", "DELEGATECALL_OBSERVED", "execution_context"),
+        ("CALLCODE", "CALLCODE_OBSERVED", "execution_context"),
+        ("CREATE", "CONTRACT_CREATION_OBSERVED", "contract_lifecycle"),
+        ("CREATE2", "DETERMINISTIC_CONTRACT_CREATION_OBSERVED", "contract_lifecycle"),
+        ("SELFDESTRUCT", "SELFDESTRUCT_OPCODE_PATH_OBSERVED", "contract_lifecycle"),
+    )
+    for call_type, signal_type, category in patterns:
+        matching = [call for call in valid_calls if call.get("call_type") == call_type]
+        if matching:
+            signals.append(
+                {
+                    "type": signal_type,
+                    "category": category,
+                    "count": len(matching),
+                    "trace_indices": [call.get("trace_index") for call in matching[:64]],
+                }
+            )
+    failed_calls = [call for call in valid_calls if call.get("error")]
+    if failed_calls:
+        signals.append(
+            {
+                "type": "INTERNAL_CALL_FAILURE_OBSERVED",
+                "category": "execution_failure",
+                "count": len(failed_calls),
+                "trace_indices": [call.get("trace_index") for call in failed_calls[:64]],
+            }
+        )
+
+    for scope, signal_type in (
+        ("UINT256_MAX_CANDIDATE", "UNLIMITED_APPROVAL_CANDIDATE"),
+        ("ALL_ASSETS_OPERATOR", "ALL_ASSETS_OPERATOR_APPROVAL_CANDIDATE"),
+    ):
+        matching = [
+            candidate
+            for candidate in approvals
+            if candidate.get("scope") == scope
+            and (
+                candidate.get("source") == "entry_calldata"
+                or canonical_trace_available
+            )
+            and candidate.get("contract") is not None
+        ]
+        if not matching:
+            continue
+        signals.append(
+            {
+                "type": signal_type,
+                "category": "permission_scope",
+                "count": len(matching),
+                "candidates": [
+                    {
+                        "trace_index": candidate.get("trace_index"),
+                        "contract": candidate.get("contract"),
+                    }
+                    for candidate in matching[:64]
+                ],
+            }
+        )
+
+    valid_state_changes = (
+        state_diff.get("changes")
+        if state_diff_available and isinstance(state_diff.get("changes"), list)
+        else []
+    )
+    for change_type, signal_type in (
+        ("ACCOUNT_CREATED", "ACCOUNT_CREATION_OBSERVED"),
+        ("ACCOUNT_DELETED", "ACCOUNT_DELETION_OBSERVED"),
+    ):
+        matching = [
+            change
+            for change in valid_state_changes
+            if isinstance(change, dict) and change.get("change_type") == change_type
+        ]
+        if matching:
+            signals.append(
+                {
+                    "type": signal_type,
+                    "category": "state_lifecycle",
+                    "count": len(matching),
+                    "addresses": [change.get("address") for change in matching[:64]],
+                }
+            )
+    code_changes = [
+        change
+        for change in valid_state_changes
+        if isinstance(change, dict)
+        and change.get("change_type") == "MODIFIED"
+        and isinstance(change.get("changed_fields"), list)
+        and "code" in change["changed_fields"]
+    ]
+    if code_changes:
+        signals.append(
+            {
+                "type": "RUNTIME_CODE_CHANGE_OBSERVED",
+                "category": "state_lifecycle",
+                "count": len(code_changes),
+                "addresses": [change.get("address") for change in code_changes[:64]],
+            }
+        )
+
+    entry_status = calldata.get("status")
+    entry_available = bool(
+        entry_status
+        and entry_status
+        not in {"NO_CALLDATA", "NO_SELECTOR", "UNKNOWN_SELECTOR", "MALFORMED_STANDARD_CALLDATA"}
+    )
+    coverage_available = bool(
+        entry_available or canonical_trace_available or state_diff_available
+    )
+    return {
+        "status": (
+            "OBSERVATIONS_PRESENT"
+            if signals
+            else "NO_STRUCTURAL_OBSERVATION"
+            if coverage_available
+            else "INSUFFICIENT_COVERAGE"
+        ),
+        "is_security_verdict": False,
+        "signals": signals,
+        "signal_count": len(signals),
+        "coverage": {
+            "entry_calldata": entry_available,
+            "canonical_internal_call_trace": canonical_trace_available,
+            "canonical_state_diff": state_diff_available,
+        },
+        "note": "Structural execution observations are review cues, not proof of maliciousness or safety.",
+    }
+
+
 def _b1_transaction_effects_summary(metrics: dict) -> dict:
     """Build a conservative canonical B1 effects summary from existing evidence.
 
@@ -95,7 +296,12 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
         }
 
     internal_approvals = list(trace.get("approval_candidates") or []) if trace_available else []
-    approvals = ([entry_approval] if entry_approval else []) + internal_approvals
+    approvals = [
+        _b1_approval_scope(candidate)
+        for candidate in ([entry_approval] if entry_approval else [])
+        + internal_approvals
+        if isinstance(candidate, dict)
+    ]
     native_transfers = list(trace.get("native_value_transfers") or []) if trace_available else []
     changes = list(state_diff.get("changes") or []) if state_diff_available else []
     asset_changes = list(event_effects.get("asset_changes") or []) if event_effects else []
@@ -129,6 +335,15 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
         if event_effects.get("truncated"):
             limitations.append("Large event batches were output-capped; total effect counts remain authoritative for the normalized log set.")
 
+    security_observations = _b1_security_observations(
+        calldata=calldata,
+        trace=trace,
+        trace_available=trace_available,
+        state_diff=state_diff,
+        state_diff_available=state_diff_available,
+        approvals=approvals,
+    )
+
     return {
         "entry_method": {
             "status": calldata.get("status"),
@@ -157,6 +372,7 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
         "approval_candidates": approvals,
         "asset_changes": asset_changes,
         "approval_events": approval_events,
+        "security_observations": security_observations,
         "event_logs": {
             "available": event_logs_normalized,
             "source": event_effects.get("source") if event_effects else None,

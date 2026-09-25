@@ -284,7 +284,7 @@ def test_tenderly_predicted_standard_events_flow_into_canonical_transaction_effe
     assert effects["event_logs"]["source"] == "tenderly_simulation"
     assert "canonical standard token/NFT event-log effects" not in result.missing_data
     assert any(e.source_type == "simulation_event_logs" for e in result.evidence)
-    assert {e.calculation_version for e in result.evidence} == {"b1-live-1.7.0"}
+    assert {e.calculation_version for e in result.evidence} == {"b1-live-1.8.0"}
 
 
 @dataclass

@@ -458,7 +458,7 @@ def test_live_b1_marks_malformed_debug_trace_unavailable(monkeypatch):
         item for item in result.evidence if item.source_type == "execution_trace"
     )
     assert trace_evidence.confidence == 0
-    assert trace_evidence.calculation_version == "b1-live-1.7.0"
+    assert trace_evidence.calculation_version == "b1-live-1.8.0"
 
 
 def test_live_b1_marks_malformed_state_diff_unavailable(monkeypatch):
@@ -502,4 +502,4 @@ def test_live_b1_marks_malformed_state_diff_unavailable(monkeypatch):
         item for item in result.evidence if item.source_type == "state_diff"
     )
     assert diff_evidence.confidence == 0
-    assert diff_evidence.calculation_version == "b1-live-1.7.0"
+    assert diff_evidence.calculation_version == "b1-live-1.8.0"
