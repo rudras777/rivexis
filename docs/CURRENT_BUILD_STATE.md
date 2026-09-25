@@ -7,8 +7,8 @@ This is the compact production resume point. Live provider state and current `ma
 ## Repository and certification
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest certified repository head: `8141666ac6a21d4a6d75702ebd830af489c4a1fd` (`Decode bounded B1 verified ABI fixed arrays`).
-- CI #385 (`36060099835`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #56 (`36060099631`) also passed on the exact head.
+- Latest certified repository head: `9ee79b8394b4608b859b10d21df17304c4d305a1` (`Decode bounded B1 verified ABI static tuples`).
+- CI #387 (`36061343925`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #58 (`36061342553`) also passed on the exact head.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
