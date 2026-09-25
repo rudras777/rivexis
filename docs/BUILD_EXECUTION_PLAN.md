@@ -7,9 +7,9 @@ Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt
 
 - Repository: public `rudras777/rivexis`; default branch `main`.
 - Public GitHub Pages fallback files are preserved; they provide a public navigation fallback and do not replace or certify the Cloudflare application deployment.
-- Latest fully certified application head before this documentation-only state sync: `145fce49bab4063e95eb4e96f2b245dbbe3c5a7c`.
-- CI #395 (`36132410919`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
-- GitHub Pages deployment #66 (`36132410265`) also passed on that head.
+- Latest fully certified application head before this documentation-only state sync: `3babd129d410769e2d143117af25524a07d945de`.
+- CI #397 (`36134220130`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
+- GitHub Pages deployment #68 (`36134218750`) also passed on that head.
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
 - API: FastAPI is the authoritative application backend. The free Cloudflare Worker API is an explicit degraded placeholder, not a replacement runtime.
 - Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining Auth-platform leaked-password warning does not govern the FastAPI-owned password path.
@@ -57,7 +57,7 @@ The Cloudflare frontend discrepancy was closed on 2026-09-24. The frontend uses 
 - Cross-engine dispatch enforces canonical current engine/evidence versions, evidence-derived provider consensus and first-class unresolved conflict semantics.
 - **B1:** engine `1.3.0`, calculation `b1-live-1.8.0`. Standard event effects, supported ABI decoding, internal traces and prestate diffs remain canonical and bounded. A non-verdicting structural security section now aggregates validated delegate/callcode context, creation/self-destruct paths, nested failures, broad permission candidates, account lifecycle and runtime-code changes. It exposes source coverage and explicitly does not claim maliciousness or safety. Tuple arrays, nested tuples and dynamic tuple members remain explicit unsupported layouts.
 - **B2:** engine `1.1.0`, calculation `b2-live-1.3.0`. Target/sender/hash and RPC transaction bodies validate. RPC quantities are canonical and uint256-bounded; runtime bytecode is size-bounded, block-pinned and hashed; push-aware structural opcode observations and exact EIP-1167 extraction are explicitly non-verdicting. Explorer proxy metadata validates shape/address and retains independent UNKNOWN freshness. Direct/explorer implementation disagreement becomes an unresolved first-class conflict and `CONFLICTING_DATA`.
-- **B3:** engine `1.1.0`, calculation `b3-live-1.2.0`. Native balance, code, optional total supply and supplied Chainlink reads share one captured block tag. Future/stale oracle behavior and prior-snapshot validation remain fail-closed.
+- **B3:** engine `1.1.0`, calculation `b3-live-1.3.0`. Native balance, bounded runtime code, optional total supply and supplied Chainlink reads share one captured block tag. RPC quantities and scalar ABI returns are canonical; change detection requires a dependency-identified snapshot from a strictly earlier block. Malformed Blockaid responses are unavailable, while timestamp-less valid screening remains UNKNOWN-fresh with no inherited RPC block. Direct state remains separately LIVE. Future/stale oracle behavior remains fail-closed.
 - **B4:** engine `1.0.0`. Direct native balance remains pinned/LIVE at the captured RPC block. Etherscan history and Nansen/Arkham label evidence no longer inherit that block without provider-specific proof; timestamp-less external evidence remains UNKNOWN and drives aggregate freshness to UNKNOWN while direct-state freshness remains separately LIVE. Focused regressions passed CI #353.
 - **B5:** engine `1.2.0`, calculation `b5-live-1.3.0`. Request/output/economic/structural contradictions become `CONFLICTING_DATA`/UNKNOWN with zero route score.
 - **F1:** engine `1.2.0`, calculation `f1-live-1.4.0`. One captured block pins requested native state and every declared ERC-20 `decimals()`/`balanceOf` read. Token `eth_call` quantities must be canonical single-word ABI uint256 returns, caller decimals must match on-chain decimals before scaling, and direct RPC quantities are uint256-bounded. Metadata contradictions/malformed values fail closed before market valuation. Provider-facing errors remain redacted. Certified in CI #358.
@@ -71,7 +71,7 @@ The Cloudflare frontend discrepancy was closed on 2026-09-24. The frontend uses 
 These are primarily capability-depth items rather than known hidden build/test failures:
 
 - B1 independently grounded asset/protocol identity plus deeper security semantics beyond its non-verdicting structural observations; nested/dynamic tuple and other composite ABI decoding only where it materially improves transaction understanding and can remain bounded/canonical.
-- B2 deeper independent threat/security evidence plus implementation-code and upgrade-authority analysis where approved provider contracts exist; B3 deeper independent evidence and continuous provider-native monitoring.
+- B2 deeper independent threat/security evidence plus implementation-code and upgrade-authority analysis where approved provider contracts exist; B3 independently timestamped threat evidence and continuous provider-native monitoring.
 - B4 cross-chain activity and richer protocol-semantic/counterparty attribution beyond the now-correct direct/external provenance boundary.
 - B5 independent bridge-security, liquidity and incident evidence beyond route-aggregator evidence.
 - F1 automatic/indexed token discovery plus NFT/DeFi position ingestion and independent token-identity/CoinGecko mapping from approved sources.
