@@ -11,22 +11,28 @@ from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, 
 from rivexis_api.models.evidence import EvidenceRecord, SourceConflict
 from rivexis_api.provider_clients import LifiClient, ProviderCall, ProviderError
 
+UINT256_MAX = 2**256 - 1
+MAX_ROUTE_COLLECTION_ROWS = 100
+
 
 def _evidence(call: ProviderCall, normalized: Any) -> EvidenceRecord:
+    retrieved = datetime.now(timezone.utc)
     return EvidenceRecord(
         evidence_id=str(uuid4()),
         provider="lifi",
         source_type="route_aggregator",
         provider_endpoint="GET /v1/quote",
         provider_request_id=call.request_id,
-        retrieved_at=datetime.now(timezone.utc),
-        observed_at=datetime.now(timezone.utc),
+        retrieved_at=retrieved,
+        # LI.FI quote responses do not expose a normalized provider observation
+        # timestamp. Retain retrieval time only as the schema-required fallback.
+        observed_at=retrieved,
         raw_reference=f"provider:lifi;request:{call.request_id}",
         normalized_value=normalized,
-        calculation_version="b5-live-1.3.0",
+        calculation_version="b5-live-1.4.0",
         engine_version="1.2.0",
         confidence=90,
-        freshness=FreshnessStatus.LIVE,
+        freshness=FreshnessStatus.UNKNOWN,
         license_classification="external-provider-evidence",
     )
 
@@ -48,7 +54,7 @@ def _cost_total(items: object) -> tuple[float | None, bool]:
     amountUSD, non-finite value or negative value makes the collection unusable so the
     caller can fail closed instead of presenting incomplete route economics.
     """
-    if not isinstance(items, list):
+    if not isinstance(items, list) or len(items) > MAX_ROUTE_COLLECTION_ROWS:
         return None, False
     total = 0.0
     for item in items:
@@ -82,14 +88,30 @@ def _duration_seconds(value: object) -> float | None:
 
 
 def _included_steps(value: object) -> tuple[list[dict[str, Any]], bool]:
-    if not isinstance(value, list):
+    if (
+        not isinstance(value, list)
+        or not value
+        or len(value) > MAX_ROUTE_COLLECTION_ROWS
+    ):
         return [], False
     rows: list[dict[str, Any]] = []
+    step_ids: set[str] = set()
     for item in value:
         if not isinstance(item, dict) or not item:
             return [], False
+        step_id = _bounded_text(item.get("id"), maximum=256)
+        if step_id is None or step_id in step_ids:
+            return [], False
+        step_ids.add(step_id)
         rows.append(item)
     return rows, True
+
+
+def _bounded_text(value: object, *, maximum: int) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized if normalized and len(normalized) <= maximum else None
 
 
 def _evm_address(value: object) -> str | None:
@@ -111,7 +133,7 @@ def _positive_integer(value: object) -> int | None:
         parsed = int(raw, 10)
     except (TypeError, ValueError):
         return None
-    return parsed if parsed > 0 else None
+    return parsed if 0 < parsed <= UINT256_MAX else None
 
 
 def _token_matches(requested: object, observed: object) -> bool:
@@ -142,6 +164,7 @@ def _conflict(metric: str, expected: object, observed: object) -> SourceConflict
 
 def _quote_integrity_conflicts(
     *,
+    body: dict[str, Any],
     action: dict[str, Any],
     estimate: dict[str, Any],
     raw_included_steps: object,
@@ -155,6 +178,11 @@ def _quote_integrity_conflicts(
     slippage: float,
 ) -> list[SourceConflict]:
     conflicts: list[SourceConflict] = []
+
+    if _bounded_text(body.get("id"), maximum=256) is None:
+        conflicts.append(_conflict("route.id", "non-empty bounded route id", body.get("id")))
+    if _bounded_text(body.get("tool"), maximum=128) is None:
+        conflicts.append(_conflict("route.tool", "non-empty bounded tool id", body.get("tool")))
 
     if action.get("fromChainId") != source_chain_id:
         conflicts.append(_conflict("route.from_chain_id", source_chain_id, action.get("fromChainId")))
@@ -186,6 +214,8 @@ def _quote_integrity_conflicts(
     quoted_slippage = action.get("slippage")
     if quoted_slippage not in (None, ""):
         try:
+            if isinstance(quoted_slippage, bool):
+                raise ValueError("boolean slippage is not numeric route evidence")
             parsed_slippage = float(quoted_slippage)
             if not math.isfinite(parsed_slippage) or abs(parsed_slippage - slippage) > 1e-12:
                 conflicts.append(_conflict("route.slippage", slippage, quoted_slippage))
@@ -195,10 +225,10 @@ def _quote_integrity_conflicts(
     to_amount_raw = estimate.get("toAmount")
     to_amount_min_raw = estimate.get("toAmountMin")
     to_amount = _positive_integer(to_amount_raw)
-    minimum = _positive_integer(to_amount_min_raw) if to_amount_min_raw not in (None, "") else None
+    minimum = _positive_integer(to_amount_min_raw)
     if to_amount is None:
         conflicts.append(_conflict("route.to_amount", "positive integer", to_amount_raw))
-    if to_amount_min_raw not in (None, "") and minimum is None:
+    if minimum is None:
         conflicts.append(_conflict("route.minimum_to_amount", "positive integer", to_amount_min_raw))
     if to_amount is not None and minimum is not None and minimum > to_amount:
         conflicts.append(_conflict("route.minimum_not_above_expected", f"<= {to_amount}", minimum))
@@ -216,7 +246,23 @@ def _quote_integrity_conflicts(
 
     _, steps_valid = _included_steps(raw_included_steps)
     if not steps_valid:
-        conflicts.append(_conflict("route.included_steps", "list of non-empty step objects", raw_included_steps))
+        conflicts.append(
+            _conflict(
+                "route.included_steps",
+                "bounded list of uniquely identified step objects",
+                raw_included_steps,
+            )
+        )
+
+    approval_address = estimate.get("approvalAddress")
+    if approval_address not in (None, "") and _evm_address(approval_address) is None:
+        conflicts.append(
+            _conflict(
+                "route.approval_address",
+                "canonical EVM address when present",
+                approval_address,
+            )
+        )
     return conflicts
 
 
@@ -233,6 +279,8 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
     wallet_raw = input_data.get("wallet") or input_data.get("fromAddress")
     to_address_raw = input_data.get("toAddress")
     slippage = input_data.get("slippage", 0.005)
+    if isinstance(slippage, bool):
+        return _fail("slippage must be numeric")
     try:
         slippage = float(slippage)
     except (TypeError, ValueError, OverflowError):
@@ -293,9 +341,9 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
     fee_cost_usd, _ = _cost_total(estimate.get("feeCosts"))
     execution_duration = _duration_seconds(estimate.get("executionDuration"))
     normalized = {
-        "route_id": body.get("id"),
-        "tool": body.get("tool"),
-        "tool_name": tool_details.get("name"),
+        "route_id": _bounded_text(body.get("id"), maximum=256),
+        "tool": _bounded_text(body.get("tool"), maximum=128),
+        "tool_name": _bounded_text(tool_details.get("name"), maximum=256),
         "from_chain": action.get("fromChainId"),
         "to_chain": action.get("toChainId"),
         "from_token": ((action.get("fromToken") or {}).get("symbol") if isinstance(action.get("fromToken"), dict) else None),
@@ -310,7 +358,11 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
         "gas_cost_usd": gas_cost_usd,
         "fee_cost_usd": fee_cost_usd,
         "included_steps": len(included),
-        "approval_address": estimate.get("approvalAddress"),
+        "approval_address": (
+            _evm_address(estimate.get("approvalAddress"))
+            if estimate.get("approvalAddress") not in (None, "")
+            else None
+        ),
         "requested": {
             "from_chain": source.chain_id,
             "to_chain": destination.chain_id,
@@ -324,6 +376,7 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
     }
 
     conflicts = _quote_integrity_conflicts(
+        body=body,
         action=action,
         estimate=estimate,
         raw_included_steps=raw_included_steps,
@@ -359,7 +412,11 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
             evidence=evidence,
             provider_consensus="CONFLICTING",
             provider_conflicts=conflicts,
-            data_freshness={"status": "LIVE", "source": "LI.FI"},
+            data_freshness={
+                "status": FreshnessStatus.UNKNOWN.value,
+                "source": "LI.FI",
+                "provider_observation_timestamp": "UNAVAILABLE",
+            },
             missing_data=["request-consistent and internally valid cross-chain route quote"],
             provider_status=provider_status,
             assumptions=["Rivexis treats caller route parameters and normalized provider economics/structure as trust-boundary evidence and does not silently accept malformed provider metadata."],
@@ -379,9 +436,6 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
         "independent liquidity/dependency risk validation",
         "historical bridge incident assessment",
     ]
-    if estimate.get("toAmountMin") in (None, ""):
-        missing.append("minimum received amount")
-        warnings.append("LI.FI response did not provide a normalized minimum received amount.")
     return EngineResult(
         engine_id=EngineId.B5,
         engine_version="1.2.0",
@@ -397,10 +451,17 @@ def run_live_b5(input_data: dict[str, Any]) -> EngineResult:
         safer_alternatives=["Request and compare additional routes after independent security providers are connected."],
         evidence=evidence,
         provider_consensus="SINGLE_SOURCE",
-        data_freshness={"status": "LIVE", "source": "LI.FI"},
+        data_freshness={
+            "status": FreshnessStatus.UNKNOWN.value,
+            "source": "LI.FI",
+            "provider_observation_timestamp": "UNAVAILABLE",
+        },
         missing_data=missing,
         provider_status=provider_status,
-        assumptions=["Rivexis does not execute or sign the returned route; the wallet remains under explicit user control."],
+        assumptions=[
+            "Rivexis does not execute or sign the returned route; the wallet remains under explicit user control.",
+            "LI.FI retrieval time is not treated as provider observation time; quote freshness remains UNKNOWN without a provider timestamp.",
+        ],
     )
 
 

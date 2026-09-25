@@ -92,6 +92,12 @@ def test_b5_matching_quote_remains_partial_and_records_integrity(monkeypatch):
     assert result.metrics["fee_cost_usd"] == 0.0
     assert result.metrics["execution_duration_seconds"] == 45.0
     assert result.provider_conflicts == []
+    assert result.data_freshness == {
+        "status": "UNKNOWN",
+        "source": "LI.FI",
+        "provider_observation_timestamp": "UNAVAILABLE",
+    }
+    assert result.evidence[0].freshness.value == "UNKNOWN"
     assert result.risk_score > 0
     assert FakeLifi.calls[0]["toAddress"] == WALLET
 
@@ -130,6 +136,21 @@ def test_b5_rejects_internally_impossible_minimum_above_expected(monkeypatch):
     assert any(conflict.metric == "route.minimum_not_above_expected" for conflict in result.provider_conflicts)
 
 
+def test_b5_requires_bounded_positive_quote_amounts(monkeypatch):
+    cases = [
+        ({"estimate__toAmount": None}, "route.to_amount"),
+        ({"estimate__toAmount": str(2**256)}, "route.to_amount"),
+        ({"estimate__toAmountMin": None}, "route.minimum_to_amount"),
+        ({"estimate__toAmountMin": "0"}, "route.minimum_to_amount"),
+        ({"estimate__toAmountMin": str(2**256)}, "route.minimum_to_amount"),
+    ]
+    for overrides, metric in cases:
+        install(monkeypatch, quote_body(**overrides))
+        result = live_b5.run_live_b5(payload())
+        assert result.status == AnalysisStatus.CONFLICTING_DATA
+        assert any(conflict.metric == metric for conflict in result.provider_conflicts)
+
+
 def test_b5_rejects_malformed_or_untrustworthy_cost_metadata(monkeypatch):
     bad_cost_sets = [
         [{"amountUSD": -1}],
@@ -138,6 +159,7 @@ def test_b5_rejects_malformed_or_untrustworthy_cost_metadata(monkeypatch):
         [{"amountUSD": None}],
         ["not-a-cost-row"],
         {"amountUSD": "1"},
+        [{"amountUSD": "0"}] * 101,
     ]
     for gas_costs in bad_cost_sets:
         install(monkeypatch, quote_body(estimate__gasCosts=gas_costs))
@@ -175,7 +197,17 @@ def test_b5_rejects_invalid_execution_duration_and_step_structure(monkeypatch):
         assert result.status == AnalysisStatus.CONFLICTING_DATA
         assert any(conflict.metric == "route.execution_duration" for conflict in result.provider_conflicts)
 
-    for steps in (None, {}, [None], [{}], ["step"]):
+    for steps in (
+        None,
+        {},
+        [],
+        [None],
+        [{}],
+        [{"name": "missing-id"}],
+        [{"id": "same"}, {"id": "same"}],
+        [{"id": str(index)} for index in range(101)],
+        ["step"],
+    ):
         install(monkeypatch, quote_body(includedSteps=steps))
         result = live_b5.run_live_b5(payload())
         assert result.status == AnalysisStatus.CONFLICTING_DATA
@@ -184,7 +216,7 @@ def test_b5_rejects_invalid_execution_duration_and_step_structure(monkeypatch):
 
 def test_b5_non_finite_requested_slippage_fails_before_provider_call(monkeypatch):
     install(monkeypatch, quote_body())
-    for bad in ("NaN", "Infinity", "-Infinity"):
+    for bad in ("NaN", "Infinity", "-Infinity", True, False):
         result = live_b5.run_live_b5(payload(slippage=bad))
         assert result.status == AnalysisStatus.INSUFFICIENT_DATA
         assert result.severity == Severity.UNKNOWN
@@ -199,10 +231,41 @@ def test_b5_invalid_amount_and_wallet_fail_before_provider_call(monkeypatch):
     assert bad_amount.severity == Severity.UNKNOWN
     assert FakeLifi.calls == []
 
+    oversized_amount = live_b5.run_live_b5(payload(amount=str(2**256)))
+    assert oversized_amount.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert oversized_amount.severity == Severity.UNKNOWN
+    assert FakeLifi.calls == []
+
     bad_wallet = live_b5.run_live_b5(payload(wallet="not-an-address"))
     assert bad_wallet.status == AnalysisStatus.INSUFFICIENT_DATA
     assert bad_wallet.severity == Severity.UNKNOWN
     assert FakeLifi.calls == []
+
+
+def test_b5_rejects_invalid_provider_identity_and_approval_metadata(monkeypatch):
+    cases = [
+        ({"id": ""}, "route.id"),
+        ({"id": "x" * 257}, "route.id"),
+        ({"tool": None}, "route.tool"),
+        ({"tool": "x" * 129}, "route.tool"),
+        ({"estimate__approvalAddress": "not-an-address"}, "route.approval_address"),
+        ({"action__slippage": True}, "route.slippage"),
+    ]
+    for overrides, metric in cases:
+        install(monkeypatch, quote_body(**overrides))
+        result = live_b5.run_live_b5(payload())
+        assert result.status == AnalysisStatus.CONFLICTING_DATA
+        assert result.risk_score == 0
+        assert any(conflict.metric == metric for conflict in result.provider_conflicts)
+
+
+def test_b5_normalizes_valid_approval_address(monkeypatch):
+    approval = "0xABCDEFabcdefABCDEFabcdefABCDEFabcdefABCD"
+    install(monkeypatch, quote_body(estimate__approvalAddress=approval))
+    result = live_b5.run_live_b5(payload())
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert result.metrics["approval_address"] == approval.lower()
 
 
 def test_b5_dispatch_preserves_current_contract_and_calculation_versions(monkeypatch):
@@ -211,5 +274,5 @@ def test_b5_dispatch_preserves_current_contract_and_calculation_versions(monkeyp
 
     assert result.engine_version == "1.2.0"
     assert {e.engine_version for e in result.evidence} == {"1.2.0"}
-    assert {e.calculation_version for e in result.evidence} == {"b5-live-1.3.0"}
+    assert {e.calculation_version for e in result.evidence} == {"b5-live-1.4.0"}
     assert result.status == AnalysisStatus.PARTIAL
