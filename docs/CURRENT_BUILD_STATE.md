@@ -7,8 +7,8 @@ This is the compact production resume point. Live provider state and current `ma
 ## Repository and certification
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest certified application head: `c84fb4643b288785e48354e9b429cd27125135ff` (`Correct B4 flow normalization integrity`).
-- CI #399 (`36161569915`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #70 (`36161569163`) also passed on the exact head.
+- Latest certified application head: `3fc8764237dd09ede77c80d64e645a33574da40b` (`Harden B5 route evidence integrity`).
+- CI #401 (`36166264178`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #72 (`36166263499`) also passed on the exact head.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -72,7 +72,7 @@ Live inspection found:
 
 ## Engine integrity
 
-All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0`, calculation `b1-live-1.8.0`, with bounded, non-verdicting structural security observations. B2 remains engine contract `1.1.0`, calculation `b2-live-1.3.0`, with bounded bytecode/proxy observations and first-class implementation conflicts. B3 remains engine contract `1.1.0`, calculation `b3-live-1.3.0`, with canonical RPC/ABI values, monotonic dependency-identified prior snapshots and provider-specific freshness. B4 remains engine contract `1.0.0` and advances to calculation `b4-live-1.1.0`: direct RPC quantities and history limits are strict; non-object indexer rows are counted as malformed rather than silently discarded; native/ERC-20 self-transfers remain activity records but produce zero directional flow and no self-counterparty concentration; and external provenance/freshness isolation remains intact. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
+All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0`, calculation `b1-live-1.8.0`, with bounded, non-verdicting structural security observations. B2 remains engine contract `1.1.0`, calculation `b2-live-1.3.0`, with bounded bytecode/proxy observations and first-class implementation conflicts. B3 remains engine contract `1.1.0`, calculation `b3-live-1.3.0`, with canonical RPC/ABI values, monotonic dependency-identified prior snapshots and provider-specific freshness. B4 remains engine contract `1.0.0`, calculation `b4-live-1.1.0`, with strict quantities/history limits, explicit malformed rows, zero-flow self-transfer accounting and isolated external freshness. B5 remains engine contract `1.2.0` and advances to calculation `b5-live-1.4.0`: route/tool identity, uint256-bounded amounts, required minimum output, canonical approval addresses, bounded uniquely identified steps and bounded cost collections fail closed; boolean slippage cannot become numeric evidence; and LI.FI retrieval time no longer becomes a fabricated provider observation time, so freshness remains UNKNOWN. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
 
 ## Current execution gates
 
