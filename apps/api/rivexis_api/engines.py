@@ -62,6 +62,11 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
     trace = metrics.get("call_trace")
     if not isinstance(trace, dict):
         trace = None
+    trace_available = bool(
+        trace
+        and trace.get("call_count")
+        and trace.get("status") != "UNAVAILABLE_CALL_TRACE"
+    )
     state_diff = metrics.get("state_diff")
     if not isinstance(state_diff, dict):
         state_diff = None
@@ -84,16 +89,20 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
             "source": "entry_calldata",
         }
 
-    internal_approvals = list(trace.get("approval_candidates") or []) if trace else []
+    internal_approvals = list(trace.get("approval_candidates") or []) if trace_available else []
     approvals = ([entry_approval] if entry_approval else []) + internal_approvals
-    native_transfers = list(trace.get("native_value_transfers") or []) if trace else []
+    native_transfers = list(trace.get("native_value_transfers") or []) if trace_available else []
     changes = list(state_diff.get("changes") or []) if state_diff else []
     asset_changes = list(event_effects.get("asset_changes") or []) if event_effects else []
     approval_events = list(event_effects.get("approval_events") or []) if event_effects else []
 
     limitations = []
-    if trace is None:
+    if not trace_available:
         limitations.append("Internal call trace was not available or not requested.")
+    elif trace.get("status") == "PARTIAL_CALL_TRACE":
+        limitations.append(
+            "Internal call trace was only partially normalized; malformed or bounded nodes were excluded from promoted effects."
+        )
     if state_diff is None or state_diff.get("status") != "NORMALIZED_PRESTATE_DIFF":
         limitations.append("Before/after contract-state diff was not available or not requested.")
     if not event_logs_normalized:
@@ -126,9 +135,14 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
             "simulation_mode": metrics.get("simulation_mode"),
         },
         "internal_calls": {
-            "available": trace is not None,
+            "available": trace_available,
+            "status": trace.get("status") if trace else None,
             "call_count": trace.get("call_count") if trace else None,
+            "valid_call_count": trace.get("valid_call_count") if trace else None,
             "error_count": trace.get("error_count") if trace else None,
+            "malformed_node_count": trace.get("malformed_node_count") if trace else None,
+            "discarded_node_count": trace.get("discarded_node_count") if trace else None,
+            "truncated": trace.get("truncated") if trace else None,
         },
         "native_value_transfers": native_transfers,
         "approval_candidates": approvals,
@@ -155,7 +169,7 @@ def _b1_transaction_effects_summary(metrics: dict) -> dict:
         },
         "coverage": {
             "entry_calldata_decoded": bool(calldata.get("status") and calldata.get("status") not in {"NO_CALLDATA", "NO_SELECTOR", "UNKNOWN_SELECTOR"}),
-            "internal_call_trace": trace is not None,
+            "internal_call_trace": trace_available,
             "state_diff": bool(state_diff and state_diff.get("status") == "NORMALIZED_PRESTATE_DIFF"),
             "canonical_token_nft_event_changes": event_logs_normalized,
             "canonical_approval_events": event_logs_normalized,

@@ -6,6 +6,17 @@ UINT256_MAX = 2**256 - 1
 _MAX_DYNAMIC_ARRAY_ITEMS = 4096
 _MAX_FIXED_ARRAY_ITEMS = 4096
 _MAX_STATIC_TUPLE_ITEMS = 4096
+_MAX_CALL_TRACE_NODES = 4096
+_MAX_CALL_TRACE_DEPTH = 128
+_TRACE_CALL_TYPES = {
+    "CALL",
+    "CALLCODE",
+    "CREATE",
+    "CREATE2",
+    "DELEGATECALL",
+    "SELFDESTRUCT",
+    "STATICCALL",
+}
 
 
 def _word(data: str, index: int) -> str | None:
@@ -787,46 +798,101 @@ def decode_verified_abi_calldata(
 
 
 def normalize_call_trace(trace: Any) -> dict[str, Any]:
-    calls = []
-    native_transfers = []
-    approval_candidates = []
+    calls: list[dict[str, Any]] = []
+    native_transfers: list[dict[str, Any]] = []
+    approval_candidates: list[dict[str, Any]] = []
+    malformed_node_count = 0
+    discarded_node_count = 0
+    truncation_reasons: set[str] = set()
+    active_nodes: set[int] = set()
 
     def walk(node: Any, parent: int | None = None, depth: int = 0):
+        nonlocal malformed_node_count, discarded_node_count
         if not isinstance(node, dict):
+            discarded_node_count += 1
             return
+        if depth > _MAX_CALL_TRACE_DEPTH:
+            discarded_node_count += 1
+            truncation_reasons.add("depth_limit")
+            return
+        if len(calls) >= _MAX_CALL_TRACE_NODES:
+            discarded_node_count += 1
+            truncation_reasons.add("node_limit")
+            return
+        node_id = id(node)
+        if node_id in active_nodes:
+            discarded_node_count += 1
+            truncation_reasons.add("cycle_detected")
+            return
+        active_nodes.add(node_id)
+
         idx = len(calls)
-        data = node.get("input") or "0x"
+        issues = []
+        data = node.get("input", "0x")
+        if not _is_trace_calldata(data):
+            data = None
+            issues.append("invalid_input")
         decoded = decode_common_calldata(data)
-        value_raw = node.get("value") or "0x0"
-        try:
-            value = (
-                int(value_raw, 16)
-                if isinstance(value_raw, str) and value_raw.startswith("0x")
-                else int(value_raw or 0)
-            )
-        except Exception:
-            value = 0
+        value = _trace_quantity(node.get("value"))
+        gas = _trace_quantity(node.get("gas"))
+        gas_used = _trace_quantity(node.get("gasUsed"))
+        if node.get("value") is not None and value is None:
+            issues.append("invalid_value")
+        if node.get("gas") is not None and gas is None:
+            issues.append("invalid_gas")
+        if node.get("gasUsed") is not None and gas_used is None:
+            issues.append("invalid_gas_used")
+
+        from_address = _trace_address(node.get("from"))
+        to_address = _trace_address(node.get("to"))
+        if node.get("from") is not None and from_address is None:
+            issues.append("invalid_from")
+        if node.get("to") is not None and to_address is None:
+            issues.append("invalid_to")
+
+        raw_call_type = node.get("type")
+        call_type = raw_call_type.upper() if isinstance(raw_call_type, str) else None
+        if call_type not in _TRACE_CALL_TYPES:
+            call_type = "UNKNOWN"
+            issues.append("invalid_call_type")
+
+        raw_error = node.get("error")
+        error = raw_error[:512] if isinstance(raw_error, str) and raw_error else None
+        if raw_error is not None and not isinstance(raw_error, str):
+            issues.append("invalid_error")
+
+        children = node.get("calls")
+        if children is None:
+            children = []
+        elif not isinstance(children, list):
+            children = []
+            issues.append("invalid_calls")
+
+        if issues:
+            malformed_node_count += 1
         item = {
             "trace_index": idx,
             "parent_trace_index": parent,
             "depth": depth,
-            "call_type": str(node.get("type") or "CALL").upper(),
-            "from": node.get("from"),
-            "to": node.get("to"),
+            "call_type": call_type,
+            "from": from_address,
+            "to": to_address,
             "value_wei": value,
-            "gas": _uint_hex(node.get("gas")),
-            "gas_used": _uint_hex(node.get("gasUsed")),
-            "error": node.get("error"),
+            "gas": gas,
+            "gas_used": gas_used,
+            "error": error,
             "selector": decoded.get("selector"),
             "calldata_decode": decoded,
+            "integrity": "MALFORMED" if issues else "VALID",
+            "integrity_issues": issues,
         }
         calls.append(item)
-        if value > 0:
+        if isinstance(value, int) and value > 0 and from_address and to_address:
             native_transfers.append(
                 {
                     "trace_index": idx,
-                    "from": node.get("from"),
-                    "to": node.get("to"),
+                    "from": from_address,
+                    "to": to_address,
                     "amount_wei": value,
                 }
             )
@@ -835,38 +901,83 @@ def normalize_call_trace(trace: Any) -> dict[str, Any]:
             in {"DECODED_STANDARD_SELECTOR", "PARTIALLY_DECODED_STANDARD_SELECTOR"}
             and decoded.get("signature")
             in {"approve(address,uint256)", "setApprovalForAll(address,bool)"}
+            and to_address is not None
         ):
             approval_candidates.append(
                 {
                     "trace_index": idx,
-                    "contract": node.get("to"),
+                    "contract": to_address,
                     "decode": decoded,
                 }
             )
-        for child in node.get("calls") or []:
+        for child in children:
             walk(child, idx, depth + 1)
+        active_nodes.remove(node_id)
 
     walk(trace)
+    partial = bool(malformed_node_count or discarded_node_count or truncation_reasons)
+    status = (
+        "UNAVAILABLE_CALL_TRACE"
+        if not calls
+        else "PARTIAL_CALL_TRACE"
+        if partial
+        else "NORMALIZED_CALL_TRACE"
+    )
     return {
+        "status": status,
         "calls": calls,
         "native_value_transfers": native_transfers,
         "approval_candidates": approval_candidates,
         "call_count": len(calls),
+        "valid_call_count": sum(1 for x in calls if x.get("integrity") == "VALID"),
         "error_count": sum(1 for x in calls if x.get("error")),
+        "malformed_node_count": malformed_node_count,
+        "discarded_node_count": discarded_node_count,
+        "truncated": bool(truncation_reasons),
+        "truncation_reasons": sorted(truncation_reasons),
     }
 
 
-def _uint_hex(value: Any) -> int | None:
-    if value is None:
+def _trace_address(value: Any) -> str | None:
+    if not isinstance(value, str) or len(value) != 42 or not value.startswith("0x"):
         return None
     try:
-        return (
-            int(value, 16)
-            if isinstance(value, str) and value.startswith("0x")
-            else int(value)
-        )
-    except Exception:
+        int(value[2:], 16)
+    except ValueError:
         return None
+    return value.lower()
+
+
+def _is_trace_calldata(value: Any) -> bool:
+    if not isinstance(value, str) or not value.startswith("0x"):
+        return False
+    digits = value[2:]
+    if len(digits) % 2 != 0:
+        return False
+    try:
+        int(digits or "0", 16)
+    except ValueError:
+        return False
+    return True
+
+
+def _trace_quantity(value: Any) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if 0 <= value <= UINT256_MAX else None
+    if not isinstance(value, str) or not value.startswith("0x"):
+        return None
+    digits = value[2:]
+    if not digits or (len(digits) > 1 and digits[0] == "0"):
+        return None
+    try:
+        parsed = int(digits, 16)
+    except ValueError:
+        return None
+    return parsed if parsed <= UINT256_MAX else None
 
 
 def summarize_prestate_diff(value: Any) -> dict[str, Any]:

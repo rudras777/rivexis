@@ -411,3 +411,47 @@ def test_live_b1_optional_debug_trace_and_state_diff(monkeypatch):
     assert r.metrics["state_diff"]["addresses_changed"]==1
     assert any(e.source_type=="execution_trace" for e in r.evidence)
     assert any(e.source_type=="state_diff" for e in r.evidence)
+
+
+def test_live_b1_marks_malformed_debug_trace_unavailable(monkeypatch):
+    class MalformedTraceRpc(FakeRpc):
+        def call(self, method, params=None):
+            if method == "debug_traceCall":
+                return ProviderCall(
+                    "direct_rpc",
+                    "trace-malformed",
+                    "http://rpc.test",
+                    "not-a-trace",
+                    3.0,
+                )
+            return super().call(method, params)
+
+    fake = MalformedTraceRpc()
+    monkeypatch.setattr(live_b1, "select_rpc_client", lambda chain: _select(fake))
+    monkeypatch.setattr(
+        live_b1,
+        "resolve_provider",
+        lambda *a, **k: Resolution(
+            "simulation", None, "PROVIDER_UNAVAILABLE", ["tenderly"]
+        ),
+    )
+
+    result = live_b1.run_live_b1(
+        {
+            "chain": "ethereum",
+            "from": "0x" + "11" * 20,
+            "to": "0x" + "22" * 20,
+            "data": "0x",
+            "trace": True,
+        }
+    )
+
+    assert result.metrics["call_trace"]["status"] == "UNAVAILABLE_CALL_TRACE"
+    assert result.metrics["call_trace"]["call_count"] == 0
+    assert "decoded internal call trace" in result.missing_data
+    assert any("no valid internal call-trace nodes" in item for item in result.warnings)
+    trace_evidence = next(
+        item for item in result.evidence if item.source_type == "execution_trace"
+    )
+    assert trace_evidence.confidence == 0
+    assert trace_evidence.calculation_version == "b1-live-1.6.0"

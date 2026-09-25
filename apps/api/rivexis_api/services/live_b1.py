@@ -80,7 +80,7 @@ def _evidence(
         chain_id=chain_id,
         raw_reference=f"provider:{call.provider_id};request:{call.request_id}",
         normalized_value=normalized_value,
-        calculation_version="b1-live-1.5.0",
+        calculation_version="b1-live-1.6.0",
         engine_version="1.3.0",
         confidence=confidence,
         freshness=freshness,
@@ -452,7 +452,15 @@ def run_live_b1(input_data: dict[str, Any]) -> EngineResult:
         try:
             trace_call = rpc.call("debug_traceCall", [rpc_tx, block_tag, {"tracer": "callTracer", "timeout": "5s"}])
             call_trace = normalize_call_trace(trace_call.result)
-            evidence.append(_evidence(trace_call, source_type="execution_trace", normalized_value=call_trace, chain_id=chain.chain_id, block_number=block_number, confidence=92, endpoint_method="debug_traceCall/callTracer"))
+            trace_status = call_trace.get("status")
+            trace_confidence = 92 if trace_status == "NORMALIZED_CALL_TRACE" else 55 if call_trace.get("call_count") else 0
+            evidence.append(_evidence(trace_call, source_type="execution_trace", normalized_value=call_trace, chain_id=chain.chain_id, block_number=block_number, confidence=trace_confidence, endpoint_method="debug_traceCall/callTracer"))
+            if trace_status == "PARTIAL_CALL_TRACE":
+                warnings.append("Internal call trace was only partially normalized; malformed or bounded nodes were excluded from promoted effects.")
+                missing.append("complete canonical internal call trace")
+            elif trace_status == "UNAVAILABLE_CALL_TRACE":
+                warnings.append("RPC returned no valid internal call-trace nodes.")
+                missing.append("decoded internal call trace")
         except ProviderError as exc:
             warnings.append(f"Internal call trace unavailable from selected RPC: {exc.code}")
             missing.append("decoded internal call trace")

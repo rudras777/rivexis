@@ -299,7 +299,9 @@ def test_b1_effect_summary_normalizes_trace_approvals_native_value_and_state_cha
     effects = _b1_transaction_effects_summary(metrics)
     assert effects["entry_method"]["signature"] == "approve(address,uint256)"
     assert effects["execution"]["gas_estimate"] == 21000
-    assert effects["internal_calls"] == {"available": True, "call_count": 2, "error_count": 0}
+    assert effects["internal_calls"]["available"] is True
+    assert effects["internal_calls"]["call_count"] == 2
+    assert effects["internal_calls"]["error_count"] == 0
     assert effects["native_value_transfers"][0]["amount_wei"] == 16
     assert len(effects["approval_candidates"]) == 2
     assert effects["approval_candidates"][0]["contract"] == target
@@ -327,6 +329,50 @@ def test_b1_effect_summary_is_explicit_when_trace_and_state_diff_are_missing():
     assert effects["coverage"]["canonical_token_nft_event_changes"] is False
     assert effects["coverage"]["canonical_approval_events"] is False
     assert len(effects["limitations"]) == 3
+
+
+def test_b1_effect_summary_does_not_promote_unavailable_trace_evidence():
+    effects = _b1_transaction_effects_summary(
+        {
+            "calldata_decode": {"status": "NO_CALLDATA"},
+            "call_trace": {
+                "status": "UNAVAILABLE_CALL_TRACE",
+                "call_count": 0,
+                "valid_call_count": 0,
+                "error_count": 0,
+                "native_value_transfers": [{"amount_wei": 99}],
+                "approval_candidates": [{"contract": "0x" + "11" * 20}],
+            },
+        }
+    )
+
+    assert effects["internal_calls"]["available"] is False
+    assert effects["coverage"]["internal_call_trace"] is False
+    assert effects["native_value_transfers"] == []
+    assert effects["approval_candidates"] == []
+
+
+def test_b1_effect_summary_exposes_partial_trace_integrity():
+    effects = _b1_transaction_effects_summary(
+        {
+            "calldata_decode": {"status": "NO_CALLDATA"},
+            "call_trace": {
+                "status": "PARTIAL_CALL_TRACE",
+                "call_count": 2,
+                "valid_call_count": 1,
+                "error_count": 0,
+                "malformed_node_count": 1,
+                "discarded_node_count": 1,
+                "truncated": True,
+            },
+        }
+    )
+
+    assert effects["internal_calls"]["available"] is True
+    assert effects["internal_calls"]["status"] == "PARTIAL_CALL_TRACE"
+    assert effects["internal_calls"]["valid_call_count"] == 1
+    assert effects["internal_calls"]["truncated"] is True
+    assert any("partially normalized" in item for item in effects["limitations"])
 
 
 def test_b1_effect_summary_exposes_normalized_event_effects_without_token_metadata_inference():
