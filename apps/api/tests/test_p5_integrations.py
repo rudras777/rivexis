@@ -293,6 +293,9 @@ def test_f2_incorporates_protocol_native_evidence(monkeypatch):
 
 
 def test_f4_incorporates_declared_protocol_native_evidence(monkeypatch):
+    from datetime import datetime, timezone
+
+    from rivexis_api.models.evidence import EvidenceRecord
     from rivexis_api.services import live_f4
     from rivexis_api.services.protocol_native import ProtocolNativeResult
     from rivexis_api.chains import normalize_chain
@@ -302,7 +305,18 @@ def test_f4_incorporates_declared_protocol_native_evidence(monkeypatch):
             return ProviderCall("defillama_yields","yield-p5","yields",{"data":[{"pool":"p","project":"proto","chain":"Ethereum","symbol":"USDC","tvlUsd":10_000_000,"apy":4,"apyBase":4,"apyReward":0}]},2)
     monkeypatch.setattr(live_f4,"DefiLlamaYieldClient",FakeYields)
     monkeypatch.setattr(live_f4,"has_protocol_native_input",lambda data:True)
-    monkeypatch.setattr(live_f4,"collect_protocol_native",lambda data:ProtocolNativeResult(chain=normalize_chain("ethereum"),metrics={"declared_contracts":[{"role":"vault"}],"declared_oracle":None},risk_delta=5,confidence=85))
+    now = datetime.now(timezone.utc)
+    direct = EvidenceRecord(
+        evidence_id="f4-native",
+        provider="direct_rpc",
+        source_type="direct_contract_state",
+        retrieved_at=now,
+        observed_at=now,
+        normalized_value={"has_code": True},
+        calculation_version="protocol-native-1.2.0",
+        freshness=FreshnessStatus.LIVE,
+    )
+    monkeypatch.setattr(live_f4,"collect_protocol_native",lambda data:ProtocolNativeResult(chain=normalize_chain("ethereum"),metrics={"declared_contracts":[{"role":"vault","has_code":True}],"declared_oracle":None},evidence=[direct],risk_delta=5,confidence=85))
     r=live_f4.run_live_f4({"protocol":"proto","asset":"USDC","chain":"Ethereum","vault_address":"0x2222222222222222222222222222222222222222"})
     assert "protocol_native" in r.metrics
     assert r.engine_version=="1.2.0"

@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from time import time
+from uuid import uuid4
 
+from rivexis_api.chains import normalize_chain
 from rivexis_api.models.enums import AnalysisStatus, FreshnessStatus, Severity
+from rivexis_api.models.evidence import EvidenceRecord
 from rivexis_api.provider_clients import ProviderCall
 from rivexis_api.services import live_f4
+from rivexis_api.services.protocol_native import ProtocolNativeResult
 
 
 def install_rows(monkeypatch, rows):
@@ -21,8 +26,8 @@ def install_rows(monkeypatch, rows):
     monkeypatch.setattr(live_f4, "DefiLlamaYieldClient", FakeYieldClient)
 
 
-def pool(pool_id: str, *, apy=8.0, tvl=10_000_000.0, timestamp=None, apy_reward=3.0, sigma=0.02):
-    return {
+def pool(pool_id: str, *, apy=8.0, tvl=10_000_000.0, timestamp=None, apy_reward=3.0, sigma=0.02, **overrides):
+    record = {
         "pool": pool_id,
         "project": "aave-v3",
         "symbol": "USDC",
@@ -36,6 +41,8 @@ def pool(pool_id: str, *, apy=8.0, tvl=10_000_000.0, timestamp=None, apy_reward=
         "il7d": 0.0,
         "apyMean30d": 7.5,
     }
+    record.update(overrides)
+    return record
 
 
 def test_f4_ambiguous_broad_selector_fails_closed_instead_of_choosing_largest_tvl(monkeypatch):
@@ -51,6 +58,28 @@ def test_f4_ambiguous_broad_selector_fails_closed_instead_of_choosing_largest_tv
     assert "unique yield-pool selector" in result.missing_data
 
 
+def test_f4_broad_selector_does_not_match_arbitrary_substrings(monkeypatch):
+    install_rows(
+        monkeypatch,
+        [pool("unrelated", project="not-aave", symbol="NOTUSDC")],
+    )
+    result = live_f4.run_live_f4(
+        {"protocol": "aave", "asset": "USDC", "chain": "Ethereum"}
+    )
+
+    assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert result.missing_data == ["matching yield pool"]
+
+
+def test_f4_rejects_unbounded_provider_pool_collection(monkeypatch):
+    install_rows(monkeypatch, [pool("same")] * (live_f4.MAX_POOL_ROWS + 1))
+    result = live_f4.run_live_f4({"pool_id": "same"})
+
+    assert result.status == AnalysisStatus.PROVIDER_UNAVAILABLE
+    assert result.risk_score == 0
+    assert result.provider_status[0]["status"] == "MALFORMED_RESPONSE"
+
+
 def test_f4_exact_pool_id_selects_only_requested_pool(monkeypatch):
     install_rows(monkeypatch, [pool("pool-small", apy=4.0, tvl=2_000_000, apy_reward=1.0), pool("pool-large", apy=14.0, tvl=200_000_000)])
     result = live_f4.run_live_f4({"pool_id": "pool-small"})
@@ -58,6 +87,44 @@ def test_f4_exact_pool_id_selects_only_requested_pool(monkeypatch):
     assert result.metrics["pool_id"] == "pool-small"
     assert result.metrics["headline_apy_pct"] == 4.0
     assert result.metrics["tvl_usd"] == 2_000_000
+    assert result.evidence[0].calculation_version == "f4-live-1.3.0"
+
+
+def test_f4_rejects_malformed_selector_before_provider_call(monkeypatch):
+    class MustNotCall:
+        def pools(self):
+            raise AssertionError("provider must not be called")
+
+    monkeypatch.setattr(live_f4, "DefiLlamaYieldClient", MustNotCall)
+    for payload in (
+        {"pool_id": True},
+        {"protocol": "x" * 257},
+        {"protocol": "aave", "chain": {"unexpected": "object"}},
+    ):
+        result = live_f4.run_live_f4(payload)
+        assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+        assert result.risk_score == 0
+        assert result.missing_data == ["valid bounded yield-pool selector"]
+
+
+def test_f4_requires_bounded_selected_pool_identity(monkeypatch):
+    for field, value in (
+        ("project", None),
+        ("chain", True),
+        ("symbol", ""),
+    ):
+        install_rows(monkeypatch, [pool("selected", **{field: value})])
+        result = live_f4.run_live_f4({"pool_id": "selected"})
+        assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+        assert result.risk_score == 0
+        assert result.missing_data == ["canonical yield-pool identity"]
+
+    install_rows(monkeypatch, [pool("x" * 257)])
+    oversized_id = live_f4.run_live_f4(
+        {"protocol": "aave", "asset": "USDC", "chain": "Ethereum"}
+    )
+    assert oversized_id.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert oversized_id.missing_data == ["canonical yield-pool identity"]
 
 
 def test_f4_rejects_non_finite_core_provider_metrics_instead_of_substituting_zero(monkeypatch):
@@ -114,12 +181,27 @@ def test_f4_rejects_negative_or_non_finite_sigma(monkeypatch):
         assert result.provider_consensus == "CONFLICTING"
 
 
+def test_f4_rejects_malformed_optional_history_metrics(monkeypatch):
+    for field, value in (
+        ("apyBase", True),
+        ("apyBase", float("nan")),
+        ("il7d", float("inf")),
+        ("apyMean30d", "not-a-number"),
+    ):
+        install_rows(monkeypatch, [pool("bad-optional", **{field: value})])
+        result = live_f4.run_live_f4({"pool_id": "bad-optional"})
+        assert result.status == AnalysisStatus.CONFLICTING_DATA
+        assert result.risk_score == 0
+        assert result.metrics["invalid_field"] == field
+
+
 def test_f4_stale_or_expired_yield_timestamp_promotes_status_to_stale_data(monkeypatch):
     install_rows(monkeypatch, [pool("stale-pool", timestamp=time() - 2 * 86400)])
     result = live_f4.run_live_f4({"pool_id": "stale-pool"})
     assert result.status == AnalysisStatus.STALE_DATA
     assert result.evidence[0].freshness == FreshnessStatus.EXPIRED
     assert result.data_freshness["status"] == "EXPIRED"
+    assert result.data_confidence == 45
     assert any("stale" in warning.lower() for warning in result.warnings)
 
 
@@ -130,3 +212,66 @@ def test_f4_materially_future_timestamp_is_not_treated_as_current(monkeypatch):
     assert result.evidence[0].freshness == FreshnessStatus.UNKNOWN
     assert result.data_freshness["status"] == "UNKNOWN"
     assert result.data_confidence == 62
+    assert result.data_freshness["provider_timestamp_present"] is False
+
+
+def test_f4_boolean_or_preproduction_timestamp_stays_unknown(monkeypatch):
+    for timestamp in (True, False, 1, "1999-01-01T00:00:00Z"):
+        install_rows(monkeypatch, [pool("invalid-time", timestamp=timestamp)])
+        result = live_f4.run_live_f4({"pool_id": "invalid-time"})
+        assert result.status == AnalysisStatus.PARTIAL
+        assert result.evidence[0].freshness == FreshnessStatus.UNKNOWN
+        assert result.data_freshness["status"] == "UNKNOWN"
+        assert result.data_freshness["provider_timestamp_present"] is False
+
+
+def test_f4_native_evidence_controls_aggregate_freshness_and_confidence(monkeypatch):
+    install_rows(monkeypatch, [pool("native-pool")])
+    now = datetime.now(timezone.utc)
+    external = EvidenceRecord(
+        evidence_id=str(uuid4()),
+        provider="etherscan",
+        source_type="verified_contract_metadata",
+        retrieved_at=now,
+        observed_at=now,
+        normalized_value={"verified_source": True},
+        calculation_version="protocol-native-1.2.0",
+        freshness=FreshnessStatus.UNKNOWN,
+    )
+    monkeypatch.setattr(live_f4, "has_protocol_native_input", lambda data: True)
+    monkeypatch.setattr(
+        live_f4,
+        "collect_protocol_native",
+        lambda data: ProtocolNativeResult(
+            chain=normalize_chain("ethereum"),
+            metrics={"declared_contracts": []},
+            evidence=[external],
+            confidence=82,
+        ),
+    )
+    result = live_f4.run_live_f4({"pool_id": "native-pool"})
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert result.data_freshness["status"] == "UNKNOWN"
+    assert result.data_freshness["evidence_freshness"] == ["CURRENT", "UNKNOWN"]
+    assert result.data_confidence == 82
+    assert result.engine_confidence == 72
+
+
+def test_f4_empty_native_collection_does_not_increase_confidence(monkeypatch):
+    install_rows(monkeypatch, [pool("empty-native")])
+    monkeypatch.setattr(live_f4, "has_protocol_native_input", lambda data: True)
+    monkeypatch.setattr(
+        live_f4,
+        "collect_protocol_native",
+        lambda data: ProtocolNativeResult(
+            chain=normalize_chain("ethereum"),
+            metrics={"declared_contracts": []},
+            evidence=[],
+            confidence=92,
+        ),
+    )
+    result = live_f4.run_live_f4({"pool_id": "empty-native"})
+
+    assert result.data_confidence == 70
+    assert result.engine_confidence == 62
