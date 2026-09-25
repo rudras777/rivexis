@@ -7,9 +7,9 @@ Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt
 
 - Repository: public `rudras777/rivexis`; default branch `main`.
 - Public GitHub Pages fallback files are preserved; they provide a public navigation fallback and do not replace or certify the Cloudflare application deployment.
-- Latest fully certified application head before this documentation-only state sync: `b2198bc508096e458560e077b41cb60f11fdcd5d`.
-- CI #403 (`36168119939`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
-- GitHub Pages deployment #74 (`36168118741`) also passed on that head.
+- Latest fully certified application head before this documentation-only state sync: `17410346212ed871fc2d6cff7ac6000c3104b78b`.
+- CI #405 (`36169771582`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
+- GitHub Pages deployment #76 (`36169770434`) also passed on that head.
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
 - API: FastAPI is the authoritative application backend. The free Cloudflare Worker API is an explicit degraded placeholder, not a replacement runtime.
 - Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining Auth-platform leaked-password warning does not govern the FastAPI-owned password path.
@@ -63,7 +63,7 @@ The Cloudflare frontend discrepancy was closed on 2026-09-24. The frontend uses 
 - **F1:** engine `1.2.0`, calculation `f1-live-1.4.0`. One captured block pins requested native state and every declared ERC-20 `decimals()`/`balanceOf` read. Token `eth_call` quantities must be canonical single-word ABI uint256 returns, caller decimals must match on-chain decimals before scaling, and direct RPC quantities are uint256-bounded. Metadata contradictions/malformed values fail closed before market valuation. Provider-facing errors remain redacted. Certified in CI #358.
 - **F2:** engine `1.2.0`, calculation `f2-live-1.4.0`, shared collector `protocol-native-1.2.0`. Identity/TVL/freshness/provider health and audit metadata fail closed. Direct RPC state uses one captured canonical uint256 block; runtime code, EIP-1967 storage and oracle ABI responses are bounded/canonical. Malformed explorer identity data is unavailable, explorer evidence never inherits direct block/freshness, future oracle timestamps stay UNKNOWN, and aggregate freshness includes all retained evidence. Certified in CI #403.
 - **F3:** engine `1.3.0`, calculation `f3-live-1.3.0`. Modeled quantities/debt price validate as finite non-boolean economics; Chainlink reads are block-pinned with exact ABI shape and truthful timestamp freshness; CoinGecko comparison evidence has independent price/timestamp integrity.
-- **F4:** engine `1.2.0`; unique pool selection and core/optional yield evidence integrity are preserved; impossible reward APY/sigma semantics fail closed.
+- **F4:** engine `1.2.0`, calculation `f4-live-1.3.0`. Selectors, provider payload size and selected pool identity are bounded. Strategy matching is exact or delimiter-aware rather than arbitrary substring matching. Core and present optional metrics fail closed on malformed/non-finite/boolean/contradictory evidence. Provider timestamps are normalized without retrieval-time optimism; native confidence requires native evidence; aggregate freshness includes all retained yield/native/explorer evidence. Certified in CI #405.
 - **F5:** engine `1.2.0`; treasury numerics reject booleans and market freshness requires credible complete timestamp coverage.
 
 ## Remaining Milestone F work
