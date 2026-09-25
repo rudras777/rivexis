@@ -4,8 +4,8 @@ Last updated: 2026-09-25
 
 | Environment | Status | Evidence / meaning |
 |---|---|---|
-| GitHub `main` | GREEN | Repository head `9ee79b8394b4608b859b10d21df17304c4d305a1`; CI #387 (`36061343925`) and Pages #58 (`36061342553`) passed on the exact head. |
-| GitHub Pages | FALLBACK ONLY | Pages #58 follows the same source lineage; it is not the authoritative application runtime. |
+| GitHub `main` | GREEN | Repository head `160d15d95333299177fbba223544f7d93bbc9d49`; CI #389 (`36126795915`) and Pages #60 (`36126794699`) passed on the exact head. |
+| GitHub Pages | FALLBACK ONLY | Pages #60 follows the same source lineage; it is not the authoritative application runtime. |
 | Cloudflare web | LIVE / CURRENT | `rivexis-web.rudrasingh0718.workers.dev`; Worker version `0d86a100-a115-4bca-a8ef-69d73be7a72d` at 100% traffic. |
 | Cloudflare API Free | LIVE / DEGRADED BY DESIGN | `/health` reports degraded; application endpoints return 503. It is not the FastAPI runtime. |
 | Authoritative FastAPI | SOURCE READY / BILLING GATED | Existing Docker + Cloudflare Container `lite` design requires Workers Paid; scrypt will not be weakened for Free. |

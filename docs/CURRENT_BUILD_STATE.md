@@ -7,8 +7,8 @@ This is the compact production resume point. Live provider state and current `ma
 ## Repository and certification
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest certified repository head: `9ee79b8394b4608b859b10d21df17304c4d305a1` (`Decode bounded B1 verified ABI static tuples`).
-- CI #387 (`36061343925`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #58 (`36061342553`) also passed on the exact head.
+- Latest certified repository head: `160d15d95333299177fbba223544f7d93bbc9d49` (`Harden B1 call trace integrity`).
+- CI #389 (`36126795915`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #60 (`36126794699`) also passed on the exact head.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -72,7 +72,7 @@ Live inspection found:
 
 ## Engine integrity
 
-All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0` and advances to calculation `b1-live-1.5.0`: its verified-ABI decoder supports bounded one-dimensional fixed arrays and top-level static tuples composed of canonical elementary types, accounts for their exact multiword head width, and leaves tuple arrays, nested tuples and dynamic tuple members explicitly unsupported. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
+All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0` and advances to calculation `b1-live-1.6.0`: its verified-ABI decoder retains bounded fixed arrays/top-level static tuples, while internal call traces now enforce canonical uint256 quantities, EVM addresses and calldata; cap depth/node count; detect cycles; expose valid/malformed/discarded/truncation state; and prevent malformed or unavailable trace nodes from becoming transfer/approval evidence. Partial traces lower evidence confidence and remain explicit. Tuple arrays, nested tuples and dynamic tuple members remain unsupported. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
 
 ## Current execution gates
 
