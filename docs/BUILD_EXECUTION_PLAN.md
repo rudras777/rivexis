@@ -1,15 +1,15 @@
 # Rivexis Build Execution Plan
 
-Last updated: 2026-09-24  
+Last updated: 2026-09-25
 Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt`
 
 ## Current verified baseline
 
 - Repository: public `rudras777/rivexis`; default branch `main`.
 - Public GitHub Pages fallback files are preserved; they provide a public navigation fallback and do not replace or certify the Cloudflare application deployment.
-- Latest fully certified application head before this documentation-only state sync: `c6ae8cb30556df818ad8c8da034bfec5dd615981`.
-- CI #393 (`36130669232`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
-- GitHub Pages deployment #64 (`36130668538`) also passed on that head.
+- Latest fully certified application head before this documentation-only state sync: `145fce49bab4063e95eb4e96f2b245dbbe3c5a7c`.
+- CI #395 (`36132410919`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
+- GitHub Pages deployment #66 (`36132410265`) also passed on that head.
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
 - API: FastAPI is the authoritative application backend. The free Cloudflare Worker API is an explicit degraded placeholder, not a replacement runtime.
 - Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining Auth-platform leaked-password warning does not govern the FastAPI-owned password path.
@@ -56,7 +56,7 @@ The Cloudflare frontend discrepancy was closed on 2026-09-24. The frontend uses 
 
 - Cross-engine dispatch enforces canonical current engine/evidence versions, evidence-derived provider consensus and first-class unresolved conflict semantics.
 - **B1:** engine `1.3.0`, calculation `b1-live-1.8.0`. Standard event effects, supported ABI decoding, internal traces and prestate diffs remain canonical and bounded. A non-verdicting structural security section now aggregates validated delegate/callcode context, creation/self-destruct paths, nested failures, broad permission candidates, account lifecycle and runtime-code changes. It exposes source coverage and explicitly does not claim maliciousness or safety. Tuple arrays, nested tuples and dynamic tuple members remain explicit unsupported layouts.
-- **B2:** engine `1.1.0`, calculation `b2-live-1.2.0`. Target/sender/hash and RPC transaction bodies validate; contract bytecode is valid hex read at the captured block; approval rules reuse canonical calldata decoding.
+- **B2:** engine `1.1.0`, calculation `b2-live-1.3.0`. Target/sender/hash and RPC transaction bodies validate. RPC quantities are canonical and uint256-bounded; runtime bytecode is size-bounded, block-pinned and hashed; push-aware structural opcode observations and exact EIP-1167 extraction are explicitly non-verdicting. Explorer proxy metadata validates shape/address and retains independent UNKNOWN freshness. Direct/explorer implementation disagreement becomes an unresolved first-class conflict and `CONFLICTING_DATA`.
 - **B3:** engine `1.1.0`, calculation `b3-live-1.2.0`. Native balance, code, optional total supply and supplied Chainlink reads share one captured block tag. Future/stale oracle behavior and prior-snapshot validation remain fail-closed.
 - **B4:** engine `1.0.0`. Direct native balance remains pinned/LIVE at the captured RPC block. Etherscan history and Nansen/Arkham label evidence no longer inherit that block without provider-specific proof; timestamp-less external evidence remains UNKNOWN and drives aggregate freshness to UNKNOWN while direct-state freshness remains separately LIVE. Focused regressions passed CI #353.
 - **B5:** engine `1.2.0`, calculation `b5-live-1.3.0`. Request/output/economic/structural contradictions become `CONFLICTING_DATA`/UNKNOWN with zero route score.
@@ -71,7 +71,7 @@ The Cloudflare frontend discrepancy was closed on 2026-09-24. The frontend uses 
 These are primarily capability-depth items rather than known hidden build/test failures:
 
 - B1 independently grounded asset/protocol identity plus deeper security semantics beyond its non-verdicting structural observations; nested/dynamic tuple and other composite ABI decoding only where it materially improves transaction understanding and can remain bounded/canonical.
-- B2/B3 deeper independent external threat/security evidence where an approved provider contract exists; B3 remains point-in-time rather than continuous provider-native monitoring.
+- B2 deeper independent threat/security evidence plus implementation-code and upgrade-authority analysis where approved provider contracts exist; B3 deeper independent evidence and continuous provider-native monitoring.
 - B4 cross-chain activity and richer protocol-semantic/counterparty attribution beyond the now-correct direct/external provenance boundary.
 - B5 independent bridge-security, liquidity and incident evidence beyond route-aggregator evidence.
 - F1 automatic/indexed token discovery plus NFT/DeFi position ingestion and independent token-identity/CoinGecko mapping from approved sources.
@@ -88,10 +88,10 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Dependencies and blockers
 
-- **Cloudflare production deployment drift:** RESOLVED for the frontend. Worker version `258a0507-177e-43ae-84da-ebc037d29d03` serves the current application source, uses the intended API origin, and passes live route/workspace checks. The Worker remains manually deployed rather than Git-integrated CI/CD.
+- **Cloudflare production deployment drift:** RESOLVED for the frontend. Worker version `0d86a100-a115-4bca-a8ef-69d73be7a72d` receives 100% traffic, uses the intended API origin, and passes live route/workspace checks. The Worker remains manually deployed rather than Git-integrated CI/CD.
 - **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable production path. The current API Worker remains a degraded health/503 boundary.
 - **Custom domain:** BLOCKED on domain choice/ownership/configuration.
-- **Production email:** Brevo phone/account verification is complete; fail-closed transport, environment contract and inactive templates are implemented. Owned-domain sender authentication, production runtime secret installation, sandbox certification, real delivery verification and transactional lifecycle-event evidence remain outstanding.
+- **Production email:** Brevo phone/account verification is complete; fail-closed transport and the environment contract are implemented; verification/reset templates are active; controlled template sends reached Gmail and Brevo independently recorded delivery. Owned-domain sender authentication, production runtime secret installation, runtime parameter substitution and application-triggered lifecycle evidence remain outstanding.
 - **External providers:** BLOCKED where credentials, commercial licensing or customer-specific contracts are absent; unsupported paths stay UNKNOWN/unavailable.
 - **Arkham:** license/terms-gated.
 - **Hypernative native screening:** customer-schema/contract-gated where no approved exact request/signing contract exists.
@@ -100,4 +100,4 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Next action
 
-Deploy the authoritative FastAPI runtime on an explicitly approved production target, then configure exact HTTPS origins, PostgreSQL application credentials, distributed controls and Brevo secrets there before running authenticated browser and email-delivery certification. Keep Brevo templates inactive until owned-domain/sender and delivery-lifecycle gates are certified. Full-CI gate every implementation slice.
+Deploy the authoritative FastAPI runtime on an explicitly approved production target, then configure exact HTTPS origins, PostgreSQL application credentials, distributed controls and Brevo secrets there before running authenticated browser and application-triggered email-delivery certification. Preserve the active templates and fail-closed transport contract while the owned-domain and runtime lifecycle gates remain open. Full-CI gate every implementation slice.

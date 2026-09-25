@@ -7,8 +7,8 @@ This is the compact production resume point. Live provider state and current `ma
 ## Repository and certification
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest certified application head: `c6ae8cb30556df818ad8c8da034bfec5dd615981` (`Add grounded B1 security observations`).
-- CI #393 (`36130669232`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #64 (`36130668538`) also passed on the exact head.
+- Latest certified application head: `145fce49bab4063e95eb4e96f2b245dbbe3c5a7c` (`Harden B2 bytecode and proxy evidence`).
+- CI #395 (`36132410919`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #66 (`36132410265`) also passed on the exact head.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -72,7 +72,7 @@ Live inspection found:
 
 ## Engine integrity
 
-All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0` and advances to calculation `b1-live-1.8.0`: canonical calldata, internal-call and prestate-diff evidence now feeds a bounded `security_observations` section for delegate/callcode context, creation/self-destruct paths, internal failures, unlimited/operator approval candidates, account lifecycle and runtime-code changes. Only canonically validated trace/state records contribute, permission observations are category-aggregated and address-validated, coverage stays explicit, and the section declares that these are review cues rather than maliciousness or safety verdicts. Tuple arrays, nested tuples and dynamic tuple members remain unsupported. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
+All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0`, calculation `b1-live-1.8.0`, with bounded, non-verdicting structural security observations. B2 remains engine contract `1.1.0` and advances to calculation `b2-live-1.3.0`: canonical uint256-bounded RPC quantities, a 128 KiB runtime-bytecode cap, block-pinned bytecode hash and push-aware opcode observations, and exact EIP-1167 implementation extraction are regression-covered. Explorer proxy metadata now has strict shape/address validation and independent UNKNOWN freshness without inheriting the RPC block. A direct-bytecode/explorer implementation mismatch becomes a first-class unresolved provider conflict and `CONFLICTING_DATA`; structural observations explicitly do not claim reachability, exploitability, vulnerability or safety. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics.
 
 ## Current execution gates
 
