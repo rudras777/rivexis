@@ -101,6 +101,55 @@ def test_b3_rejects_mismatched_token_or_oracle_dependency(monkeypatch):
     assert "oracle feed" in oracle_result.summary
 
 
+def test_b3_rejects_missing_prior_dependency_identity(monkeypatch):
+    monkeypatch.setattr(
+        live_b3,
+        "run_live_b3",
+        lambda _: (_ for _ in ()).throw(AssertionError("live B3 must not run")),
+    )
+    token_result = ENGINES[EngineId.B3](
+        {
+            "chain": "ethereum",
+            "entity": ENTITY,
+            "token_contract": TOKEN,
+            "previous_snapshot": snapshot(),
+        },
+        False,
+    )
+    assert_rejected(token_result)
+    assert "missing the monitored token_contract" in token_result.summary
+
+    oracle_result = ENGINES[EngineId.B3](
+        {
+            "chain": "ethereum",
+            "entity": ENTITY,
+            "oracle_feed": ORACLE,
+            "previous_snapshot": snapshot(),
+        },
+        False,
+    )
+    assert_rejected(oracle_result)
+    assert "missing the monitored oracle feed" in oracle_result.summary
+
+
+def test_b3_rejects_boolean_prior_chain_identity(monkeypatch):
+    monkeypatch.setattr(
+        live_b3,
+        "run_live_b3",
+        lambda _: (_ for _ in ()).throw(AssertionError("live B3 must not run")),
+    )
+    result = ENGINES[EngineId.B3](
+        {
+            "chain": "ethereum",
+            "entity": ENTITY,
+            "previous_snapshot": snapshot(chain_id=True),
+        },
+        False,
+    )
+    assert_rejected(result)
+    assert "valid chain_id" in result.summary
+
+
 def test_b3_same_identity_snapshot_reaches_existing_live_engine(monkeypatch):
     expected = EngineResult(
         engine_id=EngineId.B3,

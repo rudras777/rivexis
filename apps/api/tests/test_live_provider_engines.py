@@ -331,22 +331,23 @@ def test_live_b3_snapshot_change_detection_is_non_demo(monkeypatch):
     from rivexis_api.services import live_b3
 
     class MonitorRpc:
-        def __init__(self, balance: int, code: str):
+        def __init__(self, balance: int, code: str, block: int):
             self.balance = balance
             self.code = code
+            self.block = block
 
         def call(self, method, params=None):
             if method == "eth_chainId":
                 return ProviderCall("direct_rpc", "b3-chain", "http://rpc.test", "0x1", 1.0)
             if method == "eth_blockNumber":
-                return ProviderCall("direct_rpc", "b3-block", "http://rpc.test", "0x65", 1.0)
+                return ProviderCall("direct_rpc", "b3-block", "http://rpc.test", hex(self.block), 1.0)
             if method == "eth_getBalance":
                 return ProviderCall("direct_rpc", "b3-bal", "http://rpc.test", hex(self.balance), 1.0)
             if method == "eth_getCode":
                 return ProviderCall("direct_rpc", "b3-code", "http://rpc.test", self.code, 1.0)
             raise AssertionError((method, params))
 
-    first_rpc = MonitorRpc(1_000, "0x6001")
+    first_rpc = MonitorRpc(1_000, "0x6001", 101)
     first_probe = first_rpc.call("eth_chainId")
     monkeypatch.setattr(live_b3, "select_rpc_client", lambda chain: ("direct_rpc", first_rpc, first_probe, []))
     first = live_b3.run_live_b3({"chain": "ethereum", "entity": "0x1111111111111111111111111111111111111111"})
@@ -355,7 +356,7 @@ def test_live_b3_snapshot_change_detection_is_non_demo(monkeypatch):
     assert first.metrics["signals_detected"] == 0
     assert "prior monitoring snapshot for change detection" in first.missing_data
 
-    second_rpc = MonitorRpc(400, "0x6002")
+    second_rpc = MonitorRpc(400, "0x6002", 102)
     second_probe = second_rpc.call("eth_chainId")
     monkeypatch.setattr(live_b3, "select_rpc_client", lambda chain: ("direct_rpc", second_rpc, second_probe, []))
     second = live_b3.run_live_b3({

@@ -441,9 +441,16 @@ def _b3_snapshot_contract_error(input_data: dict) -> EngineResult | None:
         )
     except ValueError:
         return None
-    try:
-        previous_chain_id = int(previous.get("chain_id"))
-    except (TypeError, ValueError):
+    previous_chain_value = previous.get("chain_id")
+    if isinstance(previous_chain_value, bool):
+        return _b3_snapshot_failure(
+            "previous_snapshot is missing a valid chain_id identity"
+        )
+    if isinstance(previous_chain_value, int):
+        previous_chain_id = previous_chain_value
+    elif isinstance(previous_chain_value, str) and previous_chain_value.isdigit():
+        previous_chain_id = int(previous_chain_value)
+    else:
         return _b3_snapshot_failure(
             "previous_snapshot is missing a valid chain_id identity"
         )
@@ -454,7 +461,11 @@ def _b3_snapshot_contract_error(input_data: dict) -> EngineResult | None:
 
     current_token = str(input_data.get("token_contract") or "").strip().lower()
     previous_token = str(previous.get("token_contract") or "").strip().lower()
-    if current_token and previous_token and current_token != previous_token:
+    if current_token and not previous_token:
+        return _b3_snapshot_failure(
+            "previous_snapshot is missing the monitored token_contract identity"
+        )
+    if current_token and current_token != previous_token:
         return _b3_snapshot_failure(
             "previous_snapshot token_contract does not match the current monitor"
         )
@@ -466,7 +477,11 @@ def _b3_snapshot_contract_error(input_data: dict) -> EngineResult | None:
         if isinstance(previous_oracle_data, dict)
         else ""
     )
-    if current_oracle and previous_oracle and current_oracle != previous_oracle:
+    if current_oracle and not previous_oracle:
+        return _b3_snapshot_failure(
+            "previous_snapshot is missing the monitored oracle feed identity"
+        )
+    if current_oracle and current_oracle != previous_oracle:
         return _b3_snapshot_failure(
             "previous_snapshot oracle feed does not match the current monitor"
         )

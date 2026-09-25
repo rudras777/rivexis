@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from rivexis_api.models.enums import AnalysisStatus
+from rivexis_api.models.enums import AnalysisStatus, FreshnessStatus
 from rivexis_api.provider_clients import ProviderCall
 from rivexis_api.providers import Resolution
 from rivexis_api.services import live_b2, live_b3, live_b4
@@ -92,6 +92,49 @@ def test_b3_consumes_blockaid_address_screening_without_claiming_streaming(monke
     assert any(e.provider == "blockaid" for e in r.evidence)
     assert r.risk_score >= 35
     assert any("point-in-time" in x for x in r.missing_data)
+    blockaid = next(e for e in r.evidence if e.provider == "blockaid")
+    assert blockaid.block_number is None
+    assert blockaid.freshness == FreshnessStatus.UNKNOWN
+    assert r.data_freshness["status"] == FreshnessStatus.UNKNOWN.value
+    assert r.data_freshness["direct_state"] == FreshnessStatus.LIVE.value
+    assert r.data_freshness["external_threat_intelligence"] == FreshnessStatus.UNKNOWN.value
+
+
+def test_b3_rejects_empty_blockaid_payload_as_unavailable(monkeypatch):
+    monkeypatch.setattr(live_b3, "select_rpc_client", lambda chain: _select())
+    monkeypatch.setattr(
+        live_b3,
+        "resolve_provider",
+        lambda *a, **k: Resolution(
+            "threat", "blockaid", "RESOLVED", ["blockaid"]
+        ),
+    )
+
+    class EmptyBlockaid:
+        def scan_address(self, **kwargs):
+            return ProviderCall(
+                "blockaid",
+                "ba-empty",
+                "https://api.blockaid.io/v0/evm/address/scan",
+                {},
+                4.0,
+            )
+
+    monkeypatch.setattr(live_b3, "BlockaidClient", EmptyBlockaid)
+    result = live_b3.run_live_b3(
+        {
+            "chain": "ethereum",
+            "entity": "0x1111111111111111111111111111111111111111",
+        }
+    )
+
+    assert not any(e.provider == "blockaid" for e in result.evidence)
+    assert "Blockaid external threat intelligence" in result.missing_data
+    assert any(
+        row.get("provider_id") == "blockaid"
+        and row.get("status") == "MALFORMED_RESPONSE"
+        for row in result.provider_status
+    )
 
 
 def _b4_base(monkeypatch):

@@ -10,7 +10,7 @@ from rivexis_api.chains import normalize_chain
 from rivexis_api.models.engine import EngineResult
 from rivexis_api.models.enums import AnalysisStatus, EngineId, FreshnessStatus, Severity
 from rivexis_api.models.evidence import EvidenceRecord
-from rivexis_api.provider_clients import BlockaidClient, ProviderCall, ProviderError, hex_to_int
+from rivexis_api.provider_clients import BlockaidClient, ProviderCall, ProviderError
 from rivexis_api.providers import resolve_provider, select_rpc_client
 from rivexis_api.services.security_intel import blockaid_risk, normalize_blockaid
 
@@ -19,6 +19,7 @@ DECIMALS_SELECTOR = "0x313ce567"
 LATEST_ROUND_DATA_SELECTOR = "0xfeaf968c"
 UINT256_MAX = 2**256 - 1
 FUTURE_TIMESTAMP_TOLERANCE_SECONDS = 300
+MAX_RUNTIME_BYTECODE_BYTES = 131072
 
 
 def _valid_address(value: Any) -> bool:
@@ -57,11 +58,24 @@ def _nonnegative_int(value: Any, *, maximum: int = UINT256_MAX) -> int | None:
 
 
 def _rpc_uint(value: Any, *, maximum: int = UINT256_MAX) -> int | None:
-    try:
-        parsed = hex_to_int(value)
-    except (TypeError, ValueError, OverflowError):
+    if not isinstance(value, str) or not value.startswith("0x"):
         return None
-    if parsed is None or isinstance(parsed, bool):
+    digits = value[2:]
+    if not digits or (len(digits) > 1 and digits[0] == "0"):
+        return None
+    try:
+        parsed = int(digits, 16)
+    except ValueError:
+        return None
+    return parsed if 0 <= parsed <= maximum else None
+
+
+def _abi_uint256(value: Any, *, maximum: int = UINT256_MAX) -> int | None:
+    if not isinstance(value, str) or len(value) != 66 or not value.startswith("0x"):
+        return None
+    try:
+        parsed = int(value[2:], 16)
+    except ValueError:
         return None
     return parsed if 0 <= parsed <= maximum else None
 
@@ -70,7 +84,7 @@ def _bytecode(value: Any) -> bytes | None:
     if not isinstance(value, str) or not value.startswith("0x"):
         return None
     raw = value[2:]
-    if len(raw) % 2:
+    if len(raw) % 2 or len(raw) // 2 > MAX_RUNTIME_BYTECODE_BYTES:
         return None
     try:
         return bytes.fromhex(raw)
@@ -161,7 +175,7 @@ def _evidence(
         chain_id=chain_id,
         raw_reference=f"provider:{call.provider_id};request:{call.request_id}",
         normalized_value=normalized_value,
-        calculation_version="b3-live-1.2.0",
+        calculation_version="b3-live-1.3.0",
         engine_version="1.1.0",
         confidence=confidence,
         freshness=freshness,
@@ -192,7 +206,7 @@ def _read_chainlink(
     round_call = rpc.call(
         "eth_call", [{"to": address, "data": LATEST_ROUND_DATA_SELECTOR}, block_tag]
     )
-    decimals = _rpc_uint(decimals_call.result, maximum=255)
+    decimals = _abi_uint256(decimals_call.result, maximum=255)
     raw = round_call.result
     if not isinstance(raw, str) or not raw.startswith("0x"):
         raise ProviderError(
@@ -460,7 +474,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
                 "eth_call",
                 [{"to": token_contract, "data": TOTAL_SUPPLY_SELECTOR}, block_tag],
             )
-            total_supply = _rpc_uint(supply_call.result)
+            total_supply = _abi_uint256(supply_call.result)
             if total_supply is None:
                 raise ProviderError(
                     "Token totalSupply() returned a malformed EVM quantity",
@@ -555,8 +569,30 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
             missing.append("oracle state")
             warnings.append(f"Oracle state could not be normalized: {exc}")
 
-    previous = data.get("previous_snapshot") if isinstance(data.get("previous_snapshot"), dict) else None
+    supplied_previous = (
+        data.get("previous_snapshot")
+        if isinstance(data.get("previous_snapshot"), dict)
+        else None
+    )
+    previous: dict[str, Any] | None = None
     previous_integrity_gaps = 0
+    if supplied_previous:
+        previous_block = _nonnegative_int(supplied_previous.get("block_number"))
+        if previous_block is None:
+            previous_integrity_gaps += 1
+            missing.append("valid previous block number")
+            warnings.append(
+                "Previous snapshot block_number is missing or malformed; snapshot-to-snapshot change detection was not run."
+            )
+        elif previous_block >= block:
+            previous_integrity_gaps += 1
+            missing.append("strictly earlier previous block number")
+            warnings.append(
+                "Previous snapshot is not from a strictly earlier block; snapshot-to-snapshot change detection was not run."
+            )
+        else:
+            previous = supplied_previous
+
     if previous:
         previous_balance = _nonnegative_int(previous.get("native_balance_wei"))
         if previous_balance is None:
@@ -669,7 +705,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
                             "Oracle value moved beyond the configured snapshot-to-snapshot threshold."
                         )
                         risk = max(risk, 55)
-    else:
+    elif not supplied_previous:
         missing.append("prior monitoring snapshot for change detection")
 
     if not oracle_feed:
@@ -689,6 +725,30 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
                 ),
             )
             normalized_threat = normalize_blockaid(call.result)
+            threat_status = normalized_threat.get("status")
+            threat_verdict = normalized_threat.get("verdict")
+            threat_features = normalized_threat.get("features")
+            if (
+                threat_status == "MALFORMED"
+                or (
+                    threat_status is not None
+                    and (
+                        not isinstance(threat_status, str)
+                        or len(threat_status) > 128
+                    )
+                )
+                or (isinstance(threat_verdict, str) and len(threat_verdict) > 128)
+                or not (
+                    (isinstance(threat_status, str) and threat_status.strip())
+                    or (isinstance(threat_verdict, str) and threat_verdict.strip())
+                    or (isinstance(threat_features, list) and threat_features)
+                )
+            ):
+                raise ProviderError(
+                    "Blockaid returned malformed address-security evidence",
+                    provider_id="blockaid",
+                    code="MALFORMED_RESPONSE",
+                )
             score_add, malicious, messages = blockaid_risk(normalized_threat)
             risk = max(risk, score_add if malicious else min(75.0, risk + score_add))
             warnings.extend(messages)
@@ -699,6 +759,7 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
                     **normalized_threat,
                 }
             )
+            threat_retrieved_at = datetime.now(timezone.utc)
             evidence.append(
                 EvidenceRecord(
                     evidence_id=str(uuid4()),
@@ -706,18 +767,22 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
                     source_type="external_threat_intelligence",
                     provider_endpoint=call.endpoint,
                     provider_request_id=call.request_id,
-                    retrieved_at=datetime.now(timezone.utc),
-                    observed_at=datetime.now(timezone.utc),
-                    block_number=block,
+                    retrieved_at=threat_retrieved_at,
+                    # Blockaid address screening exposes neither a normalized
+                    # observation timestamp nor a provider-specific block. The
+                    # schema requires a datetime, so retain retrieval time only
+                    # as a fallback and never claim direct-RPC provenance.
+                    observed_at=threat_retrieved_at,
+                    block_number=None,
                     chain_id=chain.chain_id,
                     raw_reference=(
                         f"provider:blockaid;request:{call.request_id};address:{entity}"
                     ),
                     normalized_value=normalized_threat,
-                    calculation_version="b3-live-1.2.0",
+                    calculation_version="b3-live-1.3.0",
                     engine_version="1.1.0",
                     confidence=90,
-                    freshness=FreshnessStatus.CURRENT,
+                    freshness=FreshnessStatus.UNKNOWN,
                     license_classification="external-provider-attributed",
                 )
             )
@@ -799,6 +864,11 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
             if oracle_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}
             else FreshnessStatus.STALE.value
         )
+    elif (
+        (oracle_feed and oracle_freshness == FreshnessStatus.UNKNOWN)
+        or threat_intelligence_consumed
+    ):
+        overall_freshness = FreshnessStatus.UNKNOWN.value
     else:
         overall_freshness = FreshnessStatus.LIVE.value
 
@@ -831,7 +901,14 @@ def run_live_b3(data: dict[str, Any]) -> EngineResult:
         data_freshness={
             "status": overall_freshness,
             "block_number": block,
+            "direct_state": FreshnessStatus.LIVE.value,
+            "direct_state_block_number": block,
             "oracle": oracle_freshness.value if oracle_feed else "NOT_PROVIDED",
+            "external_threat_intelligence": (
+                FreshnessStatus.UNKNOWN.value
+                if threat_intelligence_consumed
+                else "NOT_CONSUMED"
+            ),
         },
         missing_data=sorted(set(missing)),
         provider_status=provider_status,

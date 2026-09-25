@@ -23,7 +23,7 @@ class SnapshotRpc:
         block="0x64",
         balance="0x10",
         code="0x60016000",
-        total_supply="0x64",
+        total_supply="0x" + word(100),
         oracle_updated_at: int | None = None,
         oracle_answer: int = 2_000_00000000,
     ):
@@ -50,7 +50,9 @@ class SnapshotRpc:
             if data == live_b3.TOTAL_SUPPLY_SELECTOR:
                 return ProviderCall("direct_rpc", "supply", "http://rpc.test", self.total_supply, 1.0)
             if data == live_b3.DECIMALS_SELECTOR:
-                return ProviderCall("direct_rpc", "decimals", "http://rpc.test", "0x8", 1.0)
+                return ProviderCall(
+                    "direct_rpc", "decimals", "http://rpc.test", "0x" + word(8), 1.0
+                )
             if data == live_b3.LATEST_ROUND_DATA_SELECTOR:
                 updated_at = self.oracle_updated_at
                 assert updated_at is not None
@@ -102,11 +104,22 @@ def test_nonfinite_monitoring_threshold_fails_before_provider_call(monkeypatch):
     assert "valid balance_change_threshold_pct" in result.missing_data
 
 
+def test_b3_rpc_quantities_and_abi_words_are_canonical_and_bounded():
+    assert live_b3._rpc_uint("0x0") == 0
+    assert live_b3._rpc_uint("0x10") == 16
+    assert live_b3._abi_uint256("0x" + word(8), maximum=255) == 8
+    for value in (1, True, 1.5, "10", "0x", "0x00", "0xgg", hex(2**256)):
+        assert live_b3._rpc_uint(value) is None
+    for value in ("0x8", "0x" + "00" * 33, "0x" + "gg" * 32):
+        assert live_b3._abi_uint256(value) is None
+
+
 def test_malformed_rpc_balance_or_bytecode_fails_closed(monkeypatch):
     for rpc in (
         SnapshotRpc(balance="not-hex"),
         SnapshotRpc(code="0x123"),
         SnapshotRpc(code="0xzz"),
+        SnapshotRpc(code="0x" + "00" * (live_b3.MAX_RUNTIME_BYTECODE_BYTES + 1)),
     ):
         install(monkeypatch, rpc)
         result = live_b3.run_live_b3({"chain": "ethereum", "entity": ENTITY})
@@ -118,19 +131,21 @@ def test_malformed_rpc_balance_or_bytecode_fails_closed(monkeypatch):
 
 
 def test_malformed_total_supply_is_missing_not_zero_evidence(monkeypatch):
-    rpc = SnapshotRpc(total_supply="bad")
-    install(monkeypatch, rpc)
+    for malformed in ("bad", "0x64", "0x" + "00" * 33):
+        rpc = SnapshotRpc(total_supply=malformed)
+        install(monkeypatch, rpc)
 
-    result = live_b3.run_live_b3(
-        {"chain": "ethereum", "entity": ENTITY, "token_contract": TOKEN}
-    )
+        result = live_b3.run_live_b3(
+            {"chain": "ethereum", "entity": ENTITY, "token_contract": TOKEN}
+        )
 
-    assert result.status == AnalysisStatus.PARTIAL
-    assert "token total supply" in result.missing_data
-    assert "token_total_supply_raw" not in result.metrics["snapshot"]
-    assert not any(
-        evidence.provider_endpoint == "totalSupply()" for evidence in result.evidence
-    )
+        assert result.status == AnalysisStatus.PARTIAL
+        assert "token total supply" in result.missing_data
+        assert "token_total_supply_raw" not in result.metrics["snapshot"]
+        assert not any(
+            evidence.provider_endpoint == "totalSupply()"
+            for evidence in result.evidence
+        )
 
 
 def test_future_oracle_timestamp_is_unknown_not_fresh(monkeypatch):
@@ -149,6 +164,8 @@ def test_future_oracle_timestamp_is_unknown_not_fresh(monkeypatch):
     assert oracle_evidence
     assert {evidence.freshness for evidence in oracle_evidence} == {FreshnessStatus.UNKNOWN}
     assert result.data_freshness["oracle"] == "UNKNOWN"
+    assert result.data_freshness["status"] == "UNKNOWN"
+    assert result.data_freshness["direct_state"] == "LIVE"
     assert "credible oracle observation timestamp" in result.missing_data
     assert any("materially in the future" in warning for warning in result.warnings)
 
@@ -202,6 +219,7 @@ def test_uppercase_previous_code_hash_is_same_hash_not_change(monkeypatch):
             "previous_snapshot": {
                 "chain_id": 1,
                 "entity": ENTITY,
+                "block_number": 99,
                 "native_balance_wei": base.metrics["snapshot"]["native_balance_wei"],
                 "code_sha256": code_hash.upper(),
             },
@@ -210,6 +228,32 @@ def test_uppercase_previous_code_hash_is_same_hash_not_change(monkeypatch):
 
     assert not any(signal["type"] == "runtime_bytecode_changed" for signal in result.signals)
     assert not any("Runtime bytecode changed" in blocker for blocker in result.hard_blockers)
+
+
+def test_same_or_newer_previous_block_suppresses_change_detection(monkeypatch):
+    rpc = SnapshotRpc(block="0x64", balance="0x10", code="0x60016000")
+    install(monkeypatch, rpc)
+
+    result = live_b3.run_live_b3(
+        {
+            "chain": "ethereum",
+            "entity": ENTITY,
+            "previous_snapshot": {
+                "chain_id": 1,
+                "entity": ENTITY,
+                "block_number": 100,
+                "native_balance_wei": 10**18,
+                "code_sha256": "0" * 64,
+            },
+        }
+    )
+
+    assert "strictly earlier previous block number" in result.missing_data
+    assert not any(
+        signal["type"] in {"large_native_balance_withdrawal", "runtime_bytecode_changed"}
+        for signal in result.signals
+    )
+    assert any("strictly earlier block" in warning for warning in result.warnings)
 
 
 def test_b3_all_direct_snapshot_reads_are_pinned_to_captured_block(monkeypatch):
@@ -245,3 +289,4 @@ def test_b3_all_direct_snapshot_reads_are_pinned_to_captured_block(monkeypatch):
         if evidence.provider_endpoint in {"eth_getBalance", "eth_getCode", "totalSupply()"}
     )
     assert any("pinned to captured block 0x64" in text for text in result.assumptions)
+    assert {e.calculation_version for e in result.evidence} == {"b3-live-1.3.0"}
