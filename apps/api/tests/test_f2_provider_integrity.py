@@ -195,6 +195,7 @@ def test_f2_recent_valid_record_remains_partial_screening(monkeypatch):
     assert result.evidence[0].freshness == FreshnessStatus.CURRENT
     assert result.data_freshness["status"] == "CURRENT"
     assert result.provider_consensus == "SINGLE_SOURCE"
+    assert result.evidence[0].calculation_version == "f2-live-1.4.0"
     assert any("not independent proof" in assumption for assumption in result.assumptions)
 
 

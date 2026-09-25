@@ -221,8 +221,11 @@ def test_protocol_native_collects_verified_contract_proxy_and_declared_oracle(mo
         def call(self, method, params=None):
             if method == "eth_chainId": return ProviderCall("direct_rpc", "n-chain", "rpc", "0x1", 1)
             if method == "eth_blockNumber": return ProviderCall("direct_rpc", "n-block", "rpc", "0x64", 1)
-            if method == "eth_getCode": return ProviderCall("direct_rpc", "n-code", "rpc", "0x6001600055", 1)
+            if method == "eth_getCode":
+                assert params[-1] == "0x64"
+                return ProviderCall("direct_rpc", "n-code", "rpc", "0x6001600055", 1)
             if method == "eth_getStorageAt":
+                assert params[-1] == "0x64"
                 slot = params[1]
                 if slot == protocol_native.EIP1967_IMPLEMENTATION_SLOT:
                     return ProviderCall("direct_rpc", "n-impl", "rpc", "0x" + ("0" * 24) + ("9" * 40), 1)
@@ -230,6 +233,7 @@ def test_protocol_native_collects_verified_contract_proxy_and_declared_oracle(mo
                     return ProviderCall("direct_rpc", "n-admin", "rpc", "0x" + ("0" * 24) + ("8" * 40), 1)
                 return ProviderCall("direct_rpc", "n-slot", "rpc", "0x" + ("0" * 64), 1)
             if method == "eth_call":
+                assert params[-1] == "0x64"
                 selector = params[0]["data"]
                 if selector == protocol_native.DECIMALS_SELECTOR:
                     return ProviderCall("direct_rpc", "n-dec", "rpc", "0x" + word(8), 1)
@@ -258,6 +262,13 @@ def test_protocol_native_collects_verified_contract_proxy_and_declared_oracle(mo
     assert out.metrics["declared_oracle"]["answer"] == 2500.0
     assert out.risk_delta >= 16
     assert {e.provider for e in out.evidence} == {"direct_rpc", "etherscan"}
+    assert {e.calculation_version for e in out.evidence} == {"protocol-native-1.2.0"}
+    explorer_evidence = [e for e in out.evidence if e.provider == "etherscan"]
+    assert len(explorer_evidence) == 1
+    assert explorer_evidence[0].block_number is None
+    assert explorer_evidence[0].freshness == FreshnessStatus.UNKNOWN
+    direct_evidence = [e for e in out.evidence if e.provider == "direct_rpc"]
+    assert all(e.block_number == 100 for e in direct_evidence)
 
 
 def test_f2_incorporates_protocol_native_evidence(monkeypatch):

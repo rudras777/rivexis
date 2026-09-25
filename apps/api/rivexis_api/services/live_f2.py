@@ -191,7 +191,7 @@ def _evidence(
         observed_at=observed_at or retrieved,
         raw_reference=f"provider:defillama;request:{call.request_id}",
         normalized_value=normalized,
-        calculation_version="f2-live-1.3.0",
+        calculation_version="f2-live-1.4.0",
         engine_version="1.2.0",
         confidence=86 if freshness in {FreshnessStatus.CURRENT, FreshnessStatus.RECENT} else 70,
         freshness=freshness,
@@ -418,13 +418,21 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
             missing.append("protocol-native evidence collection")
 
     consensus = "MULTI_SOURCE" if len({item.provider for item in evidence}) > 1 else "SINGLE_SOURCE"
-    stale_gate = latest_fetch_ok is False or freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}
+    evidence_freshness = {item.freshness for item in evidence}
+    if FreshnessStatus.EXPIRED in evidence_freshness:
+        overall_freshness = FreshnessStatus.EXPIRED
+    elif FreshnessStatus.STALE in evidence_freshness or latest_fetch_ok is False:
+        overall_freshness = FreshnessStatus.STALE
+    elif FreshnessStatus.UNKNOWN in evidence_freshness:
+        overall_freshness = FreshnessStatus.UNKNOWN
+    elif FreshnessStatus.RECENT in evidence_freshness:
+        overall_freshness = FreshnessStatus.RECENT
+    elif FreshnessStatus.CURRENT in evidence_freshness:
+        overall_freshness = FreshnessStatus.CURRENT
+    else:
+        overall_freshness = FreshnessStatus.LIVE
+    stale_gate = overall_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}
     status = AnalysisStatus.STALE_DATA if stale_gate else AnalysisStatus.PARTIAL
-    overall_freshness = (
-        FreshnessStatus.STALE
-        if latest_fetch_ok is False and freshness not in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}
-        else freshness
-    )
     summary = (
         "F2 combined attributed protocol fundamentals with caller-declared direct contract/oracle evidence. Remaining gaps are preserved explicitly."
         if len(evidence) > 1
@@ -455,6 +463,7 @@ def run_live_f2(input_data: dict[str, Any]) -> EngineResult:
             "age_seconds": freshness_age,
             "provider_observation_timestamp_present": tvl_observed_at is not None,
             "latest_fetch_ok": latest_fetch_ok,
+            "evidence_freshness": sorted(item.value for item in evidence_freshness),
         },
         missing_data=sorted(set(missing)),
         provider_status=provider_status,
