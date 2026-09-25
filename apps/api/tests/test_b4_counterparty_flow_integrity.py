@@ -193,3 +193,40 @@ def test_counterparty_flow_direction_assets_and_concentration_are_descriptive(mo
     assert concentration["interaction_hhi"] == 5200.0
     assert concentration["risk_interpretation"] == "descriptive_only_not_scored"
     assert result.risk_score == 10.0
+
+
+def test_self_transfers_are_not_outbound_flow_or_self_counterparty(monkeypatch):
+    install(
+        monkeypatch,
+        history_client(
+            normal_rows=[
+                {"from": WALLET, "to": WALLET, "value": str(3 * 10**18)}
+            ],
+            token_rows=[
+                token_row(
+                    contract=TOKEN_A,
+                    frm=WALLET,
+                    to=WALLET,
+                    value=5_000_000,
+                    symbol="USDC",
+                )
+            ],
+        ),
+    )
+
+    result = live_b4.run_live_b4({"wallet": WALLET})
+
+    activity = result.metrics["activity"]
+    assert activity["normalized_activity_records"] == 2
+    assert activity["self_normal_transactions"] == 1
+    assert activity["self_erc20_transfers"] == 1
+    assert activity["native_in"] == 0
+    assert activity["native_out"] == 0
+    assert activity["native_net"] == 0
+    assert result.metrics["top_counterparties"] == []
+    assert result.metrics["counterparty_concentration"]["unique_counterparties"] == 0
+    token = result.metrics["token_flows"][0]
+    assert token["count"] == 1
+    assert token["in"] == 0
+    assert token["out"] == 0
+    assert token["net"] == 0

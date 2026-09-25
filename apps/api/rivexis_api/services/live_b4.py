@@ -13,11 +13,11 @@ from rivexis_api.provider_clients import (
     EtherscanClient,
     NansenClient,
     ProviderError,
-    hex_to_int,
 )
 from rivexis_api.providers import select_rpc_client
 
 UINT256_MAX = 2**256 - 1
+B4_CALCULATION_VERSION = "b4-live-1.1.0"
 
 
 def _address(value: object) -> str | None:
@@ -47,26 +47,33 @@ def _uint_decimal(value: object, *, maximum: int = UINT256_MAX) -> int | None:
 
 
 def _rpc_uint(value: object) -> int | None:
-    try:
-        parsed = hex_to_int(value)
-    except (TypeError, ValueError, OverflowError):
+    if not isinstance(value, str) or not value.startswith("0x"):
         return None
-    return parsed if parsed is not None and 0 <= parsed <= UINT256_MAX else None
+    digits = value[2:]
+    if not digits or (len(digits) > 1 and digits[0] == "0"):
+        return None
+    try:
+        parsed = int(digits, 16)
+    except ValueError:
+        return None
+    return parsed if 0 <= parsed <= UINT256_MAX else None
 
 
 def _parse_limit(value: object) -> int | None:
     if isinstance(value, bool):
         return None
-    try:
+    if isinstance(value, int):
+        parsed = value
+    elif isinstance(value, str) and value.isdigit():
         parsed = int(value)
-    except (TypeError, ValueError):
+    else:
         return None
     if parsed < 1:
         return None
     return min(parsed, 250)
 
 
-def _result_list(call) -> list[dict]:
+def _result_list(call) -> tuple[list[dict], int]:
     if not isinstance(call.result, dict):
         raise ProviderError(
             "Etherscan history response must be an object",
@@ -80,7 +87,8 @@ def _result_list(call) -> list[dict]:
             provider_id="etherscan",
             code="MALFORMED_RESPONSE",
         )
-    return [row for row in rows if isinstance(row, dict)]
+    normalized = [row for row in rows if isinstance(row, dict)]
+    return normalized, len(rows) - len(normalized)
 
 
 def _provider_evidence(
@@ -108,6 +116,8 @@ def _provider_evidence(
         chain_id=chain_id,
         raw_reference=f"provider:{provider};request:{call.request_id};address:{wallet}",
         normalized_value=normalized_value,
+        calculation_version=B4_CALCULATION_VERSION,
+        engine_version="1.0.0",
         confidence=confidence,
         freshness=FreshnessStatus.UNKNOWN,
         license_classification="external-provider-attributed",
@@ -289,6 +299,8 @@ def run_live_b4(data: dict) -> EngineResult:
                     "native_symbol": chain.native_symbol,
                     "block_tag": block_tag,
                 },
+                calculation_version=B4_CALCULATION_VERSION,
+                engine_version="1.0.0",
                 confidence=92,
                 freshness=FreshnessStatus.LIVE,
                 license_classification="direct-rpc",
@@ -313,13 +325,15 @@ def run_live_b4(data: dict) -> EngineResult:
 
     normal_txs: list[dict] = []
     token_txs: list[dict] = []
+    malformed_provider_rows = 0
     es = EtherscanClient()
     if es.configured:
         try:
             normal_call = es.account_transactions(chain, wallet, offset=limit)
             token_call = es.token_transactions(chain, wallet, offset=limit)
-            normal_txs = _result_list(normal_call)
-            token_txs = _result_list(token_call)
+            normal_txs, malformed_normal_rows = _result_list(normal_call)
+            token_txs, malformed_token_rows = _result_list(token_call)
+            malformed_provider_rows = malformed_normal_rows + malformed_token_rows
             provider_status.append(
                 {
                     "provider_id": "etherscan",
@@ -347,7 +361,10 @@ def run_live_b4(data: dict) -> EngineResult:
                     normalized_value={
                         "normal_transaction_count": len(normal_txs),
                         "erc20_transfer_count": len(token_txs),
+                        "malformed_non_object_row_count": malformed_provider_rows,
                     },
+                    calculation_version=B4_CALCULATION_VERSION,
+                    engine_version="1.0.0",
                     confidence=72,
                     freshness=FreshnessStatus.UNKNOWN,
                     license_classification="external-provider-attributed",
@@ -373,10 +390,12 @@ def run_live_b4(data: dict) -> EngineResult:
         }
     )
     native_in = native_out = 0.0
-    malformed_history_rows = 0
+    malformed_history_rows = malformed_provider_rows
     token_metadata_conflicts = 0
     normalized_normal_rows = 0
     normalized_token_rows = 0
+    self_normal_transactions = 0
+    self_token_transfers = 0
 
     for tx in normal_txs:
         frm = _address(tx.get("from"))
@@ -387,7 +406,9 @@ def run_live_b4(data: dict) -> EngineResult:
             continue
         value = raw_value / 10**18
         normalized_normal_rows += 1
-        if frm == wallet:
+        if frm == wallet and to == wallet:
+            self_normal_transactions += 1
+        elif frm == wallet:
             native_out += value
             if to:
                 row = counterparty_flows[to]
@@ -438,7 +459,11 @@ def run_live_b4(data: dict) -> EngineResult:
         existing["count"] += 1
         normalized_token_rows += 1
 
-        if frm == wallet:
+        if frm == wallet and to == wallet:
+            self_token_transfers += 1
+            counterparty = None
+            direction = None
+        elif frm == wallet:
             existing["out"] += amount
             counterparty = to
             direction = "out"
@@ -447,7 +472,7 @@ def run_live_b4(data: dict) -> EngineResult:
             counterparty = frm
             direction = "in"
 
-        if counterparty:
+        if counterparty and direction:
             counterparty_row = counterparty_flows[counterparty]
             counterparty_row[f"token_{direction}_count"] += 1
             asset_row = counterparty_row["token_assets"].setdefault(
@@ -467,7 +492,7 @@ def run_live_b4(data: dict) -> EngineResult:
 
     if malformed_history_rows:
         warnings.append(
-            f"Skipped {malformed_history_rows} indexed history row(s) with malformed identity/value/decimal fields; no zero-value substitution was made."
+            f"Skipped {malformed_history_rows} indexed history row(s) with malformed shape/identity/value/decimal fields; no zero-value substitution was made."
         )
         missing.append("fully normalized indexed transaction/token-transfer values")
     if token_metadata_conflicts:
@@ -742,6 +767,8 @@ def run_live_b4(data: dict) -> EngineResult:
                 "normalized_erc20_transfers": normalized_token_rows,
                 "normalized_activity_records": activity_count,
                 "malformed_indexed_rows_skipped": malformed_history_rows,
+                "self_normal_transactions": self_normal_transactions,
+                "self_erc20_transfers": self_token_transfers,
                 "token_metadata_conflicts_skipped": token_metadata_conflicts,
                 "native_in": native_in,
                 "native_out": native_out,

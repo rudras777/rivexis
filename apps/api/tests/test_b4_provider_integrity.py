@@ -60,25 +60,34 @@ def test_b4_invalid_history_limit_fails_before_provider_calls(monkeypatch):
         lambda *_: (_ for _ in ()).throw(AssertionError("provider should not be called")),
     )
 
-    result = live_b4.run_live_b4({"wallet": WALLET, "limit": "not-an-int"})
+    for invalid in ("not-an-int", 1.5, True, 0, -1):
+        result = live_b4.run_live_b4({"wallet": WALLET, "limit": invalid})
 
-    assert result.status == AnalysisStatus.INSUFFICIENT_DATA
-    assert result.severity == Severity.UNKNOWN
-    assert result.risk_score == 0
-    assert result.missing_data == ["positive history limit"]
+        assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+        assert result.severity == Severity.UNKNOWN
+        assert result.risk_score == 0
+        assert result.missing_data == ["positive history limit"]
 
 
 def test_b4_malformed_rpc_numeric_state_does_not_become_zero_balance(monkeypatch):
-    install_rpc(monkeypatch, FakeRpc(block="not-hex"))
-    install_optional_none(monkeypatch)
+    for rpc in (
+        FakeRpc(block="not-hex"),
+        FakeRpc(block="100"),
+        FakeRpc(block="0x00"),
+        FakeRpc(block=100),
+        FakeRpc(balance="1"),
+        FakeRpc(balance="0x00"),
+    ):
+        install_rpc(monkeypatch, rpc)
+        install_optional_none(monkeypatch)
 
-    result = live_b4.run_live_b4({"wallet": WALLET})
+        result = live_b4.run_live_b4({"wallet": WALLET})
 
-    assert result.status == AnalysisStatus.PROVIDER_UNAVAILABLE
-    assert result.severity == Severity.UNKNOWN
-    assert result.risk_score == 0
-    assert result.provider_status[0]["status"] == "MALFORMED_RESPONSE"
-    assert "direct blockchain state" in result.missing_data
+        assert result.status == AnalysisStatus.PROVIDER_UNAVAILABLE
+        assert result.severity == Severity.UNKNOWN
+        assert result.risk_score == 0
+        assert result.provider_status[0]["status"] == "MALFORMED_RESPONSE"
+        assert "direct blockchain state" in result.missing_data
 
 
 def test_b4_native_balance_is_pinned_to_captured_rpc_block(monkeypatch):
@@ -102,6 +111,9 @@ def test_b4_native_balance_is_pinned_to_captured_rpc_block(monkeypatch):
     assert result.data_freshness["indexed_history"] == "UNAVAILABLE"
     assert result.data_freshness["entity_labels"] == "UNAVAILABLE"
     assert any("pinned to captured RPC block 0x64" in text for text in result.assumptions)
+    assert {item.calculation_version for item in result.evidence} == {
+        "b4-live-1.1.0"
+    }
 
 
 def test_b4_non_object_nansen_response_is_not_healthy_no_label_evidence(monkeypatch):
@@ -229,3 +241,45 @@ def test_b4_malformed_indexed_value_row_is_skipped_not_zeroed_or_crashed(monkeyp
     assert result.data_freshness["direct_state_block_number"] == 100
     assert result.data_freshness["indexed_history"] == FreshnessStatus.UNKNOWN.value
     assert result.data_freshness["entity_labels"] == "UNAVAILABLE"
+
+
+def test_b4_non_object_indexer_rows_are_counted_as_malformed(monkeypatch):
+    install_rpc(monkeypatch)
+
+    class MixedHistoryEtherscan:
+        configured = True
+
+        def account_transactions(self, chain, address, *, offset):
+            return ProviderCall(
+                "etherscan",
+                "txs-mixed",
+                "https://etherscan.test",
+                {
+                    "result": [
+                        {"from": WALLET, "to": OTHER, "value": "0"},
+                        "not-an-object",
+                        None,
+                    ]
+                },
+                2.0,
+            )
+
+        def token_transactions(self, chain, address, *, offset):
+            return ProviderCall(
+                "etherscan",
+                "tokens-empty",
+                "https://etherscan.test",
+                {"result": []},
+                2.0,
+            )
+
+    monkeypatch.setattr(live_b4, "EtherscanClient", MixedHistoryEtherscan)
+    monkeypatch.setattr(live_b4, "NansenClient", NoNansen)
+    monkeypatch.setattr(live_b4, "ArkhamClient", NoArkham)
+
+    result = live_b4.run_live_b4({"wallet": WALLET})
+
+    assert result.metrics["activity"]["normalized_normal_transactions"] == 1
+    assert result.metrics["activity"]["malformed_indexed_rows_skipped"] == 2
+    evidence = next(item for item in result.evidence if item.provider == "etherscan")
+    assert evidence.normalized_value["malformed_non_object_row_count"] == 2
