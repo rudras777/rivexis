@@ -11,7 +11,7 @@ class EvidenceRecord(BaseModel):
     provider_endpoint: str | None = None
     provider_request_id: str | None = None
     retrieved_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    observed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    observed_at: datetime | None = None
     block_number: int | None = None
     chain_id: int | None = None
     asset_id: str | None = None

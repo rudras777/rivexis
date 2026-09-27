@@ -327,13 +327,25 @@ def test_f5_incorporates_multiple_declared_protocol_native_checks(monkeypatch):
     from rivexis_api.services import live_f5
     from rivexis_api.services.protocol_native import ProtocolNativeResult
     from rivexis_api.chains import normalize_chain
+    from rivexis_api.models.evidence import EvidenceRecord
+    from datetime import datetime, timezone
 
     class FakeCG:
         def simple_price(self, ids, vs_currency="usd"):
             return ProviderCall("coingecko","cg-p5","cg",{"ethereum":{"usd":2500,"last_updated_at":1}},2)
     monkeypatch.setattr(live_f5,"CoinGeckoClient",FakeCG)
     monkeypatch.setattr(live_f5,"has_protocol_native_input",lambda data: bool(data.get("protocol_contracts")))
-    monkeypatch.setattr(live_f5,"collect_protocol_native",lambda data:ProtocolNativeResult(chain=normalize_chain("ethereum"),metrics={"declared_contracts":[{"role":"dependency"}]},risk_delta=4,confidence=80))
+    direct = EvidenceRecord(
+        evidence_id="f5-direct",
+        provider="direct_rpc",
+        source_type="direct_contract_state",
+        retrieved_at=datetime.now(timezone.utc),
+        observed_at=datetime.now(timezone.utc),
+        normalized_value={"has_code": True},
+        calculation_version="protocol-native-1.2.0",
+        freshness=FreshnessStatus.LIVE,
+    )
+    monkeypatch.setattr(live_f5,"collect_protocol_native",lambda data:ProtocolNativeResult(chain=normalize_chain("ethereum"),metrics={"declared_contracts":[{"role":"dependency","has_code":True}]},evidence=[direct],risk_delta=4,confidence=80))
     r=live_f5.run_live_f5({
         "allocations":[{"coingecko_id":"ethereum","symbol":"ETH","weight_pct":100}],
         "protocol_native_checks":[

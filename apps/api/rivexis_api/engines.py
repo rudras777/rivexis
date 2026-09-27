@@ -35,6 +35,10 @@ LIVE_ENGINE_VERSIONS = {
     EngineId.F5: "1.2.0",
 }
 
+LIVE_CALCULATION_VERSIONS = {
+    EngineId.F5: "f5-live-1.3.0",
+}
+
 
 def _sev(score):
     return (
@@ -527,8 +531,9 @@ def _normalize_current_live_contract(result: EngineResult) -> EngineResult:
         # retained separately in calculation_version/source_type/provider.
         evidence.engine_version = expected_version
         if evidence.calculation_version == "1.0.0":
-            evidence.calculation_version = (
-                f"{result.engine_id.value.lower()}-live-{expected_version}"
+            evidence.calculation_version = LIVE_CALCULATION_VERSIONS.get(
+                result.engine_id,
+                f"{result.engine_id.value.lower()}-live-{expected_version}",
             )
 
     if result.engine_id == EngineId.B1 and isinstance(result.metrics, dict):

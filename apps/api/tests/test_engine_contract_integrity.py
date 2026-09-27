@@ -47,7 +47,7 @@ def test_live_contract_normalizes_parent_and_evidence_versions_and_multi_source_
     normalized = _normalize_current_live_contract(r)
     assert normalized.engine_version == "1.2.0"
     assert {e.engine_version for e in normalized.evidence} == {"1.2.0"}
-    assert {e.calculation_version for e in normalized.evidence} == {"f5-live-1.2.0"}
+    assert {e.calculation_version for e in normalized.evidence} == {"f5-live-1.3.0"}
     assert normalized.provider_consensus == "MULTI_SOURCE"
     assert normalized.data_freshness["evidence_providers"] == ["coingecko", "direct_rpc"]
     assert normalized.data_freshness["evidence_freshness"] == ["CURRENT"]

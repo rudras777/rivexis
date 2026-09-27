@@ -10,6 +10,13 @@ from rivexis_api.models.evidence import EvidenceRecord
 from rivexis_api.provider_clients import CoinGeckoClient, ProviderError
 from rivexis_api.services.protocol_native import collect_protocol_native, has_protocol_native_input
 
+CALCULATION_VERSION = "f5-live-1.3.0"
+MAX_ALLOCATIONS = 500
+MAX_ID_LENGTH = 128
+MAX_LABEL_LENGTH = 256
+MAX_PROTOCOL_NATIVE_CHECKS = 10
+MIN_PROVIDER_TIMESTAMP = 946684800
+
 
 def _num(v, default=None):
     try:
@@ -21,6 +28,17 @@ def _num(v, default=None):
         return default
 
 
+def _bounded_text(value, *, maximum: int) -> str | None:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    if not normalized or len(normalized) > maximum:
+        return None
+    if any(ord(character) < 32 for character in normalized):
+        return None
+    return normalized
+
+
 def _severity(score: float) -> Severity:
     return Severity.CRITICAL if score >= 80 else Severity.HIGH if score >= 60 else Severity.MODERATE if score >= 35 else Severity.LOW
 
@@ -29,25 +47,25 @@ def _price_freshness(prices: dict, ids: list[str]):
     """Require timestamp coverage for every requested market reference before asserting freshness."""
     now = datetime.now(timezone.utc)
     if not ids:
-        return FreshnessStatus.UNKNOWN, None, now
+        return FreshnessStatus.UNKNOWN, None, None
     stamps: list[float] = []
     for cid in ids:
         row = prices.get(cid)
         if not isinstance(row, dict):
-            return FreshnessStatus.UNKNOWN, None, now
+            return FreshnessStatus.UNKNOWN, None, None
         raw = row.get("last_updated_at")
         if raw in (None, "") or isinstance(raw, bool):
-            return FreshnessStatus.UNKNOWN, None, now
+            return FreshnessStatus.UNKNOWN, None, None
         try:
             parsed = float(raw)
         except (TypeError, ValueError, OverflowError):
-            return FreshnessStatus.UNKNOWN, None, now
-        if not isfinite(parsed):
-            return FreshnessStatus.UNKNOWN, None, now
+            return FreshnessStatus.UNKNOWN, None, None
+        if not isfinite(parsed) or parsed < MIN_PROVIDER_TIMESTAMP:
+            return FreshnessStatus.UNKNOWN, None, None
         try:
             observed = datetime.fromtimestamp(parsed, tz=timezone.utc)
         except (ValueError, OSError, OverflowError):
-            return FreshnessStatus.UNKNOWN, None, now
+            return FreshnessStatus.UNKNOWN, None, None
         if (observed - now).total_seconds() > 300:
             return FreshnessStatus.UNKNOWN, None, observed
         stamps.append(parsed)
@@ -90,8 +108,26 @@ def run_live_f5(data: dict) -> EngineResult:
             provider_consensus="UNAVAILABLE",
             demo=False,
         )
+    if len(raw) > MAX_ALLOCATIONS:
+        return _invalid_input(f"allocations cannot exceed {MAX_ALLOCATIONS} entries")
+
+    checks = data.get("protocol_native_checks")
+    if checks is not None:
+        if not isinstance(checks, list):
+            return _invalid_input("protocol_native_checks must be an array when supplied")
+        if len(checks) > MAX_PROTOCOL_NATIVE_CHECKS:
+            return _invalid_input(
+                f"protocol_native_checks cannot exceed {MAX_PROTOCOL_NATIVE_CHECKS} entries"
+            )
+        if any(not isinstance(check, dict) for check in checks):
+            return _invalid_input("every protocol_native_checks entry must be an object")
+        if any(not has_protocol_native_input(check) for check in checks):
+            return _invalid_input(
+                "every protocol_native_checks entry must declare a supported protocol-native input"
+            )
 
     allocations: list[dict] = []
+    asset_stablecoin_flags: dict[str, bool] = {}
     for index, allocation in enumerate(raw):
         if not isinstance(allocation, dict):
             return _invalid_input(f"Allocation {index} must be an object")
@@ -116,15 +152,58 @@ def run_live_f5(data: dict) -> EngineResult:
                 f"Allocation {index} stablecoin must be a JSON boolean, not a truthy/falsy string or number"
             )
 
-        cid = str(allocation.get("coingecko_id") or "").strip()
+        cid_raw = allocation.get("coingecko_id")
+        cid = ""
+        if cid_raw not in (None, ""):
+            cid = _bounded_text(cid_raw, maximum=MAX_ID_LENGTH) or ""
+            if not cid:
+                return _invalid_input(
+                    f"Allocation {index} coingecko_id must be a bounded non-empty string"
+                )
+
+        symbol_raw = allocation.get("symbol")
+        if symbol_raw in (None, ""):
+            symbol = cid or "UNKNOWN"
+        else:
+            symbol = _bounded_text(symbol_raw, maximum=MAX_ID_LENGTH)
+            if symbol is None:
+                return _invalid_input(
+                    f"Allocation {index} symbol must be a bounded non-empty string"
+                )
+
+        optional_labels: dict[str, str | None] = {}
+        for field in ("protocol", "chain"):
+            field_raw = allocation.get(field)
+            if field_raw in (None, ""):
+                optional_labels[field] = None
+                continue
+            field_value = _bounded_text(field_raw, maximum=MAX_LABEL_LENGTH)
+            if field_value is None:
+                return _invalid_input(
+                    f"Allocation {index} {field} must be a bounded non-empty string when supplied"
+                )
+            optional_labels[field] = field_value
+
+        if len(raw) > 1 and not cid and symbol == "UNKNOWN":
+            return _invalid_input(
+                f"Allocation {index} requires coingecko_id or symbol so concentration cannot be split across unidentified rows"
+            )
+        asset_key = f"coingecko:{cid.casefold()}" if cid else f"symbol:{symbol.casefold()}"
+        prior_stablecoin = asset_stablecoin_flags.get(asset_key)
+        if prior_stablecoin is not None and prior_stablecoin != stablecoin_raw:
+            return _invalid_input(
+                f"Allocation {index} conflicts with another row's stablecoin classification for the same asset"
+            )
+        asset_stablecoin_flags[asset_key] = stablecoin_raw
         allocations.append({
             "coingecko_id": cid,
-            "symbol": allocation.get("symbol") or cid or "UNKNOWN",
+            "symbol": symbol,
+            "asset_key": asset_key,
             "quantity": quantity,
             "weight_pct": weight,
             "stablecoin": stablecoin_raw,
-            "protocol": allocation.get("protocol"),
-            "chain": allocation.get("chain"),
+            "protocol": optional_labels["protocol"],
+            "chain": optional_labels["chain"],
         })
 
     capital_raw = data.get("capital_usd")
@@ -165,20 +244,43 @@ def run_live_f5(data: dict) -> EngineResult:
                 demo=False,
             )
 
+    market_data_complete = True
+    safe_prices: dict[str, dict] = {}
+    for cid in ids:
+        row = prices.get(cid)
+        if not isinstance(row, dict):
+            safe_prices[cid] = {}
+            market_data_complete = False
+            continue
+        price_raw = row.get("usd")
+        price = _num(price_raw)
+        if price is None or price <= 0:
+            market_data_complete = False
+            price = None
+        observed_timestamp = _num(row.get("last_updated_at"))
+        safe_prices[cid] = {
+            "usd": price,
+            "last_updated_at": observed_timestamp,
+        }
+
     normalized: list[dict] = []
     value_total = 0.0
     explicit_weights = True
     for allocation in allocations:
         cid = allocation["coingecko_id"]
-        price = _num((prices.get(cid) or {}).get("usd")) if cid else None
-        if price is not None and price <= 0:
-            price = None
+        price = safe_prices.get(cid, {}).get("usd") if cid else None
         quantity = allocation["quantity"]
         weight = allocation["weight_pct"]
         value = None
         if quantity is not None and price is not None:
             value = quantity * price
+            if not isfinite(value):
+                return _invalid_input(
+                    f"Allocation {allocation['symbol']} market value exceeds the supported numeric range"
+                )
             value_total += value
+            if not isfinite(value_total):
+                return _invalid_input("Combined treasury market value exceeds the supported numeric range")
         if weight is None:
             explicit_weights = False
         normalized.append({
@@ -191,6 +293,7 @@ def run_live_f5(data: dict) -> EngineResult:
             "stablecoin": allocation["stablecoin"],
             "protocol": allocation["protocol"],
             "chain": allocation["chain"],
+            "asset_key": allocation["asset_key"],
         })
 
     if not explicit_weights:
@@ -212,7 +315,7 @@ def run_live_f5(data: dict) -> EngineResult:
                 warnings=["Rivexis did not silently assign a zero weight to an unvalued allocation."],
                 missing_data=[f"complete quantity + CoinGecko price inputs for: {', '.join(incomplete)}"],
                 provider_consensus="UNAVAILABLE",
-                provider_status=([{"provider_id": call.provider_id, "status": "HEALTHY", "latency_ms": call.latency_ms}] if call else []),
+                provider_status=([{"provider_id": call.provider_id, "status": "HEALTHY" if market_data_complete else "MALFORMED_RESPONSE", "latency_ms": call.latency_ms}] if call else []),
                 demo=False,
             )
         if value_total <= 0:
@@ -235,7 +338,7 @@ def run_live_f5(data: dict) -> EngineResult:
         capital = capital or value_total
     else:
         weight_sum = sum(float(r["weight_pct"] or 0) for r in normalized)
-        if weight_sum <= 0:
+        if not isfinite(weight_sum) or weight_sum <= 0:
             return EngineResult(
                 engine_id=EngineId.F5,
                 status=AnalysisStatus.INSUFFICIENT_DATA,
@@ -252,8 +355,14 @@ def run_live_f5(data: dict) -> EngineResult:
             if capital is not None:
                 row["value_usd"] = capital * row["weight_pct"] / 100
 
-    largest = max((float(r["weight_pct"] or 0) for r in normalized), default=0.0)
-    hhi = sum((float(r["weight_pct"] or 0) / 100) ** 2 for r in normalized)
+    asset_weights: dict[str, float] = {}
+    for row in normalized:
+        asset_key = row.pop("asset_key")
+        asset_weights[asset_key] = asset_weights.get(asset_key, 0.0) + float(
+            row["weight_pct"] or 0
+        )
+    largest = max(asset_weights.values(), default=0.0)
+    hhi = sum((weight / 100) ** 2 for weight in asset_weights.values())
     stable_weight = sum(float(r["weight_pct"] or 0) for r in normalized if r["stablecoin"])
     protocol_weights: dict[str, float] = {}
     chain_weights: dict[str, float] = {}
@@ -289,7 +398,9 @@ def run_live_f5(data: dict) -> EngineResult:
     risk = min(100.0, risk)
 
     evidence: list[EvidenceRecord] = []
-    market_freshness, market_age, market_observed = _price_freshness(prices, ids) if call else (FreshnessStatus.UNKNOWN, None, datetime.now(timezone.utc))
+    market_freshness, market_age, market_observed = _price_freshness(safe_prices, ids) if call else (FreshnessStatus.UNKNOWN, None, None)
+    if call and ids and not market_data_complete:
+        market_freshness = FreshnessStatus.UNKNOWN
     if call:
         now = datetime.now(timezone.utc)
         evidence.append(EvidenceRecord(
@@ -300,23 +411,25 @@ def run_live_f5(data: dict) -> EngineResult:
             provider_request_id=call.request_id,
             retrieved_at=now,
             observed_at=market_observed,
-            normalized_value={cid: {"usd": (prices.get(cid) or {}).get("usd"), "last_updated_at": (prices.get(cid) or {}).get("last_updated_at")} for cid in ids},
-            confidence=72,
+            normalized_value=safe_prices,
+            calculation_version=CALCULATION_VERSION,
+            engine_version="1.2.0",
+            confidence=72 if market_data_complete else 35,
             freshness=market_freshness,
             license_classification="external-provider-attributed",
         ))
 
-    provider_status=[{"provider_id": call.provider_id, "status": "HEALTHY", "latency_ms": call.latency_ms}] if call else []
+    provider_status=[{"provider_id": call.provider_id, "status": "HEALTHY" if market_data_complete else "MALFORMED_RESPONSE", "latency_ms": call.latency_ms}] if call else []
     assumptions=[f"Broad market shock is modeled as -{market_shock:.1f}% on non-stablecoin allocation weights.", f"Stablecoin depeg scenario is modeled as -{depeg_shock:.1f}% on allocations explicitly marked stablecoin=true."]
     native_metrics=[]
     native_inputs=[]
     if has_protocol_native_input(data):
         native_inputs.append(data)
-    checks=data.get("protocol_native_checks")
-    if isinstance(checks,list):
-        native_inputs.extend(x for x in checks[:10] if isinstance(x,dict) and has_protocol_native_input(x))
+    if checks:
+        native_inputs.extend(checks)
     native_risk_delta=0.0
     native_confidence=0.0
+    native_evidence_present = False
     for native_input in native_inputs:
         try:
             native=collect_protocol_native(native_input)
@@ -326,20 +439,53 @@ def run_live_f5(data: dict) -> EngineResult:
             warnings.extend(native.warnings)
             assumptions.extend(native.assumptions)
             native_risk_delta+=native.risk_delta
-            native_confidence=max(native_confidence,native.confidence)
+            if native.evidence:
+                native_evidence_present = True
+                native_confidence=max(native_confidence,native.confidence)
         except (ValueError,ProviderError) as exc:
             warnings.append(f"Treasury protocol-native evidence could not be collected for one declared exposure: {exc}")
     if native_metrics:
         risk=min(100.0,risk+min(25.0,native_risk_delta))
 
-    if market_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}:
-        warnings.append("Market-reference timestamps are stale; refresh price evidence before treasury decisioning.")
+    evidence_freshness = {item.freshness for item in evidence}
+    if FreshnessStatus.EXPIRED in evidence_freshness:
+        overall_freshness = FreshnessStatus.EXPIRED
+    elif FreshnessStatus.STALE in evidence_freshness:
+        overall_freshness = FreshnessStatus.STALE
+    elif FreshnessStatus.UNKNOWN in evidence_freshness:
+        overall_freshness = FreshnessStatus.UNKNOWN
+    elif FreshnessStatus.RECENT in evidence_freshness:
+        overall_freshness = FreshnessStatus.RECENT
+    elif FreshnessStatus.CURRENT in evidence_freshness:
+        overall_freshness = FreshnessStatus.CURRENT
+    elif evidence_freshness:
+        overall_freshness = FreshnessStatus.LIVE
+    else:
+        overall_freshness = FreshnessStatus.UNKNOWN
+    if overall_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED}:
+        warnings.append("Retained market-reference or protocol-native evidence is stale; refresh the affected evidence before treasury decisioning.")
     elif call and ids and market_freshness == FreshnessStatus.UNKNOWN:
-        warnings.append("Market-reference timestamp coverage is incomplete, invalid, or future-dated; Rivexis does not assert that treasury prices are current.")
-    data_conf = (72 if market_freshness in {FreshnessStatus.LIVE, FreshnessStatus.CURRENT} else 64 if call and ids else 48)
-    if native_metrics:
+        warnings.append("Market-reference price/timestamp coverage is incomplete, invalid, or future-dated; Rivexis does not assert that treasury prices are current.")
+    data_conf = (72 if market_data_complete and market_freshness in {FreshnessStatus.LIVE, FreshnessStatus.CURRENT} else 64 if call and ids and market_data_complete else 48)
+    if native_evidence_present:
         data_conf=min(92,max(data_conf+8,native_confidence))
-    status = AnalysisStatus.STALE_DATA if market_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED} else AnalysisStatus.PARTIAL
+    status = AnalysisStatus.STALE_DATA if overall_freshness in {FreshnessStatus.STALE, FreshnessStatus.EXPIRED} else AnalysisStatus.PARTIAL
+    providers = {item.provider for item in evidence if item.provider}
+    consensus = "MULTI_SOURCE" if len(providers) > 1 else "SINGLE_SOURCE" if providers else "USER_INPUT_ONLY"
+    freshness_provider = (
+        "multi-source"
+        if len(providers) > 1
+        else next(iter(providers))
+        if providers
+        else None
+    )
+    now = datetime.now(timezone.utc)
+    evidence_ages = [
+        max(0.0, (now - item.observed_at).total_seconds())
+        for item in evidence
+        if item.observed_at is not None
+    ]
+    aggregate_age = max(evidence_ages) if evidence_ages else None
     return EngineResult(
         engine_id=EngineId.F5,
         engine_version="1.2.0",
@@ -352,6 +498,7 @@ def run_live_f5(data: dict) -> EngineResult:
         metrics={
             "capital_usd": capital,
             "allocations": normalized,
+            "asset_weights_pct": asset_weights,
             "largest_allocation_pct": largest,
             "concentration_hhi": hhi,
             "stablecoin_weight_pct": stable_weight,
@@ -369,8 +516,8 @@ def run_live_f5(data: dict) -> EngineResult:
         mitigations=mitigations,
         safer_alternatives=mitigations[:],
         evidence=evidence,
-        provider_consensus="SINGLE SOURCE" if evidence else "USER_INPUT_ONLY",
-        data_freshness={"status": market_freshness.value if evidence else "UNKNOWN", "provider": "coingecko" if call else None, "age_seconds": market_age},
+        provider_consensus=consensus,
+        data_freshness={"status": overall_freshness.value, "provider": freshness_provider, "age_seconds": aggregate_age, "market_age_seconds": market_age, "evidence_freshness": sorted(item.value for item in evidence_freshness)},
         missing_data=[
             "independent protocol and smart-contract risk for each deployment",
             "bridge and cross-chain dependency risk where applicable",

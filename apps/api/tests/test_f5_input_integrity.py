@@ -238,3 +238,185 @@ def test_f5_valid_explicit_weights_remain_normalized_and_partial(monkeypatch):
     assert result.metrics["largest_allocation_pct"] == 60.0
     assert sum(row["weight_pct"] for row in result.metrics["allocations"]) == 100.0
     assert result.data_freshness["status"] in {"LIVE", "CURRENT"}
+
+
+def test_f5_bounds_allocations_labels_and_native_check_shape_before_provider(monkeypatch):
+    monkeypatch.setattr(live_f5, "CoinGeckoClient", fail_provider)
+
+    too_many = live_f5.run_live_f5(
+        {
+            "allocations": [
+                {"symbol": f"ASSET-{index}", "weight_pct": 1, "stablecoin": False}
+                for index in range(live_f5.MAX_ALLOCATIONS + 1)
+            ]
+        }
+    )
+    assert too_many.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert "cannot exceed" in too_many.summary
+
+    invalid_label = live_f5.run_live_f5(
+        {"allocations": [{"symbol": {"not": "text"}, "weight_pct": 100}]}
+    )
+    assert invalid_label.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert "symbol" in invalid_label.summary
+
+    invalid_checks = live_f5.run_live_f5(
+        {
+            "allocations": [{"symbol": "BTC", "weight_pct": 100}],
+            "protocol_native_checks": [{}],
+        }
+    )
+    assert invalid_checks.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert "supported protocol-native input" in invalid_checks.summary
+
+
+def test_f5_aggregates_duplicate_asset_rows_for_concentration(monkeypatch):
+    class CurrentPrices:
+        def simple_price(self, ids, vs_currency="usd"):
+            now = int(time())
+            return ProviderCall(
+                "coingecko",
+                "duplicate-assets",
+                "https://api.coingecko.com/api/v3/simple/price",
+                {
+                    "bitcoin": {"usd": 80000, "last_updated_at": now},
+                    "ethereum": {"usd": 4000, "last_updated_at": now},
+                },
+                2.0,
+            )
+
+    monkeypatch.setattr(live_f5, "CoinGeckoClient", CurrentPrices)
+    result = live_f5.run_live_f5(
+        {
+            "max_concentration_pct": 50,
+            "allocations": [
+                {"coingecko_id": "bitcoin", "weight_pct": 40, "protocol": "custody-a"},
+                {"coingecko_id": "bitcoin", "weight_pct": 40, "protocol": "custody-b"},
+                {"coingecko_id": "ethereum", "weight_pct": 20},
+            ],
+        }
+    )
+
+    assert result.metrics["largest_allocation_pct"] == 80.0
+    assert result.metrics["asset_weights_pct"]["coingecko:bitcoin"] == 80.0
+    assert result.metrics["policy_violations"]
+
+
+def test_f5_rejects_conflicting_duplicate_asset_classification_before_provider(monkeypatch):
+    monkeypatch.setattr(live_f5, "CoinGeckoClient", fail_provider)
+    result = live_f5.run_live_f5(
+        {
+            "allocations": [
+                {"coingecko_id": "usd-coin", "weight_pct": 50, "stablecoin": True},
+                {"coingecko_id": "usd-coin", "weight_pct": 50, "stablecoin": False},
+            ]
+        }
+    )
+
+    assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert "stablecoin classification" in result.summary
+
+
+def test_f5_malformed_price_row_is_bounded_and_cannot_claim_current_confidence(monkeypatch):
+    class MalformedPrices:
+        def simple_price(self, ids, vs_currency="usd"):
+            return ProviderCall(
+                "coingecko",
+                "malformed-price",
+                "https://api.coingecko.com/api/v3/simple/price",
+                {"bitcoin": [80000, int(time())]},
+                2.0,
+            )
+
+    monkeypatch.setattr(live_f5, "CoinGeckoClient", MalformedPrices)
+    result = live_f5.run_live_f5(
+        {"allocations": [{"coingecko_id": "bitcoin", "weight_pct": 100}]}
+    )
+
+    assert result.status == AnalysisStatus.PARTIAL
+    assert result.data_confidence == 48
+    assert result.data_freshness["status"] == FreshnessStatus.UNKNOWN.value
+    assert result.evidence[0].normalized_value == {"bitcoin": {}}
+    assert result.evidence[0].observed_at is None
+    assert result.evidence[0].calculation_version == "f5-live-1.3.0"
+    assert result.provider_status[0]["status"] == "MALFORMED_RESPONSE"
+
+
+def test_f5_rejects_non_finite_derived_market_value(monkeypatch):
+    class HugePrice:
+        def simple_price(self, ids, vs_currency="usd"):
+            return ProviderCall(
+                "coingecko",
+                "huge-price",
+                "https://api.coingecko.com/api/v3/simple/price",
+                {"bitcoin": {"usd": 1e308, "last_updated_at": int(time())}},
+                2.0,
+            )
+
+    monkeypatch.setattr(live_f5, "CoinGeckoClient", HugePrice)
+    result = live_f5.run_live_f5(
+        {"allocations": [{"coingecko_id": "bitcoin", "quantity": 10}]}
+    )
+
+    assert result.status == AnalysisStatus.INSUFFICIENT_DATA
+    assert "numeric range" in result.summary
+
+
+def test_f5_native_confidence_requires_evidence_and_native_freshness_is_aggregate(monkeypatch):
+    from rivexis_api.chains import normalize_chain
+    from rivexis_api.models.evidence import EvidenceRecord
+    from rivexis_api.services.protocol_native import ProtocolNativeResult
+
+    class CurrentPrices:
+        def simple_price(self, ids, vs_currency="usd"):
+            return ProviderCall(
+                "coingecko",
+                "current-price",
+                "https://api.coingecko.com/api/v3/simple/price",
+                {"ethereum": {"usd": 4000, "last_updated_at": int(time())}},
+                2.0,
+            )
+
+    monkeypatch.setattr(live_f5, "CoinGeckoClient", CurrentPrices)
+    monkeypatch.setattr(live_f5, "has_protocol_native_input", lambda data: bool(data.get("vault_address")))
+    monkeypatch.setattr(
+        live_f5,
+        "collect_protocol_native",
+        lambda data: ProtocolNativeResult(
+            chain=normalize_chain("ethereum"),
+            metrics={"declared_contracts": [{"role": "vault"}]},
+            confidence=95,
+        ),
+    )
+    payload = {
+        "allocations": [{"coingecko_id": "ethereum", "weight_pct": 100}],
+        "protocol_native_checks": [{"vault_address": "0x" + "1" * 40}],
+    }
+    without_evidence = live_f5.run_live_f5(payload)
+    assert without_evidence.data_confidence == 72
+
+    stale_time = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    stale_evidence = EvidenceRecord(
+        evidence_id="f5-stale-native",
+        provider="direct_rpc",
+        source_type="direct_contract_state",
+        retrieved_at=stale_time,
+        observed_at=stale_time,
+        normalized_value={"has_code": True},
+        calculation_version="protocol-native-1.2.0",
+        freshness=FreshnessStatus.EXPIRED,
+    )
+    monkeypatch.setattr(
+        live_f5,
+        "collect_protocol_native",
+        lambda data: ProtocolNativeResult(
+            chain=normalize_chain("ethereum"),
+            metrics={"declared_contracts": [{"role": "vault", "has_code": True}]},
+            evidence=[stale_evidence],
+            confidence=85,
+        ),
+    )
+    with_stale_evidence = live_f5.run_live_f5(payload)
+    assert with_stale_evidence.status == AnalysisStatus.STALE_DATA
+    assert with_stale_evidence.data_freshness["status"] == FreshnessStatus.EXPIRED.value
+    assert with_stale_evidence.data_confidence >= 85
