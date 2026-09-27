@@ -4,7 +4,7 @@ Last updated: 2026-09-28
 
 | Environment | Status | Evidence / meaning |
 |---|---|---|
-| GitHub `main` | RELEASE PENDING | Repair work started from `21fe63f3b1b19aa607cd56779e9fc88290673dbc`, with CI #408 and Pages #79 green; this revision must pass CI after push. |
+| GitHub `main` | RELEASE CURRENT | Production repair implementation `c7b52aac8b227246e29efd8ff942e73aa64d15c2` passed CI #409 and Pages #80 on the exact SHA. |
 | GitHub Pages | FALLBACK ONLY | Pages follows the same source lineage; it is not the authoritative application runtime. |
 | Cloudflare web | LIVE / CURRENT | `rivexis-web.rudrasingh0718.workers.dev`; Worker version `9165c9b6-e8e7-4b78-b82d-4ef73becc6f9`. |
 | Supabase Edge API | LIVE / COMPATIBILITY RUNTIME | `rivexis-api` version 4; health ready; auth, workspace, persistence, all ten demonstration engine paths, manual monitors, protocol workflow and reports operational. Missing live providers remain UNKNOWN. |

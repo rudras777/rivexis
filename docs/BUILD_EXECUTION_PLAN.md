@@ -7,7 +7,7 @@ Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt
 
 - Repository: public `rudras777/rivexis`; default branch `main`.
 - Public GitHub Pages fallback files are preserved; they provide a public navigation fallback and do not replace or certify the Cloudflare application deployment.
-- Production repair started from `21fe63f3b1b19aa607cd56779e9fc88290673dbc`; CI #408 and Pages #79 passed on that exact baseline.
+- Production repair started from `21fe63f3b1b19aa607cd56779e9fc88290673dbc`. Implementation head `c7b52aac8b227246e29efd8ff942e73aa64d15c2` passed CI #409 and Pages #80 on that exact revision.
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
 - API: FastAPI remains the full provider-capable backend. A least-privilege Supabase Edge compatibility runtime now provides a functional free production path for auth, tenancy, persistence, UNKNOWN-safe demonstration analysis, monitoring and protocol workflow.
 - Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining leaked-password-protection warning applies to the free Supabase Auth compatibility path and remains an explicit hardening item.

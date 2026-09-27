@@ -8,7 +8,7 @@ This is the compact production resume point. Live provider state and current `ma
 
 - Repository: `rudras777/rivexis`; branch `main`.
 - Production-repair work started from clean `main` head `21fe63f3b1b19aa607cd56779e9fc88290673dbc`; origin matched before changes. CI #408 and Pages #79 passed on that baseline.
-- This revision adds the free production runtime bridge and its verified frontend integration. The release commit and its CI run supersede the baseline once merged to `main`.
+- Production repair implementation `c7b52aac8b227246e29efd8ff942e73aa64d15c2` adds the free runtime bridge and verified frontend integration. CI #409 and Pages #80 passed on that exact SHA.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
