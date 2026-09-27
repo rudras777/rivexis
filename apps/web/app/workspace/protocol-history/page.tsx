@@ -1,7 +1,7 @@
 "use client";
 
 import {useEffect,useRef,useState} from "react";
-import {api,apiBlob} from "@/lib/api";
+import {api} from "@/lib/api";
 import {useWorkspace} from "@/components/WorkspaceContext";
 
 type Mode="timeline"|"compare";
@@ -81,9 +81,8 @@ export default function ProtocolHistoryPage(){
     if(!review)return;const originWorkspace=workspaceId;const epoch=epochRef.current;const reviewId=review.id;
     setRunning("pdf");setError("");
     try{
-      const blob=await apiBlob(`/api/v1/protocol-config/reviews/${reviewId}/render?format=pdf`);
       if(workspaceRef.current!==originWorkspace||epochRef.current!==epoch)return;
-      const url=URL.createObjectURL(blob);window.open(url,"_blank","noopener,noreferrer");setTimeout(()=>URL.revokeObjectURL(url),60000);
+      window.open(`/api/v1/protocol-config/reviews/${reviewId}/render?format=pdf`,"_blank","noopener,noreferrer");
     }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not render this review report.");}
     finally{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setRunning(null)}
   }

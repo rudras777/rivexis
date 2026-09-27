@@ -1,18 +1,16 @@
 # Rivexis Build Execution Plan
 
-Last updated: 2026-09-27
+Last updated: 2026-09-28
 Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt`
 
 ## Current verified baseline
 
 - Repository: public `rudras777/rivexis`; default branch `main`.
 - Public GitHub Pages fallback files are preserved; they provide a public navigation fallback and do not replace or certify the Cloudflare application deployment.
-- Latest fully certified application head before this documentation-only state sync: `20fffbd0e0c6724862de5e40520937c614b8ab76`.
-- CI #407 (`36337441677`) passed API ruff/pytest/pip-audit, frontend type/build/vinext/npm-audit/Playwright E2E, invariants/secret/migration checks, and PostgreSQL migration/runtime-control certification on that head.
-- GitHub Pages deployment #78 (`36337441277`) also passed on that head.
+- Production repair started from `21fe63f3b1b19aa607cd56779e9fc88290673dbc`; CI #408 and Pages #79 passed on that exact baseline.
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
-- API: FastAPI is the authoritative application backend. The free Cloudflare Worker API is an explicit degraded placeholder, not a replacement runtime.
-- Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining Auth-platform leaked-password warning does not govern the FastAPI-owned password path.
+- API: FastAPI remains the full provider-capable backend. A least-privilege Supabase Edge compatibility runtime now provides a functional free production path for auth, tenancy, persistence, UNKNOWN-safe demonstration analysis, monitoring and protocol workflow.
+- Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining leaked-password-protection warning applies to the free Supabase Auth compatibility path and remains an explicit hardening item.
 - Brevo fail-closed transactional transport and disabled-by-default environment contract are implemented; verification/reset templates are active and controlled template delivery reached Gmail, while application-triggered substitution remains backend-deployment-gated.
 
 ## Milestone sequence
@@ -36,7 +34,7 @@ Milestone E remains complete at repository-test level. The shared analysis/decis
 
 Milestone F remains **in progress**. Repository-level input/provider/freshness/parser/runtime integrity is deeply regression-tested across all ten specialist engines. This does not claim that all evidence-depth capabilities are complete; remaining work is deeper evidence collection/normalization through approved deterministic sources.
 
-The Cloudflare frontend discrepancy was closed on 2026-09-24. The frontend uses the intended HTTPS API origin and is deployed to `rivexis-web` as version `0d86a100-a115-4bca-a8ef-69d73be7a72d` at 100% traffic. Live unauthenticated `/workspace` fails closed and withholds navigation/content while the API is unavailable. Per-version preview URLs remain disabled.
+The Cloudflare frontend discrepancy is closed. The frontend uses a same-origin API proxy and is deployed to `rivexis-web` as version `9165c9b6-e8e7-4b78-b82d-4ef73becc6f9` at 100% traffic. Live unauthenticated `/workspace` fails closed, while authenticated workspace navigation and session restoration are operational. Per-version preview URLs remain disabled.
 
 ### Milestone F acceptance targets
 
@@ -88,16 +86,16 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Dependencies and blockers
 
-- **Cloudflare production deployment drift:** RESOLVED for the frontend. Worker version `0d86a100-a115-4bca-a8ef-69d73be7a72d` receives 100% traffic, uses the intended API origin, and passes live route/workspace checks. The Worker remains manually deployed rather than Git-integrated CI/CD.
+- **Cloudflare production deployment drift:** RESOLVED for the frontend. Worker version `9165c9b6-e8e7-4b78-b82d-4ef73becc6f9` uses the same-origin Supabase Edge proxy and passes live route/workspace checks. The Worker remains manually deployed rather than Git-integrated CI/CD.
 - **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable production path. The current API Worker remains a degraded health/503 boundary.
 - **Custom domain:** BLOCKED on domain choice/ownership/configuration.
-- **Production email:** Brevo phone/account verification is complete; fail-closed transport and the environment contract are implemented; verification/reset templates are active; controlled template sends reached Gmail and Brevo independently recorded delivery. Owned-domain sender authentication, production runtime secret installation, runtime parameter substitution and application-triggered lifecycle evidence remain outstanding.
+- **Production email:** Supabase default transactional verification/recovery delivery is live and Gmail-authenticated; Brevo free relay, sender and templates are ready but not yet wired to Supabase custom SMTP. Owned-domain sender authentication remains outstanding.
 - **External providers:** BLOCKED where credentials, commercial licensing or customer-specific contracts are absent; unsupported paths stay UNKNOWN/unavailable.
 - **Arkham:** license/terms-gated.
 - **Hypernative native screening:** customer-schema/contract-gated where no approved exact request/signing contract exists.
-- **Live authenticated analysis certification:** BLOCKED until current frontend source and a live FastAPI application runtime can be independently certified.
+- **Live authenticated compatibility runtime:** VERIFIED for login/session/workspaces and all ten demonstration engine routes. Provider-backed FastAPI parity remains gated.
 - **Production certification:** incomplete until real Rivexis-owned targets satisfy deployment/browser/provider/email gates.
 
 ## Next action
 
-Deploy the authoritative FastAPI runtime on an explicitly approved production target, then configure exact HTTPS origins, PostgreSQL application credentials, distributed controls and Brevo secrets there before running authenticated browser and application-triggered email-delivery certification. Preserve the active templates and fail-closed transport contract while the owned-domain and runtime lifecycle gates remain open. Full-CI gate every implementation slice.
+Wire Supabase Auth to the existing Brevo free SMTP relay without exposing the generated secret, repeat verification/recovery delivery tests, then continue provider-backed engine depth or deploy the FastAPI Container only after the paid plan is explicitly authorized. Full-CI gate every implementation slice.

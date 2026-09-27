@@ -1,4 +1,7 @@
-export const API=process.env.NEXT_PUBLIC_RIVEXIS_API_URL ?? "http://localhost:8000";
+const configuredApi=process.env.NEXT_PUBLIC_RIVEXIS_API_URL;
+export const API=configuredApi==="same-origin"
+ ? ""
+ : configuredApi??(process.env.NODE_ENV==="production"?"":"http://localhost:8000");
 export type EngineId="B1"|"B2"|"B3"|"B4"|"B5"|"F1"|"F2"|"F3"|"F4"|"F5";
 
 export class ApiError extends Error{

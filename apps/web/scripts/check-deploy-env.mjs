@@ -1,7 +1,11 @@
 const value = process.env.NEXT_PUBLIC_RIVEXIS_API_URL;
 
 if (!value) {
-  throw new Error("Set NEXT_PUBLIC_RIVEXIS_API_URL to the deployed HTTPS API origin before deploying the frontend.");
+  throw new Error("Set NEXT_PUBLIC_RIVEXIS_API_URL to 'same-origin' or a deployed HTTPS API origin before deploying the frontend.");
+}
+
+if (value === "same-origin") {
+  process.exit(0);
 }
 
 let origin;

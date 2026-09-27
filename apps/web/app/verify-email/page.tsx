@@ -36,7 +36,8 @@ export default function VerifyEmail(){
   async function confirm(v:CodeForm){
     try{
       setError("");
-      await api<{status:string}>("/api/v1/auth/email-verification/confirm",{method:"POST",body:JSON.stringify(v)});
+      const email=emailForm.getValues("email")||sessionStorage.getItem("rivexis_pending_verification_email")||"";
+      await api<{status:string}>("/api/v1/auth/email-verification/confirm",{method:"POST",body:JSON.stringify({...v,email})});
       sessionStorage.removeItem("rivexis_pending_verification_email");
       router.replace("/login?verified=1");
     }catch{

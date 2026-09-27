@@ -28,7 +28,7 @@ export default function Onboarding(){
     const existing=workspaces.data?.items[0];
     if(!existing)return;
     setActiveWorkspaceId(existing.id);
-    router.replace("/workspace");
+    window.location.replace("/workspace");
   },[router,workspaces.data]);
 
   async function reconcileCreatedWorkspace(v:Form){
@@ -37,7 +37,7 @@ export default function Onboarding(){
       const existing=current.items.find(w=>w.name===v.name&&w.role===v.role);
       if(!existing)return false;
       setActiveWorkspaceId(existing.id);
-      router.replace("/workspace");
+      window.location.replace("/workspace");
       return true;
     }catch{
       return false;
@@ -58,7 +58,7 @@ export default function Onboarding(){
           body:JSON.stringify(v),
         });
         setActiveWorkspaceId(created.id);
-        router.replace("/workspace");
+        window.location.replace("/workspace");
       }catch(createError){
         if(await reconcileCreatedWorkspace(v))return;
         throw createError;

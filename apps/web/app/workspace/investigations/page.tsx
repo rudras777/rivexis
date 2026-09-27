@@ -1,10 +1,12 @@
 "use client";
 
 import {useEffect,useRef,useState} from "react";
-import {api,apiBlob} from "@/lib/api";
+import {api} from "@/lib/api";
 import {useWorkspace} from "@/components/WorkspaceContext";
 
 type CaseRow={id:string;status:string;created_at:string;payload:{title?:string;notes?:string;disposition?:string|null;review_ids?:string[];timeline?:{event_count?:number;events?:unknown[]}}};
+
+function normalizeCase(row:CaseRow):CaseRow{return {...row,payload:row.payload??{}}}
 
 export default function InvestigationsPage(){
   const {workspaceId,workspace}=useWorkspace();
@@ -17,8 +19,8 @@ export default function InvestigationsPage(){
     try{
       const r=await api<{items:CaseRow[]}>(`/api/v1/protocol-investigations?workspace_id=${encodeURIComponent(targetWorkspace)}`);
       if(workspaceRef.current!==targetWorkspace||epochRef.current!==epoch)return;
-      setItems(r.items);
-      setSelected(current=>current?r.items.find(x=>x.id===current.id)??null:null);
+      const rows=r.items.map(normalizeCase);setItems(rows);
+      setSelected(current=>current?rows.find(x=>x.id===current.id)??null:null);
     }catch{
       if(workspaceRef.current===targetWorkspace&&epochRef.current===epoch)setError("Rivexis could not load investigations for this workspace.");
     }
@@ -40,7 +42,8 @@ export default function InvestigationsPage(){
     try{
       const row=await api<CaseRow>("/api/v1/protocol-investigations",{method:"POST",body:JSON.stringify({workspace_id:originWorkspace,title,input:input(),notes})});
       if(workspaceRef.current!==originWorkspace||epochRef.current!==epoch)return;
-      setTitle("");setNotes("");setSelected(row);await load(originWorkspace,epoch);
+      const normalized=normalizeCase(row);
+      setTitle("");setNotes(normalized.payload.notes??"");setDisposition(normalized.payload.disposition??"");setSelected(normalized);await load(originWorkspace,epoch);
     }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not create the investigation. Review the input and provider availability, then retry.");}
     finally{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setBusy(false)}
   }
@@ -51,7 +54,7 @@ export default function InvestigationsPage(){
     try{
       const row=await api<CaseRow>(`/api/v1/protocol-investigations/${caseId}`,{method:"PATCH",body:JSON.stringify({status,notes,disposition})});
       if(workspaceRef.current!==originWorkspace||epochRef.current!==epoch)return;
-      setSelected(row);await load(originWorkspace,epoch);
+      setSelected(normalizeCase(row));await load(originWorkspace,epoch);
     }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not update this investigation.");}
     finally{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setBusy(false)}
   }
@@ -62,7 +65,7 @@ export default function InvestigationsPage(){
     try{
       const row=await api<CaseRow>(`/api/v1/protocol-investigations/${caseId}/reviews/${targetReview}`,{method:"POST"});
       if(workspaceRef.current!==originWorkspace||epochRef.current!==epoch)return;
-      setSelected(row);setReviewId("");await load(originWorkspace,epoch);
+      setSelected(normalizeCase(row));setReviewId("");await load(originWorkspace,epoch);
     }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not attach that review to this investigation.");}
     finally{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setBusy(false)}
   }
@@ -70,9 +73,8 @@ export default function InvestigationsPage(){
   async function pdf(){
     if(!selected)return;const originWorkspace=workspaceId;const epoch=epochRef.current;const caseId=selected.id;
     try{
-      const blob=await apiBlob(`/api/v1/protocol-investigations/${caseId}/render?format=pdf`);
       if(workspaceRef.current!==originWorkspace||epochRef.current!==epoch)return;
-      const url=URL.createObjectURL(blob);window.open(url,"_blank","noopener,noreferrer");setTimeout(()=>URL.revokeObjectURL(url),60000);
+      window.open(`/api/v1/protocol-investigations/${caseId}/render?format=pdf`,"_blank","noopener,noreferrer");
     }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not render this investigation report.");}
   }
 

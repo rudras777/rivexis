@@ -1,14 +1,14 @@
 # Rivexis Current Build State
 
-Last updated: 2026-09-27
+Last updated: 2026-09-28
 
 This is the compact production resume point. Live provider state and current `main` override older historical notes.
 
 ## Repository and certification
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest certified application head: `20fffbd0e0c6724862de5e40520937c614b8ab76` (`Harden F5 treasury evidence integrity`).
-- CI #407 (`36337441677`) passed the complete matrix on that exact head: API ruff/pytest/pip-audit; web edge/web typechecks, Next build, vinext build, npm audit and Playwright; invariants/secret/migration checks; PostgreSQL migration/runtime-control/migrated-schema verification. Pages #78 (`36337441277`) also passed on the exact head.
+- Production-repair work started from clean `main` head `21fe63f3b1b19aa607cd56779e9fc88290673dbc`; origin matched before changes. CI #408 and Pages #79 passed on that baseline.
+- This revision adds the free production runtime bridge and its verified frontend integration. The release commit and its CI run supersede the baseline once merged to `main`.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -27,7 +27,9 @@ Live postflight on 2026-09-25 established production is at Alembic head `0013_au
 - every public application table remains owned by `rivexis_migrator`;
 - `rivexis_migrator` and `rivexis_app` both remain `NOLOGIN` in the inspected management context.
 
-Supabase security advisor reports one Auth-platform warning: leaked-password protection is disabled. Rivexis authentication is implemented by the FastAPI service rather than Supabase Auth, so this warning does not describe the current application password path. Performance advisor reports newly created/other indexes as unused; the database has not yet received authoritative API workload, so those observations are not evidence that the certified FK indexes should be removed.
+On 2026-09-28, a least-privilege `SECURITY DEFINER` function, `public.rivexis_edge_bridge(text,text,jsonb)`, was deployed for the Supabase Edge compatibility runtime. Execute remains restricted to `service_role`; the function owner is `rivexis_migrator`; direct application table grants were not restored. The bridge enforces explicit actor/workspace membership checks for analysis detail, monitor, report, review, and investigation paths. A narrowly scoped RLS bootstrap policy permits organization creation only when the function's verified user/organization/OWNER context matches.
+
+Supabase security advisor reports one Auth-platform warning: leaked-password protection is disabled. The free production compatibility runtime uses Supabase Auth, so this warning applies to that path and remains an explicit hardening item unless the current plan supports enabling it without a billing change. Performance advisor reports newly created/other indexes as unused; the database has not yet received enough authoritative API workload for those observations to justify removing the certified FK indexes.
 
 ## Production frontend
 
@@ -35,9 +37,9 @@ Authoritative public frontend:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-Cloudflare Worker version `0d86a100-a115-4bca-a8ef-69d73be7a72d` receives 100% traffic. It was deployed only after CI #383 passed. Live probes verified `/`, `/login?verified=1`, `/forgot-password`, `/reset-password`, `/verify-email`, and `/workspace` return 200, an unknown route returns 404, HTTPS/HSTS/CSP/nosniff headers remain present, and browser inspection found the deployed verification notice and recovery UI without page console errors. Cloudflare observability has query-string redaction enabled so recovery tokens are not retained in request URLs; the durable Wrangler configuration carries the same setting.
+Cloudflare Worker version `9165c9b6-e8e7-4b78-b82d-4ef73becc6f9` is the current manual production deployment. Live browser verification covered public auth pages, same-origin `/health`, authenticated workspace navigation, refresh/session persistence, logout/protected-route denial, workspace and organization creation, providers, monitors, history, saved analyses, protocol history, investigation workflow, and PDF rendering.
 
-The web application is configured to call `https://rivexis-api.rudrasingh0718.workers.dev`.
+The web application now uses a same-origin `/api/v1/*` proxy to the Supabase Edge function `rivexis-api` (function version 4). Browser cookies remain HttpOnly/Secure/SameSite=Lax and state-changing requests retain CSRF validation. Recovery bearer tokens are kept in memory only and removed from the browser URL before password entry.
 
 ## Authentication lifecycle
 
@@ -52,11 +54,11 @@ Head `3e6285f...` completes the corresponding frontend lifecycle:
 - public auth lifecycle endpoints no longer perform an unnecessary authenticated CSRF bootstrap;
 - focused browser tests pass 7/7 and the full CI web lane passes.
 
-Production auth remains unavailable because the authoritative FastAPI runtime is not deployed. The free `rivexis-api` Worker remains an explicit degraded boundary and returns 503 for application endpoints instead of faking authentication.
+Production authentication is now available through the free Supabase Edge compatibility runtime. Real signup verification mail, login, automatic application-user provisioning, workspace onboarding, session refresh/persistence, logout, protected-route denial, password-recovery request and Gmail delivery were verified. Supabase Auth Site URL and redirect allowlist now point to the production Worker origin.
 
 ## Cloudflare backend gate
 
-The repository's approved runtime remains the existing FastAPI Docker image behind the Cloudflare Container `lite` wrapper. Workers Free is incompatible with the deliberate scrypt CPU budget; Rivexis will not weaken password hashing or distributed controls. Deploying the authoritative API still requires explicit authorization for the minimum Workers Paid plan change.
+The repository's full provider-capable runtime remains the existing FastAPI Docker image behind the Cloudflare Container `lite` wrapper. Workers Free remains incompatible with that runtime's deliberate CPU/security controls. The Supabase Edge compatibility runtime now supplies production auth, tenant/workspace control, persistence, honest UNKNOWN engine demonstrations, manual monitors, protocol-history/investigation artifacts, and reports without claiming FastAPI provider parity.
 
 ## Brevo
 
@@ -70,21 +72,21 @@ Live inspection found:
 - controlled template tests were accepted by Brevo and both messages reached the owner Gmail inbox; Brevo logs independently showed the verification message as `Sent` and `Delivered`;
 - template-test sends do not inject runtime parameters, so production link/code substitution and the full application-triggered lifecycle remain uncertified until the backend is deployed.
 
+Supabase Auth currently sends production verification and recovery messages through its default transactional provider, not Brevo. Delivery to Gmail is verified and DKIM, SPF and DMARC passed; the recovery link targets the production `/reset-password` route. Brevo relay/sender/templates remain ready, but switching Supabase to custom Brevo SMTP requires generating and installing a new SMTP credential without exposing it.
+
 ## Engine integrity
 
 All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0`, calculation `b1-live-1.8.0`, with bounded, non-verdicting structural security observations. B2 remains engine contract `1.1.0`, calculation `b2-live-1.3.0`, with bounded bytecode/proxy observations and first-class implementation conflicts. B3 remains engine contract `1.1.0`, calculation `b3-live-1.3.0`, with canonical RPC/ABI values, monotonic dependency-identified prior snapshots and provider-specific freshness. B4 remains engine contract `1.0.0`, calculation `b4-live-1.1.0`, with strict quantities/history limits, explicit malformed rows, zero-flow self-transfer accounting and isolated external freshness. B5 remains engine contract `1.2.0`, calculation `b5-live-1.4.0`, with bounded route/economic/step integrity and honest UNKNOWN quote freshness. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics. F2 remains engine contract `1.2.0`, calculation `f2-live-1.4.0`, with shared collector `protocol-native-1.2.0`: every direct read is pinned to the captured canonical uint256 block; runtime code, EIP-1967 words and oracle ABI returns are bounded/canonical; malformed direct or explorer identity evidence fails closed; future oracle time stays UNKNOWN; external explorer metadata cannot inherit the RPC block or LIVE freshness; and aggregate freshness reflects every retained evidence source. F4 remains engine contract `1.2.0`, calculation `f4-live-1.3.0`: selectors, provider payloads and selected identity are bounded; strategy matching cannot succeed through arbitrary substrings; present-but-invalid optional metrics fail closed; provider timestamps are normalized without retrieval-time optimism; native confidence requires native evidence; and aggregate freshness conservatively reflects all retained yield, native and explorer evidence. F5 remains engine contract `1.2.0` and advances to calculation `f5-live-1.3.0`: allocation/identity/native-check inputs are bounded; duplicate asset rows aggregate before concentration and HHI scoring; contradictory classifications and non-finite valuations fail closed; malformed market rows cannot claim current confidence; unknown observation time remains null; and aggregate freshness/confidence incorporates protocol-native evidence only when evidence exists.
 
 ## Current execution gates
 
-1. Authoritative FastAPI deployment requires explicit Workers Paid authorization.
-2. Runtime production secrets must be configured without exposing migration credentials.
+1. Full provider-capable FastAPI deployment still requires explicit Workers Paid authorization.
+2. Supabase custom SMTP is not yet wired to Brevo; default Supabase transactional delivery is working.
 3. The Gmail sender is not an owned authenticated domain.
-4. Real signup/login/session/logout/recovery/email E2E cannot be certified until the backend is deployed.
-5. Provider credentials/licenses remain explicit; unavailable evidence stays UNKNOWN.
+4. Provider credentials/licenses remain explicit; unavailable evidence stays UNKNOWN.
 
 ## Next execution order
 
-1. Continue free authentication UX and deterministic engine hardening while the runtime is billing-gated.
-2. If a zero-cost authoritative runtime becomes technically compatible without weakening controls, certify it before any architecture change.
-3. If paid deployment is later authorized, deploy the existing FastAPI Container with restricted runtime credentials and production bindings.
-4. Run real auth, session, reset, inbox-delivery, workspace, and safe engine E2E after an authoritative backend exists.
+1. Wire Supabase custom SMTP to the existing Brevo free relay using a newly generated secret, then repeat verification/recovery delivery tests.
+2. Continue deterministic engine hardening and add real providers only with approved credentials/licenses; preserve UNKNOWN otherwise.
+3. If paid deployment is later authorized, deploy the existing FastAPI Container with restricted runtime credentials and production bindings, then certify parity against the compatibility runtime.
