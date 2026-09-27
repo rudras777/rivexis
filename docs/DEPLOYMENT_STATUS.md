@@ -1,11 +1,11 @@
 # Rivexis Deployment Status
 
-Last updated: 2026-09-25
+Last updated: 2026-09-27
 
 | Environment | Status | Evidence / meaning |
 |---|---|---|
-| GitHub `main` | GREEN | Application head `17410346212ed871fc2d6cff7ac6000c3104b78b`; CI #405 (`36169771582`) and Pages #76 (`36169770434`) passed on the exact head. |
-| GitHub Pages | FALLBACK ONLY | Pages #76 follows the same source lineage; it is not the authoritative application runtime. |
+| GitHub `main` | GREEN | Application head `20fffbd0e0c6724862de5e40520937c614b8ab76`; CI #407 (`36337441677`) and Pages #78 (`36337441277`) passed on the exact head. |
+| GitHub Pages | FALLBACK ONLY | Pages #78 follows the same source lineage; it is not the authoritative application runtime. |
 | Cloudflare web | LIVE / CURRENT | `rivexis-web.rudrasingh0718.workers.dev`; Worker version `0d86a100-a115-4bca-a8ef-69d73be7a72d` at 100% traffic. |
 | Cloudflare API Free | LIVE / DEGRADED BY DESIGN | `/health` reports degraded; application endpoints return 503. It is not the FastAPI runtime. |
 | Authoritative FastAPI | SOURCE READY / BILLING GATED | Existing Docker + Cloudflare Container `lite` design requires Workers Paid; scrypt will not be weakened for Free. |

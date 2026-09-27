@@ -1,6 +1,6 @@
 # Rivexis Ten-Engine Contract Audit
 
-Last updated: 2026-09-25
+Last updated: 2026-09-27
 
 This audit distinguishes repository implementation gaps from external provider, credential, licensing and customer-contract gates. A missing commercial credential is not treated as a code defect; the engine must instead remain explicit about unavailable or partial evidence.
 
@@ -15,7 +15,7 @@ This audit distinguishes repository implementation gaps from external provider, 
 | F2 — Protocol Risk | 1.2.0 | DefiLlama fundamentals plus optional protocol-native/adapter evidence | Calculation `f2-live-1.4.0`; shared collector `protocol-native-1.2.0`. Core fundamentals/audit metadata remain fail-closed. Direct reads share one canonical captured block; code/storage/oracle ABI evidence is bounded and canonical. Explorer metadata has independent UNKNOWN freshness/no RPC block, malformed explorer identity is unavailable, and future oracle time remains UNKNOWN. Independent exploit/governance/liquidity/security depth remains partial. |
 | F3 — Position & Liquidation Risk | 1.3.0 | Protocol-specific adapter where available; otherwise modeled position with direct oracle evidence and optional market/native checks | Calculation `f3-live-1.3.0`. Modeled quantities reject bool/non-finite values; user debt price must be positive finite; Chainlink ABI shape/prices validate; oracle reads share one captured block; missing/invalid/future timestamps remain UNKNOWN. CoinGecko comparison price/timestamp evidence is independently validated. |
 | F4 — Yield & Strategy Risk | 1.2.0 | Attributed DefiLlama yield-pool evidence plus optional protocol-native evidence | Calculation `f4-live-1.3.0`. Bounded selectors use exact or delimiter-aware matching and must resolve uniquely; provider collections and selected identity are bounded. Core and present optional metrics fail closed on invalid/non-finite/boolean/contradictory values. Retrieval time cannot manufacture provider freshness or confidence. Aggregate freshness includes all retained yield/native/explorer evidence. |
-| F5 — Treasury Allocation & Scenario | 1.2.0 | User allocation model; CoinGecko market references; optional protocol-native checks | Numeric treasury fields reject booleans and economically invalid/non-finite values. Derived weights require complete positive valuation. CoinGecko freshness requires usable timestamp coverage for every requested asset; malformed/missing/future timestamps remain UNKNOWN. |
+| F5 — Treasury Allocation & Scenario | 1.2.0 | User allocation model; CoinGecko market references; optional protocol-native checks | Calculation `f5-live-1.3.0`. Allocation/native-check collections and identity labels are bounded. Duplicate declared assets aggregate before concentration/HHI scoring; conflicting classification and non-finite valuation fail closed. Malformed price rows remain UNKNOWN/low-confidence, unknown observation time stays null, and aggregate freshness includes retained native evidence. |
 
 ## Cross-engine contract rules
 
@@ -45,7 +45,7 @@ Unresolved provider conflicts are first-class analysis state. Fresh live results
 
 **F4.** Strategy identity must be bounded and resolve uniquely through exact or delimiter-aware matching; arbitrary substring matches cannot select a pool. Provider collections and selected identity fields are capped before evidence construction. Core and present optional yield/volatility values reject booleans, non-finite values and impossible semantics; reward APY above headline APY is contradictory rather than clamped. Missing or materially future provider timestamps remain UNKNOWN rather than inheriting retrieval time. Native-state confidence is available only when native evidence exists, and aggregate freshness conservatively includes every retained pool, native and explorer observation.
 
-**F5.** Treasury numbers reject booleans before float coercion. Every requested CoinGecko asset must carry a usable observation timestamp before Rivexis asserts freshness; the oldest valid timestamp bounds aggregate freshness.
+**F5.** Treasury numbers reject booleans before float coercion, and derived products/sums must remain finite. Allocation and protocol-native-check collections plus asset/protocol/chain identity fields are bounded before provider access. Repeated rows sharing a declared CoinGecko ID or symbol aggregate for concentration and HHI, so row splitting cannot dilute asset exposure; contradictory stablecoin classification fails closed. Malformed/missing CoinGecko price rows cannot claim healthy current evidence. Every requested market asset requires a credible provider timestamp before freshness is asserted, missing observation time remains null rather than becoming retrieval time, and stale/expired native evidence conservatively gates the aggregate result. Native confidence requires actual native evidence.
 
 ## External gates that remain non-code blockers
 
@@ -81,6 +81,7 @@ Unresolved provider conflicts are first-class analysis state. Fresh live results
 - `3fc8764237dd09ede77c80d64e645a33574da40b` — B5 bounded route identity/economics/structure validation and honest provider freshness — CI #401 (`36166264178`) PASS; Pages #72 (`36166263499`) PASS.
 - `b2198bc508096e458560e077b41cb60f11fdcd5d` — F2 canonical block-pinned protocol-native state, exact ABI/code bounds and independent explorer freshness — CI #403 (`36168119939`) PASS; Pages #74 (`36168118741`) PASS.
 - `17410346212ed871fc2d6cff7ac6000c3104b78b` — F4 bounded pool selection/identity, optional-metric integrity and aggregate freshness — CI #405 (`36169771582`) PASS; Pages #76 (`36169770434`) PASS.
+- `20fffbd0e0c6724862de5e40520937c614b8ab76` — F5 bounded treasury identity, duplicate-asset concentration, market-response integrity and aggregate freshness — CI #407 (`36337441677`) PASS; Pages #78 (`36337441277`) PASS.
 
 ## Remaining Milestone F work
 
