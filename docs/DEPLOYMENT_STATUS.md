@@ -10,7 +10,7 @@ Last updated: 2026-09-28
 | Supabase Edge API | LIVE / COMPATIBILITY RUNTIME | `rivexis-api` version 4; health ready; auth, workspace, persistence, all ten demonstration engine paths, manual monitors, protocol workflow and reports operational. Missing live providers remain UNKNOWN. |
 | Authoritative FastAPI | SOURCE READY / BILLING GATED | Existing Docker + Cloudflare Container `lite` design requires Workers Paid; scrypt will not be weakened for Free. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY / CURRENT | Project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1, production Alembic head `0013_auth_email_lifecycle`; 0012 and 0013 postflight verified. |
-| Brevo | READY / NOT YET AUTH TRANSPORT | Free relay enabled; sender active; templates #1/#2 active. Supabase Auth still uses its default transactional provider; Gmail delivery and authentication alignment are verified. |
+| Brevo | LIVE / AUTH TRANSPORT | Supabase Auth custom SMTP is enabled through the Brevo free relay. A production recovery request was accepted by Supabase and Brevo recorded both `Sent` and `Delivered`; the credential remains encrypted in Supabase and absent from source. |
 | Production | FUNCTIONAL FREE RUNTIME | Public site, auth, recovery delivery, workspaces, organizations, tenant persistence, all ten honest demonstration engines, history, monitors, protocol reviews/investigations and PDF reports are working. Full provider-backed FastAPI parity remains plan/credential gated. |
 
 ## Live frontend verification
@@ -24,6 +24,5 @@ Production reports migration `0013_auth_email_lifecycle`, 56 application tables,
 ## Activation gates
 
 - **FastAPI runtime:** explicit authorization for the minimum Workers Paid plan change.
-- **Brevo custom SMTP:** generate/install a secret in Supabase Auth, then repeat application-triggered verification and recovery delivery. The currently working default Supabase delivery is not Brevo.
 - **Owned email identity:** an authenticated Rivexis-owned sending domain is still absent.
 - **Provider contracts:** missing credentials/licensing remain explicit UNKNOWN/unavailable states.

@@ -11,7 +11,7 @@ Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
 - API: FastAPI remains the full provider-capable backend. A least-privilege Supabase Edge compatibility runtime now provides a functional free production path for auth, tenancy, persistence, UNKNOWN-safe demonstration analysis, monitoring and protocol workflow.
 - Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining leaked-password-protection warning applies to the free Supabase Auth compatibility path and remains an explicit hardening item.
-- Brevo fail-closed transactional transport and disabled-by-default environment contract are implemented; verification/reset templates are active and controlled template delivery reached Gmail, while application-triggered substitution remains backend-deployment-gated.
+- Brevo fail-closed transactional transport and disabled-by-default environment contract are implemented. Supabase Auth custom SMTP is now enabled through the Brevo free relay, and an application-triggered recovery message was recorded as `Sent` and `Delivered` by Brevo.
 
 ## Milestone sequence
 
@@ -89,7 +89,7 @@ These are primarily capability-depth items rather than known hidden build/test f
 - **Cloudflare production deployment drift:** RESOLVED for the frontend. Worker version `9165c9b6-e8e7-4b78-b82d-4ef73becc6f9` uses the same-origin Supabase Edge proxy and passes live route/workspace checks. The Worker remains manually deployed rather than Git-integrated CI/CD.
 - **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable production path. The current API Worker remains a degraded health/503 boundary.
 - **Custom domain:** BLOCKED on domain choice/ownership/configuration.
-- **Production email:** Supabase default transactional verification/recovery delivery is live and Gmail-authenticated; Brevo free relay, sender and templates are ready but not yet wired to Supabase custom SMTP. Owned-domain sender authentication remains outstanding.
+- **Production email:** Supabase custom SMTP now uses the Brevo free relay. A production recovery message passed Supabase Auth and Brevo `Sent`/`Delivered` verification; owned-domain sender authentication remains outstanding.
 - **External providers:** BLOCKED where credentials, commercial licensing or customer-specific contracts are absent; unsupported paths stay UNKNOWN/unavailable.
 - **Arkham:** license/terms-gated.
 - **Hypernative native screening:** customer-schema/contract-gated where no approved exact request/signing contract exists.
@@ -98,4 +98,4 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Next action
 
-Wire Supabase Auth to the existing Brevo free SMTP relay without exposing the generated secret, repeat verification/recovery delivery tests, then continue provider-backed engine depth or deploy the FastAPI Container only after the paid plan is explicitly authorized. Full-CI gate every implementation slice.
+Continue deterministic engine/product hardening that requires no new paid dependency, then add provider-backed depth only with approved credentials or deploy the FastAPI Container only after the paid plan is explicitly authorized. Full-CI gate every implementation slice.

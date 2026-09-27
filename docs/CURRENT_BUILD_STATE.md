@@ -70,9 +70,9 @@ Live inspection found:
 - verification template #1 and password-reset template #2 are active, use sender name `Rivexis`, and match the runtime parameter contract;
 - no Rivexis-owned authenticated sending domain exists, so Brevo warns it will substitute a `brevosend.com` sender domain;
 - controlled template tests were accepted by Brevo and both messages reached the owner Gmail inbox; Brevo logs independently showed the verification message as `Sent` and `Delivered`;
-- template-test sends do not inject runtime parameters, so production link/code substitution and the full application-triggered lifecycle remain uncertified until the backend is deployed.
+- template-test sends do not inject runtime parameters; production recovery delivery is now independently certified through the Supabase Auth custom-SMTP path, while verification-template substitution remains covered by the existing Supabase Auth template rather than Brevo template #1.
 
-Supabase Auth currently sends production verification and recovery messages through its default transactional provider, not Brevo. Delivery to Gmail is verified and DKIM, SPF and DMARC passed; the recovery link targets the production `/reset-password` route. Brevo relay/sender/templates remain ready, but switching Supabase to custom Brevo SMTP requires generating and installing a new SMTP credential without exposing it.
+Supabase Auth custom SMTP is now enabled through the Brevo free relay. The production credential is encrypted by Supabase, was never committed, and remains hidden after save. A real Rivexis password-recovery request completed with HTTP 200; Supabase Auth logged `user_recovery_requested`, and Brevo independently recorded the resulting message as both `Sent` and `Delivered`. Until an owned sender domain is authenticated, Brevo substitutes the configured Gmail sender with its `brevosend.com` domain.
 
 ## Engine integrity
 
@@ -81,12 +81,11 @@ All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.
 ## Current execution gates
 
 1. Full provider-capable FastAPI deployment still requires explicit Workers Paid authorization.
-2. Supabase custom SMTP is not yet wired to Brevo; default Supabase transactional delivery is working.
-3. The Gmail sender is not an owned authenticated domain.
-4. Provider credentials/licenses remain explicit; unavailable evidence stays UNKNOWN.
+2. The Gmail sender is not an owned authenticated domain.
+3. Provider credentials/licenses remain explicit; unavailable evidence stays UNKNOWN.
 
 ## Next execution order
 
-1. Wire Supabase custom SMTP to the existing Brevo free relay using a newly generated secret, then repeat verification/recovery delivery tests.
-2. Continue deterministic engine hardening and add real providers only with approved credentials/licenses; preserve UNKNOWN otherwise.
+1. Continue deterministic engine hardening and add real providers only with approved credentials/licenses; preserve UNKNOWN otherwise.
+2. Authenticate a Rivexis-owned sender domain when one becomes available; do not purchase one implicitly.
 3. If paid deployment is later authorized, deploy the existing FastAPI Container with restricted runtime credentials and production bindings, then certify parity against the compatibility runtime.
