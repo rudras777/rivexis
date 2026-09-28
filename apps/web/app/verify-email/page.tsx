@@ -47,7 +47,7 @@ export default function VerifyEmail(){
 
   return <main className="formPage">
     <section className="formCard">
-      <Brand/>
+      <Brand variant="lockup"/>
       <h1>Verify your email</h1>
       <p>Enter the one-time code from Rivexis. Never share this code with another person.</p>
       {notice&&<div className="success" role="status">{notice}</div>}

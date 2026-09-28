@@ -13,6 +13,11 @@ test.describe("Rivexis signature visual system",()=>{
   test("public and auth surfaces keep contextual graphics while using architectural controls",async({page})=>{
     await healthMock(page);
     await page.goto("/");
+    const publicBrand=page.getByRole("link",{name:"Rivexis home"}).first().locator("img");
+    await expect(publicBrand).toHaveAttribute("src","/brand/rivexis-wordmark.png");
+    await expect(publicBrand).toHaveAttribute("alt","Rivexis");
+    await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href",/rivexis-icon\.png/);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content",/rivexis-social\.png/);
     const ambient=page.locator(".publicAmbient");
     await expect(ambient).toBeAttached();
     await expect(ambient).toHaveCSS("background-image",/public-signal-field\.svg/);
@@ -23,8 +28,12 @@ test.describe("Rivexis signature visual system",()=>{
     const publicGraphic=await page.request.get("/visuals/public-signal-field.svg");
     expect(publicGraphic.ok()).toBeTruthy();
     expect(publicGraphic.headers()["content-type"]).toContain("image/svg+xml");
+    const officialWordmark=await page.request.get("/brand/rivexis-wordmark.png");
+    expect(officialWordmark.ok()).toBeTruthy();
+    expect(officialWordmark.headers()["content-type"]).toContain("image/png");
 
     await page.goto("/login");
+    await expect(page.getByRole("link",{name:"Rivexis home"}).locator("img")).toHaveAttribute("src","/brand/rivexis-lockup.png");
     await expect(page.locator(".formPage")).toHaveCSS("background-image",/auth-orbit\.svg/);
     await expect(page.locator(".formCard")).toHaveCSS("border-top-right-radius","44px");
     await expect(page.getByLabel("Email")).toHaveCSS("border-radius","2px");
@@ -39,6 +48,7 @@ test.describe("Rivexis signature visual system",()=>{
     await page.route("**/api/v1/auth/web/csrf",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({csrf_token:"visual-system-csrf"})}));
 
     await page.goto("/workspace");
+    await expect(page.getByRole("link",{name:"Rivexis home"}).locator("img")).toHaveAttribute("src","/brand/rivexis-mark.png");
     const ambient=page.locator(".workspaceAmbient");
     await expect(ambient).toBeAttached();
     await expect(ambient).toHaveCSS("background-image",/workspace-evidence-field\.svg/);

@@ -3,11 +3,14 @@
    Loaded after institutional-ui.css so it can safely refine the public, auth and workspace surfaces. */
 
 :root{
-  --signature-paper:#f5f4ef;
-  --signature-paper-2:#eef2f6;
-  --signature-ink:#07192e;
-  --signature-blue:#0b5cff;
-  --signature-hairline:rgba(24,49,78,.16);
+  --signature-paper:#f7f6f2;
+  --signature-paper-2:#edf3f9;
+  --signature-ink:#081838;
+  --signature-blue:#0b4fcb;
+  --signature-hairline:rgba(16,56,120,.16);
+  --ink:#081838;--ink-2:#172b4c;--muted:#58687e;--muted-2:#7b899c;
+  --line:#d8e2ec;--line-strong:#c4d2e0;--blue:#0b4fcb;--blue-dark:#073b9a;
+  --blue-soft:#eaf2fb;--navy:#081838;--navy-2:#103878;--canvas:#f4f7fa;
 }
 
 html,body{background:var(--signature-paper);}
@@ -47,7 +50,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
   linear-gradient(90deg,rgba(20,92,255,.028) 1px,transparent 1px),
   radial-gradient(circle at 69% 38%,rgba(20,92,255,.09),transparent 22%);
   background-size:42px 42px,42px 42px,auto;mask-image:linear-gradient(90deg,#000,rgba(0,0,0,.54) 74%,transparent)}
-.heroCopy:after{content:"RISK / VALUE / EXECUTION / INTELLIGENCE";display:block;margin-top:64px;font-size:9px;letter-spacing:.28em;color:rgba(50,70,96,.48);font-weight:800}
+.heroCopy:after{content:"RISK / VALUE / EXECUTION / ANALYSIS";display:block;margin-top:64px;font-size:9px;letter-spacing:.28em;color:rgba(50,70,96,.48);font-weight:800}
 .hero h1{font-size:clamp(62px,6.8vw,94px);max-width:860px;font-weight:610;line-height:.94;letter-spacing:-.061em}
 .hero h1 em{position:relative}.hero h1 em:after{content:"";position:absolute;left:0;right:-8%;bottom:.02em;height:.09em;background:linear-gradient(90deg,rgba(20,92,255,.75),rgba(20,92,255,.04));z-index:-1}
 .hero p{font-size:18px;max-width:650px;color:#53647a}
@@ -139,4 +142,38 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 @media(prefers-reduced-motion:reduce){
   .button:before,.sidebarLogout:before{display:none}
   .engineCard:after,.table tbody tr{transition:none}
+}
+
+/* Official Rivexis brand layer: extracted from the supplied production assets. */
+.brand{display:inline-flex;align-items:center;min-width:0;line-height:0;gap:0}
+.brand img{display:block;height:auto;object-fit:contain}
+.brand-wordmark img{width:158px;max-width:100%}
+.brand-lockup img{width:228px;max-width:100%}
+.brand-rail{gap:11px;color:#fff;line-height:1.15}
+.brand-rail>img{width:34px;aspect-ratio:384/342;flex:0 0 auto;filter:drop-shadow(0 5px 13px rgba(0,73,204,.2))}
+.brandRailCopy{display:grid;gap:4px;min-width:0}
+.brandRailCopy b{font-family:Georgia,"Times New Roman",serif;font-size:15px;letter-spacing:.13em;color:#fff}
+.brandRailCopy small{font-family:Inter,"Segoe UI",sans-serif;font-size:7px;letter-spacing:.055em;color:#8fa9c9;white-space:nowrap}
+.top .brand-wordmark{width:160px}
+.formCard .brand-lockup{margin-bottom:27px}
+.formCard:after{top:auto;bottom:0;background:none}
+.footer .brand-wordmark img{width:142px}
+.footer>div{gap:10px}.footer>div>span{letter-spacing:.08em;font-size:9px;text-transform:uppercase;color:#68788d}
+
+.publicAmbient:after,.workspaceAmbient:after{content:"";position:absolute;pointer-events:none;background:url('/brand/rivexis-mark.png') center/contain no-repeat}
+.publicAmbient:after{width:min(36vw,520px);aspect-ratio:384/342;right:-7vw;top:104px;opacity:.035;filter:saturate(.72)}
+.workspaceAmbient:after{width:min(25vw,330px);aspect-ratio:384/342;right:5vw;top:6vh;opacity:.022;filter:saturate(.7)}
+
+.navActions .ghost{border:0;background:transparent;padding-inline:12px;box-shadow:none}
+.navActions .ghost:hover:not(:disabled){background:transparent;color:var(--blue);transform:translateX(2px)}
+
+.formPage{background-image:url('/brand/rivexis-mark.png'),url('/visuals/auth-orbit.svg'),linear-gradient(100deg,#041529 0 44%,#edf3f9 44% 100%);background-position:16vw center,left center,center;background-size:min(24vw,330px) auto,min(58vw,900px) auto,auto;background-repeat:no-repeat}
+
+@media(max-width:900px){
+  .formPage{background-image:url('/brand/rivexis-mark.png'),url('/visuals/auth-orbit.svg'),linear-gradient(180deg,#041529 0 24%,#edf3f9 24% 100%);background-position:center 26px,center -210px,center;background-size:150px auto,min(94vw,780px) auto,auto}
+}
+
+@media(max-width:640px){
+  .top .brand-wordmark{width:128px}.brand-lockup img{width:196px}.brandRailCopy small{display:none}
+  .publicAmbient:after{width:260px;right:-110px;top:94px}
 }

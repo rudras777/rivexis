@@ -69,13 +69,13 @@ export default function Onboarding(){
   }
 
   if(workspaces.isPending){
-    return <main className="formPage"><section className="formCard" role="status" aria-live="polite"><Brand/><h1>Preparing workspace setup</h1><p>Verifying your session and existing workspace state.</p></section></main>;
+    return <main className="formPage"><section className="formCard" role="status" aria-live="polite"><Brand variant="lockup"/><h1>Preparing workspace setup</h1><p>Verifying your session and existing workspace state.</p></section></main>;
   }
 
   if(workspaces.isError){
     const status=workspaces.error instanceof ApiError?workspaces.error.status:null;
     return <main className="formPage"><section className="formCard">
-      <Brand/>
+      <Brand variant="lockup"/>
       <h1>{status===401?"Session ended":"Workspace setup unavailable"}</h1>
       <p>{authErrorMessage(workspaces.error,"onboarding")}</p>
       <div className="shellStateActions">
@@ -86,12 +86,12 @@ export default function Onboarding(){
   }
 
   if(workspaces.data.items.length){
-    return <main className="formPage"><section className="formCard" role="status" aria-live="polite"><Brand/><h1>Opening workspace</h1><p>An existing authorized workspace was found. Rivexis is continuing there instead of creating a duplicate.</p></section></main>;
+    return <main className="formPage"><section className="formCard" role="status" aria-live="polite"><Brand variant="lockup"/><h1>Opening workspace</h1><p>An existing authorized workspace was found. Rivexis is continuing there instead of creating a duplicate.</p></section></main>;
   }
 
   return <main className="formPage">
     <section className="formCard">
-      <Brand/>
+      <Brand variant="lockup"/>
       <h1>Configure workspace</h1>
       <p>Your role changes defaults and information density, not the underlying ten-engine architecture.</p>
       <form className="form" onSubmit={handleSubmit(submit)}>

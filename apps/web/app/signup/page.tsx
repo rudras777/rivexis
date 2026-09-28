@@ -38,7 +38,7 @@ export default function Signup(){
 
   return <main className="formPage">
     <section className="formCard">
-      <Brand/>
+      <Brand variant="lockup"/>
       <h1>Create workspace</h1>
       <p>Choose the role that controls terminology, defaults and reporting depth.</p>
       <form className="form" onSubmit={handleSubmit(submit)}>

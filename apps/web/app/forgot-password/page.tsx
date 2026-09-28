@@ -28,7 +28,7 @@ export default function ForgotPassword(){
 
   return <main className="formPage">
     <section className="formCard">
-      <Brand/>
+      <Brand variant="lockup"/>
       <h1>Reset password</h1>
       <p>Request a one-time recovery link. The response is identical whether or not the address is registered.</p>
       {accepted?<div className="success" role="status">If an eligible account exists, a password reset email has been sent.</div>:<form className="form" onSubmit={handleSubmit(submit)}>

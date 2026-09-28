@@ -52,7 +52,7 @@ export default function ResetPassword(){
 
   return <main className="formPage">
     <section className="formCard">
-      <Brand/>
+      <Brand variant="lockup"/>
       <h1>Choose a new password</h1>
       <p>Completing recovery revokes existing sessions for this account.</p>
       {complete?<div className="success" role="status">Password updated. <Link href="/login">Log in with your new password</Link>.</div>:<form className="form" onSubmit={handleSubmit(submit)}>

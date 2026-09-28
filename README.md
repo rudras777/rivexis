@@ -1,6 +1,6 @@
 # Rivexis
 
-**Risk • Value • Execution • Intelligence System**
+**Risk • Value • Execution • Analysis**
 
 Rivexis is institutional blockchain intelligence and crypto-finance / DeFi risk decision infrastructure. It analyzes evidence before capital or transactions are committed and produces one explainable outcome: **PROCEED, MODIFY, WAIT, AVOID, or UNKNOWN**.
 

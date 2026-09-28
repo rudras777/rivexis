@@ -38,7 +38,7 @@ export default function Login(){
 
   return <main className="formPage">
     <section className="formCard">
-      <Brand/>
+      <Brand variant="lockup"/>
       <h1>Log in</h1>
       <p>Access your Rivexis workspace.</p>
       {notice&&<div className="success" role="status">{notice}</div>}

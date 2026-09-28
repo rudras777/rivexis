@@ -112,7 +112,7 @@ RIVEXIS
 
 BRAND MEANING:
 
-Risk • Value • Execution • Intelligence System
+Risk • Value • Execution • Analysis
 
 PRODUCT CATEGORY:
 
@@ -4934,7 +4934,7 @@ Hero:
 
 RIVEXIS
 
-Risk • Value • Execution • Intelligence System
+Risk • Value • Execution • Analysis
 
 Primary CTA:
 
