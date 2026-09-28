@@ -21,10 +21,16 @@ begin
 end
 $$;
 
+-- postgres receives SET ROLE only for the migration transaction so the security
+-- definer can be created by its final NOLOGIN owner. The membership is revoked
+-- before this migration commits.
+grant rivexis_alert_dispatcher to postgres with set true, inherit false;
+
 revoke all privileges on all tables in schema public from rivexis_alert_dispatcher;
 revoke all privileges on all sequences in schema public from rivexis_alert_dispatcher;
 revoke create on schema public from rivexis_alert_dispatcher;
 grant usage on schema public to rivexis_alert_dispatcher;
+grant usage on schema extensions to rivexis_alert_dispatcher;
 
 set local role rivexis_migrator;
 
@@ -67,9 +73,10 @@ grant select(id,owner_user_id,name) on table public.workspaces to rivexis_alert_
 grant select(id,email) on table public.users to rivexis_alert_dispatcher;
 grant select,update on table public.alert_delivery_runtime to rivexis_alert_dispatcher;
 
-drop function if exists public.rivexis_edge_alert_dispatch(text,text,jsonb);
+grant create on schema public to rivexis_alert_dispatcher;
+set local role rivexis_alert_dispatcher;
 
-set local role rivexis_migrator;
+drop function if exists public.rivexis_edge_alert_dispatch(text,text,jsonb);
 
 create function public.rivexis_edge_alert_dispatch(
   p_action text,
@@ -250,12 +257,12 @@ begin
 end;
 $$;
 
-reset role;
-grant create on schema public to rivexis_alert_dispatcher;
-alter function public.rivexis_edge_alert_dispatch(text,text,jsonb) owner to rivexis_alert_dispatcher;
-revoke create on schema public from rivexis_alert_dispatcher;
 revoke all on function public.rivexis_edge_alert_dispatch(text,text,jsonb) from public, anon, authenticated;
 grant execute on function public.rivexis_edge_alert_dispatch(text,text,jsonb) to service_role;
+
+reset role;
+revoke create on schema public from rivexis_alert_dispatcher;
+revoke rivexis_alert_dispatcher from postgres;
 
 drop function if exists public.rivexis_edge_alert_delivery_runtime();
 
