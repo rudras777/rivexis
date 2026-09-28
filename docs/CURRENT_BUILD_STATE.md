@@ -11,6 +11,7 @@ This is the compact production resume point. Live provider state and current `ma
 - Production repair implementation `c7b52aac8b227246e29efd8ff942e73aa64d15c2` adds the free runtime bridge and verified frontend integration. CI #409 and Pages #80 passed on that exact SHA.
 - Provider-capability truthfulness repair `8f162727e3b4fc0257c147a2da90f9f501850b0f` removes the misleading free-runtime deep-probe control, adds an explicit Edge capability contract and a functional provider-status refresh. CI run `36392977072` and Pages run `36392976368` passed on that exact SHA.
 - Deterministic demonstration runtime `6f2ee469d4c8eb6b4e2945bfc525517adaeb4eea` ports the certified B1-B5/F1-F5 synthetic demo rules into the free Edge path while preserving fail-closed live behavior. CI run `36394468961` and Pages run `36394469225` passed on that exact SHA.
+- Institutional product experience `73d662839651481b3f6f06e06ff509fe37a21e13` replaces the public, authentication, workspace and engine surfaces with the production design system and validated guided inputs while retaining advanced JSON. CI run `36397358106` and Pages run `36397356730` passed on that exact SHA; the full browser matrix passed 52/52.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -39,7 +40,7 @@ Authoritative public frontend:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-Cloudflare Worker version `b2e9f7f5-8b55-4523-b8f7-d5504c0ab13a` is the current manual production deployment. Live browser verification covered public auth pages, same-origin `/health`, authenticated workspace navigation, refresh/session persistence, logout/protected-route denial, workspace and organization creation, providers, monitors, history, saved analyses, protocol history, investigation workflow, and PDF rendering. The provider page now shows configuration-only semantics when deep probes are unsupported and its replacement refresh action was exercised successfully in production.
+Cloudflare Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57` is the current manual production deployment. Live browser verification on this exact deployment covered the redesigned public and login surfaces, same-origin `/health` (`200`, `ready`), authenticated session restoration, the production workspace command center, and guided F5 demonstration inputs (`40%` allocation / `12%` depeg loss) producing a recorded `COMPLETED` synthetic result with the expected normalized 40/100 risk score. Both checked browser contexts reported no console warnings or errors. Earlier live certification remains in force for logout/protected-route denial, workspace and organization creation, providers, monitors, history, saved analyses, protocol history, investigation workflow, and PDF rendering.
 
 The web application now uses a same-origin `/api/v1/*` proxy to the Supabase Edge function `rivexis-api` (function version 6). Browser cookies remain HttpOnly/Secure/SameSite=Lax and state-changing requests retain CSRF validation. Recovery bearer tokens are kept in memory only and removed from the browser URL before password entry. All ten demonstration engines now emit engine-specific deterministic synthetic results; live requests still return `UNKNOWN` with zero evidence when no verified provider is configured.
 
