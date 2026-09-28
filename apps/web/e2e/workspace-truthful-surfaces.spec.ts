@@ -61,8 +61,8 @@ test.describe("truthful workspace foundations",()=>{
     await expect(page.getByRole("columnheader",{name:"Reference"})).toBeVisible();
     await expect(page.getByText("analysis-123")).toBeVisible();
     await expect(page.getByText("F3")).toBeVisible();
-    await expect(page.getByText("Demo")).toBeVisible();
-    await expect(page.getByText("This table does not imply a lifetime total.")).toBeVisible();
+    await expect(page.getByRole("cell",{name:"Demo",exact:true})).toBeVisible();
+    await expect(page.getByText(/API's recent-history window/)).toBeVisible();
 
     await page.getByRole("link",{name:"Saved"}).click();
     await expect(page.getByRole("columnheader",{name:"Analysis reference"})).toBeVisible();
