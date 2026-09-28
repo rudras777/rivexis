@@ -77,7 +77,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 .finalCta{max-width:1240px;border-top:1px solid rgba(35,63,96,.16);padding-top:110px;padding-bottom:110px}.footer{background:rgba(245,245,241,.74);border-top:1px solid rgba(35,63,96,.16)}
 
 /* Authentication: architectural split rather than centered SaaS card. */
-.formPage{background:linear-gradient(100deg,#041529 0 44%,#eef2f5 44% 100%);place-items:stretch;align-items:center}
+.formPage{background-image:url('/visuals/auth-orbit.svg'),linear-gradient(100deg,#041529 0 44%,#eef2f5 44% 100%);background-position:left center,center;background-size:min(58vw,900px) auto,auto;place-items:stretch;align-items:center}
 .formPage:before{left:4vw;letter-spacing:.34em}.formPage:after{border-radius:0;transform:rotate(45deg);left:8vw;top:8vh;width:430px;height:430px;box-shadow:0 0 0 72px rgba(116,163,255,.025),0 0 0 144px rgba(116,163,255,.02)}
 .formCard{margin-left:52vw;width:min(570px,42vw);border-radius:0 44px 0 0;border:0;border-top:1px solid rgba(82,110,144,.22);border-left:1px solid rgba(82,110,144,.16);box-shadow:0 48px 100px rgba(8,28,51,.14);padding:48px;background:rgba(252,253,254,.9);backdrop-filter:blur(20px)}
 .formCard:after{content:"";position:absolute;right:0;bottom:0;width:76px;height:76px;border-right:1px solid rgba(20,92,255,.22);border-bottom:1px solid rgba(20,92,255,.22)}
@@ -86,10 +86,12 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 /* Workspace: one continuous instrument surface, not a gallery of boxes. */
 .appShell{background:linear-gradient(110deg,#edf1f4 0,#f5f6f5 46%,#f2f5f8 100%)}
 .workspaceAmbient{opacity:1;background-image:
+  url('/visuals/workspace-evidence-field.svg'),
   linear-gradient(rgba(16,47,82,.025) 1px,transparent 1px),
   linear-gradient(90deg,rgba(16,47,82,.025) 1px,transparent 1px),
   radial-gradient(circle at 78% 14%,rgba(20,92,255,.08),transparent 24%);
-  background-size:56px 56px,56px 56px,auto}
+  background-position:right top,0 0,0 0,center;
+  background-size:max(1450px,100vw) auto,56px 56px,56px 56px,auto}
 .sidebar{background:linear-gradient(180deg,#041326,#071d38 63%,#06172e);box-shadow:14px 0 52px rgba(5,21,42,.11);border-right:1px solid rgba(92,129,176,.19)}
 .sidebar nav{position:relative}.sidebar nav:before{content:"NAVIGATION";display:block;padding:0 14px 12px;font-size:8px;letter-spacing:.25em;color:rgba(162,187,219,.46);font-weight:800}
 .sidebar nav a{border-radius:0;border-left:2px solid transparent;padding:12px 14px;background:transparent!important;box-shadow:none!important}
@@ -122,7 +124,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 
 @media(max-width:900px){
   .hero{grid-template-columns:1fr;min-height:auto;padding-top:74px}.hero h1{font-size:clamp(52px,13vw,76px)}
-  .formPage{background:linear-gradient(180deg,#041529 0 24%,#eef2f5 24% 100%)}.formCard{margin:180px auto 30px;width:min(620px,calc(100% - 34px));padding:34px}
+  .formPage{background-image:url('/visuals/auth-orbit.svg'),linear-gradient(180deg,#041529 0 24%,#eef2f5 24% 100%);background-size:min(94vw,780px) auto,auto}.formCard{margin:180px auto 30px;width:min(620px,calc(100% - 34px));padding:34px}
   .engineCard:nth-child(odd){border-left:1px solid rgba(44,73,105,.14)}
 }
 
