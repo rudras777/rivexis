@@ -4,30 +4,69 @@ Last updated: 2026-09-28
 
 | Environment | Status | Evidence / meaning |
 |---|---|---|
-| GitHub `main` | RELEASE CURRENT | Visual-system source `0cbeabf4b1398fd682b831d4953d7085717ca6cd` passed CI run `36414540027` and Pages run `36414538998` on the exact SHA, including the full Playwright suite and focused visual contracts. |
-| GitHub Pages | FALLBACK ONLY | Pages follows the same source lineage; it is not the authoritative application runtime. |
-| Cloudflare web | LIVE / SOURCE DRIFT | `rivexis-web.rudrasingh0718.workers.dev` remains on previously certified Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`; certified operational and visual source through `0cbeabf4...` is not yet claimed as deployed. |
-| Supabase Edge API | LIVE / COMPATIBILITY RUNTIME | `rivexis-api` version 6; health ready; auth, workspace, persistence, all ten deterministic demonstration engine paths, manual monitors, protocol workflow and reports operational. The provider registry explicitly declares deep probes unavailable and missing live providers remain UNKNOWN. |
-| Authoritative FastAPI | SOURCE READY / BILLING GATED | Existing Docker + Cloudflare Container `lite` design requires Workers Paid; scrypt will not be weakened for Free. |
-| Supabase PostgreSQL | ACTIVE_HEALTHY / CURRENT | Project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1, production Alembic head `0013_auth_email_lifecycle`; 0012 and 0013 postflight verified. |
-| Brevo | LIVE / AUTH TRANSPORT | Supabase Auth custom SMTP is enabled through the Brevo free relay. A production recovery request was accepted by Supabase and Brevo recorded both `Sent` and `Delivered`; the credential remains encrypted in Supabase and absent from source. |
-| Production | FUNCTIONAL FREE RUNTIME | Public site, auth, recovery delivery, workspaces, organizations, tenant persistence, all ten honest demonstration engines, history, monitors, protocol reviews/investigations and PDF reports are working. Full provider-backed FastAPI parity remains plan/credential gated. |
+| GitHub `main` | RELEASE CURRENT | Saved-analysis production slice is certified through source `59dadde0edb1c58ea2b22f421c26d4509bbab7f2`; CI run `36421346582` and Pages run `36421345772` both passed on that exact SHA. Later documentation commits only record this verified state unless otherwise noted. |
+| GitHub Pages | FALLBACK ONLY | Pages follows the source lineage but is not the authoritative application runtime. |
+| Cloudflare web | LIVE / SOURCE DRIFT | `rivexis-web.rudrasingh0718.workers.dev` remains on previously certified manual Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`. The current institutional UI and later operational source are not claimed as live on this Worker. |
+| Supabase Edge API | LIVE / V7 | `rivexis-api` version 7 is ACTIVE. It retains custom HttpOnly-cookie + CSRF auth and now includes production Saved Analyses list/save/archive/restore/delete compatibility endpoints. |
+| Supabase PostgreSQL | LIVE / HARDENED | Project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1. Core Alembic schema remains through `0013_auth_email_lifecycle`; the Saved Analyses service-role bridge is additionally deployed under `rivexis_migrator`. |
+| Authoritative FastAPI | SOURCE READY / BILLING GATED | Existing full provider-capable Docker/Container design remains gated on explicit Workers Paid authorization. Security controls will not be weakened for a free-plan deployment. |
+| Brevo / Supabase SMTP | LIVE / AUTH TRANSPORT | Production password recovery previously passed Supabase Auth and Brevo independently recorded Sent + Delivered. An owned authenticated Rivexis sending domain is still absent. |
+| Production capability | FUNCTIONAL COMPATIBILITY RUNTIME | Auth, tenancy, persistence, ten deterministic demonstration engines, UNKNOWN-safe live mode, monitors, protocol review/investigation artifacts and the Saved Analyses backend contract are production-backed. Full provider-backed FastAPI parity remains credential/plan gated. |
 
-## Live frontend verification
+## Saved Analyses production release
 
-Live browser E2E on 2026-09-28 verified signup mail, login, onboarding, authenticated refresh/session persistence, workspace switching, organization creation, logout, protected-route denial, password-reset request and Gmail receipt. All B1-B5/F1-F5 engine routes passed the 52-test browser matrix, including guided-control payload normalization. Edge unit coverage passed 13/13 across all ten deterministic demonstrations plus malformed-input and live fail-closed cases. Production browser verification on Worker `e8922aac-cb84-435b-bd0c-38fbb886be57` confirmed the redesigned public/login/workspace surfaces, session restoration, same-origin health `200`, and a guided F5 `40/12` demonstration completing with a normalized 40/100 synthetic result. The public and authenticated console checks returned no warnings or errors. Earlier production verification of B1's synthetic 45/100 output, B4's `CONFLICTING_DATA`, B1 live fail-closed `UNKNOWN`, manual B3 monitor checks, protocol workflow, investigation lifecycle and PDF response remains valid.
+Source behavior now includes search, active/all archived visibility, persisted evidence inspection, archive/restore and saved-reference deletion. The underlying analysis remains in workspace history when a saved reference is deleted.
 
-The provider-health surface now consumes the runtime's explicit `deep_probe_available=false` capability. It offers a verified refresh action and no longer presents a deep-probe action that the free compatibility runtime cannot execute. The production browser reload and refresh both completed while retaining the authenticated workspace.
+Production database support is provided by `public.rivexis_edge_saved_analysis(text,text,jsonb)`. Post-deployment inspection verified:
 
-Repository source through `0cbeabf4b1398fd682b831d4953d7085717ca6cd` adds the certified operational workflows plus the refined public/authenticated visual system, and passed the full CI/browser matrix. Authoritative Cloudflare deployment could not be completed from the continuation environment because Wrangler had no authenticated credential and the Cloudflare dashboard remained in a human-verification loop after the single permitted retry. No temporary Cloudflare account, alternative host, billing change or verification bypass was used. Production therefore remains on the previous certified Worker until the existing account can perform the manual deployment. A post-CI HTTP verification returned `200` for the homepage and `/health`; the latter reported `ready`, `supabase-edge`, API `v1`, `production`. The new public signal SVG returned `404`, confirming the current Worker does not yet contain the visual slice.
+- owner `rivexis_migrator`;
+- SECURITY DEFINER with fixed `search_path=pg_catalog, public`;
+- execute ACL limited to `rivexis_migrator` and `service_role`;
+- no anonymous/authenticated/public execution grant;
+- `rivexis_migrator` remains NOLOGIN;
+- PostgreSQL's temporary ability to SET `rivexis_migrator` was removed after installation.
 
-## Production database postflight
+Supabase Edge `rivexis-api` version 7 exposes authenticated + CSRF-protected Saved Analyses routes matching the FastAPI contract for list/save/archive/restore/delete.
 
-Production reports migration `0013_auth_email_lifecycle`, 56 application tables, complete FK covering-index posture, no intended redundant indexes, the certified RLS lookup rewrite, and the `user_auth_state` FORCE-RLS/service-policy contract. No inspected application table changed ownership away from `rivexis_migrator`, and both migration/runtime roles remain `NOLOGIN`.
+Post-deploy public verification established:
+
+- direct Edge `/health` → HTTP 200, `ready`, runtime `supabase-edge`, API `v1`, environment `production`;
+- unauthenticated Saved Analyses request → HTTP 401 `Authentication required`;
+- authoritative Worker `/health` → HTTP 200 with the same production Edge runtime;
+- Edge logs identify version 7 for the post-deploy health and protected-route requests and did not surface a runtime exception in those checks.
+
+A real authenticated production archive/restore/delete mutation has not yet been claimed during this continuation. The action UI is browser-test certified and the production database/API contract is live; authenticated mutation certification remains a follow-up.
+
+## Authoritative frontend drift
+
+The web Worker remains the main release blocker. GitHub source contains later institutional UI/UX and operational functionality than the current Worker bundle.
+
+Cloudflare deployment could not be completed from this environment because Wrangler lacks authenticated credentials and the Cloudflare dashboard remained behind human verification after the permitted safe attempt. No temporary account, alternate host, verification bypass or billing change was used.
+
+Until legitimate Cloudflare authentication is available:
+
+- do not claim newer frontend source is live on `rivexis-web`;
+- continue implementing/test-certifying unblocked source and backend slices;
+- keep production API/backend improvements truthful and separately evidenced;
+- deploy the exact newest certified source once authorized access becomes available, then perform full live browser certification.
+
+## Existing production integrity retained
+
+- Browser authentication uses HttpOnly/Secure/SameSite=Lax cookies plus CSRF.
+- Password recovery does not persist bearer tokens in browser storage.
+- Workspace/organization access remains tenant-aware and fail-closed.
+- All ten demonstration engines are explicitly synthetic and deterministic.
+- Live requests remain `UNKNOWN` when verified provider evidence is unavailable.
+- Protocol review/investigation artifacts do not certify protocol safety.
+- Provider absence, licensing gates and unavailable deep probes remain visible rather than simulated.
 
 ## Activation gates
 
-- **Current web source deployment:** authenticated Cloudflare dashboard or Wrangler access is required to deploy exact source `0cbeabf4...` and complete live visual, provider/monitor and protocol evidence workflow QA.
-- **FastAPI runtime:** explicit authorization for the minimum Workers Paid plan change.
-- **Owned email identity:** an authenticated Rivexis-owned sending domain is still absent.
-- **Provider contracts:** missing credentials/licensing remain explicit UNKNOWN/unavailable states.
+- **Latest frontend deployment:** requires authenticated Cloudflare dashboard or Wrangler access.
+- **Full FastAPI runtime:** requires explicit Workers Paid authorization.
+- **Provider-backed evidence:** requires approved credentials/contracts/licenses.
+- **Owned email identity:** requires a Rivexis-owned authenticated sending domain; do not purchase/configure one implicitly.
+
+## Next production target
+
+Complete History and general report actions end-to-end against real persistence/rendering contracts, then certify those source/backend changes before attempting the next Cloudflare web promotion. Structured F1/F3/F5 builders follow where they improve real workflow usability without weakening validation or evidence semantics.
