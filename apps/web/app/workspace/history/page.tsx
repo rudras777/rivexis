@@ -1,7 +1,7 @@
 "use client";
 
-import {useQuery} from "@tanstack/react-query";
-import {useEffect,useState} from "react";
+import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query";
+import {useEffect,useMemo,useState} from "react";
 import {ApiError,api} from "@/lib/api";
 import {useWorkspace,workspaceQueryKey} from "@/components/WorkspaceContext";
 
@@ -15,6 +15,9 @@ type HistoryRow={
 };
 type HistorySelection={type:"analysis"|"decision";id:string};
 type Selection=HistorySelection|null;
+type HistoryTypeFilter="all"|"analysis"|"decision";
+type HistoryModeFilter="all"|"demo"|"non-demo";
+type SavedAnalysis={id:string;workspace_id:string;analysis_id:string;title:string;archived:boolean;created_at:string};
 
 type Detail=Record<string,unknown>;
 
@@ -36,9 +39,26 @@ function detailError(error:unknown){
   return "Rivexis could not load provenance for this persisted record.";
 }
 
+function saveError(error:unknown){
+  if(error instanceof ApiError){
+    if(error.status===401)return "Your session ended before Rivexis could save this analysis reference.";
+    if(error.status===403||error.status===404)return "This analysis can no longer be saved from the active workspace.";
+    if(error.status===422)return "Rivexis could not create a valid saved-analysis reference from this record.";
+    if(error.status===503)return "Saving is temporarily unavailable because the application API is unavailable.";
+  }
+  return "Rivexis could not save this analysis reference.";
+}
+
 function recordedAt(value:string){
   const date=new Date(value);
   return Number.isNaN(date.getTime())?value:date.toLocaleString();
+}
+
+function savedTitle(item:HistoryRow){
+  const engine=item.engine_id?.trim()||"Analysis";
+  const date=new Date(item.created_at);
+  const when=Number.isNaN(date.getTime())?item.created_at:date.toLocaleDateString();
+  return `${engine} analysis · ${when}`;
 }
 
 function text(value:unknown,fallback="—"){
@@ -120,8 +140,21 @@ function DecisionProvenance({detail}:{detail:Detail}){
 
 export default function History(){
   const {workspaceId,workspace}=useWorkspace();
+  const queryClient=useQueryClient();
   const [selected,setSelected]=useState<Selection>(null);
-  useEffect(()=>setSelected(null),[workspaceId]);
+  const [search,setSearch]=useState("");
+  const [typeFilter,setTypeFilter]=useState<HistoryTypeFilter>("all");
+  const [modeFilter,setModeFilter]=useState<HistoryModeFilter>("all");
+  const [notice,setNotice]=useState("");
+
+  useEffect(()=>{
+    setSelected(null);
+    setSearch("");
+    setTypeFilter("all");
+    setModeFilter("all");
+    setNotice("");
+  },[workspaceId]);
+
   const q=useQuery({
     queryKey:workspaceQueryKey(workspaceId,"history"),
     queryFn:()=>api<{items:HistoryRow[]}>(`/api/v1/history?workspace_id=${encodeURIComponent(workspaceId)}`),
@@ -133,22 +166,57 @@ export default function History(){
     enabled:Boolean(selected),
     retry:false,
   });
+
+  const save=useMutation({
+    mutationFn:(item:HistoryRow)=>api<SavedAnalysis>("/api/v1/saved-analyses",{method:"POST",body:JSON.stringify({analysis_id:item.id,title:savedTitle(item)})}),
+    onSuccess:(saved)=>{
+      setNotice(`Saved ${saved.analysis_id} as “${saved.title}”.`);
+      queryClient.invalidateQueries({queryKey:workspaceQueryKey(workspaceId,"saved-analyses")});
+    },
+  });
+
   const items=q.data?.items??[];
+  const filtered=useMemo(()=>{
+    const needle=search.trim().toLowerCase();
+    return items.filter(item=>{
+      if(typeFilter!=="all"&&item.type!==typeFilter)return false;
+      if(modeFilter!=="all"){
+        if(item.type!=="analysis")return false;
+        if(modeFilter==="demo"&&item.demo!==true)return false;
+        if(modeFilter==="non-demo"&&item.demo===true)return false;
+      }
+      if(!needle)return true;
+      const mode=item.type==="analysis"?(item.demo?"demo demonstration":"non-demo live"):"decision";
+      return `${item.type} ${item.id} ${item.engine_id??""} ${mode}`.toLowerCase().includes(needle);
+    });
+  },[items,search,typeFilter,modeFilter]);
+
   function inspect(item:HistoryRow){
     if(item.type!=="analysis"&&item.type!=="decision")return;
     const next:HistorySelection={type:item.type,id:item.id};
     setSelected(current=>current?.type===next.type&&current.id===next.id?null:next);
   }
+
   return <>
-    <div className="workspaceHeader"><div><h1>History</h1><p>Analyses and decisions retained for the active workspace only.</p></div><span className="badge">{workspace.name}</span></div>
+    <div className="workspaceHeader"><div><h1>History</h1><p>Search, inspect and retain canonical analyses and decisions for the active workspace.</p></div><span className="badge">{workspace.name}</span></div>
     <section className="panel" aria-live="polite" data-testid="workspace-history-state">
+      <div className="surfaceToolbar">
+        <label className="field"><span>Search</span><input aria-label="Search history" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Reference, engine or record type"/></label>
+        <label className="field"><span>Record type</span><select aria-label="History record type" value={typeFilter} onChange={event=>setTypeFilter(event.target.value as HistoryTypeFilter)}><option value="all">All records</option><option value="analysis">Analyses</option><option value="decision">Decisions</option></select></label>
+        <label className="field"><span>Analysis mode</span><select aria-label="History analysis mode" value={modeFilter} onChange={event=>setModeFilter(event.target.value as HistoryModeFilter)}><option value="all">All modes</option><option value="demo">Demonstration</option><option value="non-demo">Non-demo</option></select></label>
+      </div>
+
+      {notice?<p className="success" role="status">{notice}</p>:null}
+      {save.error?<p className="error" role="alert">{saveError(save.error)}</p>:null}
       {q.isPending?<p>Loading history for {workspace.name}…</p>:null}
       {q.isError?<p className="error" role="alert">{historyError(q.error)}</p>:null}
       {!q.isPending&&!q.isError&&!items.length?<p>No analyses or decisions are recorded in this workspace yet.</p>:null}
-      {!q.isPending&&!q.isError&&items.length?<><p className="sectionLead">The API returns at most 50 recent records. This table does not imply a lifetime total. Provenance is loaded on demand from the authorized persisted record, not inferred from this summary list.</p><div className="tableWrap"><table className="table"><thead><tr><th>Type</th><th>Reference</th><th>Engine</th><th>Mode</th><th>Recorded</th><th>Provenance</th></tr></thead><tbody>{items.map(item=>{
+      {!q.isPending&&!q.isError&&items.length&&!filtered.length?<p>No history records match the current search and filters.</p>:null}
+      {!q.isPending&&!q.isError&&filtered.length?<><p className="sectionLead">Showing {filtered.length} of {items.length} records from the API&apos;s recent-history window. Canonical provenance is loaded on demand. Saving an analysis creates a durable reference without copying or deleting the underlying history record.</p><div className="tableWrap"><table className="table"><thead><tr><th>Type</th><th>Reference</th><th>Engine</th><th>Mode</th><th>Recorded</th><th>Actions</th></tr></thead><tbody>{filtered.map(item=>{
         const isSelected=selected?.type===item.type&&selected.id===item.id;
         const inspectable=item.type==="analysis"||item.type==="decision";
-        return <tr key={`${item.type}-${item.id}`}><td>{item.type}</td><td><code>{item.id}</code></td><td>{item.engine_id??"—"}</td><td>{item.type==="analysis"?(item.demo?"Demo":"Non-demo"):"—"}</td><td>{recordedAt(item.created_at)}</td><td>{inspectable?<button className="button" onClick={()=>inspect(item)} aria-expanded={isSelected}>{isSelected?"Hide":"Inspect"}</button>:"—"}</td></tr>;
+        const saving=save.isPending&&save.variables?.id===item.id;
+        return <tr key={`${item.type}-${item.id}`}><td>{item.type}</td><td><code>{item.id}</code></td><td>{item.engine_id??"—"}</td><td>{item.type==="analysis"?(item.demo?"Demo":"Non-demo"):"—"}</td><td>{recordedAt(item.created_at)}</td><td><div className="actions">{inspectable?<button className="ghost" onClick={()=>inspect(item)} aria-expanded={isSelected}>{isSelected?"Hide provenance":"Inspect provenance"}</button>:null}{item.type==="analysis"?<button className="button" disabled={saving} onClick={()=>save.mutate(item)}>{saving?"Saving…":"Save reference"}</button>:null}{!inspectable?"—":null}</div></td></tr>;
       })}</tbody></table></div></>:null}
     </section>
     {selected?<section className="panel" aria-live="polite" data-testid="history-provenance-detail">
