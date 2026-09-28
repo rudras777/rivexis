@@ -128,6 +128,28 @@ test.describe("workspace shell access states",()=>{
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
   });
 
+  test("keeps every grouped rail action reachable on a short desktop viewport",async({page})=>{
+    await page.setViewportSize({width:1280,height:600});
+    await mockAuthorizedWorkspace(page);
+    await page.goto("/workspace");
+
+    const sidebar=page.locator(".sidebar");
+    await expect(sidebar.getByText("Command",{exact:true})).toBeVisible();
+    await expect(sidebar.getByText("Operations",{exact:true})).toBeVisible();
+    await expect(sidebar.getByText("Evidence",{exact:true})).toBeVisible();
+    await expect(sidebar.getByText("Infrastructure",{exact:true})).toBeVisible();
+    const scrollState=await sidebar.evaluate(element=>{
+      element.scrollTop=element.scrollHeight;
+      const style=getComputedStyle(element);
+      return {overflowY:style.overflowY,scrollTop:element.scrollTop,scrollHeight:element.scrollHeight,clientHeight:element.clientHeight};
+    });
+    expect(scrollState.overflowY).toBe("auto");
+    expect(scrollState.scrollHeight).toBeGreaterThan(scrollState.clientHeight);
+    expect(scrollState.scrollTop).toBeGreaterThan(0);
+    await expect(page.getByRole("link",{name:/Workspaces$/})).toBeVisible();
+    await expect(page.getByRole("button",{name:"Log out"})).toBeVisible();
+  });
+
   test("keeps session recovery actions usable on mobile",async({page})=>{
     await page.setViewportSize({width:390,height:844});
     await mockHealthyService(page);
