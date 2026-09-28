@@ -12,6 +12,7 @@ This is the compact production resume point. Live provider state and current `ma
 - Provider-capability truthfulness repair `8f162727e3b4fc0257c147a2da90f9f501850b0f` removes the misleading free-runtime deep-probe control, adds an explicit Edge capability contract and a functional provider-status refresh. CI run `36392977072` and Pages run `36392976368` passed on that exact SHA.
 - Deterministic demonstration runtime `6f2ee469d4c8eb6b4e2945bfc525517adaeb4eea` ports the certified B1-B5/F1-F5 synthetic demo rules into the free Edge path while preserving fail-closed live behavior. CI run `36394468961` and Pages run `36394469225` passed on that exact SHA.
 - Institutional product experience `73d662839651481b3f6f06e06ff509fe37a21e13` replaces the public, authentication, workspace and engine surfaces with the production design system and validated guided inputs while retaining advanced JSON. CI run `36397358106` and Pages run `36397356730` passed on that exact SHA; the full browser matrix passed 52/52.
+- Provider/monitor operations slice `3637e00f1a0dc3574f4e903a4f0580f247723675` removes the prefilled placeholder monitor identity, enforces complete EVM-address validation, separates provider configuration from deep-probe evidence, presents normalized B3 results, and adds action-level provider/monitor tests. CI run `36409598551` and Pages run `36409598064` passed on the exact SHA, including the complete Playwright suite.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -41,6 +42,8 @@ Authoritative public frontend:
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
 Cloudflare Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57` is the current manual production deployment. Live browser verification on this exact deployment covered the redesigned public and login surfaces, same-origin `/health` (`200`, `ready`), authenticated session restoration, the production workspace command center, and guided F5 demonstration inputs (`40%` allocation / `12%` depeg loss) producing a recorded `COMPLETED` synthetic result with the expected normalized 40/100 risk score. Both checked browser contexts reported no console warnings or errors. Earlier live certification remains in force for logout/protected-route denial, workspace and organization creation, providers, monitors, history, saved analyses, protocol history, investigation workflow, and PDF rendering.
+
+The provider/monitor operations slice is repository- and CI-certified but is not yet claimed as deployed to the authoritative Worker. This execution environment had no Wrangler credential, and `dash.cloudflare.com` remained on its human-verification screen after the single safe retry. Production continues serving the prior certified Worker version until an authenticated manual deployment can complete; no temporary account, alternate host or security bypass was used.
 
 The web application now uses a same-origin `/api/v1/*` proxy to the Supabase Edge function `rivexis-api` (function version 6). Browser cookies remain HttpOnly/Secure/SameSite=Lax and state-changing requests retain CSRF validation. Recovery bearer tokens are kept in memory only and removed from the browser URL before password entry. All ten demonstration engines now emit engine-specific deterministic synthetic results; live requests still return `UNKNOWN` with zero evidence when no verified provider is configured.
 
@@ -89,6 +92,8 @@ All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.
 
 ## Next execution order
 
-1. Continue deterministic engine hardening and add real providers only with approved credentials/licenses; preserve UNKNOWN otherwise.
-2. Authenticate a Rivexis-owned sender domain when one becomes available; do not purchase one implicitly.
-3. If paid deployment is later authorized, deploy the existing FastAPI Container with restricted runtime credentials and production bindings, then certify parity against the compatibility runtime.
+1. Deploy exact certified source `3637e00f1a0dc3574f4e903a4f0580f247723675` to `rivexis-web` through the existing authenticated Cloudflare account, then verify `/health`, providers, monitor validation/check behavior, session restoration and browser console state.
+2. Institutionalize investigations, protocol history/reviews, saved analyses and report actions with the same evidence-truth and workspace-isolation standard.
+3. Continue deterministic engine hardening and add real providers only with approved credentials/licenses; preserve UNKNOWN otherwise.
+4. Authenticate a Rivexis-owned sender domain when one becomes available; do not purchase one implicitly.
+5. If paid deployment is later authorized, deploy the existing FastAPI Container with restricted runtime credentials and production bindings, then certify parity against the compatibility runtime.

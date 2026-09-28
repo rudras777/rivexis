@@ -4,9 +4,9 @@ Last updated: 2026-09-28
 
 | Environment | Status | Evidence / meaning |
 |---|---|---|
-| GitHub `main` | RELEASE CURRENT | Institutional product experience `73d662839651481b3f6f06e06ff509fe37a21e13` passed CI run `36397358106` and Pages run `36397356730` on the exact SHA; the browser matrix passed 52/52. |
+| GitHub `main` | RELEASE CURRENT | Provider/monitor operations source `3637e00f1a0dc3574f4e903a4f0580f247723675` passed CI run `36409598551` and Pages run `36409598064` on the exact SHA, including the full Playwright suite. |
 | GitHub Pages | FALLBACK ONLY | Pages follows the same source lineage; it is not the authoritative application runtime. |
-| Cloudflare web | LIVE / CURRENT | `rivexis-web.rudrasingh0718.workers.dev`; Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`. |
+| Cloudflare web | LIVE / SOURCE DRIFT | `rivexis-web.rudrasingh0718.workers.dev` remains on previously certified Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`; provider/monitor source `3637e00f...` is not yet claimed as deployed. |
 | Supabase Edge API | LIVE / COMPATIBILITY RUNTIME | `rivexis-api` version 6; health ready; auth, workspace, persistence, all ten deterministic demonstration engine paths, manual monitors, protocol workflow and reports operational. The provider registry explicitly declares deep probes unavailable and missing live providers remain UNKNOWN. |
 | Authoritative FastAPI | SOURCE READY / BILLING GATED | Existing Docker + Cloudflare Container `lite` design requires Workers Paid; scrypt will not be weakened for Free. |
 | Supabase PostgreSQL | ACTIVE_HEALTHY / CURRENT | Project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1, production Alembic head `0013_auth_email_lifecycle`; 0012 and 0013 postflight verified. |
@@ -19,12 +19,15 @@ Live browser E2E on 2026-09-28 verified signup mail, login, onboarding, authenti
 
 The provider-health surface now consumes the runtime's explicit `deep_probe_available=false` capability. It offers a verified refresh action and no longer presents a deep-probe action that the free compatibility runtime cannot execute. The production browser reload and refresh both completed while retaining the authenticated workspace.
 
+Repository source `3637e00f1a0dc3574f4e903a4f0580f247723675` improves the provider and monitor operational UX and passed the full CI/browser matrix. Authoritative Cloudflare deployment could not be completed from the continuation environment because Wrangler had no authenticated credential and the Cloudflare dashboard remained in a human-verification loop after the single permitted retry. No temporary Cloudflare account, alternative host, billing change or verification bypass was used. Production therefore remains on the previous certified Worker until the existing account can perform the manual deployment.
+
 ## Production database postflight
 
 Production reports migration `0013_auth_email_lifecycle`, 56 application tables, complete FK covering-index posture, no intended redundant indexes, the certified RLS lookup rewrite, and the `user_auth_state` FORCE-RLS/service-policy contract. No inspected application table changed ownership away from `rivexis_migrator`, and both migration/runtime roles remain `NOLOGIN`.
 
 ## Activation gates
 
+- **Current web source deployment:** authenticated Cloudflare dashboard or Wrangler access is required to deploy exact source `3637e00f...` and complete live provider/monitor QA.
 - **FastAPI runtime:** explicit authorization for the minimum Workers Paid plan change.
 - **Owned email identity:** an authenticated Rivexis-owned sending domain is still absent.
 - **Provider contracts:** missing credentials/licensing remain explicit UNKNOWN/unavailable states.
