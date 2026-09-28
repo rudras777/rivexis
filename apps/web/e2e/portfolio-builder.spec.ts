@@ -41,6 +41,7 @@ test("F1 live mode builds canonical manual positions without raw JSON editing",a
   await page.getByLabel("Position 2 quantity").fill("100");
   await page.getByRole("button",{name:"Run F1"}).click();
 
+  await expect(page.getByTestId("engine-result-summary")).toContainText("UNKNOWN — NO PROVIDER EVIDENCE RECORDED");
   expect(csrf).toBe("portfolio-builder-csrf");
   expect(submitted).toMatchObject({
     demo:false,
@@ -50,5 +51,4 @@ test("F1 live mode builds canonical manual positions without raw JSON editing",a
       {coingecko_id:"chainlink",symbol:"LINK",quantity:100},
     ]},
   });
-  await expect(page.getByTestId("engine-result-summary")).toContainText("UNKNOWN — NO PROVIDER EVIDENCE RECORDED");
 });
