@@ -72,10 +72,12 @@ test.describe("truthful workspace foundations",()=>{
     await expect(page.locator("pre.result")).toHaveCount(0);
   });
 
-  test("settings shows membership roles and reports organization creation without implying member administration",async({page})=>{
+  test("settings preserves membership truth while organization creation remains explicit",async({page})=>{
     await baseMocks(page);
     await page.route("**/api/v1/auth/web/csrf",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({csrf_token:"settings-csrf"})}));
     let organizationPosts=0;
+    await page.route("**/api/v1/organizations/org-1/members",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({member_role:"ANALYST",items:[{user_id:"u-1",email:"analyst@example.com",role:"ANALYST",created_at:"2026-09-22T00:00:00Z"}]})}));
+    await page.route("**/api/v1/organizations/org-new/members",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({member_role:"OWNER",items:[{user_id:"u-new",email:"owner@example.com",role:"OWNER",created_at:"2026-09-23T00:04:00Z"}]})}));
     await page.route("**/api/v1/organizations",route=>{
       if(route.request().method()==="POST"){
         organizationPosts+=1;
@@ -85,10 +87,11 @@ test.describe("truthful workspace foundations",()=>{
     });
 
     await page.goto("/workspace/settings");
-    const organizationRow=page.getByRole("row",{name:/Existing Org ANALYST/});
+    const organizationRow=page.getByRole("row",{name:/Existing Org org-1 ANALYST/});
     await expect(organizationRow).toBeVisible();
     await expect(organizationRow.getByRole("cell",{name:"ANALYST"})).toBeVisible();
-    await expect(page.getByText("Member administration is not exposed on this page.")).toBeVisible();
+    await expect(page.getByText(/New members are accepted only from short-lived claims/)).toBeVisible();
+    await expect(page.getByText(/cannot change roles or accept\/remove members/)).toBeVisible();
     await expect(page.locator("pre.result")).toHaveCount(0);
 
     await page.getByLabel("Organization name").fill("New Research Org");
