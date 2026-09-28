@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
 import "./globals.css";
+import "./institutional-ui.css";
 import {Providers} from "@/components/Providers";
 import {ServiceAvailability} from "@/components/ServiceAvailability";
 

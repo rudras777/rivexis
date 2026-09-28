@@ -1,26 +1,41 @@
-<svg width="1500" height="1200" viewBox="0 0 1500 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1700" height="1260" viewBox="0 0 1700 1260" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="flow" x1="335" y1="980" x2="1410" y2="190" gradientUnits="userSpaceOnUse">
+    <linearGradient id="flow" x1="330" y1="1080" x2="1580" y2="150" gradientUnits="userSpaceOnUse">
       <stop stop-color="#145CFF" stop-opacity="0"/>
-      <stop offset=".5" stop-color="#145CFF" stop-opacity=".12"/>
+      <stop offset=".52" stop-color="#145CFF" stop-opacity=".135"/>
       <stop offset="1" stop-color="#145CFF" stop-opacity="0"/>
     </linearGradient>
-    <radialGradient id="halo" cx="0" cy="0" r="1" gradientTransform="translate(1240 130) rotate(120) scale(520 390)" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#DCEAFF" stop-opacity=".64"/>
+    <radialGradient id="halo" cx="0" cy="0" r="1" gradientTransform="translate(1430 160) rotate(124) scale(560 420)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DCEAFF" stop-opacity=".7"/>
       <stop offset="1" stop-color="#F3F7FC" stop-opacity="0"/>
     </radialGradient>
+    <pattern id="ticks" width="128" height="128" patternUnits="userSpaceOnUse"><path d="M0 0H12M0 0V12" stroke="#145CFF" stroke-opacity=".027"/></pattern>
   </defs>
-  <ellipse cx="1240" cy="130" rx="520" ry="390" fill="url(#halo)"/>
-  <path d="M284 1020C504 862 528 902 687 737C846 572 927 639 1074 454C1221 269 1328 318 1553 137" stroke="url(#flow)" stroke-width="1.4"/>
-  <path d="M666 791L831 609L1010 666L1190 402L1370 476" stroke="#145CFF" stroke-opacity=".09"/>
-  <path d="M831 609L889 386L1190 402L1264 208" stroke="#0B2343" stroke-opacity=".055"/>
-  <circle cx="666" cy="791" r="4" fill="#145CFF" fill-opacity=".24"/>
-  <circle cx="831" cy="609" r="7" fill="white" stroke="#145CFF" stroke-opacity=".25"/>
-  <circle cx="889" cy="386" r="4" fill="#145CFF" fill-opacity=".22"/>
-  <circle cx="1010" cy="666" r="4" fill="#145CFF" fill-opacity=".22"/>
-  <circle cx="1190" cy="402" r="9" fill="white" stroke="#145CFF" stroke-opacity=".26"/>
-  <circle cx="1264" cy="208" r="4" fill="#145CFF" fill-opacity=".24"/>
-  <circle cx="1370" cy="476" r="5" fill="#145CFF" fill-opacity=".22"/>
-  <path d="M1189 295V509M1082 402H1296" stroke="#145CFF" stroke-opacity=".035"/>
-  <circle cx="1189" cy="402" r="106" stroke="#145CFF" stroke-opacity=".045"/>
+  <rect width="1700" height="1260" fill="url(#ticks)"/>
+  <ellipse cx="1430" cy="160" rx="560" ry="420" fill="url(#halo)"/>
+  <path d="M220 1100C486 915 548 947 720 768C892 589 994 653 1148 468C1302 283 1432 325 1768 112" stroke="url(#flow)" stroke-width="1.35"/>
+  <path d="M620 860L842 632L1050 704L1264 412L1496 498" stroke="#145CFF" stroke-opacity=".105"/>
+  <path d="M842 632L920 382L1264 412L1372 198" stroke="#0B2343" stroke-opacity=".06"/>
+  <path d="M1050 704L1178 838L1496 498L1604 644" stroke="#145CFF" stroke-opacity=".048" stroke-dasharray="4 9"/>
+  <circle cx="620" cy="860" r="4" fill="#145CFF" fill-opacity=".25"/>
+  <circle cx="842" cy="632" r="8" fill="white" stroke="#145CFF" stroke-opacity=".28"/>
+  <circle cx="920" cy="382" r="4" fill="#145CFF" fill-opacity=".23"/>
+  <circle cx="1050" cy="704" r="4" fill="#145CFF" fill-opacity=".23"/>
+  <circle cx="1264" cy="412" r="9" fill="white" stroke="#145CFF" stroke-opacity=".29"/>
+  <circle cx="1372" cy="198" r="4" fill="#145CFF" fill-opacity=".25"/>
+  <circle cx="1496" cy="498" r="5" fill="#145CFF" fill-opacity=".23"/>
+  <circle cx="1604" cy="644" r="3" fill="#145CFF" fill-opacity=".14"/>
+  <g stroke="#145CFF" stroke-opacity=".047">
+    <path d="M1264 298V526M1150 412H1378"/>
+    <circle cx="1264" cy="412" r="114"/><circle cx="1264" cy="412" r="172"/>
+  </g>
+  <g opacity=".22" stroke="#145CFF">
+    <path d="M330 322H520M330 338H468M330 354H552"/>
+    <path d="M330 318V358"/>
+  </g>
+  <g opacity=".17" fill="#145CFF">
+    <circle cx="1470" cy="824" r="3"/><rect x="1484" y="822" width="106" height="2" rx="1"/>
+    <circle cx="1470" cy="842" r="3"/><rect x="1484" y="840" width="142" height="2" rx="1"/>
+    <circle cx="1470" cy="860" r="3"/><rect x="1484" y="858" width="72" height="2" rx="1"/>
+  </g>
 </svg>
