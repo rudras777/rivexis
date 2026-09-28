@@ -41,11 +41,10 @@ test("Decision Desk creates a canonical decision and persisted JSON HTML PDF rep
   await page.route("**/api/v1/analyses/analysis-b1",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify(analysis("analysis-b1","B1",30))}));
   await page.route("**/api/v1/analyses/analysis-f2",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify(analysis("analysis-f2","F2",60))}));
 
-  let decisionRequest:Record<string,unknown>|null=null;
-  let decisionCsrf="";
+  const capture:{decisionRequest:Record<string,unknown>|null;decisionCsrf:string}={decisionRequest:null,decisionCsrf:""};
   await page.route("**/api/v1/decisions/analyze",async route=>{
-    decisionRequest=route.request().postDataJSON() as Record<string,unknown>;
-    decisionCsrf=(await route.request().allHeaders())["x-rivexis-csrf"]??"";
+    capture.decisionRequest=route.request().postDataJSON() as Record<string,unknown>;
+    capture.decisionCsrf=(await route.request().allHeaders())["x-rivexis-csrf"]??"";
     decisionCreated=true;
     return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify(decision)});
   });
@@ -81,8 +80,9 @@ test("Decision Desk creates a canonical decision and persisted JSON HTML PDF rep
   await expect(page.getByTestId("decision-desk-detail")).toContainText("analysis-b1");
   await expect(page.getByTestId("decision-desk-detail")).toContainText("analysis-f2");
 
-  expect(decisionCsrf).toBe("decision-report-csrf");
-  const engineResults=(decisionRequest?.engine_results??[]) as Array<Record<string,unknown>>;
+  expect(capture.decisionCsrf).toBe("decision-report-csrf");
+  const requestBody=capture.decisionRequest??{};
+  const engineResults=Array.isArray(requestBody["engine_results"])?requestBody["engine_results"] as Array<Record<string,unknown>>:[];
   expect(engineResults.map(item=>item.analysis_id)).toEqual(["analysis-b1","analysis-f2"]);
 
   for(const [format,label] of [["json","Download JSON"],["html","Download HTML"],["pdf","Download PDF"]] as const){
