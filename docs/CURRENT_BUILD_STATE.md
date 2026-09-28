@@ -9,6 +9,7 @@ This is the compact production resume point. Live provider state and current `ma
 - Repository: `rudras777/rivexis`; branch `main`.
 - Production-repair work started from clean `main` head `21fe63f3b1b19aa607cd56779e9fc88290673dbc`; origin matched before changes. CI #408 and Pages #79 passed on that baseline.
 - Production repair implementation `c7b52aac8b227246e29efd8ff942e73aa64d15c2` adds the free runtime bridge and verified frontend integration. CI #409 and Pages #80 passed on that exact SHA.
+- Provider-capability truthfulness repair `8f162727e3b4fc0257c147a2da90f9f501850b0f` removes the misleading free-runtime deep-probe control, adds an explicit Edge capability contract and a functional provider-status refresh. CI run `36392977072` and Pages run `36392976368` passed on that exact SHA.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -37,9 +38,9 @@ Authoritative public frontend:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-Cloudflare Worker version `9165c9b6-e8e7-4b78-b82d-4ef73becc6f9` is the current manual production deployment. Live browser verification covered public auth pages, same-origin `/health`, authenticated workspace navigation, refresh/session persistence, logout/protected-route denial, workspace and organization creation, providers, monitors, history, saved analyses, protocol history, investigation workflow, and PDF rendering.
+Cloudflare Worker version `b2e9f7f5-8b55-4523-b8f7-d5504c0ab13a` is the current manual production deployment. Live browser verification covered public auth pages, same-origin `/health`, authenticated workspace navigation, refresh/session persistence, logout/protected-route denial, workspace and organization creation, providers, monitors, history, saved analyses, protocol history, investigation workflow, and PDF rendering. The provider page now shows configuration-only semantics when deep probes are unsupported and its replacement refresh action was exercised successfully in production.
 
-The web application now uses a same-origin `/api/v1/*` proxy to the Supabase Edge function `rivexis-api` (function version 4). Browser cookies remain HttpOnly/Secure/SameSite=Lax and state-changing requests retain CSRF validation. Recovery bearer tokens are kept in memory only and removed from the browser URL before password entry.
+The web application now uses a same-origin `/api/v1/*` proxy to the Supabase Edge function `rivexis-api` (function version 5). Browser cookies remain HttpOnly/Secure/SameSite=Lax and state-changing requests retain CSRF validation. Recovery bearer tokens are kept in memory only and removed from the browser URL before password entry.
 
 ## Authentication lifecycle
 
