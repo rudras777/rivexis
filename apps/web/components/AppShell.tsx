@@ -31,6 +31,7 @@ type ShellStateProps={title:string;message:string;kind:"loading"|"empty"|"sessio
 function ShellState({title,message,kind,action}:ShellStateProps){
   const live=kind==="loading"||kind==="empty"?"status":"alert";
   return <div className="appShell">
+    <div className="workspaceAmbient" aria-hidden="true"/>
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
     <aside className="sidebar shellStateSidebar"><Brand/><div className="environment">MVP / WORKSPACE-SCOPED</div><div className="sideFoot"><div className="decisionLegend"><b>Decision states</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
     <main className="workspaceMain shellState" id="workspace-main"><section className="shellStateCard" role={live} aria-live="polite" data-testid={`workspace-shell-${kind}`}><div className="shellStateKicker">Workspace access</div><h1>{title}</h1><p>{message}</p>{action?<div className="shellStateActions">{action}</div>:null}</section></main>
@@ -95,6 +96,7 @@ export function AppShell({children}:{children:React.ReactNode}){
   const contextValue={workspaceId:selected,workspace:selectedWorkspace,workspaces:q.data.items,switchWorkspace:change};
 
   return <div className="appShell">
+    <div className="workspaceAmbient" aria-hidden="true"/>
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
     <aside className="sidebar"><Brand/><div className="environment"><span className="statusDot"/>PRODUCTION WORKSPACE</div><label className="workspaceSelector">ACTIVE WORKSPACE<select value={selected} onChange={e=>change(e.target.value)}>{q.data.items.map(w=><option key={w.id} value={w.id}>{w.name} · {w.access_role}</option>)}</select></label><nav aria-label="Workspace">{nav.map(([n,h,number])=>{const current=p===h;return <Link key={h} href={h} className={current?"active":""} aria-current={current?"page":undefined}><span className="navIndex">{number}</span><span>{n}</span></Link>})}</nav><div className="sideFoot"><button type="button" className="sidebarLogout" aria-label={loggingOut?"Logging out…":"Log out"} onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out securely"}<span aria-hidden="true">↗</span></button>{logoutError?<div className="sidebarError" role="alert">{logoutError}</div>:null}<div className="decisionLegend"><b>Decision policy</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
     <main className="workspaceMain" id="workspace-main"><WorkspaceContextProvider value={contextValue}>{children}</WorkspaceContextProvider></main>

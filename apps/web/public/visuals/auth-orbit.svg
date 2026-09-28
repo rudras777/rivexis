@@ -1,0 +1,16 @@
+<svg width="900" height="1100" viewBox="0 0 900 1100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="orbit" x1="76" y1="1000" x2="795" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#7DA8FF" stop-opacity="0"/><stop offset=".5" stop-color="#7DA8FF" stop-opacity=".38"/><stop offset="1" stop-color="#7DA8FF" stop-opacity="0"/></linearGradient></defs>
+  <circle cx="310" cy="408" r="275" stroke="url(#orbit)"/>
+  <circle cx="310" cy="408" r="188" stroke="#7DA8FF" stroke-opacity=".15"/>
+  <circle cx="310" cy="408" r="98" stroke="#7DA8FF" stroke-opacity=".1"/>
+  <path d="M82 771L220 616L358 688L508 481L676 526L841 312" stroke="#7DA8FF" stroke-opacity=".3"/>
+  <path d="M220 616L254 398L508 481L594 259L841 312" stroke="#DCE9FF" stroke-opacity=".16"/>
+  <circle cx="82" cy="771" r="4" fill="#7DA8FF"/>
+  <circle cx="220" cy="616" r="8" fill="#06172E" stroke="#7DA8FF" stroke-opacity=".7"/>
+  <circle cx="254" cy="398" r="4" fill="#7DA8FF"/>
+  <circle cx="358" cy="688" r="5" fill="#7DA8FF"/>
+  <circle cx="508" cy="481" r="9" fill="#06172E" stroke="#7DA8FF" stroke-opacity=".7"/>
+  <circle cx="594" cy="259" r="4" fill="#7DA8FF"/>
+  <circle cx="676" cy="526" r="5" fill="#7DA8FF"/>
+  <circle cx="841" cy="312" r="8" fill="#06172E" stroke="#7DA8FF" stroke-opacity=".7"/>
+</svg>

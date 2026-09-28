@@ -1,0 +1,30 @@
+<svg width="1600" height="1100" viewBox="0 0 1600 1100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="line" x1="180" y1="950" x2="1430" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#145CFF" stop-opacity="0"/>
+      <stop offset=".45" stop-color="#145CFF" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#145CFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="wash" cx="0" cy="0" r="1" gradientTransform="translate(1240 250) rotate(130) scale(590 460)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DCEAFF" stop-opacity=".78"/>
+      <stop offset="1" stop-color="#F7FAFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="26"/></filter>
+  </defs>
+  <ellipse cx="1240" cy="250" rx="590" ry="460" fill="url(#wash)"/>
+  <path d="M-70 914C191 820 318 849 512 693C706 537 797 548 972 420C1147 292 1280 233 1685 297" stroke="url(#line)" stroke-width="1.5"/>
+  <path d="M-58 987C226 860 362 911 572 739C782 567 879 615 1059 452C1239 289 1393 315 1663 221" stroke="#145CFF" stroke-opacity=".07"/>
+  <path d="M288 720L510 591L704 654L904 455L1116 507L1367 260" stroke="#145CFF" stroke-opacity=".13"/>
+  <path d="M510 591L560 356L904 455L1041 229L1367 260" stroke="#0B2343" stroke-opacity=".07"/>
+  <circle cx="288" cy="720" r="5" fill="#145CFF" fill-opacity=".34"/>
+  <circle cx="510" cy="591" r="8" fill="white" stroke="#145CFF" stroke-opacity=".33"/>
+  <circle cx="560" cy="356" r="4" fill="#145CFF" fill-opacity=".26"/>
+  <circle cx="704" cy="654" r="4" fill="#145CFF" fill-opacity=".26"/>
+  <circle cx="904" cy="455" r="10" fill="white" stroke="#145CFF" stroke-opacity=".35"/>
+  <circle cx="1041" cy="229" r="4" fill="#145CFF" fill-opacity=".3"/>
+  <circle cx="1116" cy="507" r="5" fill="#145CFF" fill-opacity=".32"/>
+  <circle cx="1367" cy="260" r="9" fill="white" stroke="#145CFF" stroke-opacity=".3"/>
+  <circle cx="904" cy="455" r="80" stroke="#145CFF" stroke-opacity=".06"/>
+  <circle cx="904" cy="455" r="146" stroke="#145CFF" stroke-opacity=".035"/>
+  <circle cx="1308" cy="328" r="94" fill="#145CFF" fill-opacity=".04" filter="url(#blur)"/>
+</svg>
