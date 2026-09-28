@@ -31,17 +31,18 @@ test("F3 live mode exposes required oracle evidence and sends the canonical posi
 
   const collateralFeed="0x1111111111111111111111111111111111111111";
   const debtFeed="0x2222222222222222222222222222222222222222";
-  await page.getByLabel("Collateral oracle feed *").fill(collateralFeed);
+  await page.getByRole("textbox",{name:/^Collateral oracle feed/}).fill(collateralFeed);
   await expect(runButton).toBeEnabled();
   await page.getByLabel("Collateral units").fill("2.5");
   await page.getByLabel("Debt units").fill("2100");
   await page.getByLabel("Liquidation threshold").fill("1.2");
-  await page.getByLabel("Debt oracle feed").fill(debtFeed);
+  await page.getByRole("textbox",{name:/^Debt oracle feed/}).fill(debtFeed);
   await page.getByLabel("Debt price USD fallback").fill("1.01");
   await page.getByLabel("Collateral CoinGecko ID").fill("ethereum");
   await page.getByLabel("Price conflict tolerance").fill("2.5");
   await page.getByRole("button",{name:"Run F3 analysis"}).click();
 
+  await expect(page.getByTestId("engine-result-summary")).toContainText("UNKNOWN — NO PROVIDER EVIDENCE RECORDED");
   expect(csrf).toBe("f3-guided-csrf");
   expect(submitted).toMatchObject({
     demo:false,
@@ -58,5 +59,4 @@ test("F3 live mode exposes required oracle evidence and sends the canonical posi
       price_conflict_tolerance_pct:2.5,
     },
   });
-  await expect(page.getByTestId("engine-result-summary")).toContainText("UNKNOWN — NO PROVIDER EVIDENCE RECORDED");
 });
