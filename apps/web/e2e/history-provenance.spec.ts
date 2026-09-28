@@ -49,7 +49,7 @@ test.describe("History canonical provenance",()=>{
 
     await page.goto("/workspace/history");
     const analysisRow=page.getByRole("row").filter({hasText:"analysis-alpha"});
-    await analysisRow.getByRole("button",{name:"Inspect"}).click();
+    await analysisRow.getByRole("button",{name:"Inspect provenance"}).click();
     const detail=page.getByTestId("history-provenance-detail");
     await expect(detail).toContainText("Persisted analysis provenance");
     await expect(detail).toContainText("StatusPARTIAL");
@@ -60,9 +60,9 @@ test.describe("History canonical provenance",()=>{
     await expect(detail).toContainText("indexed approval history");
     expect(analysisDetailCalls).toBe(1);
 
-    await analysisRow.getByRole("button",{name:"Hide"}).click();
+    await analysisRow.getByRole("button",{name:"Hide provenance"}).click();
     const decisionRow=page.getByRole("row").filter({hasText:"decision-alpha"});
-    await decisionRow.getByRole("button",{name:"Inspect"}).click();
+    await decisionRow.getByRole("button",{name:"Inspect provenance"}).click();
     await expect(detail).toContainText("Persisted decision provenance");
     await expect(detail).toContainText("DecisionWAIT");
     await expect(detail).toContainText("Decision methodology1.1.0");
@@ -78,5 +78,46 @@ test.describe("History canonical provenance",()=>{
     await expect(page.getByTestId("history-provenance-detail")).toHaveCount(0);
     await expect(page.getByText("ethereum_rpc")).toHaveCount(0);
     await expect(page.getByText("analysis-alpha")).toHaveCount(0);
+  });
+
+  test("filters recent history and saves an analysis through the protected persistence API",async({page})=>{
+    await baseMocks(page);
+    const savedRequests:Array<{body:unknown;csrf:string}>=[];
+    await page.route("**/api/v1/auth/web/csrf",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({csrf_token:"history-save-csrf"})}));
+    await page.route("**/api/v1/saved-analyses",async route=>{
+      if(route.request().method()!=="POST")return route.fallback();
+      const body=route.request().postDataJSON();
+      savedRequests.push({body,csrf:route.request().headers()["x-rivexis-csrf"]??""});
+      return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({
+        id:"saved-alpha",workspace_id:"w-alpha",analysis_id:"analysis-alpha",title:(body as {title:string}).title,archived:false,created_at:"2026-09-23T09:00:00Z",
+      })});
+    });
+
+    await page.goto("/workspace/history");
+    await expect(page.getByText("analysis-alpha")).toBeVisible();
+    await expect(page.getByText("decision-alpha")).toBeVisible();
+
+    await page.getByLabel("Search history").fill("B2");
+    await expect(page.getByText("analysis-alpha")).toBeVisible();
+    await expect(page.getByText("decision-alpha")).toHaveCount(0);
+
+    await page.getByLabel("Search history").fill("");
+    await page.getByLabel("History record type").selectOption("decision");
+    await expect(page.getByText("decision-alpha")).toBeVisible();
+    await expect(page.getByText("analysis-alpha")).toHaveCount(0);
+
+    await page.getByLabel("History record type").selectOption("all");
+    await page.getByLabel("History analysis mode").selectOption("demo");
+    await expect(page.getByText("No history records match the current search and filters.")).toBeVisible();
+
+    await page.getByLabel("History analysis mode").selectOption("all");
+    const analysisRow=page.getByRole("row").filter({hasText:"analysis-alpha"});
+    await analysisRow.getByRole("button",{name:"Save reference"}).click();
+    await expect(page.getByText(/Saved analysis-alpha as/)).toBeVisible();
+
+    expect(savedRequests).toHaveLength(1);
+    expect(savedRequests[0].csrf).toBe("history-save-csrf");
+    expect(savedRequests[0].body).toMatchObject({analysis_id:"analysis-alpha"});
+    expect((savedRequests[0].body as {title:string}).title).toContain("B2 analysis");
   });
 });
