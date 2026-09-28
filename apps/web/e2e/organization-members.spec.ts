@@ -60,6 +60,8 @@ test("organization settings administer existing members and preserve claim-only 
   await expect(page.getByTestId("organization-member-admin")).toContainText("Risk Council members");
   await expect(page.getByTestId("organization-member-row")).toHaveCount(2);
   await expect(page.getByText("org-1",{exact:true}).first()).toBeVisible();
+  await expect(page.getByText(/Do not add a new person by email alone/)).toBeVisible();
+  await expect(page.getByRole("button",{name:/add member/i})).toHaveCount(0);
 
   await page.getByLabel("Role for analyst@example.com").selectOption("VIEWER");
   await page.getByLabel("Update analyst@example.com").click();
