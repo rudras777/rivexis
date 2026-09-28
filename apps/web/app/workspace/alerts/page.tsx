@@ -11,7 +11,12 @@ type AlertRow={
   payload?:Record<string,unknown>;
 };
 type AlertList={workspace_id:string;items:AlertRow[];status:string};
-type Metrics={workspace_id:string;window_hours:number;slo_seconds:number;total:number;pending:number;delivered:number;dead_letter:number;oldest_pending_age_seconds:number;delivered_within_slo_percent:number|null;processor_status:string};
+type Metrics={
+  workspace_id:string;window_hours:number;slo_seconds:number;total:number;pending:number;delivered:number;dead_letter:number;
+  oldest_pending_age_seconds:number;delivered_within_slo_percent:number|null;processor_status:string;sink_status?:string;
+  recipient_policy?:string;last_run_at?:string|null;last_success_at?:string|null;last_error_code?:string|null;
+  last_processed?:number;last_delivered?:number;last_failed?:number;
+};
 
 type StatusVars={workspaceId:string;id:string;status:"open"|"acknowledged"|"resolved"};
 type RequeueVars={workspaceId:string;id:string};
@@ -29,6 +34,16 @@ function message(error:unknown){
 function recordedAt(value:string){const date=new Date(value);return Number.isNaN(date.getTime())?value:date.toLocaleString()}
 function age(seconds:number){if(seconds<60)return `${Math.round(seconds)}s`;if(seconds<3600)return `${Math.round(seconds/60)}m`;return `${Math.round(seconds/3600)}h`}
 function severityClass(value:string){const v=value.toLowerCase();return v==="critical"||v==="high"?"negative":v==="moderate"?"warning":v==="low"?"positive":"neutral"}
+function processorTruth(metrics?:Metrics){
+  const status=String(metrics?.processor_status??"NOT_CONFIGURED").toUpperCase();
+  const sink=String(metrics?.sink_status??"NOT_CONFIGURED").toUpperCase();
+  if(status==="SCHEDULED_READY")return "Automatic queue scheduling is active. Brevo submissions are enabled for the workspace-owner recipient policy. A delivered queue state means provider acceptance, not proof of inbox delivery. Continuous threat ingestion is still not configured.";
+  if(status==="SCHEDULED_SANDBOX")return "Automatic queue scheduling is active in Brevo sandbox mode. No notification email is sent and queued records are not consumed. Continuous threat ingestion is still not configured.";
+  if(status==="SCHEDULED_NO_SINK"||sink==="NOT_CONFIGURED")return "Automatic queue scheduling is active, but no production alert-delivery sink is configured. Queued records remain pending without consuming delivery attempts. Continuous threat ingestion is still not configured.";
+  if(status==="DEGRADED")return "Automatic queue scheduling is active but the last delivery cycle reported a degraded outcome. Queue retry and dead-letter controls remain authoritative; continuous threat ingestion is still not configured.";
+  return "This compatibility runtime exposes durable alert records and queue state. Continuous threat ingestion and automatic delivery processing are not configured.";
+}
+function recipientLabel(value?:string){return value==="WORKSPACE_OWNER_EMAIL"?"Workspace owner email":"Not configured"}
 
 export default function Alerts(){
   const {workspaceId,workspace}=useWorkspace();
@@ -47,11 +62,12 @@ export default function Alerts(){
   const open=alerts.filter(item=>item.status==="open").length;
   const acknowledged=alerts.filter(item=>item.status==="acknowledged").length;
   const busy=statusMutation.isPending||requeue.isPending;
+  const runtime=metrics.data;
   return <>
     <div className="workspaceHeader dashboardHeader"><div><div className="workspaceKicker">Operational evidence queue</div><h1>Alerts</h1><p>Review durable workspace alert records and delivery state without implying continuous provider surveillance.</p></div><div className="workspaceHeaderActions"><span className="badge"><span className="statusDot"/>{workspace.name}</span><span className="badge">DURABLE RECORDS</span></div></div>
-    <section className="overviewBand surfaceOverview" aria-label="Alert overview"><div><small>TOTAL / 24H</small><strong>{metrics.isPending?"—":metrics.data?.total??0}</strong><span>Recorded alerts</span></div><div><small>OPEN</small><strong>{list.isPending?"—":open}</strong><span>Awaiting review</span></div><div><small>ACKNOWLEDGED</small><strong>{list.isPending?"—":acknowledged}</strong><span>Under review</span></div><div><small>DELIVERY QUEUE</small><strong>{metrics.isPending?"—":metrics.data?.pending??0}</strong><span>Pending or retry</span></div></section>
-    <div className="truthNotice"><span className="statusDot"/>This compatibility runtime exposes durable alert records and queue state only. Continuous threat ingestion and automatic delivery processing are not configured.</div>
-    {metrics.data?<section className="panel operationalPanel"><div className="panelHeading"><div><span className="workspaceKicker">24-hour delivery posture</span><h2>Queue controls</h2></div><span className="stepLabel">PROCESSOR {metrics.data.processor_status}</span></div><div className="resultGrid"><div><span>Delivered</span><b>{metrics.data.delivered}</b></div><div><span>Dead letter</span><b>{metrics.data.dead_letter}</b></div><div><span>Oldest queued</span><b>{age(metrics.data.oldest_pending_age_seconds)}</b></div><div><span>Within 5m SLO</span><b>{metrics.data.delivered_within_slo_percent==null?"No deliveries":`${metrics.data.delivered_within_slo_percent}%`}</b></div></div><p className="sectionLead">Requeue resets a dead-letter record to pending. It does not claim delivery will occur until a real processor is configured.</p></section>:null}
+    <section className="overviewBand surfaceOverview" aria-label="Alert overview"><div><small>TOTAL / 24H</small><strong>{metrics.isPending?"—":runtime?.total??0}</strong><span>Recorded alerts</span></div><div><small>OPEN</small><strong>{list.isPending?"—":open}</strong><span>Awaiting review</span></div><div><small>ACKNOWLEDGED</small><strong>{list.isPending?"—":acknowledged}</strong><span>Under review</span></div><div><small>DELIVERY QUEUE</small><strong>{metrics.isPending?"—":runtime?.pending??0}</strong><span>Pending or retry</span></div></section>
+    <div className="truthNotice" data-testid="alert-runtime-truth"><span className="statusDot"/>{processorTruth(runtime)}</div>
+    {runtime?<section className="panel operationalPanel"><div className="panelHeading"><div><span className="workspaceKicker">24-hour delivery posture</span><h2>Queue controls</h2></div><span className="stepLabel">PROCESSOR {runtime.processor_status}</span></div><div className="resultGrid"><div><span>Delivered</span><b>{runtime.delivered}</b></div><div><span>Dead letter</span><b>{runtime.dead_letter}</b></div><div><span>Oldest queued</span><b>{age(runtime.oldest_pending_age_seconds)}</b></div><div><span>Within 5m SLO</span><b>{runtime.delivered_within_slo_percent==null?"No deliveries":`${runtime.delivered_within_slo_percent}%`}</b></div><div><span>Delivery sink</span><b>{runtime.sink_status??"NOT_CONFIGURED"}</b></div><div><span>Recipient policy</span><b>{recipientLabel(runtime.recipient_policy)}</b></div><div><span>Last processor run</span><b>{runtime.last_run_at?recordedAt(runtime.last_run_at):"No run recorded"}</b></div><div><span>Last cycle</span><b>{`${runtime.last_delivered??0} accepted / ${runtime.last_failed??0} failed`}</b></div></div><p className="sectionLead">Requeue resets a dead-letter record to pending. Provider acceptance is tracked separately from threat evidence and does not prove inbox delivery.</p></section>:null}
     <section className="panel operationalPanel" aria-live="polite" data-testid="workspace-alerts-state"><div className="panelHeading"><div><span className="workspaceKicker">Authorized inventory</span><h2>Alert records</h2></div><p className="sectionLead">Rows are workspace-authorized on the server. Status changes require write access; requeue requires OWNER/ADMIN management access.</p></div>
       {list.isPending?<div className="surfaceState" role="status">Loading alerts for {workspace.name}…</div>:null}
       {list.isError?<p className="error" role="alert">{message(list.error)}</p>:null}

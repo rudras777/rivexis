@@ -63,6 +63,13 @@ async function alertBridge(action:string,userId:string,payload:Json={}):Promise<
   if(error)throw new Error(error.message);
   return data;
 }
+async function deliveryRuntime():Promise<Record<string,unknown>>{
+  const {data,error}=await admin.rpc("rivexis_edge_alert_delivery_runtime");
+  if(error||!data||typeof data!=="object"){
+    return {processor_status:"NOT_CONFIGURED",sink_status:"NOT_CONFIGURED",recipient_policy:"WORKSPACE_OWNER_EMAIL"};
+  }
+  return {...data,recipient_policy:"WORKSPACE_OWNER_EMAIL"};
+}
 function bridgeFailure(req:Request,cause:unknown,cookie?:string){
   const detail=cause instanceof Error?cause.message:"Alert request failed";const normalized=detail.toLowerCase();
   if(normalized.includes("management access required"))return error(req,403,"Workspace management access required",cookie);
@@ -75,7 +82,15 @@ function bridgeFailure(req:Request,cause:unknown,cookie?:string){
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors(req)});
   const url=new URL(req.url);const marker="/rivexis-alerts";const position=url.pathname.indexOf(marker);const path=position>=0?url.pathname.slice(position+marker.length)||"/":url.pathname;
-  if(path==="/health")return json(req,{status:"ready",service:"rivexis-alerts",runtime:"supabase-edge",api_version:"v1",environment:"production",ingestion:"durable-records-only",delivery_processor:"not-configured"});
+  if(path==="/health"){
+    const runtime=await deliveryRuntime();
+    return json(req,{
+      status:"ready",service:"rivexis-alerts",runtime:"supabase-edge",api_version:"v1",environment:"production",
+      ingestion:"durable-records-only",continuous_threat_ingestion:false,
+      delivery_processor:runtime.processor_status,delivery_sink:runtime.sink_status,
+      recipient_policy:runtime.recipient_policy,last_delivery_cycle_at:runtime.last_run_at??null,
+    });
+  }
   const auth=await authenticate(req);
   if(!auth)return error(req,401,"Authentication required",clearCookie());
   const method=req.method.toUpperCase();
@@ -83,12 +98,17 @@ Deno.serve(async(req:Request)=>{
   try{
     if(path==="/api/v1/alerts"&&method==="GET"){
       const workspaceId=url.searchParams.get("workspace_id")??"";
-      return json(req,await alertBridge("list",auth.user.id,{workspace_id:workspaceId}),200,auth.cookie);
+      const [listed,runtime]=await Promise.all([alertBridge("list",auth.user.id,{workspace_id:workspaceId}),deliveryRuntime()]);
+      return json(req,{
+        ...listed,
+        status:`durable_alert_records_only; continuous_threat_stream_not_configured; delivery_processor=${String(runtime.processor_status??"NOT_CONFIGURED").toLowerCase()}`,
+      },200,auth.cookie);
     }
     if(path==="/api/v1/alerts/delivery-metrics"&&method==="GET"){
       const workspaceId=url.searchParams.get("workspace_id")??"";
       const raw=Number(url.searchParams.get("slo_seconds")??300);const slo=Number.isFinite(raw)?Math.max(1,Math.min(86400,Math.trunc(raw))):300;
-      return json(req,await alertBridge("metrics",auth.user.id,{workspace_id:workspaceId,slo_seconds:slo}),200,auth.cookie);
+      const [metrics,runtime]=await Promise.all([alertBridge("metrics",auth.user.id,{workspace_id:workspaceId,slo_seconds:slo}),deliveryRuntime()]);
+      return json(req,{...metrics,...runtime,recipient_policy:"WORKSPACE_OWNER_EMAIL"},200,auth.cookie);
     }
     const requeue=path.match(/^\/api\/v1\/alerts\/([^/]+)\/requeue$/);
     if(requeue&&method==="POST")return json(req,await alertBridge("requeue",auth.user.id,{alert_id:decodeURIComponent(requeue[1])}),200,auth.cookie);
