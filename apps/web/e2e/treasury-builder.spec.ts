@@ -46,6 +46,7 @@ test("F5 live mode builds canonical treasury allocations without silent normaliz
 
   await page.getByRole("button",{name:"Run F5"}).click();
 
+  await expect(page.getByTestId("engine-result-summary")).toContainText("UNKNOWN — NO PROVIDER EVIDENCE RECORDED");
   expect(csrf).toBe("treasury-builder-csrf");
   expect(submitted).toMatchObject({
     demo:false,
@@ -62,5 +63,4 @@ test("F5 live mode builds canonical treasury allocations without silent normaliz
       ],
     },
   });
-  await expect(page.getByTestId("engine-result-summary")).toContainText("UNKNOWN — NO PROVIDER EVIDENCE RECORDED");
 });
