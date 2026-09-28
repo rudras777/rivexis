@@ -46,11 +46,11 @@ test("saved analyses support inspect, archive, restore, search and delete",async
   })}));
 
   await page.goto("/workspace/saved");
-  await expect(page.getByText("Alpha security review")).toBeVisible();
+  await expect(page.getByRole("cell",{name:"Alpha security review"})).toBeVisible();
   await expect(page.getByText("Beta protocol review")).toHaveCount(0);
 
   await page.getByLabel("Search saved analyses").fill("security");
-  await expect(page.getByText("Alpha security review")).toBeVisible();
+  await expect(page.getByRole("cell",{name:"Alpha security review"})).toBeVisible();
   await page.getByLabel("Search saved analyses").fill("protocol");
   await expect(page.getByText("No saved analyses match the current search and visibility filters.")).toBeVisible();
   await page.getByLabel("Search saved analyses").fill("");
@@ -65,12 +65,12 @@ test("saved analyses support inspect, archive, restore, search and delete",async
 
   await page.getByRole("button",{name:"Archive"}).click();
   await expect(page.getByText("Saved analysis archived.")).toBeVisible();
-  await expect(page.getByText("Alpha security review")).toHaveCount(0);
+  await expect(page.getByRole("cell",{name:"Alpha security review"})).toHaveCount(0);
 
   await page.getByLabel("Saved analysis visibility").selectOption("all");
-  await expect(page.getByText("Alpha security review")).toBeVisible();
-  await expect(page.getByText("Beta protocol review")).toBeVisible();
-  const alphaRow=page.getByRole("row").filter({hasText:"Alpha security review"});
+  await expect(page.getByRole("cell",{name:"Alpha security review"})).toBeVisible();
+  await expect(page.getByRole("cell",{name:"Beta protocol review"})).toBeVisible();
+  const alphaRow=page.getByRole("row").filter({has:page.getByRole("cell",{name:"Alpha security review"})});
   await alphaRow.getByRole("button",{name:"Restore"}).click();
   await expect(page.getByText("Saved analysis restored to the active list.")).toBeVisible();
   await expect(alphaRow).toContainText("Active");
@@ -78,7 +78,7 @@ test("saved analyses support inspect, archive, restore, search and delete",async
   await alphaRow.getByRole("button",{name:"Delete"}).click();
   await alphaRow.getByRole("button",{name:"Confirm delete"}).click();
   await expect(page.getByText("Saved reference deleted. The underlying persisted analysis remains in workspace history.")).toBeVisible();
-  await expect(page.getByText("Alpha security review")).toHaveCount(0);
+  await expect(page.getByRole("cell",{name:"Alpha security review"})).toHaveCount(0);
 
   expect(mutations).toHaveLength(3);
   expect(mutations.map(item=>item.method)).toEqual(["PATCH","PATCH","DELETE"]);
