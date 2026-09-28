@@ -1,154 +1,91 @@
 # Rivexis Build Execution Plan
 
 Last updated: 2026-09-28
-Authoritative project mandate: Rivexis “Complete Website, Full Functionality & World-Class Institutional UI/UX Master Prompt”.
+Authoritative mandate: complete Rivexis as institutional blockchain intelligence / crypto-finance risk decision infrastructure with truthful evidence semantics and production-backed actions.
 
-## Current verified baseline
+## Verified baseline
 
-- Repository: `rudras777/rivexis`; default branch `main`.
-- Latest product/backend release source before documentation-only state recording: `59dadde0edb1c58ea2b22f421c26d4509bbab7f2`.
-- Exact release CI: `36421346582` — SUCCESS.
-- Exact release Pages run: `36421345772` — SUCCESS.
-- Frontend: Next.js 16 / React 19 / TypeScript using vinext for Cloudflare Workers.
-- Full provider-capable backend: FastAPI source remains authoritative for complete provider depth, but its Cloudflare Container path is Workers Paid gated.
-- Free production compatibility backend: Supabase Edge `rivexis-api` **version 7 ACTIVE**.
+- Repository: `rudras777/rivexis`, branch `main`.
+- Latest fully certified product source: `6bf117154a958688697cc998530a65c9726e820f`.
+- Exact-head CI: `36429614693` — SUCCESS.
+- Exact-head Pages: `36429614899` — SUCCESS.
+- Frontend: Next.js 16 / React 19 / TypeScript + vinext.
+- Production compatibility backend: Supabase Edge `rivexis-api` v7 ACTIVE.
 - Production database: Supabase project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1, hardened owner/RLS posture retained.
-- Browser auth: HttpOnly/Secure/SameSite=Lax cookie + CSRF; recovery tokens remain memory-only.
-- Demonstration engines B1-B5/F1-F5 remain deterministic and explicitly synthetic; live execution remains UNKNOWN without verified provider evidence.
-- Authoritative Cloudflare web Worker remains on manual version `e8922aac-cb84-435b-bd0c-38fbb886be57`; GitHub source is newer and must not be claimed live until authenticated Cloudflare deployment succeeds.
+- Full provider-capable FastAPI source remains authoritative for deep provider functionality; Cloudflare Container deployment is Workers Paid gated.
+- Authoritative Cloudflare web Worker remains the older manual deployment `e8922aac-cb84-435b-bd0c-38fbb886be57`; later source must not be described as live there.
 
-## Completed production capabilities
+## Completed functional slices
 
-### Authentication / tenancy
-
-- signup, verification, login, session refresh, logout and protected-route denial;
-- password reset request/confirm;
-- workspace onboarding and switching;
-- organization creation and membership-aware access;
-- same-origin frontend API proxy to Supabase Edge.
-
-### Analysis and evidence
-
-- all ten B1-B5/F1-F5 engine routes;
-- normalized provenance/evidence metadata;
-- explicit provider conflicts, missing data and UNKNOWN-safe behavior;
-- canonical persisted analysis detail and history provenance inspection;
+- browser auth, recovery, onboarding, workspace switching and organization creation;
+- ten B1-B5/F1-F5 deterministic demonstration engines;
+- UNKNOWN-safe live compatibility behavior;
 - provider registry/runtime truth separation;
-- manual B3 monitor creation/check workflow;
-- protocol timeline/configuration comparison truth states;
-- persisted protocol reviews, approval and PDF rendering;
-- investigation creation, review linking, lifecycle/disposition and PDF rendering.
+- monitor create/check workflow;
+- protocol timeline/config compare/review/approval/PDF;
+- investigation creation/link/update/disposition/PDF;
+- Saved Analyses create/list/search/inspect/archive/restore/delete backed by production Edge v7 and hardened Postgres RPC;
+- History search/type/mode filtering, provenance inspection and real Save-reference action;
+- structured F1 `manual_positions` builder;
+- structured F5 `allocations` ledger with explicit weight total and no silent normalization;
+- guided F3 live liquidation inputs aligned to actual oracle/position backend requirements;
+- institutional navy/blue/white visual system with contextual evidence graphics and reduced generic-card UI.
 
-### Saved Analyses
+## Active milestone — organization membership parity
 
-Completed source and production backend contract:
+Full FastAPI already exposes:
 
-- search;
-- active/all archived visibility;
-- inspect persisted analysis/evidence;
-- create/save reference;
-- archive/restore;
-- delete saved reference without deleting the underlying analysis;
-- CSRF-protected Edge POST/PATCH/DELETE routes;
-- hardened `rivexis_edge_saved_analysis` service-role persistence bridge.
+- `GET /api/v1/organizations/{organization_id}/members`;
+- `POST /api/v1/organizations/{organization_id}/members`;
+- `POST /api/v1/organizations/{organization_id}/members/claim`;
+- `DELETE /api/v1/organizations/{organization_id}/members/{user_id}`;
+- `POST /api/v1/organizations/{organization_id}/membership-claim`.
 
-Production checks confirm Edge v7 health and unauthenticated 401 protection. Authenticated live archive/restore/delete certification remains a follow-up; CI/browser action coverage is green.
+The current free Supabase Edge compatibility runtime exposes organization list/create but not member administration. The Settings UI truthfully says member administration is not exposed.
 
-### Institutional UI system
+### Acceptance targets
 
-Source contains the current navy/blue/white institutional visual language:
+1. Inspect FastAPI/store authorization semantics and production schema before adding any compatibility action.
+2. Preserve organization OWNER/ADMIN manager boundaries server-side; never trust a frontend role claim.
+3. Direct member addition may only mirror the existing safe behavior for already-provisioned users unless an explicit secure invitation/claim path is implemented.
+4. A non-manager must not list privileged administration data or mutate membership beyond the permissions intentionally supported.
+5. Prevent removal of the last owner and other organization integrity violations already enforced by FastAPI/store semantics.
+6. Edge state-changing routes must retain cookie authentication + CSRF.
+7. Any privileged database function must have a pinned search path and minimum execute ACL; no `anon`, `authenticated` or PUBLIC execution.
+8. Add focused database/API/browser tests for owner/admin/member/non-member boundaries.
+9. Deploy database/Edge changes only after exact-head CI passes, then verify production health/protected-route behavior and logs.
+10. Only after backend parity exists should Settings expose real member administration controls.
 
-- subtle off-white and translucent surfaces;
-- technical topology/evidence SVG environments for public/auth/workspace contexts;
-- refined action geometry and reduced generic card repetition;
-- editorial/ruled data surfaces and tables;
-- institutional engine terminal/list patterns;
-- responsive public/authenticated layouts.
+## Subsequent milestones
 
-This current UI source is not yet claimed on the authoritative Cloudflare Worker because of the authentication/human-verification deployment gate.
+1. General analysis/report parity: extend only when FastAPI + Edge persistence/render contracts are real; no fake download/report controls.
+2. Remaining organization/workspace role management with genuine backend support.
+3. Monitor alert/event history and real delivery controls where delivery infrastructure exists.
+4. Systematic route/button/form audit for dead actions, placeholder values and unsupported claims.
+5. Provider-backed evidence depth only with approved credentials/contracts/licenses.
+6. Promote exact certified web source to the existing Cloudflare Worker when legitimate authenticated access becomes available, then live-certify public/auth/workspace/Saved/History/engine workflows and browser console state.
 
-## Active product milestone
+## Non-negotiable integrity rules
 
-**History, general reports and remaining operational actions**
-
-The priority is no longer simply “ten engines exist.” The master mandate is full website functionality. The next work therefore closes user-visible operational gaps around persisted analysis history, reporting and reusable institutional workflows while preserving evidence truth.
-
-### Acceptance targets for the active milestone
-
-- History must support useful search/filtering rather than a passive table only.
-- Users must be able to open the canonical persisted analysis record from History.
-- Save/reference actions must use the real Saved Analyses persistence API.
-- Any general report action exposed in UI must have a real FastAPI and Supabase Edge persistence/rendering contract; no frontend-only fake download button.
-- Report payloads must preserve canonical analysis identity, engine/version/provenance and explicit uncertainty.
-- Deleting a saved reference must never silently delete canonical history.
-- All write actions must retain CSRF and tenant/workspace authorization.
-- Workspace switching must discard stale detail/report responses.
-- Browser tests must validate action behavior, not only visual presence.
-- Production Edge changes must be deployed and postflight verified before being described as live.
-- Cloudflare web deployment truth must remain separate from backend deployment truth until the new source is genuinely promoted.
-
-## Subsequent product work
-
-After History/reports:
-
-1. structured multi-row F1 portfolio builder;
-2. richer F3 position inputs where they remain bounded/canonical;
-3. structured F5 treasury allocation/scenario builder;
-4. remaining organization/member/role controls that have real backend support;
-5. monitor alert/event history and alert delivery only where a genuine delivery backend exists;
-6. systematic audit of every route/button/form for dead actions, placeholder data and unsupported claims;
-7. deeper provider evidence only with approved credentials/licenses.
-
-## Engine integrity retained
-
-Current engine contract / calculation versions:
-
-- B1 `1.3.0` / `b1-live-1.8.0`;
-- B2 `1.1.0` / `b2-live-1.3.0`;
-- B3 `1.1.0` / `b3-live-1.3.0`;
-- B4 `1.0.0` / `b4-live-1.1.0`;
-- B5 `1.2.0` / `b5-live-1.4.0`;
-- F1 `1.2.0` / `f1-live-1.4.0`;
-- F2 `1.2.0` / `f2-live-1.4.0`;
-- F3 `1.3.0` / `f3-live-1.3.0`;
-- F4 `1.2.0` / `f4-live-1.3.0`;
-- F5 `1.2.0` / `f5-live-1.3.0`.
-
-Do not weaken:
-
-- canonical RPC/ABI quantity validation;
-- same-block direct-state consistency where a block is claimed;
-- provider-specific provenance/freshness boundaries;
-- conflict-first semantics;
-- bounded payload/input validation;
-- UNKNOWN for unsupported/unverified evidence;
-- tenant/workspace authorization;
-- secure browser session handling.
-
-## Current external gates
-
-- **Cloudflare web source deployment:** blocked until legitimate authenticated Wrangler/dashboard access is available. Human verification must not be bypassed.
-- **Full provider-capable FastAPI deployment:** blocked on explicit Workers Paid authorization.
-- **Custom/owned domain:** not configured/owned for release purposes in this execution state.
-- **Owned email sender domain:** not authenticated; current Supabase/Brevo transport works but sender-domain hardening remains.
-- **External providers:** credentials, licensing and customer-specific contracts remain explicit gates. Arkham and similar intelligence providers must not be simulated.
+- UNKNOWN for unsupported/unverified evidence.
+- Never fabricate provider connectivity, provenance, data freshness or decisions.
+- Preserve canonical RPC/ABI quantity validation and same-block consistency where claimed.
+- Preserve tenant/workspace authorization and secure browser sessions.
+- Do not weaken RLS/role posture to make a feature easier to deploy.
+- Do not bypass Cloudflare human verification or use an alternate deployment provider.
+- Do not make billing changes without explicit user authorization.
 
 ## Autonomous continuation loop
 
-For every `continue` request:
+For every `continue`:
 
-1. inspect newest GitHub `main` and preserve legitimate newer work;
-2. inspect the real implementation and production state relevant to the next gap;
-3. reproduce/confirm the functional deficit;
-4. implement frontend + backend/database work together where required;
-5. add focused action-level tests;
-6. push to `main` without force/reset;
-7. inspect/fix exact-head CI;
-8. deploy production-compatible backend/database changes when certified;
-9. live-verify reachable production behavior and logs;
-10. update durable state;
-11. immediately start the next highest-value unblocked functionality slice.
-
-## Immediate next action
-
-Audit `workspace/history` and the general report APIs across FastAPI + Supabase Edge. Implement the highest-value missing History/report workflow end-to-end, including real persistence/rendering support before exposing any new action. Then full-CI gate and production-promote compatible backend changes. Keep the current Cloudflare frontend drift explicit until authenticated deployment is possible.
+1. inspect newest `main` and preserve legitimate newer work;
+2. confirm the real product/production gap;
+3. implement the narrowest complete frontend/backend/database slice;
+4. add action-level and authorization tests;
+5. push without force/reset;
+6. inspect/fix exact-head CI;
+7. production-promote compatible backend/database changes only after certification;
+8. live-verify reachable behavior and logs;
+9. update durable state;
+10. continue to the next highest-value unblocked slice.
