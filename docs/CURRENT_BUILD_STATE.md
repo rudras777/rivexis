@@ -7,79 +7,61 @@ This file is the compact continuation point. Newer verified GitHub source, produ
 ## Certified source
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest fully certified product source: `6bf117154a958688697cc998530a65c9726e820f` (`Stabilize guided F3 browser contract`).
-- Exact-head CI: `36429614693` — **SUCCESS**.
-- Exact-head GitHub Pages: `36429614899` — **SUCCESS**.
+- Latest fully certified product source: `9dad09ed574911d19d7d2f593445ee0e273a80c7` (`Enforce claim-only organization admission`).
+- Exact-head CI: `36434551867` — **SUCCESS**.
+- Exact-head GitHub Pages: `36434549905` — **SUCCESS**.
 - The full gate passed invariants, secret/migration checks, PostgreSQL migrations/runtime controls, API lint/tests/audit, Edge typecheck/tests, web typecheck/build, vinext build, npm audit and the complete Playwright browser suite.
 - Pages remains fallback/navigation only; it is not the authoritative application runtime.
 
-## Newly completed source workflows
+## Completed product workflows
 
 ### History
 
-History is now operational rather than passive:
+History supports search/filtering, canonical persisted provenance inspection, direct Save reference, workspace isolation and action-level browser coverage.
 
-- search by reference/engine/type;
-- analysis/decision type filter;
-- demo/non-demo analysis filter;
-- canonical persisted analysis/decision provenance inspection;
-- direct **Save reference** action backed by the real Saved Analyses API;
-- workspace-switch isolation and action-level browser coverage.
+### F1 Portfolio & Exposure
 
-History was first certified at `55f14c1711dd0de62f8ecf689dbd1822e447c7d8` with CI `36424000229` and Pages `36423999702`; the behavior is included in the newer certified head.
+Live F1 has a bounded structured `manual_positions` builder with CoinGecko asset ID, symbol and quantity fields, add/remove/edit controls, canonical payload preservation and advanced JSON retained for integration-specific fields.
 
-### F1 Portfolio & Exposure input builder
+### F3 Position & Liquidation
 
-Live F1 no longer requires ordinary users to edit raw JSON for portfolio positions:
+Live F3 exposes the actual required evidence inputs: collateral oracle feed, collateral/debt units, liquidation threshold, optional debt oracle/fallback, optional CoinGecko cross-check and price-conflict tolerance. Required-field gating, canonical request behavior, CSRF and UNKNOWN-safe results are browser-tested.
 
-- bounded structured `manual_positions` builder, maximum 50 rows;
-- CoinGecko asset ID, symbol and quantity fields;
-- add/remove/edit controls;
-- exact canonical payload preserved;
-- advanced JSON remains available for integration-specific fields;
-- CSRF, request payload and UNKNOWN-safe result behavior are browser-tested.
+### F5 Treasury Allocation & Scenario
 
-The F1 slice was certified at `af4a9bacf06b76427094333433712a10a8e3e79a` with CI `36424620457` and is retained in the latest certified head.
+Live F5 has a structured allocation ledger for asset ID, symbol, weight and stablecoin classification, bounded to 50 rows. Entered weight totals are explicit and Rivexis does not silently normalize user-entered allocations.
 
-### F5 Treasury Allocation & Scenario builder
+### Organization/member administration
 
-Live F5 now exposes a structured allocation ledger:
+Organization membership parity is now implemented and certified:
 
-- CoinGecko asset ID, symbol, weight %, stablecoin flag;
-- add/remove/edit controls, bounded to 50 rows;
-- explicit entered-weight total review cue;
-- no silent weight normalization;
-- canonical `allocations` payload preserved;
-- advanced JSON retained for integration-specific fields.
+- organization IDs are explicit and do not imply access;
+- authenticated members can inspect the actual membership list;
+- OWNER/ADMIN can manage permitted existing-member roles;
+- OWNER-specific and last-owner safeguards remain enforced by the backend;
+- new membership is claim-based rather than direct new-user email insertion;
+- authenticated users can generate a short-lived organization membership claim;
+- authorized organization administrators can accept that claim with a selected role;
+- removals require explicit confirmation in Settings;
+- action-level Playwright covers role update, claim-based admission, confirmed removal, claim generation, protected request payloads and CSRF.
 
-The F5 slice was certified at `7313b48ddfbdea13015b0d37646089057e7e12b7`, CI `36425394932`, Pages `36425394525`, and is retained in the latest certified head.
-
-### F3 Position & Liquidation guided live inputs
-
-The UI now matches the real FastAPI F3 evidence contract instead of hiding required fields in JSON:
-
-- required collateral oracle feed is visible and blocks execution until supplied;
-- collateral units, debt units and liquidation threshold are first-class fields;
-- liquidation-threshold UI ceiling now matches the backend's accepted `<= 1.5` contract;
-- optional debt oracle feed and explicit USD fallback are visible;
-- optional CoinGecko collateral cross-check is visible;
-- price-conflict tolerance is visible;
-- exact canonical request, required-field gating, CSRF and UNKNOWN-safe result are browser-tested.
+Key source milestones: `8f101aeeb413e7ac87bcf9c9bff6fe1f4341929f`, `a23183660d5a906cf72c0703250e9809e48796d6`, `55d3a6b6d182caceeb41909c9a3e228f034c6132`, `c32f6ec566d4b91929c547a077160ceaed9804f7`, with certified product head `9dad09ed574911d19d7d2f593445ee0e273a80c7`.
 
 ## Production backend
 
-Supabase project: `ivszvufdonfgwjpfgwii`.
+Supabase production is the current compatibility backend.
 
-- PostgreSQL 17.6.1; hardened production posture retained.
+- PostgreSQL 17.6.1; hardened posture retained.
 - Core Alembic application schema remains through `0013_auth_email_lifecycle`.
-- Supabase Edge `rivexis-api` is **version 7 ACTIVE**.
-- Browser sessions remain HttpOnly/Secure/SameSite=Lax with CSRF on state-changing requests.
-- `public.rivexis_edge_bridge(text,text,jsonb)` remains the narrow compatibility-runtime bridge.
-- `public.rivexis_edge_saved_analysis(text,text,jsonb)` remains deployed for Saved Analyses create/list/archive/restore/delete.
-- Saved-analysis bridge owner is `rivexis_migrator`, with SECURITY DEFINER, pinned search path, service-role-only execution, no anon/authenticated/PUBLIC execution, and migrator NOLOGIN posture retained.
-- Direct Edge `/health` was verified HTTP 200/ready after version 7 deployment; unauthenticated Saved Analyses was verified HTTP 401.
+- Supabase Edge `rivexis-api` is **version 8 ACTIVE**.
+- Version 8 includes organization membership routes while retaining the existing HttpOnly/Secure/SameSite=Lax cookie session and CSRF model.
+- Existing general and Saved Analyses compatibility bridges remain deployed.
+- The organization-membership compatibility bridge is deployed with RLS-backed claim storage, restricted service-role execution and OWNER/ADMIN/last-owner safeguards.
+- Production membership migrations 008 and 009 are live.
+- Direct Edge `/health` was verified HTTP 200 with `ready`, `supabase-edge`, `v1`, `production` after the version 8 deployment.
+- Unauthenticated organization-member access was verified HTTP 401 after version 8 deployment.
 
-No Supabase redeploy was required for the History/F1/F3/F5 UI slices because they consume already-existing compatibility contracts and preserve UNKNOWN-safe live behavior.
+No provider evidence was fabricated. Live compatibility analysis remains UNKNOWN-safe when verified provider evidence is unavailable.
 
 ## Authoritative frontend truth
 
@@ -89,9 +71,9 @@ Authoritative public frontend:
 
 The Cloudflare web Worker still serves previously certified manual Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`.
 
-**Do not claim the newer History, institutional UI, Saved Analyses actions or F1/F3/F5 builders are live on that Worker yet.** GitHub/CI/Pages source is materially ahead of Cloudflare production.
+**Do not claim the newer History, institutional UI, Saved Analyses actions, F1/F3/F5 builders or organization-member Settings UI are live on that Worker yet.** GitHub/CI/Pages source is materially ahead of Cloudflare production.
 
-Deployment remains blocked because Wrangler is unauthenticated and the Cloudflare dashboard remained behind human verification after the permitted safe attempt. Do not bypass verification, deploy to an alternate host, create a temporary account or make an unapproved billing change.
+Cloudflare frontend deployment remains blocked because Wrangler is unauthenticated and the dashboard remained behind human verification after the permitted safe attempt. Do not bypass verification, deploy to an alternate host, create a temporary account or make an unapproved billing change.
 
 ## Evidence integrity retained
 
@@ -118,4 +100,4 @@ Without verified live provider evidence, the compatibility runtime returns UNKNO
 
 ## Immediate next execution target
 
-Close **organization/member administration parity**. Full FastAPI already supports organization member list/add/claim/remove, while the current Supabase Edge compatibility runtime exposes only organization list/create. Implement a narrow, server-authorized Edge/database contract first, preserving OWNER/ADMIN boundaries and safe membership-claim semantics; only then expose member administration in Settings. If parity cannot be made secure without weakening the current role model, leave the UI unavailable rather than simulate it.
+Close **general analysis-report parity**. Audit FastAPI report persistence/rendering against Supabase Edge, add only a real production-compatible contract with workspace authorization and truthful evidence/demo labeling, and expose web report actions only after backend parity and action-level coverage exist. Otherwise keep the action unavailable rather than simulate it.
