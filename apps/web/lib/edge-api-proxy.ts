@@ -1,8 +1,10 @@
 const EDGE_API_URL="https://ivszvufdonfgwjpfgwii.supabase.co/functions/v1/rivexis-api";
 const DECISION_REPORT_API_URL="https://ivszvufdonfgwjpfgwii.supabase.co/functions/v1/rivexis-decision-reports";
+const ALERTS_API_URL="https://ivszvufdonfgwjpfgwii.supabase.co/functions/v1/rivexis-alerts";
 
 function upstreamBase(path:string){
   if(path==="/api/v1/history"||path.startsWith("/api/v1/decisions/")||path==="/api/v1/reports"||path.startsWith("/api/v1/reports/"))return DECISION_REPORT_API_URL;
+  if(path==="/api/v1/alerts"||path.startsWith("/api/v1/alerts/"))return ALERTS_API_URL;
   return EDGE_API_URL;
 }
 
