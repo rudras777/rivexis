@@ -15,10 +15,19 @@ create table if not exists public.edge_organization_membership_claims (
 
 create index if not exists ix_edge_org_claim_org_user
   on public.edge_organization_membership_claims(organization_id,user_id,created_at desc);
+create index if not exists ix_edge_org_claim_user
+  on public.edge_organization_membership_claims(user_id);
 create index if not exists ix_edge_org_claim_expiry
   on public.edge_organization_membership_claims(expires_at);
 
 alter table public.edge_organization_membership_claims enable row level security;
+drop policy if exists edge_org_claims_deny_all on public.edge_organization_membership_claims;
+create policy edge_org_claims_deny_all
+  on public.edge_organization_membership_claims
+  for all
+  to public
+  using (false)
+  with check (false);
 revoke all on table public.edge_organization_membership_claims from public, anon, authenticated, service_role;
 
 create or replace function public.rivexis_edge_organization_membership(
