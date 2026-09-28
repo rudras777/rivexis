@@ -6,13 +6,11 @@ The production interface uses the official September 2026 asset package. Its ide
 
 | File | Role |
 | --- | --- |
-| `rivexis-wordmark.png` | Public navigation and light-surface footer |
+| `rivexis-wordmark.png` | Public navigation, light-surface footer and white-treated workspace rail |
 | `rivexis-lockup.png` | Authentication, verification, recovery and onboarding |
-| `rivexis-mark.png` | Workspace rail and restrained topology watermark |
-| `rivexis-icon.png` | Favicon and application icon metadata |
-| `rivexis-social.png` | Open Graph and social metadata |
+| `rivexis-icon.png` | Favicon, application icon, Open Graph and social metadata |
 
-The deployed files are losslessly resized and transparent-padding-trimmed derivatives of the supplied official PNGs. The supplied favicon and app-icon files were byte-identical, so only one production payload is retained. Large background-baked logo exports are intentionally not shipped to the application bundle.
+The deployed files are losslessly resized and transparent-padding-trimmed derivatives of the supplied official PNGs. The supplied favicon and app-icon files were byte-identical, so only one production payload is retained. Standalone X-mark artwork is not used in the interface, backgrounds, workspace rail or metadata. Dark surfaces use a crisp white treatment of the full Rivexis wordmark; light surfaces retain the official navy-and-blue wordmark. Large background-baked logo exports are intentionally not shipped to the application bundle.
 
 ## Core tokens
 

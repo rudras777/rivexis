@@ -149,31 +149,25 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 .brand img{display:block;height:auto;object-fit:contain}
 .brand-wordmark img{width:158px;max-width:100%}
 .brand-lockup img{width:228px;max-width:100%}
-.brand-rail{gap:11px;color:#fff;line-height:1.15}
-.brand-rail>img{width:34px;aspect-ratio:384/342;flex:0 0 auto;filter:drop-shadow(0 5px 13px rgba(0,73,204,.2))}
-.brandRailCopy{display:grid;gap:4px;min-width:0}
-.brandRailCopy b{font-family:Georgia,"Times New Roman",serif;font-size:15px;letter-spacing:.13em;color:#fff}
-.brandRailCopy small{font-family:Inter,"Segoe UI",sans-serif;font-size:7px;letter-spacing:.055em;color:#8fa9c9;white-space:nowrap}
+.brand-rail{line-height:0}
+.brand-rail>img{width:148px;max-width:100%;flex:0 0 auto;filter:brightness(0) invert(1) drop-shadow(0 5px 13px rgba(0,73,204,.18))}
 .top .brand-wordmark{width:160px}
 .formCard .brand-lockup{margin-bottom:27px}
 .formCard:after{top:auto;bottom:0;background:none}
 .footer .brand-wordmark img{width:142px}
 .footer>div{gap:10px}.footer>div>span{letter-spacing:.08em;font-size:9px;text-transform:uppercase;color:#68788d}
 
-.publicAmbient:after,.workspaceAmbient:after{content:"";position:absolute;pointer-events:none;background:url('/brand/rivexis-mark.png') center/contain no-repeat}
-.publicAmbient:after{width:min(36vw,520px);aspect-ratio:384/342;right:-7vw;top:104px;opacity:.035;filter:saturate(.72)}
-.workspaceAmbient:after{width:min(25vw,330px);aspect-ratio:384/342;right:5vw;top:6vh;opacity:.022;filter:saturate(.7)}
+.publicAmbient:after,.workspaceAmbient:after{content:none}
 
 .navActions .ghost{border:0;background:transparent;padding-inline:12px;box-shadow:none}
 .navActions .ghost:hover:not(:disabled){background:transparent;color:var(--blue);transform:translateX(2px)}
 
-.formPage{background-image:url('/brand/rivexis-mark.png'),url('/visuals/auth-orbit.svg'),linear-gradient(100deg,#041529 0 44%,#edf3f9 44% 100%);background-position:16vw center,left center,center;background-size:min(24vw,330px) auto,min(58vw,900px) auto,auto;background-repeat:no-repeat}
+.formPage{background-image:url('/visuals/auth-orbit.svg'),linear-gradient(100deg,#041529 0 44%,#edf3f9 44% 100%);background-position:left center,center;background-size:min(58vw,900px) auto,auto;background-repeat:no-repeat}
 
 @media(max-width:900px){
-  .formPage{background-image:url('/brand/rivexis-mark.png'),url('/visuals/auth-orbit.svg'),linear-gradient(180deg,#041529 0 24%,#edf3f9 24% 100%);background-position:center 26px,center -210px,center;background-size:150px auto,min(94vw,780px) auto,auto}
+  .formPage{background-image:url('/visuals/auth-orbit.svg'),linear-gradient(180deg,#041529 0 24%,#edf3f9 24% 100%);background-position:center -210px,center;background-size:min(94vw,780px) auto,auto}
 }
 
 @media(max-width:640px){
-  .top .brand-wordmark{width:128px}.brand-lockup img{width:196px}.brandRailCopy small{display:none}
-  .publicAmbient:after{width:260px;right:-110px;top:94px}
+  .top .brand-wordmark{width:128px}.brand-lockup img{width:196px}.brand-rail>img{width:132px}
 }

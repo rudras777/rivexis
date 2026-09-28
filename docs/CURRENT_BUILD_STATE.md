@@ -151,8 +151,8 @@ Supabase production is the current compatibility backend.
 - `public.rivexis_edge_monitor_alert_from_analysis()` remains owned by `rivexis_migrator`, SECURITY DEFINER with pinned `search_path=pg_catalog, public`, and exposes no direct execute capability to `PUBLIC`, `anon`, `authenticated` or `service_role`; it is invoked only by the enabled monitor trigger.
 - `public.rivexis_edge_alert_dispatch(text,text,jsonb)` is owned by `rivexis_alert_dispatcher`, SECURITY DEFINER with pinned `search_path=pg_catalog, public, extensions`; direct execute is service-role-only and every action additionally requires the Vault-backed internal token.
 - `public.rivexis_edge_alert_delivery_runtime()` is owned by `rivexis_migrator`, SECURITY DEFINER with pinned `search_path=pg_catalog, public`, and direct execute is service-role-only.
-- Direct dispatcher `/health` is HTTP 200 and reports `ready`, `supabase-edge`, `supabase-cron`, `SCHEDULED_NO_SINK`, `NOT_CONFIGURED`, recipient policy `WORKSPACE_OWNER_EMAIL`, and `continuous_threat_ingestion=false`.
-- Direct Alerts `/health` is HTTP 200 and reports `ready`, `supabase-edge`, durable-record-only ingestion, `SCHEDULED_NO_SINK`, `NOT_CONFIGURED`, the same recipient policy, and the last delivery cycle timestamp.
+- Direct dispatcher `/health` is HTTP 200 and reports `ready`, `supabase-edge`, `supabase-cron`, `SCHEDULED_READY`, `BREVO_READY`, recipient policy `WORKSPACE_OWNER_EMAIL`, and `continuous_threat_ingestion=false`.
+- Direct Alerts `/health` is HTTP 200 and reports `ready`, `supabase-edge`, durable-record-only ingestion, `SCHEDULED_READY`, `BREVO_READY`, the same recipient policy, and the last delivery cycle timestamp.
 - Unauthenticated dispatcher POST fails HTTP 401 `Dispatch authentication required`.
 - Unauthenticated alert list access fails HTTP 401 `Authentication required`.
 - Cron run records are succeeding every minute and automatically advance the delivery runtime heartbeat.
@@ -191,11 +191,11 @@ Without verified live provider evidence, the compatibility runtime returns UNKNO
 2. Full provider-capable FastAPI runtime — Cloudflare Container path remains Workers Paid gated.
 3. Provider credentials/contracts/licenses — unavailable evidence remains UNKNOWN/unavailable.
 4. Owned sender domain — Rivexis does not yet have an authenticated owned sending domain for production-branded email.
-5. Alert outbound sink — the scheduler and queue processor are live, but `BREVO_API_KEY` plus a configured/verified `RIVEXIS_BREVO_SENDER_EMAIL` are not present in the Supabase Edge runtime, so production correctly reports `SCHEDULED_NO_SINK` and consumes no queued attempts.
+5. Alert delivery evidence — the scheduler and Brevo sink are live and report `SCHEDULED_READY` / `BREVO_READY`, but no controlled queued-alert provider acceptance or inbox-delivery proof has been recorded yet.
 6. Continuous threat ingestion — scheduled alert delivery does not create evidence. The compatibility runtime still has no always-running provider threat stream and must never be presented as continuous surveillance.
 
 ## Immediate next execution target
 
-Preserve the certified scheduled-delivery source. If legitimate Brevo Edge secrets and a verified sender become available, configure them through secure project secrets, keep the raw API key out of source/chat, verify the dispatcher becomes `SCHEDULED_READY`, and certify one explicitly controlled notification path before claiming production email delivery.
+Preserve the certified scheduled-delivery source and encrypted Brevo Edge secrets. Certify one explicitly controlled queued-alert notification path with provider acceptance and inbox evidence before claiming production alert delivery.
 
 Until then, continue unblocked production hardening. Preserve exact-SHA manual promotion and verification for every source change; when narrowly scoped Cloudflare deployment credentials become available to GitHub Actions, certify the existing workflow before treating deployment as automatic.

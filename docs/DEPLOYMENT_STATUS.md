@@ -10,7 +10,7 @@ Last updated: 2026-09-29
 | Supabase Edge API | LIVE / V8 | `rivexis-api` version 8 ACTIVE with HttpOnly-cookie + CSRF auth and the certified compatibility workflows. |
 | Supabase PostgreSQL | LIVE / HARDENED | Project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1; core schema through `0013_auth_email_lifecycle`; hardened runtime bridges retained. |
 | Full FastAPI runtime | SOURCE READY / BILLING GATED | Deep provider-capable container deployment remains gated on explicit Workers Paid authorization. |
-| Brevo / Supabase SMTP | LIVE / AUTH TRANSPORT | Recovery delivery previously verified Sent + Delivered; owned authenticated Rivexis sender domain remains absent. |
+| Brevo / Supabase email | LIVE / READY | Recovery delivery previously verified Sent + Delivered. Scheduled alert delivery now reports `SCHEDULED_READY` / `BREVO_READY` with encrypted Supabase Edge secrets; controlled alert acceptance/inbox proof and an owned authenticated sender domain remain outstanding. |
 
 ## Latest certified source capabilities
 
@@ -67,4 +67,4 @@ Until those narrowly scoped deployment credentials are configured:
 
 ## Next production target
 
-Configure the existing scheduled alert dispatcher with a verified Brevo transactional sender and secure Supabase Edge secrets, then certify one controlled provider-accepted delivery without claiming inbox receipt unless independently observed. The queue must remain `SCHEDULED_NO_SINK` and consume zero attempts until those prerequisites exist.
+Certify one controlled queued-alert provider acceptance and inbox receipt through the now-ready Brevo sink without overstating delivery semantics. Preserve `UNKNOWN` for unconfigured continuous threat providers.

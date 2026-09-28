@@ -18,9 +18,9 @@ export const metadata:Metadata={
     description:"Risk · Value · Execution · Analysis for institutional digital-asset decisions.",
     type:"website",
     url:"/",
-    images:[{url:"/brand/rivexis-social.png",width:512,height:512,alt:"Rivexis"}],
+    images:[{url:"/brand/rivexis-icon.png",width:256,height:256,alt:"Rivexis"}],
   },
-  twitter:{card:"summary",title:"Rivexis — Evidence before execution",description:"Risk · Value · Execution · Analysis for institutional digital-asset decisions.",images:["/brand/rivexis-social.png"]},
+  twitter:{card:"summary",title:"Rivexis — Evidence before execution",description:"Risk · Value · Execution · Analysis for institutional digital-asset decisions.",images:["/brand/rivexis-icon.png"]},
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}){

@@ -1,17 +1,19 @@
 # Transactional Email (Brevo)
 
-Last updated: 2026-09-24
+Last updated: 2026-09-29
 
 ## Status
 
-Brevo is the approved Rivexis transactional email provider. The owner-side Brevo account/phone verification is complete. The connected Brevo account currently has SMTP relay enabled and an active Rivexis sender, but production owned-domain authentication has not been certified from the available tooling.
+Brevo is the approved Rivexis transactional email provider. The owner-side Brevo account/phone verification is complete. The connected account has SMTP relay enabled, an active verified Rivexis sender and a dedicated production API key stored only in Supabase Edge secrets. The current sender uses a freemail domain, so production owned-domain authentication remains unavailable and Brevo warns that DKIM/DMARC compliance is incomplete.
 
-Two branded Brevo templates were created on 2026-09-24 and intentionally left inactive until the production sender/domain and application credential path are certified:
+Two branded Brevo templates were created on 2026-09-24 and are active:
 
 - template `1`: account verification code (`rivexis-auth-verification`)
 - template `2`: password reset (`rivexis-auth-password-reset`)
 
 Template IDs are deployment configuration, not secrets. API keys are secrets and must never be committed.
+
+The scheduled alert runtime was activated on 2026-09-29 with `BREVO_API_KEY`, sender identity, production-mode and timeout values stored as encrypted Supabase Edge secrets. Both dispatcher and Alerts health endpoints report `SCHEDULED_READY` and `BREVO_READY`. This certifies configuration readiness only; it does not claim provider acceptance or inbox delivery for an alert until a controlled queued alert produces corresponding evidence.
 
 ## Environment contract
 
@@ -60,4 +62,4 @@ Before enabling real verification or password-reset delivery:
 6. implement and certify delivery/bounce event ingestion before presenting delivery as anything beyond `accepted`;
 7. keep OTP/reset secrets out of application logs, telemetry attributes, audit-detail payloads, and user-visible provider errors.
 
-Until these gates are complete, Brevo remains integrated at the transport boundary but production auth email is not certified as delivered.
+Supabase Auth recovery delivery has prior Sent + Delivered evidence through the existing Brevo SMTP credential. Alert delivery is configured and scheduled, but a controlled alert acceptance/inbox test remains required before claiming alert delivery beyond readiness.
