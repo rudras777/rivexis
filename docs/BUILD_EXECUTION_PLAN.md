@@ -1,106 +1,154 @@
 # Rivexis Build Execution Plan
 
 Last updated: 2026-09-28
-Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt`
+Authoritative project mandate: Rivexis “Complete Website, Full Functionality & World-Class Institutional UI/UX Master Prompt”.
 
 ## Current verified baseline
 
-- Repository: public `rudras777/rivexis`; default branch `main`.
-- Public GitHub Pages fallback files are preserved; they provide a public navigation fallback and do not replace or certify the Cloudflare application deployment.
-- Production repair started from `21fe63f3b1b19aa607cd56779e9fc88290673dbc`. Implementation head `c7b52aac8b227246e29efd8ff942e73aa64d15c2` passed CI #409 and Pages #80 on that exact revision.
-- Deterministic free-runtime engine slice `6f2ee469d4c8eb6b4e2945bfc525517adaeb4eea` passed CI run `36394468961` and Pages run `36394469225`; Supabase Edge function version 6 is live.
-- Institutional product experience `73d662839651481b3f6f06e06ff509fe37a21e13` passed CI run `36397358106`, Pages run `36397356730`, and the complete 52-test browser matrix; Cloudflare Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57` is live.
-- Provider/monitor operations slice `3637e00f1a0dc3574f4e903a4f0580f247723675` passed CI run `36409598551` and Pages run `36409598064` on the exact SHA. It adds institutional operational summaries, strict monitor-address validation, normalized B3 result review and action-level provider/monitor browser coverage. Cloudflare deployment remains pending; the current Worker version is still `e8922aac-cb84-435b-bd0c-38fbb886be57`.
-- Protocol evidence operations slice `58776506db5f3cbf930e93449c80ee0786b149d5` passed CI run `36412206983` and Pages run `36412205953` on the exact SHA, including the complete Playwright suite. It adds strict bounded-input validation, normalized event/change review, persisted approval/PDF actions, evidence-preserving investigation lifecycle controls and action-level CSRF coverage. Cloudflare deployment remains pending; the current Worker version is still `e8922aac-cb84-435b-bd0c-38fbb886be57`.
-- Visual-system refinement `0cbeabf4b1398fd682b831d4953d7085717ca6cd` passed CI run `36414540027` and Pages run `36414538998` on the exact SHA. It retains the navy/blue/white identity while introducing original contextual SVG environments, capsule actions, asymmetric surfaces, segmented controls, editorial tables and softer input planes across public, authentication and workspace contexts. The full browser matrix validates asset delivery and the intended computed geometry. Cloudflare deployment remains pending; the current Worker version is still `e8922aac-cb84-435b-bd0c-38fbb886be57`.
-- Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
-- API: FastAPI remains the full provider-capable backend. A least-privilege Supabase Edge compatibility runtime now provides a functional free production path for auth, tenancy, persistence, clearly labelled deterministic synthetic demonstrations, monitoring and protocol workflow. Live requests remain UNKNOWN-safe without verified provider evidence.
-- Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining leaked-password-protection warning applies to the free Supabase Auth compatibility path and remains an explicit hardening item.
-- Brevo fail-closed transactional transport and disabled-by-default environment contract are implemented. Supabase Auth custom SMTP is now enabled through the Brevo free relay, and an application-triggered recovery message was recorded as `Sent` and `Delivered` by Brevo.
+- Repository: `rudras777/rivexis`; default branch `main`.
+- Latest product/backend release source before documentation-only state recording: `59dadde0edb1c58ea2b22f421c26d4509bbab7f2`.
+- Exact release CI: `36421346582` — SUCCESS.
+- Exact release Pages run: `36421345772` — SUCCESS.
+- Frontend: Next.js 16 / React 19 / TypeScript using vinext for Cloudflare Workers.
+- Full provider-capable backend: FastAPI source remains authoritative for complete provider depth, but its Cloudflare Container path is Workers Paid gated.
+- Free production compatibility backend: Supabase Edge `rivexis-api` **version 7 ACTIVE**.
+- Production database: Supabase project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1, hardened owner/RLS posture retained.
+- Browser auth: HttpOnly/Secure/SameSite=Lax cookie + CSRF; recovery tokens remain memory-only.
+- Demonstration engines B1-B5/F1-F5 remain deterministic and explicitly synthetic; live execution remains UNKNOWN without verified provider evidence.
+- Authoritative Cloudflare web Worker remains on manual version `e8922aac-cb84-435b-bd0c-38fbb886be57`; GitHub source is newer and must not be claimed live until authenticated Cloudflare deployment succeeds.
 
-## Milestone sequence
+## Completed production capabilities
 
-1. **A — Baseline and product audit**
-2. **B — Design system and application shell**
-3. **C — Authentication and onboarding**
-4. **D — Workspace foundations**
-5. **E — Analysis framework**
-6. **F — Ten-engine completion**
-7. **G — Monitoring, investigations and reports**
-8. **H — Institutional controls**
-9. **I — Production deployment**
-10. **J — Production certification and launch**
+### Authentication / tenancy
 
-## Current active milestone
+- signup, verification, login, session refresh, logout and protected-route denial;
+- password reset request/confirm;
+- workspace onboarding and switching;
+- organization creation and membership-aware access;
+- same-origin frontend API proxy to Supabase Edge.
 
-**Milestone F — Ten-engine completion**
+### Analysis and evidence
 
-Milestone E remains complete at repository-test level. The shared analysis/decision framework preserves canonical evidence, uncertainty, versions and provenance from persisted engine output through decisions, explanations, reports and workspace history.
+- all ten B1-B5/F1-F5 engine routes;
+- normalized provenance/evidence metadata;
+- explicit provider conflicts, missing data and UNKNOWN-safe behavior;
+- canonical persisted analysis detail and history provenance inspection;
+- provider registry/runtime truth separation;
+- manual B3 monitor creation/check workflow;
+- protocol timeline/configuration comparison truth states;
+- persisted protocol reviews, approval and PDF rendering;
+- investigation creation, review linking, lifecycle/disposition and PDF rendering.
 
-Milestone F remains **in progress**. Repository-level input/provider/freshness/parser/runtime integrity is deeply regression-tested across all ten specialist engines. This does not claim that all evidence-depth capabilities are complete; remaining work is deeper evidence collection/normalization through approved deterministic sources.
+### Saved Analyses
 
-The Cloudflare frontend discrepancy is closed. The frontend uses a same-origin API proxy and is deployed to `rivexis-web` as version `e8922aac-cb84-435b-bd0c-38fbb886be57`. Live unauthenticated `/workspace` fails closed, while authenticated workspace navigation and session restoration are operational. The public, authentication, workspace and ten-engine surfaces now share the institutional design system; guided validated engine controls replace raw-JSON-first interaction while advanced JSON remains available. Per-version preview URLs remain disabled.
+Completed source and production backend contract:
 
-### Milestone F acceptance targets
+- search;
+- active/all archived visibility;
+- inspect persisted analysis/evidence;
+- create/save reference;
+- archive/restore;
+- delete saved reference without deleting the underlying analysis;
+- CSRF-protected Edge POST/PATCH/DELETE routes;
+- hardened `rivexis_edge_saved_analysis` service-role persistence bridge.
 
-- audit B1–B5 and F1–F5 against intended live-provider/direct-state contracts;
-- distinguish deterministic repository defects from credential/license/customer-contract gates;
-- maintain explicit versioned outputs, provenance, freshness and reproducible UNKNOWN-compatible failure states;
-- prohibit synthetic provider facts and unsupported safe conclusions;
-- fail closed on contradictory, malformed or non-canonical provider/request evidence rather than normalizing it into plausible scores or parameters;
-- keep point-in-time state internally block-consistent where an EVM block reference is claimed;
-- separate direct-state provenance/freshness from external indexer/intelligence provenance rather than spreading one source's block/time across another;
-- verify contract-derived scaling metadata before turning raw token balances into economic quantities;
-- preserve workspace authorization, canonical persistence and workspace-switch isolation;
-- require full CI before advancing from integrity hardening to a deeper capability claim;
-- do not advance to Milestone G until remaining engine-depth acceptance work is explicitly closed.
+Production checks confirm Edge v7 health and unauthenticated 401 protection. Authenticated live archive/restore/delete certification remains a follow-up; CI/browser action coverage is green.
 
-## Milestone F completed evidence so far
+### Institutional UI system
 
-- Cross-engine dispatch enforces canonical current engine/evidence versions, evidence-derived provider consensus and first-class unresolved conflict semantics.
-- **B1:** engine `1.3.0`, calculation `b1-live-1.8.0`. Standard event effects, supported ABI decoding, internal traces and prestate diffs remain canonical and bounded. A non-verdicting structural security section now aggregates validated delegate/callcode context, creation/self-destruct paths, nested failures, broad permission candidates, account lifecycle and runtime-code changes. It exposes source coverage and explicitly does not claim maliciousness or safety. Tuple arrays, nested tuples and dynamic tuple members remain explicit unsupported layouts.
-- **B2:** engine `1.1.0`, calculation `b2-live-1.3.0`. Target/sender/hash and RPC transaction bodies validate. RPC quantities are canonical and uint256-bounded; runtime bytecode is size-bounded, block-pinned and hashed; push-aware structural opcode observations and exact EIP-1167 extraction are explicitly non-verdicting. Explorer proxy metadata validates shape/address and retains independent UNKNOWN freshness. Direct/explorer implementation disagreement becomes an unresolved first-class conflict and `CONFLICTING_DATA`.
-- **B3:** engine `1.1.0`, calculation `b3-live-1.3.0`. Native balance, bounded runtime code, optional total supply and supplied Chainlink reads share one captured block tag. RPC quantities and scalar ABI returns are canonical; change detection requires a dependency-identified snapshot from a strictly earlier block. Malformed Blockaid responses are unavailable, while timestamp-less valid screening remains UNKNOWN-fresh with no inherited RPC block. Direct state remains separately LIVE. Future/stale oracle behavior remains fail-closed.
-- **B4:** engine `1.0.0`, calculation `b4-live-1.1.0`. Direct native balance remains pinned/LIVE at the captured RPC block with canonical uint256 quantities. Non-object indexer rows are explicitly counted as malformed. Native/ERC-20 self-transfers remain normalized activity but contribute zero directional flow and no self-counterparty concentration. Etherscan history and Nansen/Arkham label evidence retain independent UNKNOWN freshness without inheriting the RPC block.
-- **B5:** engine `1.2.0`, calculation `b5-live-1.4.0`. Route/tool identity, uint256-bounded amounts, required minimum output, canonical approvals, bounded uniquely identified steps and bounded costs fail closed. Boolean slippage is rejected, contradictions become `CONFLICTING_DATA`/UNKNOWN with zero route score, and timestamp-less LI.FI quotes remain UNKNOWN-fresh rather than treating retrieval time as provider observation time. Certified in CI #401.
-- **F1:** engine `1.2.0`, calculation `f1-live-1.4.0`. One captured block pins requested native state and every declared ERC-20 `decimals()`/`balanceOf` read. Token `eth_call` quantities must be canonical single-word ABI uint256 returns, caller decimals must match on-chain decimals before scaling, and direct RPC quantities are uint256-bounded. Metadata contradictions/malformed values fail closed before market valuation. Provider-facing errors remain redacted. Certified in CI #358.
-- **F2:** engine `1.2.0`, calculation `f2-live-1.4.0`, shared collector `protocol-native-1.2.0`. Identity/TVL/freshness/provider health and audit metadata fail closed. Direct RPC state uses one captured canonical uint256 block; runtime code, EIP-1967 storage and oracle ABI responses are bounded/canonical. Malformed explorer identity data is unavailable, explorer evidence never inherits direct block/freshness, future oracle timestamps stay UNKNOWN, and aggregate freshness includes all retained evidence. Certified in CI #403.
-- **F3:** engine `1.3.0`, calculation `f3-live-1.3.0`. Modeled quantities/debt price validate as finite non-boolean economics; Chainlink reads are block-pinned with exact ABI shape and truthful timestamp freshness; CoinGecko comparison evidence has independent price/timestamp integrity.
-- **F4:** engine `1.2.0`, calculation `f4-live-1.3.0`. Selectors, provider payload size and selected pool identity are bounded. Strategy matching is exact or delimiter-aware rather than arbitrary substring matching. Core and present optional metrics fail closed on malformed/non-finite/boolean/contradictory evidence. Provider timestamps are normalized without retrieval-time optimism; native confidence requires native evidence; aggregate freshness includes all retained yield/native/explorer evidence. Certified in CI #405.
-- **F5:** engine `1.2.0`, calculation `f5-live-1.3.0`. Allocation collections/identity labels and protocol-native checks are bounded. Duplicate rows aggregate by canonical declared asset before concentration/HHI scoring, and conflicting stablecoin classifications fail closed. Malformed price rows and non-finite derived values cannot receive current-data confidence. Unknown provider observation time remains null, while aggregate freshness and native confidence reflect retained evidence only. Certified in CI #407.
+Source contains the current navy/blue/white institutional visual language:
 
-## Remaining Milestone F work
+- subtle off-white and translucent surfaces;
+- technical topology/evidence SVG environments for public/auth/workspace contexts;
+- refined action geometry and reduced generic card repetition;
+- editorial/ruled data surfaces and tables;
+- institutional engine terminal/list patterns;
+- responsive public/authenticated layouts.
 
-These are primarily capability-depth items rather than known hidden build/test failures:
+This current UI source is not yet claimed on the authoritative Cloudflare Worker because of the authentication/human-verification deployment gate.
 
-- B1 independently grounded asset/protocol identity plus deeper security semantics beyond its non-verdicting structural observations; nested/dynamic tuple and other composite ABI decoding only where it materially improves transaction understanding and can remain bounded/canonical.
-- B2 deeper independent threat/security evidence plus implementation-code and upgrade-authority analysis where approved provider contracts exist; B3 independently timestamped threat evidence and continuous provider-native monitoring.
-- B4 cross-chain activity and richer protocol-semantic/counterparty attribution beyond the now-correct direct/external provenance boundary.
-- B5 independent bridge-security, liquidity and incident evidence beyond route-aggregator evidence.
-- F1 automatic/indexed token discovery plus NFT/DeFi position ingestion and independent token-identity/CoinGecko mapping from approved sources.
-- F2/F4/F5 deeper independent dependency, liquidity, governance/counterparty and strategy evidence.
-- Complete engine-depth certification before advancing to Milestone G.
+## Active product milestone
 
-## Existing platform integrity retained
+**History, general reports and remaining operational actions**
 
-- Browser auth uses HttpOnly cookies plus CSRF; browser bearer-token storage is not introduced.
-- Workspace reads/writes fail closed and remain permission-aware in current source.
-- Old-workspace delayed responses are discarded after workspace switching.
-- Global provider registry configuration remains separate from workspace runtime telemetry.
-- External/provider absence stays explicit UNKNOWN/unavailable rather than fabricated evidence.
+The priority is no longer simply “ten engines exist.” The master mandate is full website functionality. The next work therefore closes user-visible operational gaps around persisted analysis history, reporting and reusable institutional workflows while preserving evidence truth.
 
-## Dependencies and blockers
+### Acceptance targets for the active milestone
 
-- **Cloudflare production deployment drift:** OPEN for source through the visual-system refinement. Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57` remains healthy and previously certified, but certified source `0cbeabf4b1398fd682b831d4953d7085717ca6cd` has not been deployed. Wrangler was unauthenticated and the Cloudflare dashboard remained in human verification after the one safe retry; no alternate host or verification bypass was used. The Worker remains manually deployed rather than Git-integrated CI/CD. Production returns `404` for the new public signal SVG, confirming the drift.
-- **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable production path. The current API Worker remains a degraded health/503 boundary.
-- **Custom domain:** BLOCKED on domain choice/ownership/configuration.
-- **Production email:** Supabase custom SMTP now uses the Brevo free relay. A production recovery message passed Supabase Auth and Brevo `Sent`/`Delivered` verification; owned-domain sender authentication remains outstanding.
-- **External providers:** BLOCKED where credentials, commercial licensing or customer-specific contracts are absent; unsupported paths stay UNKNOWN/unavailable.
-- **Arkham:** license/terms-gated.
-- **Hypernative native screening:** customer-schema/contract-gated where no approved exact request/signing contract exists.
-- **Live authenticated compatibility runtime:** VERIFIED for login/session/workspaces and all ten deterministic demonstration engine routes. Representative production browser checks confirmed distinct synthetic evidence and conflict outputs while live mode remains fail-closed. Provider-backed FastAPI parity remains gated.
-- **Production certification:** incomplete until real Rivexis-owned targets satisfy deployment/browser/provider/email gates.
+- History must support useful search/filtering rather than a passive table only.
+- Users must be able to open the canonical persisted analysis record from History.
+- Save/reference actions must use the real Saved Analyses persistence API.
+- Any general report action exposed in UI must have a real FastAPI and Supabase Edge persistence/rendering contract; no frontend-only fake download button.
+- Report payloads must preserve canonical analysis identity, engine/version/provenance and explicit uncertainty.
+- Deleting a saved reference must never silently delete canonical history.
+- All write actions must retain CSRF and tenant/workspace authorization.
+- Workspace switching must discard stale detail/report responses.
+- Browser tests must validate action behavior, not only visual presence.
+- Production Edge changes must be deployed and postflight verified before being described as live.
+- Cloudflare web deployment truth must remain separate from backend deployment truth until the new source is genuinely promoted.
 
-## Next action
+## Subsequent product work
 
-Deploy and live-certify exact source `0cbeabf4b1398fd682b831d4953d7085717ca6cd` on the existing `rivexis-web` Worker, including public/auth/workspace visual assets and responsive states. Then bring saved analyses and remaining report actions into the institutional interaction system and continue structured multi-row portfolio/position builders. Add provider-backed depth only with approved credentials and deploy the FastAPI Container only after paid-plan authorization. Full-CI gate every implementation slice.
+After History/reports:
+
+1. structured multi-row F1 portfolio builder;
+2. richer F3 position inputs where they remain bounded/canonical;
+3. structured F5 treasury allocation/scenario builder;
+4. remaining organization/member/role controls that have real backend support;
+5. monitor alert/event history and alert delivery only where a genuine delivery backend exists;
+6. systematic audit of every route/button/form for dead actions, placeholder data and unsupported claims;
+7. deeper provider evidence only with approved credentials/licenses.
+
+## Engine integrity retained
+
+Current engine contract / calculation versions:
+
+- B1 `1.3.0` / `b1-live-1.8.0`;
+- B2 `1.1.0` / `b2-live-1.3.0`;
+- B3 `1.1.0` / `b3-live-1.3.0`;
+- B4 `1.0.0` / `b4-live-1.1.0`;
+- B5 `1.2.0` / `b5-live-1.4.0`;
+- F1 `1.2.0` / `f1-live-1.4.0`;
+- F2 `1.2.0` / `f2-live-1.4.0`;
+- F3 `1.3.0` / `f3-live-1.3.0`;
+- F4 `1.2.0` / `f4-live-1.3.0`;
+- F5 `1.2.0` / `f5-live-1.3.0`.
+
+Do not weaken:
+
+- canonical RPC/ABI quantity validation;
+- same-block direct-state consistency where a block is claimed;
+- provider-specific provenance/freshness boundaries;
+- conflict-first semantics;
+- bounded payload/input validation;
+- UNKNOWN for unsupported/unverified evidence;
+- tenant/workspace authorization;
+- secure browser session handling.
+
+## Current external gates
+
+- **Cloudflare web source deployment:** blocked until legitimate authenticated Wrangler/dashboard access is available. Human verification must not be bypassed.
+- **Full provider-capable FastAPI deployment:** blocked on explicit Workers Paid authorization.
+- **Custom/owned domain:** not configured/owned for release purposes in this execution state.
+- **Owned email sender domain:** not authenticated; current Supabase/Brevo transport works but sender-domain hardening remains.
+- **External providers:** credentials, licensing and customer-specific contracts remain explicit gates. Arkham and similar intelligence providers must not be simulated.
+
+## Autonomous continuation loop
+
+For every `continue` request:
+
+1. inspect newest GitHub `main` and preserve legitimate newer work;
+2. inspect the real implementation and production state relevant to the next gap;
+3. reproduce/confirm the functional deficit;
+4. implement frontend + backend/database work together where required;
+5. add focused action-level tests;
+6. push to `main` without force/reset;
+7. inspect/fix exact-head CI;
+8. deploy production-compatible backend/database changes when certified;
+9. live-verify reachable production behavior and logs;
+10. update durable state;
+11. immediately start the next highest-value unblocked functionality slice.
+
+## Immediate next action
+
+Audit `workspace/history` and the general report APIs across FastAPI + Supabase Edge. Implement the highest-value missing History/report workflow end-to-end, including real persistence/rendering support before exposing any new action. Then full-CI gate and production-promote compatible backend changes. Keep the current Cloudflare frontend drift explicit until authenticated deployment is possible.
