@@ -16,14 +16,14 @@ import {
 } from "@/lib/api";
 
 const nav=[
-  ["Overview","/workspace"],
-  ["Workspaces","/workspace/settings"],
-  ["Providers","/workspace/providers"],
-  ["Protocol History","/workspace/protocol-history"],
-  ["Investigations","/workspace/investigations"],
-  ["Monitors","/workspace/monitors"],
-  ["History","/workspace/history"],
-  ["Saved","/workspace/saved"],
+  ["Overview","/workspace","01"],
+  ["Workspaces","/workspace/settings","02"],
+  ["Providers","/workspace/providers","03"],
+  ["Protocol History","/workspace/protocol-history","04"],
+  ["Investigations","/workspace/investigations","05"],
+  ["Monitors","/workspace/monitors","06"],
+  ["History","/workspace/history","07"],
+  ["Saved","/workspace/saved","08"],
 ];
 
 type ShellStateProps={title:string;message:string;kind:"loading"|"empty"|"session"|"unavailable";action?:React.ReactNode};
@@ -96,7 +96,7 @@ export function AppShell({children}:{children:React.ReactNode}){
 
   return <div className="appShell">
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
-    <aside className="sidebar"><Brand/><div className="environment">MVP / WORKSPACE-SCOPED</div><label className="workspaceSelector">ACTIVE WORKSPACE<select value={selected} onChange={e=>change(e.target.value)}>{q.data.items.map(w=><option key={w.id} value={w.id}>{w.name} · {w.access_role}</option>)}</select></label><nav aria-label="Workspace">{nav.map(([n,h])=>{const current=p===h;return <Link key={h} href={h} className={current?"active":""} aria-current={current?"page":undefined}>{n}</Link>})}</nav><div className="sideFoot"><button type="button" className="ghost" onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out"}</button>{logoutError?<div className="sidebarError" role="alert">{logoutError}</div>:null}<div className="decisionLegend"><b>Decision states</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
+    <aside className="sidebar"><Brand/><div className="environment"><span className="statusDot"/>PRODUCTION WORKSPACE</div><label className="workspaceSelector">ACTIVE WORKSPACE<select value={selected} onChange={e=>change(e.target.value)}>{q.data.items.map(w=><option key={w.id} value={w.id}>{w.name} · {w.access_role}</option>)}</select></label><nav aria-label="Workspace">{nav.map(([n,h,number])=>{const current=p===h;return <Link key={h} href={h} className={current?"active":""} aria-current={current?"page":undefined}><span className="navIndex">{number}</span><span>{n}</span></Link>})}</nav><div className="sideFoot"><button type="button" className="sidebarLogout" aria-label={loggingOut?"Logging out…":"Log out"} onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out securely"}<span aria-hidden="true">↗</span></button>{logoutError?<div className="sidebarError" role="alert">{logoutError}</div>:null}<div className="decisionLegend"><b>Decision policy</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
     <main className="workspaceMain" id="workspace-main"><WorkspaceContextProvider value={contextValue}>{children}</WorkspaceContextProvider></main>
   </div>;
 }
