@@ -2,40 +2,83 @@
 
 Last updated: 2026-09-28
 
-This is the compact production resume point. Live provider state and current `main` override older historical notes.
+This is the compact authoritative continuation point. The newest verified GitHub `main`, production Supabase state, and authoritative Cloudflare Worker state override older notes.
 
 ## Repository and certification
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Production-repair work started from clean `main` head `21fe63f3b1b19aa607cd56779e9fc88290673dbc`; origin matched before changes. CI #408 and Pages #79 passed on that baseline.
-- Production repair implementation `c7b52aac8b227246e29efd8ff942e73aa64d15c2` adds the free runtime bridge and verified frontend integration. CI #409 and Pages #80 passed on that exact SHA.
-- Provider-capability truthfulness repair `8f162727e3b4fc0257c147a2da90f9f501850b0f` removes the misleading free-runtime deep-probe control, adds an explicit Edge capability contract and a functional provider-status refresh. CI run `36392977072` and Pages run `36392976368` passed on that exact SHA.
-- Deterministic demonstration runtime `6f2ee469d4c8eb6b4e2945bfc525517adaeb4eea` ports the certified B1-B5/F1-F5 synthetic demo rules into the free Edge path while preserving fail-closed live behavior. CI run `36394468961` and Pages run `36394469225` passed on that exact SHA.
-- Institutional product experience `73d662839651481b3f6f06e06ff509fe37a21e13` replaces the public, authentication, workspace and engine surfaces with the production design system and validated guided inputs while retaining advanced JSON. CI run `36397358106` and Pages run `36397356730` passed on that exact SHA; the full browser matrix passed 52/52.
-- Provider/monitor operations slice `3637e00f1a0dc3574f4e903a4f0580f247723675` removes the prefilled placeholder monitor identity, enforces complete EVM-address validation, separates provider configuration from deep-probe evidence, presents normalized B3 results, and adds action-level provider/monitor tests. CI run `36409598551` and Pages run `36409598064` passed on the exact SHA, including the complete Playwright suite.
-- Protocol evidence operations slice `58776506db5f3cbf930e93449c80ee0786b149d5` institutionalizes bounded protocol-history/configuration reads, persisted review approval/report actions, and investigation creation/review-link/disposition workflows. It aligns client block validation with the Edge safe-integer contract, preserves workspace-switch isolation, and adds action-level lifecycle and CSRF coverage. CI run `36412206983` and Pages run `36412205953` passed on the exact SHA, including the complete Playwright suite.
-- Visual-system refinement `0cbeabf4b1398fd682b831d4953d7085717ca6cd` preserves the Rivexis navy/blue/white identity while replacing repetitive generic boxes with capsule actions, asymmetric editorial surfaces, segmented controls, softer input planes and more open data layouts. Original lightweight SVG environments provide public signal topology, authentication evidence orbits and authenticated workspace evidence flow. CI run `36414540027` and Pages run `36414538998` passed on the exact SHA; the full browser matrix includes asset-delivery and computed-style contracts for all three contexts.
-- Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
+- Current certified source head: `59dadde0edb1c58ea2b22f421c26d4509bbab7f2` (`Preserve migrator role posture during edge migration`).
+- Exact-head CI: run `36421346582` — **SUCCESS**.
+- Exact-head GitHub Pages: run `36421345772` — **SUCCESS**.
+- Pages remains a fallback/navigation deployment; it is not the authoritative application runtime.
+- The current source includes all previously certified auth, workspace, provider/monitor, protocol-review/investigation, ten-engine demonstration, evidence-truth, visual-system and workspace-switch isolation work.
+
+## Latest completed production slice — Saved Analyses
+
+Saved Analyses is no longer a read-only source surface.
+
+Repository source now supports:
+
+- active/all visibility filtering, including archived references;
+- search by saved-analysis metadata;
+- inspection of the persisted canonical analysis/evidence record;
+- archive and restore;
+- deletion of the saved reference while retaining the underlying analysis in workspace history;
+- POST save support in the compatibility API;
+- CSRF-protected PATCH/DELETE actions;
+- action-level Playwright coverage for inspect/archive/restore/search/delete.
+
+The initial action test exposed only a Playwright strict-selector ambiguity; the application build, API suite, PostgreSQL lane and the other 58 browser tests were green. The selector was corrected and the final release head passed the full CI matrix.
+
+### Production persistence bridge
+
+Production Supabase now contains `public.rivexis_edge_saved_analysis(text,text,jsonb)`.
+
+Verified post-deployment security posture:
+
+- owner: `rivexis_migrator`;
+- `SECURITY DEFINER` enabled;
+- fixed `search_path=pg_catalog, public`;
+- execute ACL restricted to the owner and `service_role` only;
+- no execute grant for `anon`, `authenticated` or `PUBLIC`;
+- every saved-analysis action rechecks the authenticated actor and workspace membership;
+- `rivexis_migrator` remains `NOLOGIN`;
+- the temporary PostgreSQL `SET ROLE rivexis_migrator` capability used during installation was revoked after the migration.
+
+The production migration path records `add_saved_analysis_actions` after the earlier compatibility-runtime migrations. A prior ownership-transfer attempt failed safely because production PostgreSQL could not SET the hardened migrator role; that failed transaction left no partial function. The corrected migration temporarily grants SET, creates the function under `rivexis_migrator`, resets role, and removes SET again.
+
+### Production Edge API
+
+Supabase Edge function `rivexis-api` is now **version 7 ACTIVE**. `verify_jwt=false` remains deliberate because this function performs its own Supabase-authenticated HttpOnly session-cookie validation plus CSRF protection for state-changing browser requests.
+
+Version 7 includes:
+
+- `GET /api/v1/saved-analyses?workspace_id=...&include_archived=...`;
+- `POST /api/v1/saved-analyses`;
+- `PATCH /api/v1/saved-analyses/{saved_id}?archived=true|false`;
+- `DELETE /api/v1/saved-analyses/{saved_id}`.
+
+Post-deployment live checks verified:
+
+- direct Edge `/health` returns HTTP 200 and `ready`, `supabase-edge`, API `v1`, `production`;
+- unauthenticated Saved Analyses access returns HTTP 401 `Authentication required`;
+- the Cloudflare Worker `/health` still returns HTTP 200 with the same Supabase Edge production runtime;
+- Supabase function logs identify deployment version 7 serving the successful health request and the expected protected-route 401, with no runtime exception surfaced in the post-deploy checks.
+
+A real authenticated production archive/restore/delete mutation has not yet been claimed in this continuation. Browser action behavior is CI-certified and the production persistence/API contract is deployed; live authenticated mutation certification remains a valid follow-up when an authenticated test session is available.
 
 ## Production PostgreSQL
 
-Supabase project `ivszvufdonfgwjpfgwii` is `ACTIVE_HEALTHY` in `ap-south-1` on PostgreSQL 17.6.1.
+Supabase project: `ivszvufdonfgwjpfgwii`.
 
-Live postflight on 2026-09-25 established production is at Alembic head `0013_auth_email_lifecycle`. The previously documented migration gate is resolved. Verified live state:
+- PostgreSQL 17.6.1; project remains healthy.
+- Core Alembic application schema remains at `0013_auth_email_lifecycle` with the previously certified tenant/RLS/index posture.
+- 56 application tables and the existing owner-scoped hardening remain preserved.
+- `rivexis_edge_bridge(text,text,jsonb)` remains the narrow service-role bridge for the Supabase Edge compatibility runtime.
+- `rivexis_edge_saved_analysis(text,text,jsonb)` now supplies the isolated saved-reference CRUD contract without reopening direct table access.
+- `rivexis_migrator` and `rivexis_app` remain non-login roles in the inspected production posture.
 
-- 56 application tables;
-- zero foreign keys lacking a valid leading-column covering index;
-- `ix_users_email` and `ix_workspaces_owner_user_id` absent as intended;
-- zero target tenant policies retaining uncached per-row session-setting lookup form;
-- `user_auth_state` has RLS and FORCE RLS enabled;
-- its intended `rivexis_app` service policy exists;
-- no `anon`, `authenticated`, `PUBLIC`, or `service_role` grant exists on `user_auth_state`;
-- every public application table remains owned by `rivexis_migrator`;
-- `rivexis_migrator` and `rivexis_app` both remain `NOLOGIN` in the inspected management context.
-
-On 2026-09-28, a least-privilege `SECURITY DEFINER` function, `public.rivexis_edge_bridge(text,text,jsonb)`, was deployed for the Supabase Edge compatibility runtime. Execute remains restricted to `service_role`; the function owner is `rivexis_migrator`; direct application table grants were not restored. The bridge enforces explicit actor/workspace membership checks for analysis detail, monitor, report, review, and investigation paths. A narrowly scoped RLS bootstrap policy permits organization creation only when the function's verified user/organization/OWNER context matches.
-
-Supabase security advisor reports one Auth-platform warning: leaked-password protection is disabled. The free production compatibility runtime uses Supabase Auth, so this warning applies to that path and remains an explicit hardening item unless the current plan supports enabling it without a billing change. Performance advisor reports newly created/other indexes as unused; the database has not yet received enough authoritative API workload for those observations to justify removing the certified FK indexes.
+Supabase Auth leaked-password protection remains an explicit hardening item unless it can be enabled without an unapproved billing change.
 
 ## Production frontend
 
@@ -43,59 +86,57 @@ Authoritative public frontend:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-Cloudflare Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57` is the current manual production deployment. Live browser verification on this exact deployment covered the redesigned public and login surfaces, same-origin `/health` (`200`, `ready`), authenticated session restoration, the production workspace command center, and guided F5 demonstration inputs (`40%` allocation / `12%` depeg loss) producing a recorded `COMPLETED` synthetic result with the expected normalized 40/100 risk score. Both checked browser contexts reported no console warnings or errors. Earlier live certification remains in force for logout/protected-route denial, workspace and organization creation, providers, monitors, history, saved analyses, protocol history, investigation workflow, and PDF rendering.
+The authoritative Cloudflare web Worker still serves the previously certified manual deployment, Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`.
 
-The provider/monitor, protocol evidence and visual-system slices are repository- and CI-certified through `0cbeabf4b1398fd682b831d4953d7085717ca6cd`, but are not yet claimed as deployed to the authoritative Worker. This execution environment had no Wrangler credential, and `dash.cloudflare.com` remained on its human-verification screen after the single safe retry. Production continues serving the prior certified Worker version until an authenticated manual deployment can complete; no temporary account, alternate host or security bypass was used. A fresh unauthenticated production check after CI returned `200` for both `/` and `/health`; health remained `ready` on `supabase-edge` API `v1` in `production`. The new `/visuals/public-signal-field.svg` returned `404`, independently confirming the visual source is not yet live on the Worker.
+**Important source-truth boundary:** GitHub source is substantially ahead of that Worker. The current institutional UI, provider/monitor refinements, protocol evidence operations, Saved Analyses action UI and other later source slices are repository/CI/Pages certified but are not claimed as deployed to the authoritative Worker.
 
-The web application now uses a same-origin `/api/v1/*` proxy to the Supabase Edge function `rivexis-api` (function version 6). Browser cookies remain HttpOnly/Secure/SameSite=Lax and state-changing requests retain CSRF validation. Recovery bearer tokens are kept in memory only and removed from the browser URL before password entry. All ten demonstration engines now emit engine-specific deterministic synthetic results; live requests still return `UNKNOWN` with zero evidence when no verified provider is configured.
+Deployment remains blocked in this execution environment because Wrangler is unauthenticated and the Cloudflare dashboard remained behind human verification after the permitted safe attempt. No alternate host, temporary account, verification bypass or billing change has been used. Production therefore continues to serve the older certified web bundle while proxying to the now-updated Supabase Edge v7 backend.
 
-## Authentication lifecycle
+## Authentication and session security
 
-Backend source implements signup/login/cookie session/CSRF/logout/revocation plus email verification and password-reset request/confirm flows. Production schema support is applied at 0013.
+Production auth remains available through Supabase Auth + the Edge compatibility runtime:
 
-Head `3e6285f...` completes the corresponding frontend lifecycle:
+- signup and email verification;
+- login;
+- HttpOnly/Secure/SameSite=Lax browser session cookie;
+- CSRF for state-changing requests;
+- session restoration/refresh;
+- logout/protected-route denial;
+- password-reset request/confirm;
+- workspace onboarding and organization creation.
 
-- verification-required signup no longer assumes an authenticated session;
-- `/verify-email` supports one-time code confirmation and enumeration-safe resend;
-- `/forgot-password` returns enumeration-safe acknowledgement;
-- `/reset-password` supports trusted-link token prefill, password confirmation, safe invalid/expired-token messaging, and documents session revocation;
-- public auth lifecycle endpoints no longer perform an unnecessary authenticated CSRF bootstrap;
-- focused browser tests pass 7/7 and the full CI web lane passes.
+Recovery bearer tokens remain memory-only and are removed from the browser URL before password entry.
 
-Production authentication is now available through the free Supabase Edge compatibility runtime. Real signup verification mail, login, automatic application-user provisioning, workspace onboarding, session refresh/persistence, logout, protected-route denial, password-recovery request and Gmail delivery were verified. Supabase Auth Site URL and redirect allowlist now point to the production Worker origin.
+Supabase custom SMTP remains connected to the Brevo free relay. Production recovery delivery was previously verified through Supabase Auth and independently recorded by Brevo as Sent and Delivered. The sender still lacks a Rivexis-owned authenticated domain.
 
-## Cloudflare backend gate
+## Engine and evidence integrity
 
-The repository's full provider-capable runtime remains the existing FastAPI Docker image behind the Cloudflare Container `lite` wrapper. Workers Free remains incompatible with that runtime's deliberate CPU/security controls. The Supabase Edge compatibility runtime now supplies production auth, tenant/workspace control, persistence, clearly labelled deterministic synthetic demonstrations, manual monitors, protocol-history/investigation artifacts, and reports without claiming FastAPI provider parity. Live analysis remains fail-closed `UNKNOWN` without verified provider evidence.
+All B1-B5/F1-F5 integrity contracts remain intact. Current source continues to preserve deterministic demonstration behavior and fail-closed live behavior:
 
-## Brevo
+- B1 `1.3.0` / `b1-live-1.8.0`;
+- B2 `1.1.0` / `b2-live-1.3.0`;
+- B3 `1.1.0` / `b3-live-1.3.0`;
+- B4 `1.0.0` / `b4-live-1.1.0`;
+- B5 `1.2.0` / `b5-live-1.4.0`;
+- F1 `1.2.0` / `f1-live-1.4.0`;
+- F2 `1.2.0` / `f2-live-1.4.0`;
+- F3 `1.3.0` / `f3-live-1.3.0`;
+- F4 `1.2.0` / `f4-live-1.3.0`;
+- F5 `1.2.0` / `f5-live-1.3.0`.
 
-Live inspection found:
-
-- SMTP relay enabled;
-- free account with 300 daily send credits at inspection time;
-- one active `Rivexis` sender using the owner's Gmail address;
-- verification template #1 and password-reset template #2 are active, use sender name `Rivexis`, and match the runtime parameter contract;
-- no Rivexis-owned authenticated sending domain exists, so Brevo warns it will substitute a `brevosend.com` sender domain;
-- controlled template tests were accepted by Brevo and both messages reached the owner Gmail inbox; Brevo logs independently showed the verification message as `Sent` and `Delivered`;
-- template-test sends do not inject runtime parameters; production recovery delivery is now independently certified through the Supabase Auth custom-SMTP path, while verification-template substitution remains covered by the existing Supabase Auth template rather than Brevo template #1.
-
-Supabase Auth custom SMTP is now enabled through the Brevo free relay. The production credential is encrypted by Supabase, was never committed, and remains hidden after save. A real Rivexis password-recovery request completed with HTTP 200; Supabase Auth logged `user_recovery_requested`, and Brevo independently recorded the resulting message as both `Sent` and `Delivered`. Until an owned sender domain is authenticated, Brevo substitutes the configured Gmail sender with its `brevosend.com` domain.
-
-## Engine integrity
-
-All B1-B5/F1-F5 integrity controls remain intact. B1 remains engine contract `1.3.0`, calculation `b1-live-1.8.0`, with bounded, non-verdicting structural security observations. B2 remains engine contract `1.1.0`, calculation `b2-live-1.3.0`, with bounded bytecode/proxy observations and first-class implementation conflicts. B3 remains engine contract `1.1.0`, calculation `b3-live-1.3.0`, with canonical RPC/ABI values, monotonic dependency-identified prior snapshots and provider-specific freshness. B4 remains engine contract `1.0.0`, calculation `b4-live-1.1.0`, with strict quantities/history limits, explicit malformed rows, zero-flow self-transfer accounting and isolated external freshness. B5 remains engine contract `1.2.0`, calculation `b5-live-1.4.0`, with bounded route/economic/step integrity and honest UNKNOWN quote freshness. F1 remains engine contract `1.2.0`, calculation `f1-live-1.4.0`, with same-block direct `decimals()`/`balanceOf`, canonical ABI uint256 validation, bounded quantities, token metadata conflict handling, direct metadata evidence, provider redaction, and fail-closed incomplete holdings semantics. F2 remains engine contract `1.2.0`, calculation `f2-live-1.4.0`, with shared collector `protocol-native-1.2.0`: every direct read is pinned to the captured canonical uint256 block; runtime code, EIP-1967 words and oracle ABI returns are bounded/canonical; malformed direct or explorer identity evidence fails closed; future oracle time stays UNKNOWN; external explorer metadata cannot inherit the RPC block or LIVE freshness; and aggregate freshness reflects every retained evidence source. F4 remains engine contract `1.2.0`, calculation `f4-live-1.3.0`: selectors, provider payloads and selected identity are bounded; strategy matching cannot succeed through arbitrary substrings; present-but-invalid optional metrics fail closed; provider timestamps are normalized without retrieval-time optimism; native confidence requires native evidence; and aggregate freshness conservatively reflects all retained yield, native and explorer evidence. F5 remains engine contract `1.2.0` and advances to calculation `f5-live-1.3.0`: allocation/identity/native-check inputs are bounded; duplicate asset rows aggregate before concentration and HHI scoring; contradictory classifications and non-finite valuations fail closed; malformed market rows cannot claim current confidence; unknown observation time remains null; and aggregate freshness/confidence incorporates protocol-native evidence only when evidence exists.
+The free runtime does not fabricate provider evidence. Without verified provider connectivity, live engine execution remains `UNKNOWN` with zero invented evidence. Demonstration outputs remain explicitly synthetic and attributed.
 
 ## Current execution gates
 
-1. Full provider-capable FastAPI deployment still requires explicit Workers Paid authorization.
-2. The Gmail sender is not an owned authenticated domain.
-3. Provider credentials/licenses remain explicit; unavailable evidence stays UNKNOWN.
+1. **Cloudflare frontend source drift:** current source cannot be promoted until authenticated Cloudflare access is available; do not bypass human verification.
+2. **Full FastAPI/provider runtime:** Cloudflare Container deployment remains gated on explicit Workers Paid authorization.
+3. **Provider credentials/contracts:** unavailable/licensing-gated evidence stays UNKNOWN/unavailable.
+4. **Owned sender domain:** Brevo/Supabase delivery works, but Rivexis does not yet have an authenticated owned sending domain.
 
 ## Next execution order
 
-1. Deploy exact certified source `0cbeabf4b1398fd682b831d4953d7085717ca6cd` to `rivexis-web` through the existing authenticated Cloudflare account, then verify public/auth/workspace visual assets and responsive states alongside `/health`, providers, monitors, protocol workflows, reports, session restoration and browser console state.
-2. Institutionalize saved analyses and remaining report actions with the same evidence-truth and workspace-isolation standard.
-3. Continue deterministic engine hardening and add real providers only with approved credentials/licenses; preserve UNKNOWN otherwise.
-4. Authenticate a Rivexis-owned sender domain when one becomes available; do not purchase one implicitly.
-5. If paid deployment is later authorized, deploy the existing FastAPI Container with restricted runtime credentials and production bindings, then certify parity against the compatibility runtime.
+1. Institutionalize **History and general report workflows** end-to-end: search/filter/open canonical analysis, save/reference actions, and only report actions that are backed by real FastAPI + Supabase Edge persistence/rendering contracts.
+2. Add missing compatibility-runtime backend work before exposing any new frontend action; no frontend-only mock controls.
+3. Continue structured multi-row builders for portfolio/position/treasury workflows where they materially improve F1/F3/F5 usability without weakening canonical input validation.
+4. Deploy the latest certified web source to the existing `rivexis-web` Worker as soon as legitimate Cloudflare authentication is available, then live-certify public/auth/workspace/Saved/History/report flows, responsive UI and browser console state.
+5. Add provider-backed evidence depth only with approved credentials/licenses and preserve UNKNOWN otherwise.
