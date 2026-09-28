@@ -119,6 +119,11 @@ function conflictCount(value:unknown){
   return Array.isArray(value)?value.length:0;
 }
 
+function collectionRows(value:unknown){
+  if(!Array.isArray(value))return [] as Record<string,unknown>[];
+  return value.filter((item):item is Record<string,unknown>=>Boolean(item)&&typeof item==="object"&&!Array.isArray(item)).slice(0,50);
+}
+
 function ResultSummary({result}:{result:Record<string,unknown>}){
   const demo=result.demo===true;
   const status=stringValue(result.status,"UNKNOWN");
@@ -185,6 +190,7 @@ export default function Engine(){
   const meta=engineMeta[id]??{name:`${id} Engine`,domain:"Specialist engine",description:"Run a normalized Rivexis analysis."};
   const fields=(guidedFields[id]?.[mode]??[]);
   const payload=useMemo(()=>{try{const value=JSON.parse(text);return value&&typeof value==="object"&&!Array.isArray(value)?value as Record<string,unknown>:null}catch{return null}},[text]);
+  const portfolioPositions=id==="F1"&&mode==="live"?collectionRows(payload?.manual_positions):[];
 
   useEffect(()=>{
     workspaceRef.current=workspaceId;
@@ -198,11 +204,31 @@ export default function Engine(){
     setText(JSON.stringify(next==="live"?(liveDefaults[id]??{}):(demoDefaults[id]??{}),null,2));
   }
 
+  function replacePayload(next:Record<string,unknown>){
+    setText(JSON.stringify(next,null,2));
+    setResult(null);setError("");
+  }
+
   function updateField(field:GuidedField,value:string|boolean){
     const next={...(payload??{})};
     next[field.key]=field.type==="number"?(value===""?0:Number(value)):value;
-    setText(JSON.stringify(next,null,2));
-    setResult(null);setError("");
+    replacePayload(next);
+  }
+
+  function updatePortfolioPosition(index:number,key:"coingecko_id"|"symbol"|"quantity",value:string){
+    const positions=[...portfolioPositions];
+    positions[index]={...positions[index],[key]:key==="quantity"?(value===""?0:Number(value)):value};
+    replacePayload({...payload,manual_positions:positions});
+  }
+
+  function addPortfolioPosition(){
+    if(portfolioPositions.length>=50)return;
+    replacePayload({...payload,manual_positions:[...portfolioPositions,{coingecko_id:"",symbol:"",quantity:0}]});
+  }
+
+  function removePortfolioPosition(index:number){
+    if(portfolioPositions.length<=1)return;
+    replacePayload({...payload,manual_positions:portfolioPositions.filter((_,rowIndex)=>rowIndex!==index)});
   }
 
   async function run(){
@@ -224,7 +250,7 @@ export default function Engine(){
     <div className="engineHeader"><div><div className="workspaceKicker">{meta.domain}</div><div className="engineTitleRow"><span>{id}</span><h1>{meta.name}</h1></div><p>{meta.description}</p></div><span className="badge"><span className="statusDot"/>{workspace.name}</span></div>
     <section className="modePanel"><div><span className="workspaceKicker">Execution mode</span><h2>Choose the evidence boundary</h2></div><div className="modeSwitch" role="group" aria-label="Execution mode"><button className={mode==="demo"?"active":""} onClick={()=>switchMode("demo")} aria-pressed={mode==="demo"}><span>01</span><b>Demonstration</b><small>Synthetic, clearly labelled</small></button><button className={mode==="live"?"active":""} disabled={!liveEnabled} onClick={()=>switchMode("live")} aria-pressed={mode==="live"}><span>02</span><b>Live provider analysis</b><small>Verified evidence only</small></button></div><div className={`modeNotice ${mode==="demo"?"demo":"live"}`}><span className="statusDot"/>{mode==="demo"?"Demonstration data only — never represented as institutional live evidence.":"Missing, stale or conflicting provider evidence remains explicit and may produce UNKNOWN."}</div></section>
     <section className="panel inputPanel"><div className="panelHeading"><div><span className="workspaceKicker">Analysis input</span><h2>Configure scenario</h2></div><span className="stepLabel">STEP 2 OF 2</span></div>
-      {fields.length>0?<div className="guidedGrid">{fields.map(field=>field.type==="boolean"?<label className="toggleField" key={field.key}><div><b>{field.label}</b><span>{field.hint}</span></div><input type="checkbox" checked={Boolean(payload?.[field.key])} onChange={e=>updateField(field,e.target.checked)}/><span className="toggleTrack"/></label>:<label className="guidedField" key={field.key}><span>{field.label}</span><small>{field.hint}</small>{field.type==="select"?<select value={String(payload?.[field.key]??"")} onChange={e=>updateField(field,e.target.value)}>{field.options?.map(option=><option key={option} value={option}>{option}</option>)}</select>:<input type={field.type} min={field.min} max={field.max} step={field.step} value={String(payload?.[field.key]??"")} onChange={e=>updateField(field,e.target.value)}/>}</label>)}</div>:<div className="advancedOnly"><b>Structured portfolio input</b><p>This engine accepts a collection of positions. Review or edit the normalized payload below.</p></div>}
+      {fields.length>0?<div className="guidedGrid">{fields.map(field=>field.type==="boolean"?<label className="toggleField" key={field.key}><div><b>{field.label}</b><span>{field.hint}</span></div><input type="checkbox" checked={Boolean(payload?.[field.key])} onChange={e=>updateField(field,e.target.checked)}/><span className="toggleTrack"/></label>:<label className="guidedField" key={field.key}><span>{field.label}</span><small>{field.hint}</small>{field.type==="select"?<select value={String(payload?.[field.key]??"")} onChange={e=>updateField(field,e.target.value)}>{field.options?.map(option=><option key={option} value={option}>{option}</option>)}</select>:<input type={field.type} min={field.min} max={field.max} step={field.step} value={String(payload?.[field.key]??"")} onChange={e=>updateField(field,e.target.value)}/>}</label>)}</div>:id==="F1"&&mode==="live"?<div className="advancedOnly" data-testid="portfolio-position-builder"><div className="panelHeading"><div><b>Portfolio positions</b><p>Build the canonical <code>manual_positions</code> collection without editing raw JSON. Asset IDs use CoinGecko identifiers; quantity is held as a numeric unit amount.</p></div><span className="stepLabel">{portfolioPositions.length}/50</span></div><div className="tableWrap"><table className="table"><thead><tr><th>#</th><th>CoinGecko asset ID</th><th>Symbol</th><th>Quantity</th><th>Action</th></tr></thead><tbody>{portfolioPositions.map((position,index)=><tr key={index} data-testid="portfolio-position-row"><td>{index+1}</td><td><input aria-label={`Position ${index+1} CoinGecko asset ID`} value={String(position.coingecko_id??"")} onChange={event=>updatePortfolioPosition(index,"coingecko_id",event.target.value)}/></td><td><input aria-label={`Position ${index+1} symbol`} value={String(position.symbol??"")} onChange={event=>updatePortfolioPosition(index,"symbol",event.target.value)}/></td><td><input aria-label={`Position ${index+1} quantity`} type="number" min="0" step="any" value={String(position.quantity??0)} onChange={event=>updatePortfolioPosition(index,"quantity",event.target.value)}/></td><td><button className="ghost" disabled={portfolioPositions.length<=1} onClick={()=>removePortfolioPosition(index)} aria-label={`Remove position ${index+1}`}>Remove</button></td></tr>)}</tbody></table></div><div className="actions"><button className="button" onClick={addPortfolioPosition} disabled={portfolioPositions.length>=50}>Add position</button><span className="muted">Advanced JSON remains available below for integration-specific fields.</span></div></div>:<div className="advancedOnly"><b>Structured input</b><p>This engine accepts a collection-based payload. Review or edit the normalized payload below.</p></div>}
       <details className="advancedPayload"><summary>Advanced JSON payload <span>For integration and complex inputs</span></summary><label className="field">JSON scenario / provider input<textarea value={text} onChange={e=>{setText(e.target.value);setResult(null);setError("")}} aria-label="Engine input JSON"/></label></details>
       {!payload&&<p className="error" role="alert">The advanced payload is not valid JSON. Correct it before running this engine.</p>}
       <div className="runBar"><div><span>{mode==="demo"?"SYNTHETIC SCENARIO":"LIVE EVIDENCE REQUEST"}</span><small>{id} · {meta.name}</small></div><button className="button runButton" onClick={run} disabled={running||!payload}>{running?<><span className="spinner"/>Running analysis…</>:<>Run {id} analysis <span aria-hidden="true">↗</span></>}</button></div>{error&&<p className="error" role="alert">{error}</p>}
