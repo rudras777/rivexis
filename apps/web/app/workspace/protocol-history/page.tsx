@@ -11,6 +11,10 @@ type Result={event_count?:number;change_count?:number;materiality_counts?:Record
 type Review={id:string;status:string;approved_at?:string|null};
 
 function short(value:unknown){const s=String(value??"—");return s.length>34?`${s.slice(0,16)}…${s.slice(-12)}`:s}
+function isBlock(value:string){return /^(0|[1-9]\d{0,15})$/.test(value)&&BigInt(value)<=BigInt(Number.MAX_SAFE_INTEGER)}
+function validRange(from:string,to:string){return isBlock(from)&&isBlock(to)&&BigInt(from)<=BigInt(to)}
+function isEvmAddress(value:string){return /^0x[a-fA-F0-9]{40}$/.test(value)}
+function isBytes32(value:string){return /^0x[a-fA-F0-9]{64}$/.test(value)}
 
 export default function ProtocolHistoryPage(){
   const {workspaceId,workspace}=useWorkspace();
@@ -35,6 +39,7 @@ export default function ProtocolHistoryPage(){
     setResult(null);setMode(null);setReview(null);setError("");setRunning(null);
   },[workspaceId]);
 
+  function changeAdapter(next:string){setAdapter(next);setSubject("");setResult(null);setMode(null);setReview(null);setError("")}
   function input(){
     const x:Record<string,unknown>={protocol_adapter:adapter,chain,from_block:fromBlock,to_block:toBlock};
     if(adapter==="aave_v3"&&subject)x.asset_address=subject;
@@ -63,7 +68,7 @@ export default function ProtocolHistoryPage(){
     try{
       const row=await api<Review>("/api/v1/protocol-config/reviews",{method:"POST",body:JSON.stringify({workspace_id:originWorkspace,input:input()})});
       if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setReview(row);
-    }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not save this configuration review.");}
+    }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not save this configuration review.")}
     finally{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setRunning(null)}
   }
 
@@ -71,45 +76,49 @@ export default function ProtocolHistoryPage(){
     if(!review)return;const originWorkspace=workspaceId;const epoch=epochRef.current;const reviewId=review.id;
     setRunning("approve");setError("");
     try{
-      const row=await api<Review>(`/api/v1/protocol-config/reviews/${reviewId}/approve`,{method:"POST"});
+      const row=await api<Review>(`/api/v1/protocol-config/reviews/${encodeURIComponent(reviewId)}/approve`,{method:"POST"});
       if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setReview(row);
-    }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not approve this review.");}
+    }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not approve this review.")}
     finally{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setRunning(null)}
   }
 
-  async function openPdf(){
-    if(!review)return;const originWorkspace=workspaceId;const epoch=epochRef.current;const reviewId=review.id;
-    setRunning("pdf");setError("");
-    try{
-      if(workspaceRef.current!==originWorkspace||epochRef.current!==epoch)return;
-      window.open(`/api/v1/protocol-config/reviews/${reviewId}/render?format=pdf`,"_blank","noopener,noreferrer");
-    }catch{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setError("Rivexis could not render this review report.");}
-    finally{if(workspaceRef.current===originWorkspace&&epochRef.current===epoch)setRunning(null)}
-  }
-
+  const rangeValid=validRange(fromBlock,toBlock);
+  const subjectValid=!subject||(adapter==="morpho_blue"?isBytes32(subject):isEvmAddress(subject));
+  const formValid=rangeValid&&subjectValid;
   const subjectLabel=adapter==="morpho_blue"?"Market ID (bytes32)":adapter==="compound_v3"?"Collateral asset":"Reserve asset";
   const events=result?.events??[];const changes=result?.changes??[];
+  const high=Number(result?.materiality_counts?.HIGH??0);
+  const medium=Number(result?.materiality_counts?.MEDIUM??0);
+
   return <>
-    <div className="workspaceHeader"><div><h1>Protocol History</h1><p>Read normalized governance/configuration events, compare protocol-native state between archive blocks, and preserve configuration changes as review artifacts.</p></div><span className="badge">{workspace.name}</span></div>
-    <section className="panel">
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:14}}>
-        <label className="field">Protocol<select value={adapter} onChange={e=>setAdapter(e.target.value)}><option value="aave_v3">Aave V3</option><option value="compound_v3">Compound III</option><option value="morpho_blue">Morpho Blue</option></select></label>
-        <label className="field">Chain<select value={chain} onChange={e=>setChain(e.target.value)}><option value="ethereum">Ethereum</option><option value="base">Base</option><option value="arbitrum">Arbitrum</option><option value="optimism">Optimism</option><option value="polygon">Polygon</option></select></label>
-        <label className="field">From block<input value={fromBlock} onChange={e=>setFromBlock(e.target.value)} placeholder="e.g. 21000000"/></label>
-        <label className="field">To block<input value={toBlock} onChange={e=>setToBlock(e.target.value)} placeholder="e.g. 21010000"/></label>
-        <label className="field">{subjectLabel}<input value={subject} onChange={e=>setSubject(e.target.value)} placeholder={adapter==="morpho_blue"?"0x…64 hex chars":"0x…address"}/></label>
+    <div className="workspaceHeader dashboardHeader"><div><div className="workspaceKicker">Protocol evidence workflow</div><h1>Protocol history</h1><p>Read normalized events, compare archive-block configuration and preserve review artifacts.</p></div><div className="workspaceHeaderActions"><span className="badge"><span className="statusDot"/>{workspace.name}</span><span className="badge">ARCHIVE EVIDENCE</span></div></div>
+    <section className="overviewBand surfaceOverview" aria-label="Protocol history overview"><div><small>MODE</small><strong>{mode?mode==="timeline"?"EVT":"CFG":"—"}</strong><span>{mode?mode==="timeline"?"Event timeline":"Configuration comparison":"Awaiting analysis"}</span></div><div><small>EVENTS</small><strong>{result?result.event_count??0:"—"}</strong><span>Normalized supported events</span></div><div><small>CHANGES</small><strong>{result?result.change_count??0:"—"}</strong><span>{result?`${high} high · ${medium} medium`:"No comparison yet"}</span></div><div><small>REVIEW</small><strong>{review?review.status.toUpperCase():"—"}</strong><span>{review?"Persisted workspace artifact":"Not saved"}</span></div></section>
+    <div className="truthNotice"><span className="statusDot"/>An empty event set is not proof that no governance activity occurred. Provider availability, bounded coverage and missing evidence remain explicit.</div>
+    <section className="panel operationalPanel">
+      <div className="panelHeading"><div><span className="workspaceKicker">Bounded query</span><h2>Evidence parameters</h2></div><p className="sectionLead">Block values must be canonical non-negative decimals and the end block cannot precede the start block.</p></div>
+      <div className="protocolFormGrid">
+        <label className="field">Protocol<select value={adapter} onChange={e=>changeAdapter(e.target.value)}><option value="aave_v3">Aave V3</option><option value="compound_v3">Compound III</option><option value="morpho_blue">Morpho Blue</option></select></label>
+        <label className="field">Network<select value={chain} onChange={e=>setChain(e.target.value)}><option value="ethereum">Ethereum</option><option value="base">Base</option><option value="arbitrum">Arbitrum</option><option value="optimism">Optimism</option><option value="polygon">Polygon</option></select></label>
+        <label className="field">From block<input inputMode="numeric" aria-invalid={fromBlock.length>0&&!isBlock(fromBlock)} value={fromBlock} onChange={e=>setFromBlock(e.target.value)} placeholder="e.g. 21000000"/></label>
+        <label className="field">To block<input inputMode="numeric" aria-invalid={toBlock.length>0&&!isBlock(toBlock)} value={toBlock} onChange={e=>setToBlock(e.target.value)} placeholder="e.g. 21010000"/></label>
+        <label className="field">{subjectLabel}<input aria-invalid={subject.length>0&&!subjectValid} value={subject} onChange={e=>setSubject(e.target.value.trim())} placeholder={adapter==="morpho_blue"?"Optional 0x + 64 hex":"Optional 0x + 40 hex"}/></label>
         {adapter==="compound_v3"?<label className="field">Market<select value={market} onChange={e=>setMarket(e.target.value)}><option value="usdc">USDC</option></select></label>:null}
       </div>
-      <label style={{display:"flex",gap:8,alignItems:"center",marginTop:12,fontSize:13}}><input type="checkbox" checked={timestamps} onChange={e=>setTimestamps(e.target.checked)}/> Hydrate event block timestamps (bounded RPC reads)</label>
-      <div style={{display:"flex",gap:10,marginTop:16,flexWrap:"wrap"}}><button className="button" disabled={!!running} onClick={()=>run("timeline")}>{running==="timeline"?"Reading events…":"Read event timeline"}</button><button className="button" disabled={!!running} onClick={()=>run("compare")}>{running==="compare"?"Comparing…":"Compare configuration"}</button>{mode==="compare"&&result?<button className="button" disabled={!!running} onClick={saveReview}>{running==="save"?"Saving…":"Save review artifact"}</button>:null}</div>
+      {(fromBlock||toBlock)&&!rangeValid?<p className="fieldError" role="status">Enter a complete block range with the from block less than or equal to the to block.</p>:null}
+      {subject&&!subjectValid?<p className="fieldError" role="status">Enter the complete hexadecimal identity required by the selected protocol adapter.</p>:null}
+      <label className="checkField"><input type="checkbox" checked={timestamps} onChange={e=>setTimestamps(e.target.checked)}/><span><b>Hydrate block timestamps</b><small>Uses bounded provider reads when that capability is available.</small></span></label>
+      <div className="actionBar"><div><span>QUERY READINESS</span><small>{formValid?"Validated range ready for an attributed read":"Complete a valid range before execution"}</small></div><div className="toolbarActions"><button className="ghost" type="button" disabled={!!running||!formValid} onClick={()=>void run("timeline")}>{running==="timeline"?"Reading events…":"Read event timeline"}</button><button className="button" type="button" disabled={!!running||!formValid} onClick={()=>void run("compare")}>{running==="compare"?"Comparing…":"Compare configuration"}</button></div></div>
       {error?<p className="error" role="alert">{error}</p>:null}
-      {review?<div style={{marginTop:14}} data-testid="protocol-review"><b>Review {review.id}</b> · {review.status} {review.status!=="approved"?<button className="button" style={{marginLeft:10}} disabled={!!running} onClick={approveReview}>Approve review</button>:null}<button className="button" style={{marginLeft:10}} disabled={!!running} onClick={openPdf}>{running==="pdf"?"Rendering…":"Open PDF report"}</button></div>:null}
     </section>
-    {result?<section className="panel" data-testid="protocol-history-result">
-      <div style={{display:"flex",gap:24,flexWrap:"wrap",marginBottom:16}}><div><b>{result.event_count??"—"}</b><div>normalized events</div></div><div><b>{result.change_count??"—"}</b><div>configuration changes</div></div>{result.materiality_counts?<><div><b>{String(result.materiality_counts.HIGH??0)}</b><div>high</div></div><div><b>{String(result.materiality_counts.MEDIUM??0)}</b><div>medium</div></div></>:null}</div>
-      {mode==="timeline"?<div style={{overflowX:"auto"}}><table><thead><tr><th>Block / time</th><th>Event</th><th>Category</th><th>Source</th><th>Parameters</th><th>Tx</th></tr></thead><tbody>{events.length?events.map((e,i)=><tr key={`${e.transaction_hash}-${i}`}><td>{e.block_number??"—"}<br/><small>{e.block_datetime??"timestamp not hydrated"}</small></td><td><b>{e.event}</b></td><td>{e.category}</td><td>{e.source_role}</td><td><code>{JSON.stringify(e.parameters)}</code></td><td><code title={e.transaction_hash}>{short(e.transaction_hash)}</code></td></tr>):<tr><td colSpan={6}>No supported events found in this range. This is not proof that no governance activity occurred.</td></tr>}</tbody></table></div>:null}
-      {mode==="compare"?<div style={{overflowX:"auto"}}><table><thead><tr><th>Priority</th><th>Configuration path</th><th>Before</th><th>After</th></tr></thead><tbody>{changes.length?changes.map((c,i)=><tr key={`${c.path}-${i}`}><td><b>{c.materiality}</b></td><td><code>{c.path}</code></td><td><code>{short(c.from)}</code></td><td><code>{short(c.to)}</code></td></tr>):<tr><td colSpan={4}>No configuration changes detected between the selected blocks.</td></tr>}</tbody></table></div>:null}
-      <details style={{marginTop:16}}><summary>Raw evidence payload</summary><pre style={{whiteSpace:"pre-wrap",wordBreak:"break-word",fontSize:12,maxHeight:420,overflow:"auto"}}>{JSON.stringify(result,null,2)}</pre></details>
+
+    {result?<section className="panel resultPanel" data-testid="protocol-history-result">
+      <div className="resultBanner isLive" role="status"><span className="statusDot"/>{mode==="timeline"?"NORMALIZED EVENT EVIDENCE":"CONFIGURATION COMPARISON"} · {workspace.name}</div>
+      <div className="artifactMetrics"><div><span>Normalized events</span><b>{result.event_count??0}</b></div><div><span>Configuration changes</span><b>{result.change_count??0}</b></div><div><span>High materiality</span><b>{high}</b></div><div><span>Medium materiality</span><b>{medium}</b></div></div>
+      {mode==="timeline"?<div className="tableWrap"><table className="table"><thead><tr><th>Block / time</th><th>Event</th><th>Category</th><th>Source</th><th>Parameters</th><th>Transaction</th></tr></thead><tbody>{events.length?events.map((event,index)=><tr key={`${event.transaction_hash}-${index}`}><td>{event.block_number??"—"}<br/><small>{event.block_datetime??"Timestamp unavailable"}</small></td><td><b>{event.event}</b></td><td><span className="statePill neutral">{event.category}</span></td><td>{event.source_role}</td><td><code>{short(JSON.stringify(event.parameters))}</code></td><td><code title={event.transaction_hash}>{short(event.transaction_hash)}</code></td></tr>):<tr><td colSpan={6}>No supported events were returned in this bounded range. This is not proof that no governance activity occurred.</td></tr>}</tbody></table></div>:null}
+      {mode==="compare"?<><div className="tableWrap"><table className="table"><thead><tr><th>Materiality</th><th>Configuration path</th><th>Before</th><th>After</th></tr></thead><tbody>{changes.length?changes.map((change,index)=><tr key={`${change.path}-${index}`}><td><span className={`statePill ${change.materiality==="HIGH"?"warning":"neutral"}`}>{change.materiality}</span></td><td><code>{change.path}</code></td><td><code>{short(change.from)}</code></td><td><code>{short(change.to)}</code></td></tr>):<tr><td colSpan={4}>No configuration changes were detected between the selected blocks.</td></tr>}</tbody></table></div><div className="panelFooter"><span>Persist the exact comparison before approval or case attachment.</span><button className="button" type="button" disabled={!!running} onClick={saveReview}>{running==="save"?"Saving…":"Save review artifact"}</button></div></>:null}
+      <details className="advancedPayload"><summary>Inspect normalized evidence payload</summary><pre className="result">{JSON.stringify(result,null,2)}</pre></details>
     </section>:null}
+
+    {review?<section className="panel artifactCard" data-testid="protocol-review"><div><span className="workspaceKicker">Persisted configuration review</span><h2>Review <code>{review.id}</code></h2><p>Approval records analyst workflow; it does not certify protocol safety or complete provider coverage.</p></div><div className="artifactActions"><span className={`statePill ${review.status.toLowerCase()==="approved"?"positive":"neutral"}`}>{review.status}</span>{review.status.toLowerCase()!=="approved"?<button className="button" type="button" disabled={!!running} onClick={approveReview}>{running==="approve"?"Approving…":"Approve review"}</button>:null}<a className="ghost" href={`/api/v1/protocol-config/reviews/${encodeURIComponent(review.id)}/render?format=pdf`} target="_blank" rel="noopener noreferrer">Open PDF report</a></div></section>:null}
   </>;
 }
