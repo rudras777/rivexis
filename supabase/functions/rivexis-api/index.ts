@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient, type SupabaseClient, type User} from "npm:@supabase/supabase-js@2";
 import {analysisResult} from "./analysis.mjs";
+import {createMembershipClaimToken,hashMembershipClaimToken} from "./membership.mjs";
 
 type Json=Record<string,unknown>;
 type SessionCookie={access_token:string;refresh_token:string;csrf:string};
@@ -12,6 +13,7 @@ const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LIVE_ORIGIN="https://rivexis-web.rudrasingh0718.workers.dev";
 const COOKIE="rvx_session";
 const ROLES=new Set(["Individual","Fund","Treasury","Analyst"]);
+const ORG_ROLES=new Set(["OWNER","ADMIN","ANALYST","VIEWER"]);
 const ENGINE_PATHS:Record<string,string>={
   simulations:"B1",security:"B2",monitoring:"B3",entities:"B4",routes:"B5",
   portfolio:"F1","protocol-risk":"F2","position-risk":"F3",yield:"F4",treasury:"F5",
@@ -28,6 +30,12 @@ async function bridge(action:string,userId:string,payload:Json={}):Promise<any>{
 
 async function savedBridge(action:string,userId:string,payload:Json={}):Promise<any>{
   const {data,error}=await admin.rpc("rivexis_edge_saved_analysis",{p_action:action,p_actor_user_id:userId,p_payload:payload});
+  if(error)throw new Error(error.message);
+  return data;
+}
+
+async function membershipBridge(action:string,userId:string,payload:Json={}):Promise<any>{
+  const {data,error}=await admin.rpc("rivexis_edge_organization_membership",{p_action:action,p_actor_user_id:userId,p_payload:payload});
   if(error)throw new Error(error.message);
   return data;
 }
@@ -110,6 +118,16 @@ async function authenticate(req:Request):Promise<AuthContext|null>{
 
 function requireCsrf(req:Request,auth:AuthContext){
   return req.headers.get("x-rivexis-csrf")===auth.session.csrf;
+}
+
+function membershipFailure(req:Request,cause:unknown,cookie?:string){
+  const detail=cause instanceof Error?cause.message:"Organization membership request failed";
+  const normalized=detail.toLowerCase();
+  if(normalized.includes("organization administration required")||normalized.includes("only an organization owner"))return error(req,403,detail,cookie);
+  if(normalized.includes("organization not found")||normalized.includes("user must already have a rivexis account"))return error(req,404,detail,cookie);
+  if(normalized.includes("invalid organization role"))return error(req,422,detail,cookie);
+  if(normalized.includes("membership claim")||normalized.includes("last organization owner")||normalized.includes("new organization members require"))return error(req,409,detail,cookie);
+  return error(req,500,"Rivexis could not complete the membership request safely",cookie);
 }
 
 async function personalWorkspaces(userId:string){
@@ -274,6 +292,51 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   if(path==="/api/v1/organizations"&&method==="POST"){
     const input=await body(req);const name=typeof input.name==="string"?input.name.trim():"";if(name.length<2)return error(req,422,"Organization name is required",auth.cookie);
     return json(req,await bridge("create_organization",auth.user.id,{name}),200,auth.cookie);
+  }
+  const membershipClaimCreate=path.match(/^\/api\/v1\/organizations\/([^/]+)\/membership-claim$/);
+  if(membershipClaimCreate&&method==="POST"){
+    const organizationId=decodeURIComponent(membershipClaimCreate[1]);
+    try{
+      const claimToken=createMembershipClaimToken();
+      const tokenHash=await hashMembershipClaimToken(claimToken);
+      const created=await membershipBridge("create_claim",auth.user.id,{organization_id:organizationId,token_hash:tokenHash});
+      return json(req,{organization_id:organizationId,claim_token:claimToken,expires_in_seconds:created.expires_in_seconds??900,expires_at:created.expires_at},200,auth.cookie);
+    }catch(cause){return membershipFailure(req,cause,auth.cookie)}
+  }
+  const memberClaimAccept=path.match(/^\/api\/v1\/organizations\/([^/]+)\/members\/claim$/);
+  if(memberClaimAccept&&method==="POST"){
+    const organizationId=decodeURIComponent(memberClaimAccept[1]);
+    const input=await body(req);
+    const claimToken=typeof input.claim_token==="string"?input.claim_token.trim():"";
+    const nextRole=typeof input.role==="string"?input.role.trim().toUpperCase():"";
+    if(!ORG_ROLES.has(nextRole))return error(req,422,"Invalid organization role",auth.cookie);
+    try{
+      const tokenHash=await hashMembershipClaimToken(claimToken);
+      return json(req,await membershipBridge("accept_claim",auth.user.id,{organization_id:organizationId,token_hash:tokenHash,role:nextRole}),200,auth.cookie);
+    }catch(cause){return membershipFailure(req,cause,auth.cookie)}
+  }
+  const membersCollection=path.match(/^\/api\/v1\/organizations\/([^/]+)\/members$/);
+  if(membersCollection&&method==="GET"){
+    const organizationId=decodeURIComponent(membersCollection[1]);
+    try{return json(req,await membershipBridge("list",auth.user.id,{organization_id:organizationId}),200,auth.cookie)}catch(cause){return membershipFailure(req,cause,auth.cookie)}
+  }
+  if(membersCollection&&method==="POST"){
+    const organizationId=decodeURIComponent(membersCollection[1]);
+    const input=await body(req);
+    const email=typeof input.email==="string"?input.email.trim().toLowerCase():"";
+    const nextRole=typeof input.role==="string"?input.role.trim().toUpperCase():"";
+    if(!email||!ORG_ROLES.has(nextRole))return error(req,422,"Email and valid organization role are required",auth.cookie);
+    try{return json(req,await membershipBridge("update_existing",auth.user.id,{organization_id:organizationId,email,role:nextRole}),200,auth.cookie)}catch(cause){return membershipFailure(req,cause,auth.cookie)}
+  }
+  const memberDelete=path.match(/^\/api\/v1\/organizations\/([^/]+)\/members\/([^/]+)$/);
+  if(memberDelete&&method==="DELETE"){
+    const organizationId=decodeURIComponent(memberDelete[1]);
+    const targetUserId=decodeURIComponent(memberDelete[2]);
+    try{
+      const outcome=await membershipBridge("delete",auth.user.id,{organization_id:organizationId,user_id:targetUserId});
+      if(outcome?.deleted!==true)return error(req,404,"Organization member not found",auth.cookie);
+      return empty(req,204,auth.cookie);
+    }catch(cause){return membershipFailure(req,cause,auth.cookie)}
   }
   if(path==="/api/v1/history"&&method==="GET"){
     const workspaceId=url.searchParams.get("workspace_id");if(!workspaceId||!await workspaceAccess(auth.user.id,workspaceId))return error(req,404,"Workspace not found",auth.cookie);
