@@ -1,8 +1,14 @@
 const EDGE_API_URL="https://ivszvufdonfgwjpfgwii.supabase.co/functions/v1/rivexis-api";
+const DECISION_REPORT_API_URL="https://ivszvufdonfgwjpfgwii.supabase.co/functions/v1/rivexis-decision-reports";
+
+function upstreamBase(path:string){
+  if(path==="/api/v1/history"||path.startsWith("/api/v1/decisions/")||path==="/api/v1/reports"||path.startsWith("/api/v1/reports/"))return DECISION_REPORT_API_URL;
+  return EDGE_API_URL;
+}
 
 export async function proxyEdgeApi(request:Request,path:string){
   const source=new URL(request.url);
-  const target=new URL(`${EDGE_API_URL}${path}`);
+  const target=new URL(`${upstreamBase(path)}${path}`);
   target.search=source.search;
   const headers=new Headers(request.headers);
   headers.delete("host");
