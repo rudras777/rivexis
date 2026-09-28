@@ -7,9 +7,9 @@ This file is the compact continuation point. Newer verified GitHub source, produ
 ## Certified source
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest fully certified product source: `38f3d866359f82dfeeacfd7ceb3ae9d67d6bbcdf` (`Keep workspace controls reachable`).
-- Exact-head CI: `36465744408` — **SUCCESS**.
-- Exact-head Pages: `36465743682` — **SUCCESS**.
+- Latest fully certified product source: `859073b02c43df7b4ea373e277b450e213af8041` (`Integrate official Rivexis brand system`).
+- Exact-head CI: `36477406619` — **SUCCESS**.
+- Exact-head Pages: `36477405771` — **SUCCESS**.
 - The full gate passed invariants, secret/migration checks, PostgreSQL migrations/runtime controls, API lint/tests/audit, Edge typecheck/tests, web typecheck/build, vinext build, npm audit and the complete Playwright browser suite.
 - The browser suite certifies the signature visual system, accessibility, authentication/session lifecycle, workspace isolation, engine provenance, F1/F3/F5 structured inputs, organization membership, Decision Desk/reports, monitors and alert operations.
 - The Edge helper test suite now also certifies alert-notification truth wording, HTML escaping, deterministic Brevo idempotency keys and duplicate-provider acceptance handling.
@@ -166,7 +166,7 @@ Authoritative public frontend:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-The Cloudflare web Worker serves exact source `38f3d866359f82dfeeacfd7ceb3ae9d67d6bbcdf` as Worker version `4fc4e9f1-ab93-420c-a02c-041ad9860057`. The build marker, same-origin Edge health response, authenticated grouped navigation, saved-state guard and clean browser console were verified after deployment.
+The Cloudflare web Worker serves exact source `859073b02c43df7b4ea373e277b450e213af8041` as Worker version `d4d4ed6e-bdcb-4c77-9701-1ecbd8407da5`. The build marker, official wordmark/favicon/social assets, public and authentication surfaces, same-origin Edge health response, authenticated workspace plus B1/F1 screens, and clean browser consoles were verified after deployment.
 
 A verified deployment workflow exists at `.github/workflows/deploy-web.yml`. It deploys only after successful CI, targets the existing `rivexis-web` Worker, stamps `NEXT_PUBLIC_RIVEXIS_BUILD_SHA`, and verifies that exact SHA from the public site after deployment. Automatic runs currently stop before contacting Cloudflare because GitHub Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are not configured. Manual deployment uses the legitimate authenticated local Wrangler OAuth session; do not expose that session or substitute unrelated credentials.
 

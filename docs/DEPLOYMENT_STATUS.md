@@ -4,9 +4,9 @@ Last updated: 2026-09-29
 
 | Environment | Status | Evidence / meaning |
 |---|---|---|
-| GitHub product source | CERTIFIED | Product source `38f3d866359f82dfeeacfd7ceb3ae9d67d6bbcdf` passed exact-head CI `36465744408`. |
-| GitHub Pages | FALLBACK ONLY | Exact-head Pages run `36465743682` passed, but Pages is not the authoritative application runtime. |
-| Cloudflare web | LIVE / EXACT SOURCE | `rivexis-web.rudrasingh0718.workers.dev` serves exact source `38f3d866359f82dfeeacfd7ceb3ae9d67d6bbcdf` as Worker version `4fc4e9f1-ab93-420c-a02c-041ad9860057`; the public build marker and proxied health endpoint were verified after deployment. |
+| GitHub product source | CERTIFIED | Product source `859073b02c43df7b4ea373e277b450e213af8041` passed exact-head CI `36477406619`. |
+| GitHub Pages | FALLBACK ONLY | Exact-head Pages run `36477405771` passed, but Pages is not the authoritative application runtime. |
+| Cloudflare web | LIVE / EXACT SOURCE | `rivexis-web.rudrasingh0718.workers.dev` serves exact source `859073b02c43df7b4ea373e277b450e213af8041` as Worker version `d4d4ed6e-bdcb-4c77-9701-1ecbd8407da5`; the public build marker, official assets, auth/workspace surfaces and proxied health endpoint were verified after deployment with clean browser consoles. |
 | Supabase Edge API | LIVE / V8 | `rivexis-api` version 8 ACTIVE with HttpOnly-cookie + CSRF auth and the certified compatibility workflows. |
 | Supabase PostgreSQL | LIVE / HARDENED | Project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1; core schema through `0013_auth_email_lifecycle`; hardened runtime bridges retained. |
 | Full FastAPI runtime | SOURCE READY / BILLING GATED | Deep provider-capable container deployment remains gated on explicit Workers Paid authorization. |
@@ -16,6 +16,9 @@ Last updated: 2026-09-29
 
 The certified GitHub source now includes:
 
+- official production wordmark, lockup, X mark, favicon and social metadata assets derived from the supplied authoritative package;
+- a brand-derived navy, cobalt, ice-blue, pearl and institutional-canvas token system shared across public, auth and authenticated surfaces;
+- the official `Risk · Value · Execution · Analysis` identity, restrained X-mark topology treatments and tested desktop/mobile asset rendering;
 - operational History search/type/mode filters, provenance inspection and real Saved-reference creation;
 - authoritative saved-state detection that marks active or archived references as Saved and blocks duplicate persistence requests;
 - grouped Command, Operations, Evidence and Infrastructure navigation with independently scrollable short-viewport access;
