@@ -117,7 +117,7 @@ test.describe("workspace shell access states",()=>{
     await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
     await expect(page.getByRole("button",{name:"Log out"})).toBeVisible();
 
-    for(const name of ["Overview","Workspaces","Providers","Protocol History","Investigations","Monitors","History","Saved"]){
+    for(const name of ["Overview","Decision Desk","Protocol History","Investigations","Monitors","Alerts","History","Saved","Providers","Workspaces"]){
       await expect(page.getByRole("link",{name,exact:true})).toBeVisible();
     }
 

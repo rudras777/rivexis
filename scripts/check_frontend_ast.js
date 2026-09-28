@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const ts = require("typescript");
+const {spawnSync} = require("child_process");
 
 const root = path.join(process.cwd(), "apps", "web");
 const files = [];
@@ -18,30 +19,36 @@ function walk(dir) {
 walk(root);
 
 const errors = [];
-for (const file of files) {
-  const text = fs.readFileSync(file, "utf8");
-  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
-  for (const diagnostic of source.parseDiagnostics) {
-    const lc = source.getLineAndCharacterOfPosition(diagnostic.start || 0);
-    errors.push(`${file}:${lc.line + 1}:${lc.character + 1} ${ts.flattenDiagnosticMessageText(diagnostic.messageText, " ")}`);
-  }
-  function visit(node) {
-    if (ts.isObjectLiteralExpression(node)) {
-      const seen = new Map();
-      for (const prop of node.properties) {
-        if (!(ts.isPropertyAssignment(prop) || ts.isShorthandPropertyAssignment(prop) || ts.isMethodDeclaration(prop)) || !prop.name) continue;
-        const name = prop.name.getText(source).replace(/^['"]|['"]$/g, "");
-        if (seen.has(name)) {
-          const lc = source.getLineAndCharacterOfPosition(prop.getStart(source));
-          errors.push(`${file}:${lc.line + 1}:${lc.character + 1} duplicate object-literal key ${name}`);
-        } else {
-          seen.set(name, true);
+if (typeof ts.createSourceFile === "function") {
+  for (const file of files) {
+    const text = fs.readFileSync(file, "utf8");
+    const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+    for (const diagnostic of source.parseDiagnostics) {
+      const lc = source.getLineAndCharacterOfPosition(diagnostic.start || 0);
+      errors.push(`${file}:${lc.line + 1}:${lc.character + 1} ${ts.flattenDiagnosticMessageText(diagnostic.messageText, " ")}`);
+    }
+    function visit(node) {
+      if (ts.isObjectLiteralExpression(node)) {
+        const seen = new Map();
+        for (const prop of node.properties) {
+          if (!(ts.isPropertyAssignment(prop) || ts.isShorthandPropertyAssignment(prop) || ts.isMethodDeclaration(prop)) || !prop.name) continue;
+          const name = prop.name.getText(source).replace(/^['"]|['"]$/g, "");
+          if (seen.has(name)) {
+            const lc = source.getLineAndCharacterOfPosition(prop.getStart(source));
+            errors.push(`${file}:${lc.line + 1}:${lc.character + 1} duplicate object-literal key ${name}`);
+          } else {
+            seen.set(name, true);
+          }
         }
       }
+      ts.forEachChild(node, visit);
     }
-    ts.forEachChild(node, visit);
+    visit(source);
   }
-  visit(source);
+} else {
+  const packageRoot = path.dirname(require.resolve("typescript/package.json"));
+  const result = spawnSync(process.execPath,[path.join(packageRoot,"bin","tsc"),"--noEmit","-p",path.join(root,"tsconfig.json")],{encoding:"utf8"});
+  if (result.status !== 0) errors.push((result.stdout || result.stderr || "TypeScript syntax check failed.").trim());
 }
 
 if (errors.length) {

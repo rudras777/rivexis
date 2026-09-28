@@ -141,6 +141,7 @@ function DecisionProvenance({detail}:{detail:Detail}){
 export default function History(){
   const {workspaceId,workspace}=useWorkspace();
   const queryClient=useQueryClient();
+  const savedQueryKey=workspaceQueryKey(workspaceId,"saved-analyses",true);
   const [selected,setSelected]=useState<Selection>(null);
   const [search,setSearch]=useState("");
   const [typeFilter,setTypeFilter]=useState<HistoryTypeFilter>("all");
@@ -160,6 +161,11 @@ export default function History(){
     queryFn:()=>api<{items:HistoryRow[]}>(`/api/v1/history?workspace_id=${encodeURIComponent(workspaceId)}`),
     retry:false,
   });
+  const saved=useQuery({
+    queryKey:savedQueryKey,
+    queryFn:()=>api<{items:SavedAnalysis[]}>(`/api/v1/saved-analyses?workspace_id=${encodeURIComponent(workspaceId)}&include_archived=true`),
+    retry:false,
+  });
   const detail=useQuery({
     queryKey:workspaceQueryKey(workspaceId,"history-provenance",selected?.type??"none",selected?.id??"none"),
     queryFn:()=>api<Detail>(selected?.type==="analysis"?`/api/v1/analyses/${encodeURIComponent(selected.id)}`:`/api/v1/decisions/${encodeURIComponent(selected!.id)}`),
@@ -171,11 +177,13 @@ export default function History(){
     mutationFn:(item:HistoryRow)=>api<SavedAnalysis>("/api/v1/saved-analyses",{method:"POST",body:JSON.stringify({analysis_id:item.id,title:savedTitle(item)})}),
     onSuccess:(saved)=>{
       setNotice(`Saved ${saved.analysis_id} as “${saved.title}”.`);
+      queryClient.setQueryData<{items:SavedAnalysis[]}>(savedQueryKey,current=>({items:[...(current?.items??[]).filter(item=>item.analysis_id!==saved.analysis_id),saved]}));
       queryClient.invalidateQueries({queryKey:workspaceQueryKey(workspaceId,"saved-analyses")});
     },
   });
 
   const items=q.data?.items??[];
+  const savedAnalysisIds=useMemo(()=>new Set((saved.data?.items??[]).map(item=>item.analysis_id)),[saved.data?.items]);
   const filtered=useMemo(()=>{
     const needle=search.trim().toLowerCase();
     return items.filter(item=>{
@@ -216,7 +224,8 @@ export default function History(){
         const isSelected=selected?.type===item.type&&selected.id===item.id;
         const inspectable=item.type==="analysis"||item.type==="decision";
         const saving=save.isPending&&save.variables?.id===item.id;
-        return <tr key={`${item.type}-${item.id}`}><td>{item.type}</td><td><code>{item.id}</code></td><td>{item.engine_id??"—"}</td><td>{item.type==="analysis"?(item.demo?"Demo":"Non-demo"):"—"}</td><td>{recordedAt(item.created_at)}</td><td><div className="actions">{inspectable?<button className="ghost" onClick={()=>inspect(item)} aria-expanded={isSelected}>{isSelected?"Hide provenance":"Inspect provenance"}</button>:null}{item.type==="analysis"?<button className="button" disabled={saving} onClick={()=>save.mutate(item)}>{saving?"Saving…":"Save reference"}</button>:null}{!inspectable?"—":null}</div></td></tr>;
+        const isSaved=item.type==="analysis"&&savedAnalysisIds.has(item.id);
+        return <tr key={`${item.type}-${item.id}`}><td>{item.type}</td><td><code>{item.id}</code></td><td>{item.engine_id??"—"}</td><td>{item.type==="analysis"?(item.demo?"Demo":"Non-demo"):"—"}</td><td>{recordedAt(item.created_at)}</td><td><div className="actions">{inspectable?<button className="ghost" onClick={()=>inspect(item)} aria-expanded={isSelected}>{isSelected?"Hide provenance":"Inspect provenance"}</button>:null}{item.type==="analysis"?<button className={isSaved?"ghost":"button"} disabled={saving||isSaved} onClick={()=>save.mutate(item)}>{saving?"Saving…":isSaved?"Saved":"Save reference"}</button>:null}{!inspectable?"—":null}</div></td></tr>;
       })}</tbody></table></div></>:null}
     </section>
     {selected?<section className="panel" aria-live="polite" data-testid="history-provenance-detail">

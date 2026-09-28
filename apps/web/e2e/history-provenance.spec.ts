@@ -85,6 +85,7 @@ test.describe("History canonical provenance",()=>{
     const savedRequests:Array<{body:unknown;csrf:string}>=[];
     await page.route("**/api/v1/auth/web/csrf",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({csrf_token:"history-save-csrf"})}));
     await page.route("**/api/v1/saved-analyses",async route=>{
+      if(route.request().method()==="GET")return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[]})});
       if(route.request().method()!=="POST")return route.fallback();
       const body=route.request().postDataJSON();
       savedRequests.push({body,csrf:route.request().headers()["x-rivexis-csrf"]??""});
@@ -114,10 +115,28 @@ test.describe("History canonical provenance",()=>{
     const analysisRow=page.getByRole("row").filter({hasText:"analysis-alpha"});
     await analysisRow.getByRole("button",{name:"Save reference"}).click();
     await expect(page.getByText(/Saved analysis-alpha as/)).toBeVisible();
+    await expect(analysisRow.getByRole("button",{name:"Saved",exact:true})).toBeDisabled();
 
     expect(savedRequests).toHaveLength(1);
     expect(savedRequests[0].csrf).toBe("history-save-csrf");
     expect(savedRequests[0].body).toMatchObject({analysis_id:"analysis-alpha"});
     expect((savedRequests[0].body as {title:string}).title).toContain("B2 analysis");
+  });
+
+  test("marks an existing saved analysis and prevents a duplicate save request",async({page})=>{
+    await baseMocks(page);
+    let postRequests=0;
+    await page.route("**/api/v1/saved-analyses?**",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[{
+      id:"saved-alpha",workspace_id:"w-alpha",analysis_id:"analysis-alpha",title:"B2 analysis",archived:false,created_at:"2026-09-23T09:00:00Z",
+    }]})}));
+    await page.route("**/api/v1/saved-analyses",route=>{
+      if(route.request().method()==="POST")postRequests+=1;
+      return route.fulfill({status:409,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({detail:"Already saved"})});
+    });
+
+    await page.goto("/workspace/history");
+    const analysisRow=page.getByRole("row").filter({hasText:"analysis-alpha"});
+    await expect(analysisRow.getByRole("button",{name:"Saved",exact:true})).toBeDisabled();
+    expect(postRequests).toBe(0);
   });
 });

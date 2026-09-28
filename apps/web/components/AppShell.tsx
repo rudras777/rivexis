@@ -15,17 +15,11 @@ import {
   setCsrfToken,
 } from "@/lib/api";
 
-const nav=[
-  ["Overview","/workspace","01"],
-  ["Workspaces","/workspace/settings","02"],
-  ["Providers","/workspace/providers","03"],
-  ["Protocol History","/workspace/protocol-history","04"],
-  ["Investigations","/workspace/investigations","05"],
-  ["Monitors","/workspace/monitors","06"],
-  ["Alerts","/workspace/alerts","07"],
-  ["Decision Desk","/workspace/decisions","08"],
-  ["History","/workspace/history","09"],
-  ["Saved","/workspace/saved","10"],
+const navGroups=[
+  {label:"Command",items:[["Overview","/workspace","01"],["Decision Desk","/workspace/decisions","02"]]},
+  {label:"Operations",items:[["Protocol History","/workspace/protocol-history","03"],["Investigations","/workspace/investigations","04"],["Monitors","/workspace/monitors","05"],["Alerts","/workspace/alerts","06"]]},
+  {label:"Evidence",items:[["History","/workspace/history","07"],["Saved","/workspace/saved","08"]]},
+  {label:"Infrastructure",items:[["Providers","/workspace/providers","09"],["Workspaces","/workspace/settings","10"]]},
 ];
 
 type ShellStateProps={title:string;message:string;kind:"loading"|"empty"|"session"|"unavailable";action?:React.ReactNode};
@@ -100,7 +94,7 @@ export function AppShell({children}:{children:React.ReactNode}){
   return <div className="appShell">
     <div className="workspaceAmbient" aria-hidden="true"/>
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
-    <aside className="sidebar"><Brand/><div className="environment"><span className="statusDot"/>PRODUCTION WORKSPACE</div><label className="workspaceSelector">ACTIVE WORKSPACE<select value={selected} onChange={e=>change(e.target.value)}>{q.data.items.map(w=><option key={w.id} value={w.id}>{w.name} · {w.access_role}</option>)}</select></label><nav aria-label="Workspace">{nav.map(([n,h,number])=>{const current=p===h;return <Link key={h} href={h} className={current?"active":""} aria-current={current?"page":undefined}><span className="navIndex">{number}</span><span>{n}</span></Link>})}</nav><div className="sideFoot"><button type="button" className="sidebarLogout" aria-label={loggingOut?"Logging out…":"Log out"} onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out securely"}<span aria-hidden="true">↗</span></button>{logoutError?<div className="sidebarError" role="alert">{logoutError}</div>:null}<div className="decisionLegend"><b>Decision policy</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
+    <aside className="sidebar"><Brand/><div className="environment"><span className="statusDot"/>PRODUCTION WORKSPACE</div><label className="workspaceSelector">ACTIVE WORKSPACE<select value={selected} onChange={e=>change(e.target.value)}>{q.data.items.map(w=><option key={w.id} value={w.id}>{w.name} · {w.access_role}</option>)}</select></label><nav aria-label="Workspace">{navGroups.map(group=><div className="navGroup" key={group.label}><span className="navGroupLabel">{group.label}</span>{group.items.map(([n,h,number])=>{const current=p===h;return <Link key={h} href={h} className={current?"active":""} aria-current={current?"page":undefined}><span className="navIndex">{number}</span><span>{n}</span></Link>})}</div>)}</nav><div className="sideFoot"><button type="button" className="sidebarLogout" aria-label={loggingOut?"Logging out…":"Log out"} onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out securely"}<span aria-hidden="true">↗</span></button>{logoutError?<div className="sidebarError" role="alert">{logoutError}</div>:null}<div className="decisionLegend"><b>Decision policy</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
     <main className="workspaceMain" id="workspace-main"><WorkspaceContextProvider value={contextValue}>{children}</WorkspaceContextProvider></main>
   </div>;
 }
