@@ -1,5 +1,3 @@
-set local role rivexis_migrator;
-
 create or replace function public.rivexis_edge_saved_analysis(
   p_action text,
   p_actor_user_id text,
@@ -145,10 +143,9 @@ begin
 end;
 $$;
 
+alter function public.rivexis_edge_saved_analysis(text,text,jsonb) owner to rivexis_migrator;
 revoke all on function public.rivexis_edge_saved_analysis(text,text,jsonb) from public, anon, authenticated;
 grant execute on function public.rivexis_edge_saved_analysis(text,text,jsonb) to service_role;
 
 comment on function public.rivexis_edge_saved_analysis(text,text,jsonb) is
   'Service-role bridge for user-owned saved analysis references. Supabase Auth verifies the actor before invocation and every read/write rechecks workspace membership.';
-
-reset role;
