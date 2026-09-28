@@ -7,10 +7,10 @@ This file is the compact continuation point. Newer verified GitHub source, produ
 ## Certified source
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest fully certified product source: `cadb6838f1ec55a1f3021ec65bc8b81408e30a67` (`Stabilize Decision Desk request capture`).
-- Exact-head CI: `36439141743` — **SUCCESS**.
-- Exact-head GitHub Pages: `36439139051` — **SUCCESS**.
-- The full gate passed invariants, secret/migration checks, PostgreSQL migrations/runtime controls, API lint/tests/audit, Edge typecheck/tests, web typecheck/build, vinext build, npm audit and the complete Playwright browser suite including the canonical Decision Desk and JSON/HTML/PDF report workflow.
+- Latest fully certified product source: `86a833426f6f6c84f73838417ec4837792b2cada` (`Add truthful alert operations parity`).
+- Exact-head CI: `36441192677` — **SUCCESS**.
+- Exact-head GitHub Pages: `36441191415` — **SUCCESS**.
+- The full gate passed invariants, secret/migration checks, PostgreSQL migrations/runtime controls, API lint/tests/audit, Edge typecheck/tests, web typecheck/build, vinext build, npm audit and the complete Playwright browser suite including Decision Desk/report workflows and alert list/status/requeue truth contracts.
 - Pages remains fallback/navigation only; it is not the authoritative application runtime.
 
 ## Completed product workflows
@@ -47,7 +47,7 @@ Organization membership parity is implemented and certified:
 
 ### Decision Desk and decision reports
 
-Decision/report parity is now implemented and certified rather than simulated:
+Decision/report parity is implemented and certified rather than simulated:
 
 - Decision Desk is a first-class workspace surface;
 - users select persisted specialist analyses, bounded to 10 references;
@@ -61,7 +61,21 @@ Decision/report parity is now implemented and certified rather than simulated:
 - report downloads are protected by the same browser session and CSRF model;
 - action-level Playwright covers canonical decision creation, exact persisted analysis references, CSRF, provenance display and JSON/HTML/PDF download behavior.
 
-Key report milestones include `310005ea826479c52b10771de3d454c0277f6477`, `2567f032dae1fd0fa40d905471807caa74b6bc42`, `246cf753d3fcd76a6153d341b475b0848c2f8527`, `af115e622cf703ed7dc803bc3b1757b3019c18b3`, `7fe6c7e997084f7b3db83e7a71afdc704a96c9b8`, `1391cb022f2a7cfdf90b9f7ea8a96394df682463` and certified head `cadb6838f1ec55a1f3021ec65bc8b81408e30a67`.
+### Alert operations
+
+Alert-control parity is now a real production-backed workspace surface:
+
+- Alerts is a first-class workspace navigation surface separate from manual monitor definitions;
+- alert list reads are server-authorized to the active workspace;
+- alert states can be changed only by write-capable workspace roles;
+- dead-letter requeue requires OWNER/ADMIN management access;
+- 24-hour queue metrics expose total, pending/retry, delivered, dead-letter, oldest pending age and delivered-within-SLO percentage;
+- requeue truthfully resets queue state but does not claim that delivery will occur;
+- the UI explicitly states that continuous threat ingestion and automatic delivery processing are not configured in the compatibility runtime;
+- an empty alert list explicitly does not claim that threats are absent;
+- action-level Playwright covers alert navigation, durable-state messaging, status mutation, requeue and CSRF.
+
+Production currently contained zero alert rows when this slice was verified, consistent with the UNKNOWN-safe free runtime and absence of continuous live provider ingestion.
 
 ## Production backend
 
@@ -71,13 +85,16 @@ Supabase production is the current compatibility backend.
 - Core Alembic application schema remains through `0013_auth_email_lifecycle`.
 - Supabase Edge `rivexis-api` is **version 8 ACTIVE**.
 - Supabase Edge `rivexis-decision-reports` is **version 1 ACTIVE**.
+- Supabase Edge `rivexis-alerts` is **version 1 ACTIVE**.
 - Existing general, Saved Analyses and organization-membership compatibility bridges remain deployed.
 - Production membership migrations 008 and 009 are live.
 - Production migration `010_edge_decision_reports` is live.
-- `public.rivexis_edge_decision_report(text,text,jsonb)` is owned by `rivexis_migrator`, runs as SECURITY DEFINER with pinned search path, grants execute only to `service_role`, and grants no execute capability to `anon`, `authenticated` or `PUBLIC`.
-- The decision/report Edge runtime retains HttpOnly/Secure/SameSite=Lax browser sessions and CSRF on state-changing operations.
-- Direct decision/report Edge `/health` was verified HTTP 200 with `ready`, `supabase-edge`, API `v1`, `production`.
-- Unauthenticated report access was verified HTTP 401.
+- Production migration `011_edge_alert_lifecycle` is live.
+- `public.rivexis_edge_decision_report(text,text,jsonb)` and `public.rivexis_edge_alerts(text,text,jsonb)` are owned by `rivexis_migrator`, run as SECURITY DEFINER with pinned search paths, grant execute only to `service_role`, and grant no execute capability to `anon`, `authenticated` or `PUBLIC`.
+- The decision/report and alert Edge runtimes retain HttpOnly/Secure/SameSite=Lax browser sessions and CSRF on state-changing operations.
+- Direct decision/report Edge `/health` was verified HTTP 200; unauthenticated report access was verified HTTP 401.
+- Direct alert Edge `/health` was verified HTTP 200 with `ready`, `supabase-edge`, API `v1`, `production`, `durable-records-only`, and delivery processor `not-configured`.
+- Unauthenticated alert access was verified HTTP 401.
 
 No provider evidence was fabricated. Live compatibility analysis remains UNKNOWN-safe when verified provider evidence is unavailable.
 
@@ -89,7 +106,7 @@ Authoritative public frontend:
 
 The Cloudflare web Worker still serves previously certified manual Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`.
 
-**Do not claim the newer institutional UI, History/Saved actions, F1/F3/F5 builders, organization-member Settings UI, Decision Desk or decision-report UI are live on that Worker yet.** GitHub/CI/Pages source is materially ahead of Cloudflare production.
+**Do not claim the newer institutional UI, History/Saved actions, F1/F3/F5 builders, organization-member Settings UI, Decision Desk/report UI or Alerts UI are live on that Worker yet.** GitHub/CI/Pages source is materially ahead of Cloudflare production.
 
 Cloudflare frontend deployment remains blocked because Wrangler is unauthenticated and the dashboard remained behind human verification after the permitted safe attempt. Do not bypass verification, deploy to an alternate host, create a temporary account or make an unapproved billing change.
 
@@ -114,7 +131,8 @@ Without verified live provider evidence, the compatibility runtime returns UNKNO
 2. Full provider-capable FastAPI runtime — Cloudflare Container path remains Workers Paid gated.
 3. Provider credentials/contracts/licenses — unavailable evidence remains UNKNOWN/unavailable.
 4. Owned sender domain — Supabase/Brevo delivery works, but Rivexis does not yet have an authenticated owned sending domain.
+5. Automatic alert delivery/continuous ingestion — the compatibility runtime currently provides durable alert queue control only; it must not be presented as continuous threat streaming or as an active delivery processor.
 
 ## Immediate next execution target
 
-Close the next unblocked **monitoring/alerts operational parity** gap. Audit the existing FastAPI alert lifecycle against the Supabase compatibility runtime before exposing any alert-management UI. Prioritize durable authorized alert list/status, retry/requeue/delivery-state semantics and truthful service availability. Add backend parity first where required; expose UI only after the production contract exists and action-level coverage proves workspace isolation, permissions and CSRF. Do not imply continuous provider threat streaming unless a real configured provider contract exists.
+Close **monitor-result alert creation parity** without weakening UNKNOWN-safe behavior. The provider-capable FastAPI monitor check can create a durable alert after a material B3 result, while the current Supabase compatibility monitor check only persists the B3 analysis/result. Add a narrow server-authorized compatibility path that creates an alert only from the persisted normalized monitor result when the same materiality conditions are genuinely met, deduplicates safely, and never treats `UNKNOWN`/missing provider evidence as a threat event. Then add action-level coverage proving no alert is manufactured for UNKNOWN results and that a genuinely material synthetic/demo or future live normalized result can persist exactly one authorized alert.
