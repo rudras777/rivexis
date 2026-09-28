@@ -39,9 +39,7 @@ function baseResult(overrides:Record<string,unknown>={}){
 test.describe("engine result provenance",()=>{
   test("guided controls update the normalized engine payload without exposing raw JSON by default",async({page})=>{
     await baseMocks(page);
-    let submitted:Record<string,unknown>|null=null;
     await page.route("**/api/v1/analysis/treasury",async route=>{
-      submitted=route.request().postDataJSON() as Record<string,unknown>;
       await route.fulfill({
         status:200,contentType:"application/json",headers:corsHeaders,
         body:JSON.stringify(baseResult({engine_id:"F5",demo:true,status:"COMPLETED",risk_score:40,summary:"Guided treasury scenario completed."})),
@@ -52,7 +50,14 @@ test.describe("engine result provenance",()=>{
     await page.getByLabel("Largest allocation").fill("40");
     await page.getByLabel("Depeg scenario loss").fill("12");
     await expect(page.getByLabel("Engine input JSON")).not.toBeVisible();
+
+    // Wait for the browser request itself instead of relying on a route-handler
+    // side effect racing the assertion. This still verifies the exact canonical
+    // payload sent by the UI and fails if the request is never made.
+    const requestPromise=page.waitForRequest(request=>request.method()==="POST"&&request.url().includes("/api/v1/analysis/treasury"));
     await page.getByRole("button",{name:/Run F5/}).click();
+    const request=await requestPromise;
+    const submitted=request.postDataJSON() as Record<string,unknown>;
 
     expect(submitted).toMatchObject({demo:true,input:{largest_allocation_pct:40,stablecoin_depeg_scenario_loss_pct:12},workspace_id:"w1"});
     await expect(page.getByTestId("engine-result-summary")).toContainText("Guided treasury scenario completed.");
