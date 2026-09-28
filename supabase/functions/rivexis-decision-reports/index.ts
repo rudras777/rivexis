@@ -125,7 +125,7 @@ async function handle(req:Request,path:string,url:URL,auth:AuthContext){
       const decision=await decisionBridge("get_decision",auth.user.id,{decision_id:decisionId});
       const report=await decisionBridge("create_report",auth.user.id,{decision_id:decisionId,format});
       const headers={"x-rivexis-report-id":String(report.id)};
-      if(format==="json")return json(req,{report_id:report.id,report},200,auth.cookie,headers);
+      if(format==="json")return json(req,{report_id:report.id,report:decision},200,auth.cookie,headers);
       if(format==="html")return text(req,decisionReportHtml(decision),"text/html; charset=utf-8",auth.cookie,headers);
       return binary(req,minimalPdf("RIVEXIS Decision Report",decisionReportLines(decision)),`rivexis-${report.id}.pdf`,auth.cookie,headers);
     }catch(cause){return bridgeFailure(req,cause,auth.cookie)}
