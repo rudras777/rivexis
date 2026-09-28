@@ -26,6 +26,12 @@ async function bridge(action:string,userId:string,payload:Json={}):Promise<any>{
   return data;
 }
 
+async function savedBridge(action:string,userId:string,payload:Json={}):Promise<any>{
+  const {data,error}=await admin.rpc("rivexis_edge_saved_analysis",{p_action:action,p_actor_user_id:userId,p_payload:payload});
+  if(error)throw new Error(error.message);
+  return data;
+}
+
 function cors(req:Request){
   const origin=req.headers.get("origin");
   const allowed=origin===LIVE_ORIGIN||origin?.startsWith("http://localhost:")||origin?.startsWith("http://127.0.0.1:");
@@ -42,6 +48,12 @@ function json(req:Request,body:unknown,status=200,cookie?:string){
   const headers=new Headers({...cors(req),"content-type":"application/json; charset=utf-8","cache-control":"no-store"});
   if(cookie)headers.set("set-cookie",cookie);
   return new Response(JSON.stringify(body),{status,headers});
+}
+
+function empty(req:Request,status=204,cookie?:string){
+  const headers=new Headers({...cors(req),"cache-control":"no-store"});
+  if(cookie)headers.set("set-cookie",cookie);
+  return new Response(null,{status,headers});
 }
 
 function binary(req:Request,body:Uint8Array,contentType:string,filename:string,cookie?:string){
@@ -274,7 +286,29 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   }
   if(path==="/api/v1/saved-analyses"&&method==="GET"){
     const workspaceId=url.searchParams.get("workspace_id");if(!workspaceId||!await workspaceAccess(auth.user.id,workspaceId))return error(req,404,"Workspace not found",auth.cookie);
-    return json(req,await bridge("saved_analyses",auth.user.id,{workspace_id:workspaceId}),200,auth.cookie);
+    const includeArchived=url.searchParams.get("include_archived")==="true";
+    return json(req,await savedBridge("list",auth.user.id,{workspace_id:workspaceId,include_archived:includeArchived}),200,auth.cookie);
+  }
+  if(path==="/api/v1/saved-analyses"&&method==="POST"){
+    const input=await body(req);
+    const analysisId=typeof input.analysis_id==="string"?input.analysis_id.trim():"";
+    const title=typeof input.title==="string"?input.title.trim():"";
+    if(!analysisId||!title)return error(req,422,"Analysis reference and title are required",auth.cookie);
+    const saved=await savedBridge("create",auth.user.id,{analysis_id:analysisId,title});
+    if(!saved)return error(req,404,"Analysis not found",auth.cookie);
+    return json(req,saved,200,auth.cookie);
+  }
+  const savedDetail=path.match(/^\/api\/v1\/saved-analyses\/([^/]+)$/);
+  if(savedDetail&&method==="PATCH"){
+    const archived=url.searchParams.get("archived")!=="false";
+    const saved=await savedBridge("archive",auth.user.id,{saved_id:decodeURIComponent(savedDetail[1]),archived});
+    if(!saved)return error(req,404,"Saved analysis not found",auth.cookie);
+    return json(req,saved,200,auth.cookie);
+  }
+  if(savedDetail&&method==="DELETE"){
+    const outcome=await savedBridge("delete",auth.user.id,{saved_id:decodeURIComponent(savedDetail[1])});
+    if(outcome?.deleted!==true)return error(req,404,"Saved analysis not found",auth.cookie);
+    return empty(req,204,auth.cookie);
   }
   if(path==="/api/v1/providers/status"&&method==="GET"){
     const chain=url.searchParams.get("chain")??"ethereum";
