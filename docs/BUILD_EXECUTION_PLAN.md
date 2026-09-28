@@ -8,8 +8,9 @@ Authoritative project mandate: `Rivexis_Production_Master_Prompt_Normal_Chat.txt
 - Repository: public `rudras777/rivexis`; default branch `main`.
 - Public GitHub Pages fallback files are preserved; they provide a public navigation fallback and do not replace or certify the Cloudflare application deployment.
 - Production repair started from `21fe63f3b1b19aa607cd56779e9fc88290673dbc`. Implementation head `c7b52aac8b227246e29efd8ff942e73aa64d15c2` passed CI #409 and Pages #80 on that exact revision.
+- Deterministic free-runtime engine slice `6f2ee469d4c8eb6b4e2945bfc525517adaeb4eea` passed CI run `36394468961` and Pages run `36394469225`; Supabase Edge function version 6 is live.
 - Frontend: Next.js 16 / React 19 / TypeScript on Cloudflare Workers using vinext.
-- API: FastAPI remains the full provider-capable backend. A least-privilege Supabase Edge compatibility runtime now provides a functional free production path for auth, tenancy, persistence, UNKNOWN-safe demonstration analysis, monitoring and protocol workflow.
+- API: FastAPI remains the full provider-capable backend. A least-privilege Supabase Edge compatibility runtime now provides a functional free production path for auth, tenancy, persistence, clearly labelled deterministic synthetic demonstrations, monitoring and protocol workflow. Live requests remain UNKNOWN-safe without verified provider evidence.
 - Supabase project `ivszvufdonfgwjpfgwii` is verified `ACTIVE_HEALTHY` in `ap-south-1` at migration `0013_auth_email_lifecycle`, with least-privilege application access. Its remaining leaked-password-protection warning applies to the free Supabase Auth compatibility path and remains an explicit hardening item.
 - Brevo fail-closed transactional transport and disabled-by-default environment contract are implemented. Supabase Auth custom SMTP is now enabled through the Brevo free relay, and an application-triggered recovery message was recorded as `Sent` and `Delivered` by Brevo.
 
@@ -86,16 +87,16 @@ These are primarily capability-depth items rather than known hidden build/test f
 
 ## Dependencies and blockers
 
-- **Cloudflare production deployment drift:** RESOLVED for the frontend. Worker version `9165c9b6-e8e7-4b78-b82d-4ef73becc6f9` uses the same-origin Supabase Edge proxy and passes live route/workspace checks. The Worker remains manually deployed rather than Git-integrated CI/CD.
+- **Cloudflare production deployment drift:** RESOLVED for the frontend. Worker version `b2e9f7f5-8b55-4523-b8f7-d5504c0ab13a` uses the same-origin Supabase Edge proxy and passes live route/workspace checks. The Worker remains manually deployed rather than Git-integrated CI/CD.
 - **FastAPI production runtime:** BLOCKED on explicit Workers Paid approval or another explicitly approved FastAPI-capable production path. The current API Worker remains a degraded health/503 boundary.
 - **Custom domain:** BLOCKED on domain choice/ownership/configuration.
 - **Production email:** Supabase custom SMTP now uses the Brevo free relay. A production recovery message passed Supabase Auth and Brevo `Sent`/`Delivered` verification; owned-domain sender authentication remains outstanding.
 - **External providers:** BLOCKED where credentials, commercial licensing or customer-specific contracts are absent; unsupported paths stay UNKNOWN/unavailable.
 - **Arkham:** license/terms-gated.
 - **Hypernative native screening:** customer-schema/contract-gated where no approved exact request/signing contract exists.
-- **Live authenticated compatibility runtime:** VERIFIED for login/session/workspaces and all ten demonstration engine routes. Provider-backed FastAPI parity remains gated.
+- **Live authenticated compatibility runtime:** VERIFIED for login/session/workspaces and all ten deterministic demonstration engine routes. Representative production browser checks confirmed distinct synthetic evidence and conflict outputs while live mode remains fail-closed. Provider-backed FastAPI parity remains gated.
 - **Production certification:** incomplete until real Rivexis-owned targets satisfy deployment/browser/provider/email gates.
 
 ## Next action
 
-Continue deterministic engine/product hardening that requires no new paid dependency, then add provider-backed depth only with approved credentials or deploy the FastAPI Container only after the paid plan is explicitly authorized. Full-CI gate every implementation slice.
+Replace raw JSON-only engine input with validated per-engine form controls while preserving an advanced JSON mode. Then continue deterministic engine/product hardening that requires no new paid dependency; add provider-backed depth only with approved credentials or deploy the FastAPI Container only after the paid plan is explicitly authorized. Full-CI gate every implementation slice.

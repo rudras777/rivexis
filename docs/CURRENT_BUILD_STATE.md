@@ -10,6 +10,7 @@ This is the compact production resume point. Live provider state and current `ma
 - Production-repair work started from clean `main` head `21fe63f3b1b19aa607cd56779e9fc88290673dbc`; origin matched before changes. CI #408 and Pages #79 passed on that baseline.
 - Production repair implementation `c7b52aac8b227246e29efd8ff942e73aa64d15c2` adds the free runtime bridge and verified frontend integration. CI #409 and Pages #80 passed on that exact SHA.
 - Provider-capability truthfulness repair `8f162727e3b4fc0257c147a2da90f9f501850b0f` removes the misleading free-runtime deep-probe control, adds an explicit Edge capability contract and a functional provider-status refresh. CI run `36392977072` and Pages run `36392976368` passed on that exact SHA.
+- Deterministic demonstration runtime `6f2ee469d4c8eb6b4e2945bfc525517adaeb4eea` ports the certified B1-B5/F1-F5 synthetic demo rules into the free Edge path while preserving fail-closed live behavior. CI run `36394468961` and Pages run `36394469225` passed on that exact SHA.
 - Pages is a fallback/navigation deployment for the same source lineage; it is not the authoritative runtime.
 
 ## Production PostgreSQL
@@ -40,7 +41,7 @@ Authoritative public frontend:
 
 Cloudflare Worker version `b2e9f7f5-8b55-4523-b8f7-d5504c0ab13a` is the current manual production deployment. Live browser verification covered public auth pages, same-origin `/health`, authenticated workspace navigation, refresh/session persistence, logout/protected-route denial, workspace and organization creation, providers, monitors, history, saved analyses, protocol history, investigation workflow, and PDF rendering. The provider page now shows configuration-only semantics when deep probes are unsupported and its replacement refresh action was exercised successfully in production.
 
-The web application now uses a same-origin `/api/v1/*` proxy to the Supabase Edge function `rivexis-api` (function version 5). Browser cookies remain HttpOnly/Secure/SameSite=Lax and state-changing requests retain CSRF validation. Recovery bearer tokens are kept in memory only and removed from the browser URL before password entry.
+The web application now uses a same-origin `/api/v1/*` proxy to the Supabase Edge function `rivexis-api` (function version 6). Browser cookies remain HttpOnly/Secure/SameSite=Lax and state-changing requests retain CSRF validation. Recovery bearer tokens are kept in memory only and removed from the browser URL before password entry. All ten demonstration engines now emit engine-specific deterministic synthetic results; live requests still return `UNKNOWN` with zero evidence when no verified provider is configured.
 
 ## Authentication lifecycle
 
@@ -59,7 +60,7 @@ Production authentication is now available through the free Supabase Edge compat
 
 ## Cloudflare backend gate
 
-The repository's full provider-capable runtime remains the existing FastAPI Docker image behind the Cloudflare Container `lite` wrapper. Workers Free remains incompatible with that runtime's deliberate CPU/security controls. The Supabase Edge compatibility runtime now supplies production auth, tenant/workspace control, persistence, honest UNKNOWN engine demonstrations, manual monitors, protocol-history/investigation artifacts, and reports without claiming FastAPI provider parity.
+The repository's full provider-capable runtime remains the existing FastAPI Docker image behind the Cloudflare Container `lite` wrapper. Workers Free remains incompatible with that runtime's deliberate CPU/security controls. The Supabase Edge compatibility runtime now supplies production auth, tenant/workspace control, persistence, clearly labelled deterministic synthetic demonstrations, manual monitors, protocol-history/investigation artifacts, and reports without claiming FastAPI provider parity. Live analysis remains fail-closed `UNKNOWN` without verified provider evidence.
 
 ## Brevo
 
