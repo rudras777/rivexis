@@ -44,7 +44,8 @@ class HypernativeEvent(BaseModel):
     provider_payload: dict[str, Any] = Field(default_factory=dict)
 
 class ReportRequest(BaseModel):
-    decision_id: str
+    decision_id: str | None = None
+    analysis_id: str | None = None
     format: str = "html"
 class SavedAnalysisCreate(BaseModel):
     analysis_id: str
