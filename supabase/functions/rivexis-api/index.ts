@@ -303,7 +303,7 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   }
   if(path==="/api/v1/providers/status"&&method==="GET"){
     const chain=url.searchParams.get("chain")??"ethereum";
-    return json(req,{chain,providers:PROVIDERS.map(provider_id=>({provider_id,status:"NOT_CONFIGURED",configured:false,detail:"No production credential is configured in the free runtime"}))},200,auth.cookie);
+    return json(req,{chain,deep_probe_available:false,providers:PROVIDERS.map(provider_id=>({provider_id,status:"NOT_CONFIGURED",configured:false,detail:"No production credential is configured in the free runtime"}))},200,auth.cookie);
   }
   if(path==="/api/v1/providers/runtime"&&method==="GET"){
     const workspaceId=url.searchParams.get("workspace_id");if(!workspaceId||!await workspaceAccess(auth.user.id,workspaceId))return error(req,404,"Workspace not found",auth.cookie);

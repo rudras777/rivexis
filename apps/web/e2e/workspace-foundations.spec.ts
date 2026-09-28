@@ -68,13 +68,17 @@ test.describe("workspace foundations",()=>{
 
   test("provider runtime telemetry follows the active workspace while registry health stays global",async({page})=>{
     await mockTwoWorkspaces(page);
+    let registryCalls=0;
 
-    await page.route("**/api/v1/providers/status?**",route=>route.fulfill({
-      status:200,
-      contentType:"application/json",
-      headers:corsHeaders,
-      body:JSON.stringify({chain:"ethereum",providers:[{provider_id:"shared-registry-provider",status:"UNCONFIGURED",configured:false}]}),
-    }));
+    await page.route("**/api/v1/providers/status?**",route=>{
+      registryCalls+=1;
+      return route.fulfill({
+        status:200,
+        contentType:"application/json",
+        headers:corsHeaders,
+        body:JSON.stringify({chain:"ethereum",deep_probe_available:false,providers:[{provider_id:"shared-registry-provider",status:"UNCONFIGURED",configured:false}]}),
+      });
+    });
 
     await page.route("**/api/v1/providers/runtime?**",route=>{
       const workspaceId=new URL(route.request().url()).searchParams.get("workspace_id");
@@ -92,6 +96,10 @@ test.describe("workspace foundations",()=>{
     await page.goto("/workspace/providers");
     await expect(page.getByText("shared-registry-provider")).toBeVisible();
     await expect(page.getByTestId("workspace-provider-runtime")).toContainText("alpha-runtime-provider");
+    await expect(page.getByRole("button",{name:"Run deep RPC probe"})).toHaveCount(0);
+    await expect(page.getByText("Deep provider probes are not available on this runtime.")).toBeVisible();
+    await page.getByRole("button",{name:"Refresh status"}).click();
+    await expect.poll(()=>registryCalls).toBeGreaterThanOrEqual(2);
 
     await page.getByRole("combobox",{name:"ACTIVE WORKSPACE"}).selectOption("w-beta");
     await expect(page.getByText("shared-registry-provider")).toBeVisible();

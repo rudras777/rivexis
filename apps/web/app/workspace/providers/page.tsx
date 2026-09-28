@@ -8,6 +8,7 @@ import {useWorkspace,workspaceQueryKey} from "@/components/WorkspaceContext";
 type P={provider_id:string;status:string;configured:boolean;detail?:string;latency_ms?:number;chain_id?:number;block_number?:number};
 type RuntimeStat={logical_calls?:number;attempts?:number;successes?:number;failures?:number;cache_hits?:number;circuit?:{state?:string}};
 type Runtime={scope:string;control_backend:string;providers:Record<string,RuntimeStat>};
+type Registry={chain:string;deep_probe_available?:boolean;providers:P[]};
 
 function genericError(error:unknown,kind:"registry"|"runtime"){
   if(error instanceof ApiError){
@@ -24,7 +25,7 @@ export default function Providers(){
   const [deep,setDeep]=useState(false);
   const registry=useQuery({
     queryKey:["providers-global",chain,deep],
-    queryFn:()=>api<{chain:string;providers:P[]}>(`/api/v1/providers/status?chain=${encodeURIComponent(chain)}&deep=${deep}`),
+    queryFn:()=>api<Registry>(`/api/v1/providers/status?chain=${encodeURIComponent(chain)}&deep=${deep}`),
     retry:false,
   });
   const runtime=useQuery({
@@ -33,16 +34,19 @@ export default function Providers(){
     retry:false,
   });
   const runtimeEntries=Object.entries(runtime.data?.providers??{});
+  const deepProbeAvailable=registry.data?.deep_probe_available===true&&Boolean(registry.data.providers.some(provider=>provider.configured));
 
   return <>
     <div className="workspaceHeader"><div><h1>Provider Health</h1><p>Global configuration health and workspace runtime telemetry are intentionally separate. A workspace switch never implies that shared provider credentials or global connectivity changed.</p></div><span className="badge">{workspace.name}</span></div>
     <section className="panel">
       <h2>Global provider registry</h2>
-      <p className="sectionLead">This is shared application infrastructure, not workspace-owned data. Deep probe performs a real JSON-RPC chain check only for configured RPC providers.</p>
+      <p className="sectionLead">This is shared application infrastructure, not workspace-owned data. Configuration status never implies that a provider request succeeded.</p>
       <div style={{display:"flex",gap:12,alignItems:"end",flexWrap:"wrap",marginTop:12}}>
         <label className="field" style={{maxWidth:260}}>Chain<select value={chain} onChange={e=>setChain(e.target.value)}><option value="ethereum">Ethereum</option><option value="base">Base</option><option value="arbitrum">Arbitrum</option><option value="optimism">Optimism</option><option value="polygon">Polygon</option></select></label>
-        <button className="button" onClick={()=>setDeep(v=>!v)}>{deep?"Use configuration view":"Run deep RPC probe"}</button>
+        <button className="button" type="button" onClick={()=>void registry.refetch()} disabled={registry.isFetching}>{registry.isFetching?"Refreshing…":"Refresh status"}</button>
+        {deepProbeAvailable?<button className="button" type="button" onClick={()=>setDeep(v=>!v)}>{deep?"Use configuration view":"Run deep RPC probe"}</button>:null}
       </div>
+      {!registry.isPending&&!deepProbeAvailable?<p className="muted" role="status">Deep provider probes are not available on this runtime. Rivexis is showing configuration state only and will not imply live connectivity.</p>:null}
       <div className="tableWrap" style={{marginTop:16}}>
         {registry.isPending?<p>Loading provider registry…</p>:null}
         {registry.isError?<p className="error" role="alert">{genericError(registry.error,"registry")}</p>:null}
