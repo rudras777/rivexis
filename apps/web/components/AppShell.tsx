@@ -22,8 +22,9 @@ const nav=[
   ["Protocol History","/workspace/protocol-history","04"],
   ["Investigations","/workspace/investigations","05"],
   ["Monitors","/workspace/monitors","06"],
-  ["History","/workspace/history","07"],
-  ["Saved","/workspace/saved","08"],
+  ["Decision Desk","/workspace/decisions","07"],
+  ["History","/workspace/history","08"],
+  ["Saved","/workspace/saved","09"],
 ];
 
 type ShellStateProps={title:string;message:string;kind:"loading"|"empty"|"session"|"unavailable";action?:React.ReactNode};
