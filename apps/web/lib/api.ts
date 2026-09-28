@@ -63,6 +63,7 @@ export const enginePath:Record<EngineId,string>={B1:"simulations",B2:"security",
 export async function apiBlob(path:string,init:RequestInit={}):Promise<Blob>{
  const method=(init.method??"GET").toUpperCase();
  const headers=new Headers(init.headers);
+ if(init.body!=null&&!headers.has("Content-Type"))headers.set("Content-Type","application/json");
  if(UNSAFE.has(method))headers.set("X-Rivexis-CSRF",await ensureCsrfToken());
  const r=await fetch(`${API}${path}`,{...init,headers,credentials:"include",cache:"no-store"});
  if(!r.ok)throw await responseError(r);
