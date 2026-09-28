@@ -7,10 +7,11 @@ This file is the compact continuation point. Newer verified GitHub source, produ
 ## Certified source
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest fully certified product source: `5db08682178d630045a9689cd345d0c0422eaa14` (`Stabilize F5 provenance request assertion`).
-- Exact-head CI: `36448110030` — **SUCCESS**.
+- Latest fully certified product source: `ba55d462338aac6df8e2d42b95a45c7555a8844e` (`Repair dispatcher object grants`).
+- Exact-head CI: `36456401245` — **SUCCESS**.
 - The full gate passed invariants, secret/migration checks, PostgreSQL migrations/runtime controls, API lint/tests/audit, Edge typecheck/tests, web typecheck/build, vinext build, npm audit and the complete Playwright browser suite.
 - The browser suite certifies the signature visual system, accessibility, authentication/session lifecycle, workspace isolation, engine provenance, F1/F3/F5 structured inputs, organization membership, Decision Desk/reports, monitors and alert operations.
+- The Edge helper test suite now also certifies alert-notification truth wording, HTML escaping, deterministic Brevo idempotency keys and duplicate-provider acceptance handling.
 - Pages remains fallback/navigation/review only; it is not the authoritative application runtime.
 
 ## Signature visual system
@@ -45,7 +46,7 @@ Live F3 source exposes the actual required evidence inputs: collateral oracle fe
 
 ### F5 Treasury Allocation & Scenario
 
-Live F5 source has a structured allocation ledger for asset ID, symbol, weight and stablecoin classification, bounded to 50 rows. Entered weight totals are explicit and Rivexis does not silently normalize user-entered allocations. The F5 provenance browser assertion now waits for and validates the actual canonical request rather than racing an async route-handler side effect.
+Live F5 source has a structured allocation ledger for asset ID, symbol, weight and stablecoin classification, bounded to 50 rows. Entered weight totals are explicit and Rivexis does not silently normalize user-entered allocations. The F5 provenance browser assertion waits for and validates the actual canonical request rather than racing an async route-handler side effect.
 
 ### Organization/member administration
 
@@ -86,14 +87,15 @@ Alert-control parity is a real production-backed workspace surface:
 - alert states can be changed only by write-capable workspace roles;
 - dead-letter requeue requires OWNER/ADMIN management access;
 - 24-hour queue metrics expose total, pending/retry, delivered, dead-letter, oldest pending age and delivered-within-SLO percentage;
-- requeue truthfully resets queue state but does not claim that delivery will occur;
-- the UI explicitly states that continuous threat ingestion and automatic delivery processing are not configured in the compatibility runtime;
+- runtime metrics now expose the actual scheduled processor state, delivery sink state, last run, last success/error, last cycle counts and recipient policy;
+- requeue truthfully resets queue state and never claims provider or inbox delivery;
+- the UI distinguishes provider acceptance from inbox delivery and still states that continuous threat ingestion is not configured;
 - an empty alert list explicitly does not claim that threats are absent;
-- action-level Playwright covers alert navigation, durable-state messaging, status mutation, requeue and CSRF.
+- action-level Playwright covers alert navigation, scheduled/no-sink and ready delivery truth, status mutation, requeue and CSRF.
 
 ### Monitor-result alert creation
 
-Production compatibility parity is now closed without weakening evidence integrity:
+Production compatibility parity is closed without weakening evidence integrity:
 
 - the trigger consumes only the persisted canonical B3 analysis referenced by the monitor update;
 - the analysis must belong to the same workspace and be a B3 `supabase-edge` result;
@@ -106,6 +108,25 @@ Production compatibility parity is now closed without weakening evidence integri
 
 Rollback-only production verification passed: UNKNOWN produced zero alerts; a material synthetic event created exactly one truth-labelled alert; an equivalent repeat produced one row with occurrence count `2`; a cross-workspace analysis produced no alert; rollback left zero fixture users/workspaces/monitors/analyses/alerts.
 
+### Scheduled alert delivery processor
+
+The compatibility runtime now has a real scheduled queue processor while remaining fail-closed when no outbound sink is configured:
+
+- Supabase `pg_cron` runs `rivexis-alert-dispatch` every minute through `pg_net`;
+- the internal dispatch token is generated in production and stored in Supabase Vault; the raw token is not embedded in source or the Cron job;
+- the dispatcher is protected by a dedicated internal token and unauthenticated POST requests fail with HTTP 401;
+- the database dispatch bridge is SECURITY DEFINER under a dedicated `rivexis_alert_dispatcher` role that is NOLOGIN, NOINHERIT, BYPASSRLS, non-superuser and has no CREATEDB/CREATEROLE/REPLICATION authority;
+- the role has no CREATE privilege on `public` or `extensions`, only schema USAGE plus the minimum queue read/update and owner-email lookup grants;
+- the temporary migration-time SET ROLE path from `postgres` to the dispatcher is revoked before migration commit;
+- queue claiming is lease-based and uses `FOR UPDATE SKIP LOCKED`, preventing concurrent duplicate claims during the lease;
+- success marks provider acceptance as `delivered`; failures use bounded exponential retry and then dead-letter at the configured attempt limit;
+- Brevo submissions use a stable alert-derived idempotency UUID and treat the provider duplicate-idempotency response as prior acceptance rather than resending;
+- message copy truthfully labels synthetic evidence and never claims continuous provider surveillance;
+- the current recipient policy is `WORKSPACE_OWNER_EMAIL`;
+- when Brevo configuration is absent the processor reports `SCHEDULED_NO_SINK`, processes zero alerts and consumes zero delivery attempts.
+
+Rollback-only production queue verification passed lease exclusivity, owner-email lookup, retry/backoff, dead-letter transition and successful provider-acceptance state, then rolled back with zero fixture residue.
+
 ## Production backend
 
 Supabase production is the current compatibility backend.
@@ -114,18 +135,25 @@ Supabase production is the current compatibility backend.
 - Core Alembic application schema remains through `0013_auth_email_lifecycle`.
 - Supabase Edge `rivexis-api` is **version 8 ACTIVE**.
 - Supabase Edge `rivexis-decision-reports` is **version 1 ACTIVE**.
-- Supabase Edge `rivexis-alerts` is **version 1 ACTIVE**.
+- Supabase Edge `rivexis-alerts` is **version 2 ACTIVE**.
+- Supabase Edge `rivexis-alert-dispatch` is **version 1 ACTIVE**.
 - Existing general, Saved Analyses and organization-membership compatibility bridges remain deployed.
 - Production membership migrations 008 and 009 are live.
 - Production migration `010_edge_decision_reports` is live.
 - Production migration `011_edge_alert_lifecycle` is live.
-- Production migration `012_edge_monitor_alert_creation` is live (Supabase migration version `20260928160516`).
+- Production migration `012_edge_monitor_alert_creation` is live.
+- Production migrations `013_edge_alert_delivery_scheduler`, `014_alert_dispatcher_extensions_usage` and `015_alert_dispatcher_object_grants` are live.
+- `pg_cron` and `pg_net` are enabled for the scheduled alert processor; Supabase Vault retains the internal dispatch credential.
 - `public.rivexis_edge_decision_report(text,text,jsonb)` and `public.rivexis_edge_alerts(text,text,jsonb)` retain their previously certified SECURITY DEFINER/service-role-only contracts.
-- `public.rivexis_edge_monitor_alert_from_analysis()` is owned by `rivexis_migrator`, is SECURITY DEFINER with pinned `search_path=pg_catalog, public`, and grants no direct execute capability to `PUBLIC`, `anon`, `authenticated` or `service_role`; it is invoked only by the enabled monitor trigger.
-- The decision/report and alert Edge runtimes retain HttpOnly/Secure/SameSite=Lax browser sessions and CSRF on state-changing operations.
-- Direct decision/report Edge `/health` was verified HTTP 200; unauthenticated report access was verified HTTP 401.
-- Direct alert Edge `/health` was verified HTTP 200 with `ready`, `supabase-edge`, API `v1`, `production`, `durable-records-only`, and delivery processor `not-configured`.
-- Unauthenticated alert access was verified HTTP 401.
+- `public.rivexis_edge_monitor_alert_from_analysis()` remains owned by `rivexis_migrator`, SECURITY DEFINER with pinned `search_path=pg_catalog, public`, and exposes no direct execute capability to `PUBLIC`, `anon`, `authenticated` or `service_role`; it is invoked only by the enabled monitor trigger.
+- `public.rivexis_edge_alert_dispatch(text,text,jsonb)` is owned by `rivexis_alert_dispatcher`, SECURITY DEFINER with pinned `search_path=pg_catalog, public, extensions`; direct execute is service-role-only and every action additionally requires the Vault-backed internal token.
+- `public.rivexis_edge_alert_delivery_runtime()` is owned by `rivexis_migrator`, SECURITY DEFINER with pinned `search_path=pg_catalog, public`, and direct execute is service-role-only.
+- Direct dispatcher `/health` is HTTP 200 and reports `ready`, `supabase-edge`, `supabase-cron`, `SCHEDULED_NO_SINK`, `NOT_CONFIGURED`, recipient policy `WORKSPACE_OWNER_EMAIL`, and `continuous_threat_ingestion=false`.
+- Direct Alerts `/health` is HTTP 200 and reports `ready`, `supabase-edge`, durable-record-only ingestion, `SCHEDULED_NO_SINK`, `NOT_CONFIGURED`, the same recipient policy, and the last delivery cycle timestamp.
+- Unauthenticated dispatcher POST fails HTTP 401 `Dispatch authentication required`.
+- Unauthenticated alert list access fails HTTP 401 `Authentication required`.
+- Cron run records are succeeding every minute and automatically advance the delivery runtime heartbeat.
+- Production currently contains zero durable alerts, so scheduler promotion emitted no backlog.
 
 No provider evidence was fabricated. Compatibility analysis remains UNKNOWN-safe when verified provider evidence is unavailable.
 
@@ -137,9 +165,9 @@ Authoritative public frontend:
 
 The Cloudflare web Worker still serves the previously certified manual Worker build unless a later deploy is explicitly verified by the build-SHA marker.
 
-**Do not claim the signature UI, newer History/Saved actions, F1/F3/F5 builders, organization-member Settings UI, Decision Desk/report UI or Alerts UI are live on that Worker yet.** GitHub source/CI is materially ahead of Cloudflare production.
+**Do not claim the signature UI, newer History/Saved actions, F1/F3/F5 builders, organization-member Settings UI, Decision Desk/report UI, current Alerts UI or scheduled-delivery UI truth are live on that Worker yet.** GitHub source/CI is materially ahead of Cloudflare production.
 
-A verified deployment workflow now exists at `.github/workflows/deploy-web.yml`. It deploys only after successful CI, targets the existing `rivexis-web` Worker, stamps `NEXT_PUBLIC_RIVEXIS_BUILD_SHA`, and verifies that exact SHA from the public site after deployment. The deployment currently stops before contacting Cloudflare because the GitHub Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are not configured. The browser Cloudflare session is also unauthenticated. Do not bypass authentication, create an alternate host/account, or expose credentials in source/chat.
+A verified deployment workflow exists at `.github/workflows/deploy-web.yml`. It deploys only after successful CI, targets the existing `rivexis-web` Worker, stamps `NEXT_PUBLIC_RIVEXIS_BUILD_SHA`, and verifies that exact SHA from the public site after deployment. The deployment currently stops before contacting Cloudflare because the GitHub Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are not configured. The browser Cloudflare session is also unauthenticated. Do not bypass authentication, create an alternate host/account, or expose credentials in source/chat.
 
 ## Evidence integrity retained
 
@@ -161,9 +189,12 @@ Without verified live provider evidence, the compatibility runtime returns UNKNO
 1. Cloudflare frontend source drift — deployment pipeline is ready, but legitimate Cloudflare credentials are not available to GitHub Actions/browser session.
 2. Full provider-capable FastAPI runtime — Cloudflare Container path remains Workers Paid gated.
 3. Provider credentials/contracts/licenses — unavailable evidence remains UNKNOWN/unavailable.
-4. Owned sender domain — Supabase/Brevo delivery works, but Rivexis does not yet have an authenticated owned sending domain.
-5. Automatic alert delivery/continuous ingestion — the compatibility runtime provides durable alert creation/queue controls but no always-running threat ingestion or delivery processor; it must not be presented as continuous threat streaming.
+4. Owned sender domain — Rivexis does not yet have an authenticated owned sending domain for production-branded email.
+5. Alert outbound sink — the scheduler and queue processor are live, but `BREVO_API_KEY` plus a configured/verified `RIVEXIS_BREVO_SENDER_EMAIL` are not present in the Supabase Edge runtime, so production correctly reports `SCHEDULED_NO_SINK` and consumes no queued attempts.
+6. Continuous threat ingestion — scheduled alert delivery does not create evidence. The compatibility runtime still has no always-running provider threat stream and must never be presented as continuous surveillance.
 
 ## Immediate next execution target
 
-Continue only with unblocked production work. The most visible remaining gap is authoritative Cloudflare frontend deployment: once legitimate deployment credentials become available to the existing workflow, deploy the exact certified source and verify the public build-SHA marker before claiming the signature UI is live. Until then, preserve the green source and continue backend/product hardening without weakening evidence, authorization or security controls.
+Preserve the certified scheduled-delivery source. If legitimate Brevo Edge secrets and a verified sender become available, configure them through secure project secrets, keep the raw API key out of source/chat, verify the dispatcher becomes `SCHEDULED_READY`, and certify one explicitly controlled notification path before claiming production email delivery.
+
+Until then, continue only unblocked production hardening. The most visible remaining deployment gap is still authoritative Cloudflare frontend source drift: once legitimate deployment credentials become available to the existing workflow, deploy the exact certified source and verify the public build-SHA marker before claiming the signature UI is live.
