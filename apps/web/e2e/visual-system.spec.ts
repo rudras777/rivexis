@@ -23,6 +23,9 @@ test.describe("Rivexis signature visual system",()=>{
     await expect(ambient).toHaveCSS("background-image",/public-signal-field\.svg/);
     await expect(page.getByRole("link",{name:/Create workspace/})).toHaveCSS("border-radius","2px");
     await expect(page.locator(".decisionCard")).toHaveCSS("border-top-right-radius","34px");
+    await expect(page.getByLabel("Illustrative decision brief")).toContainText("Proceed only after the two identified controls are resolved.");
+    await expect(page.getByLabel("Illustrative decision evidence")).toContainText("Risk index42/100ModerateConfidence91%HighEvidence18Records");
+    await expect(page.getByLabel("Illustrative decision brief")).toContainText("EXAMPLE · NOT LIVE DATA");
     await expect(page.locator(".signalStrip")).toHaveCSS("border-top-left-radius","0px");
 
     const publicGraphic=await page.request.get("/visuals/public-signal-field.svg");
