@@ -1,13 +1,13 @@
 # Rivexis Deployment Status
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 | Environment | Status | Evidence / meaning |
 |---|---|---|
-| GitHub product source | CERTIFIED | Product source `6bf117154a958688697cc998530a65c9726e820f` passed CI `36429614693` and Pages `36429614899`. Later documentation-only commits record that certified state. |
-| GitHub Pages | FALLBACK ONLY | Latest certified product source built successfully, but Pages is not the authoritative application runtime. |
-| Cloudflare web | LIVE / SOURCE DRIFT | `rivexis-web.rudrasingh0718.workers.dev` remains on manual Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`; newer UI/workflow source is not claimed live there. |
-| Supabase Edge API | LIVE / V7 | `rivexis-api` version 7 ACTIVE with HttpOnly-cookie + CSRF auth and production Saved Analyses compatibility endpoints. |
+| GitHub product source | CERTIFIED | Product source `38f3d866359f82dfeeacfd7ceb3ae9d67d6bbcdf` passed exact-head CI `36465744408`. |
+| GitHub Pages | FALLBACK ONLY | Exact-head Pages run `36465743682` passed, but Pages is not the authoritative application runtime. |
+| Cloudflare web | LIVE / EXACT SOURCE | `rivexis-web.rudrasingh0718.workers.dev` serves exact source `38f3d866359f82dfeeacfd7ceb3ae9d67d6bbcdf` as Worker version `4fc4e9f1-ab93-420c-a02c-041ad9860057`; the public build marker and proxied health endpoint were verified after deployment. |
+| Supabase Edge API | LIVE / V8 | `rivexis-api` version 8 ACTIVE with HttpOnly-cookie + CSRF auth and the certified compatibility workflows. |
 | Supabase PostgreSQL | LIVE / HARDENED | Project `ivszvufdonfgwjpfgwii`, PostgreSQL 17.6.1; core schema through `0013_auth_email_lifecycle`; hardened runtime bridges retained. |
 | Full FastAPI runtime | SOURCE READY / BILLING GATED | Deep provider-capable container deployment remains gated on explicit Workers Paid authorization. |
 | Brevo / Supabase SMTP | LIVE / AUTH TRANSPORT | Recovery delivery previously verified Sent + Delivered; owned authenticated Rivexis sender domain remains absent. |
@@ -17,13 +17,15 @@ Last updated: 2026-09-28
 The certified GitHub source now includes:
 
 - operational History search/type/mode filters, provenance inspection and real Saved-reference creation;
+- authoritative saved-state detection that marks active or archived references as Saved and blocks duplicate persistence requests;
+- grouped Command, Operations, Evidence and Infrastructure navigation with independently scrollable short-viewport access;
 - Saved Analyses search/inspect/archive/restore/delete;
 - structured F1 portfolio-position builder preserving canonical `manual_positions`;
 - guided F3 liquidation/oracle evidence inputs aligned to the real FastAPI contract;
 - structured F5 treasury allocation ledger preserving exact weights and canonical `allocations`;
 - existing institutional UI/UX, provider/monitor, protocol-review/investigation and ten-engine source functionality.
 
-These are **source/CI/Pages certified**, not authoritative Cloudflare-live UI claims.
+These capabilities are source/CI certified and live on the authoritative Cloudflare Worker at the exact build SHA above.
 
 ## Production Saved Analyses backend
 
@@ -39,17 +41,16 @@ Verified security posture remains:
 
 Post-deploy verification previously established direct Edge health HTTP 200/ready, unauthenticated Saved Analyses HTTP 401, authoritative Worker health HTTP 200, and version-7 Edge logs without a surfaced runtime exception in those checks.
 
-## Frontend release blocker
+## Frontend deployment automation blocker
 
-Cloudflare web promotion is still blocked because Wrangler is unauthenticated and the dashboard remained behind human verification after the permitted safe attempt.
+Manual Cloudflare deployment through the authenticated local Wrangler OAuth session is working and exact-source production parity is verified. Automatic GitHub deployment still stops before contacting Cloudflare because repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are not configured.
 
-Until legitimate Cloudflare authentication is available:
+Until those narrowly scoped deployment credentials are configured:
 
-- do not claim current GitHub UI is live on the Worker;
-- do not bypass human verification;
-- do not create a temporary Cloudflare account or deploy to another host;
+- preserve manual exact-SHA verification for every production promotion;
+- do not expose OAuth state or account credentials in source, logs or chat;
 - do not make billing changes without explicit authorization;
-- continue source/backend work with exact certification and separate production truth.
+- do not claim the GitHub deployment workflow is operational.
 
 ## Existing production integrity
 
@@ -63,4 +64,4 @@ Until legitimate Cloudflare authentication is available:
 
 ## Next production target
 
-Implement organization/member administration parity in the Supabase compatibility runtime before exposing Settings member controls. Full FastAPI already supports member list/add/claim/remove; the free Edge path must gain equivalent authorization and persistence semantics first. Any database bridge must retain the hardened minimum-execute posture recommended for privileged Supabase functions. General report actions remain deferred until real Edge persistence/rendering parity exists.
+Configure the existing scheduled alert dispatcher with a verified Brevo transactional sender and secure Supabase Edge secrets, then certify one controlled provider-accepted delivery without claiming inbox receipt unless independently observed. The queue must remain `SCHEDULED_NO_SINK` and consume zero attempts until those prerequisites exist.

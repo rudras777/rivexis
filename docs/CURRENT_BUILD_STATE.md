@@ -1,14 +1,15 @@
 # Rivexis Current Build State
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 This file is the compact continuation point. Newer verified GitHub source, production Supabase state, and the authoritative Cloudflare Worker state override older notes.
 
 ## Certified source
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest fully certified product source: `ba55d462338aac6df8e2d42b95a45c7555a8844e` (`Repair dispatcher object grants`).
-- Exact-head CI: `36456401245` — **SUCCESS**.
+- Latest fully certified product source: `38f3d866359f82dfeeacfd7ceb3ae9d67d6bbcdf` (`Keep workspace controls reachable`).
+- Exact-head CI: `36465744408` — **SUCCESS**.
+- Exact-head Pages: `36465743682` — **SUCCESS**.
 - The full gate passed invariants, secret/migration checks, PostgreSQL migrations/runtime controls, API lint/tests/audit, Edge typecheck/tests, web typecheck/build, vinext build, npm audit and the complete Playwright browser suite.
 - The browser suite certifies the signature visual system, accessibility, authentication/session lifecycle, workspace isolation, engine provenance, F1/F3/F5 structured inputs, organization membership, Decision Desk/reports, monitors and alert operations.
 - The Edge helper test suite now also certifies alert-notification truth wording, HTML escaping, deterministic Brevo idempotency keys and duplicate-provider acceptance handling.
@@ -28,7 +29,9 @@ The newer source deliberately moves away from generic AI/SaaS dashboard styling 
 - contextual SVG graphics remain present on public, authentication and workspace surfaces;
 - visual-contract Playwright and accessibility checks pass.
 
-This source is certified but must not be described as live on the authoritative Cloudflare Worker until deployment verification succeeds.
+This source is certified and live on the authoritative Cloudflare Worker. Public HTML exposes the exact build SHA and `/health` returns HTTP 200/ready through the same-origin proxy.
+
+The workspace rail now groups Command, Operations, Evidence and Infrastructure surfaces without removing any route. It scrolls independently when viewport height is constrained, so Workspaces and logout remain reachable. History resolves active and archived saved references, marks them as Saved and prevents duplicate persistence requests.
 
 ## Completed product workflows
 
@@ -163,11 +166,9 @@ Authoritative public frontend:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-The Cloudflare web Worker still serves the previously certified manual Worker build unless a later deploy is explicitly verified by the build-SHA marker.
+The Cloudflare web Worker serves exact source `38f3d866359f82dfeeacfd7ceb3ae9d67d6bbcdf` as Worker version `4fc4e9f1-ab93-420c-a02c-041ad9860057`. The build marker, same-origin Edge health response, authenticated grouped navigation, saved-state guard and clean browser console were verified after deployment.
 
-**Do not claim the signature UI, newer History/Saved actions, F1/F3/F5 builders, organization-member Settings UI, Decision Desk/report UI, current Alerts UI or scheduled-delivery UI truth are live on that Worker yet.** GitHub source/CI is materially ahead of Cloudflare production.
-
-A verified deployment workflow exists at `.github/workflows/deploy-web.yml`. It deploys only after successful CI, targets the existing `rivexis-web` Worker, stamps `NEXT_PUBLIC_RIVEXIS_BUILD_SHA`, and verifies that exact SHA from the public site after deployment. The deployment currently stops before contacting Cloudflare because the GitHub Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are not configured. The browser Cloudflare session is also unauthenticated. Do not bypass authentication, create an alternate host/account, or expose credentials in source/chat.
+A verified deployment workflow exists at `.github/workflows/deploy-web.yml`. It deploys only after successful CI, targets the existing `rivexis-web` Worker, stamps `NEXT_PUBLIC_RIVEXIS_BUILD_SHA`, and verifies that exact SHA from the public site after deployment. Automatic runs currently stop before contacting Cloudflare because GitHub Actions secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are not configured. Manual deployment uses the legitimate authenticated local Wrangler OAuth session; do not expose that session or substitute unrelated credentials.
 
 ## Evidence integrity retained
 
@@ -186,7 +187,7 @@ Without verified live provider evidence, the compatibility runtime returns UNKNO
 
 ## Current external gates
 
-1. Cloudflare frontend source drift — deployment pipeline is ready, but legitimate Cloudflare credentials are not available to GitHub Actions/browser session.
+1. Cloudflare deployment automation — production is exact-source, but GitHub Actions still lacks the two Cloudflare deployment secrets and therefore cannot promote future commits automatically.
 2. Full provider-capable FastAPI runtime — Cloudflare Container path remains Workers Paid gated.
 3. Provider credentials/contracts/licenses — unavailable evidence remains UNKNOWN/unavailable.
 4. Owned sender domain — Rivexis does not yet have an authenticated owned sending domain for production-branded email.
@@ -197,4 +198,4 @@ Without verified live provider evidence, the compatibility runtime returns UNKNO
 
 Preserve the certified scheduled-delivery source. If legitimate Brevo Edge secrets and a verified sender become available, configure them through secure project secrets, keep the raw API key out of source/chat, verify the dispatcher becomes `SCHEDULED_READY`, and certify one explicitly controlled notification path before claiming production email delivery.
 
-Until then, continue only unblocked production hardening. The most visible remaining deployment gap is still authoritative Cloudflare frontend source drift: once legitimate deployment credentials become available to the existing workflow, deploy the exact certified source and verify the public build-SHA marker before claiming the signature UI is live.
+Until then, continue unblocked production hardening. Preserve exact-SHA manual promotion and verification for every source change; when narrowly scoped Cloudflare deployment credentials become available to GitHub Actions, certify the existing workflow before treating deployment as automatic.
