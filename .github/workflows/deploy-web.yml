@@ -1,0 +1,85 @@
+name: deploy-web
+
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rivexis-web-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      NEXT_PUBLIC_RIVEXIS_API_URL: same-origin
+      NEXT_PUBLIC_RIVEXIS_BUILD_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      - name: Check out certified source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Verify Cloudflare deployment credentials exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is not configured in GitHub Actions secrets."
+            exit 1
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID is not configured in GitHub Actions secrets."
+            exit 1
+          fi
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Recheck web source before deployment
+        run: |
+          npm run typecheck:web
+          npm --workspace @rivexis/web run build:vinext
+
+      - name: Deploy existing rivexis-web Worker
+        run: npm --workspace @rivexis/web run deploy:vinext
+
+      - name: Verify exact commit is live
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://rivexis-web.rudrasingh0718.workers.dev/?build=${DEPLOY_SHA}"
+          verified=0
+          for attempt in $(seq 1 12); do
+            body="$(curl -fsS --max-time 25 -H 'Cache-Control: no-cache' "$url" || true)"
+            if printf '%s' "$body" | grep -Fq 'rivexis-build' && printf '%s' "$body" | grep -Fq "$DEPLOY_SHA"; then
+              verified=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$verified" -ne 1 ]; then
+            echo "::error::The public Worker did not expose the expected build SHA ${DEPLOY_SHA}."
+            exit 1
+          fi
+          printf '%s' "$body" | grep -Fq 'Evidence before'
+          echo "Verified ${DEPLOY_SHA} on the authoritative public Worker." >> "$GITHUB_STEP_SUMMARY"

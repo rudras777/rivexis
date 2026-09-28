@@ -10,5 +10,6 @@ export const metadata:Metadata={
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}){
-  return <html lang="en"><body><Providers><ServiceAvailability/>{children}</Providers></body></html>;
+  const buildSha=process.env.NEXT_PUBLIC_RIVEXIS_BUILD_SHA||"local";
+  return <html lang="en"><head><meta name="rivexis-build" content={buildSha}/></head><body><Providers><ServiceAvailability/>{children}</Providers></body></html>;
 }
