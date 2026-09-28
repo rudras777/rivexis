@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient, type SupabaseClient, type User} from "npm:@supabase/supabase-js@2";
+import {analysisResult} from "./analysis.mjs";
 
 type Json=Record<string,unknown>;
 type SessionCookie={access_token:string;refresh_token:string;csrf:string};
@@ -16,18 +17,6 @@ const ENGINE_PATHS:Record<string,string>={
   portfolio:"F1","protocol-risk":"F2","position-risk":"F3",yield:"F4",treasury:"F5",
 };
 const PROVIDERS=["direct_rpc","alchemy","quicknode","tenderly","etherscan","blockaid","nansen","arkham","coingecko","defillama","lifi","defillama_yields"];
-const ENGINE_METADATA:Record<string,{engine_version:string;analysis_framework_version:string}>={
-  B1:{engine_version:"1.3.0",analysis_framework_version:"b1-live-1.8.0"},
-  B2:{engine_version:"1.1.0",analysis_framework_version:"b2-live-1.3.0"},
-  B3:{engine_version:"1.1.0",analysis_framework_version:"b3-live-1.3.0"},
-  B4:{engine_version:"1.0.0",analysis_framework_version:"b4-live-1.1.0"},
-  B5:{engine_version:"1.2.0",analysis_framework_version:"b5-live-1.4.0"},
-  F1:{engine_version:"1.2.0",analysis_framework_version:"f1-live-1.4.0"},
-  F2:{engine_version:"1.2.0",analysis_framework_version:"f2-live-1.4.0"},
-  F3:{engine_version:"1.3.0",analysis_framework_version:"f3-live-1.3.0"},
-  F4:{engine_version:"1.2.0",analysis_framework_version:"f4-live-1.3.0"},
-  F5:{engine_version:"1.2.0",analysis_framework_version:"f5-live-1.3.0"},
-};
 
 const admin=createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 
@@ -193,20 +182,6 @@ async function handleAuth(req:Request,path:string){
     return json(req,{status:"updated",sessions_revoked:true});
   }
   return error(req,404,"Not found");
-}
-
-function analysisResult(engineId:string,demo:boolean,input:unknown){
-  const analysisId=id();
-  const metadata=ENGINE_METADATA[engineId]??{engine_version:"1.0.0",analysis_framework_version:"edge-runtime-1.0.0"};
-  return {
-    analysis_id:analysisId,engine_id:engineId,...metadata,
-    status:"UNKNOWN",severity:"unknown",risk_score:null,data_confidence:0,engine_confidence:0,provider_consensus:"UNAVAILABLE",demo,
-    summary:demo
-      ?"Demonstration executed. No live provider evidence was used, so Rivexis preserves an UNKNOWN decision state."
-      :"No verified live provider evidence is configured for this free runtime; Rivexis returns UNKNOWN rather than fabricating a result.",
-    metrics:{runtime:"supabase-edge",input_received:Boolean(input)},signals:[],hard_blockers:demo?[]:["NO_VERIFIED_PROVIDER_EVIDENCE"],
-    missing_data:["verified live provider evidence"],provider_status:[],provider_conflicts:[],evidence:[],created_at:now(),
-  };
 }
 
 function protocolInput(value:unknown){

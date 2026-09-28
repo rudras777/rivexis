@@ -20,6 +20,7 @@ jobs:
         with: {node-version: '22', cache: 'npm'}
       - run: npm ci
       - run: npm run typecheck:api-edge
+      - run: npm run test:api-edge
       - run: npm run typecheck:web
       - run: npm run build:web
       - run: npm --workspace @rivexis/web run build:vinext

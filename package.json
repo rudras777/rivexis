@@ -11,6 +11,7 @@
     "typecheck:web": "npm --workspace @rivexis/web run typecheck",
     "lint:web": "npm --workspace @rivexis/web run lint",
     "typecheck:api-edge": "npm --workspace @rivexis/api-edge run typecheck",
+    "test:api-edge": "node --test supabase/functions/rivexis-api/analysis.test.mjs",
     "types:api-edge": "npm --workspace @rivexis/api-edge run cf-typegen",
     "test:api": "cd apps/api && pytest",
     "verify": "bash scripts/verify.sh",
