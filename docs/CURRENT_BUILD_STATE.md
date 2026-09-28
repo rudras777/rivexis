@@ -7,10 +7,10 @@ This file is the compact continuation point. Newer verified GitHub source, produ
 ## Certified source
 
 - Repository: `rudras777/rivexis`; branch `main`.
-- Latest fully certified product source: `9dad09ed574911d19d7d2f593445ee0e273a80c7` (`Enforce claim-only organization admission`).
-- Exact-head CI: `36434551867` — **SUCCESS**.
-- Exact-head GitHub Pages: `36434549905` — **SUCCESS**.
-- The full gate passed invariants, secret/migration checks, PostgreSQL migrations/runtime controls, API lint/tests/audit, Edge typecheck/tests, web typecheck/build, vinext build, npm audit and the complete Playwright browser suite.
+- Latest fully certified product source: `cadb6838f1ec55a1f3021ec65bc8b81408e30a67` (`Stabilize Decision Desk request capture`).
+- Exact-head CI: `36439141743` — **SUCCESS**.
+- Exact-head GitHub Pages: `36439139051` — **SUCCESS**.
+- The full gate passed invariants, secret/migration checks, PostgreSQL migrations/runtime controls, API lint/tests/audit, Edge typecheck/tests, web typecheck/build, vinext build, npm audit and the complete Playwright browser suite including the canonical Decision Desk and JSON/HTML/PDF report workflow.
 - Pages remains fallback/navigation only; it is not the authoritative application runtime.
 
 ## Completed product workflows
@@ -33,7 +33,7 @@ Live F5 has a structured allocation ledger for asset ID, symbol, weight and stab
 
 ### Organization/member administration
 
-Organization membership parity is now implemented and certified:
+Organization membership parity is implemented and certified:
 
 - organization IDs are explicit and do not imply access;
 - authenticated members can inspect the actual membership list;
@@ -45,7 +45,23 @@ Organization membership parity is now implemented and certified:
 - removals require explicit confirmation in Settings;
 - action-level Playwright covers role update, claim-based admission, confirmed removal, claim generation, protected request payloads and CSRF.
 
-Key source milestones: `8f101aeeb413e7ac87bcf9c9bff6fe1f4341929f`, `a23183660d5a906cf72c0703250e9809e48796d6`, `55d3a6b6d182caceeb41909c9a3e228f034c6132`, `c32f6ec566d4b91929c547a077160ceaed9804f7`, with certified product head `9dad09ed574911d19d7d2f593445ee0e273a80c7`.
+### Decision Desk and decision reports
+
+Decision/report parity is now implemented and certified rather than simulated:
+
+- Decision Desk is a first-class workspace surface;
+- users select persisted specialist analyses, bounded to 10 references;
+- duplicate specialist-engine weighting is blocked in the interface;
+- the server rehydrates each submitted analysis reference from canonical persistence and re-evaluates current workspace authorization before decision scoring;
+- canonical decisions are persisted before later retrieval/history use;
+- decision output preserves methodology version, engine/framework versions, evidence provenance, missing data, source conflicts, confidence, canonical persistence state and demo state;
+- demonstration input is explicitly labelled synthetic in the decision/report workflow;
+- JSON, HTML and PDF report formats are supported;
+- a report row is persisted before rendering any report output;
+- report downloads are protected by the same browser session and CSRF model;
+- action-level Playwright covers canonical decision creation, exact persisted analysis references, CSRF, provenance display and JSON/HTML/PDF download behavior.
+
+Key report milestones include `310005ea826479c52b10771de3d454c0277f6477`, `2567f032dae1fd0fa40d905471807caa74b6bc42`, `246cf753d3fcd76a6153d341b475b0848c2f8527`, `af115e622cf703ed7dc803bc3b1757b3019c18b3`, `7fe6c7e997084f7b3db83e7a71afdc704a96c9b8`, `1391cb022f2a7cfdf90b9f7ea8a96394df682463` and certified head `cadb6838f1ec55a1f3021ec65bc8b81408e30a67`.
 
 ## Production backend
 
@@ -54,12 +70,14 @@ Supabase production is the current compatibility backend.
 - PostgreSQL 17.6.1; hardened posture retained.
 - Core Alembic application schema remains through `0013_auth_email_lifecycle`.
 - Supabase Edge `rivexis-api` is **version 8 ACTIVE**.
-- Version 8 includes organization membership routes while retaining the existing HttpOnly/Secure/SameSite=Lax cookie session and CSRF model.
-- Existing general and Saved Analyses compatibility bridges remain deployed.
-- The organization-membership compatibility bridge is deployed with RLS-backed claim storage, restricted service-role execution and OWNER/ADMIN/last-owner safeguards.
+- Supabase Edge `rivexis-decision-reports` is **version 1 ACTIVE**.
+- Existing general, Saved Analyses and organization-membership compatibility bridges remain deployed.
 - Production membership migrations 008 and 009 are live.
-- Direct Edge `/health` was verified HTTP 200 with `ready`, `supabase-edge`, `v1`, `production` after the version 8 deployment.
-- Unauthenticated organization-member access was verified HTTP 401 after version 8 deployment.
+- Production migration `010_edge_decision_reports` is live.
+- `public.rivexis_edge_decision_report(text,text,jsonb)` is owned by `rivexis_migrator`, runs as SECURITY DEFINER with pinned search path, grants execute only to `service_role`, and grants no execute capability to `anon`, `authenticated` or `PUBLIC`.
+- The decision/report Edge runtime retains HttpOnly/Secure/SameSite=Lax browser sessions and CSRF on state-changing operations.
+- Direct decision/report Edge `/health` was verified HTTP 200 with `ready`, `supabase-edge`, API `v1`, `production`.
+- Unauthenticated report access was verified HTTP 401.
 
 No provider evidence was fabricated. Live compatibility analysis remains UNKNOWN-safe when verified provider evidence is unavailable.
 
@@ -71,7 +89,7 @@ Authoritative public frontend:
 
 The Cloudflare web Worker still serves previously certified manual Worker version `e8922aac-cb84-435b-bd0c-38fbb886be57`.
 
-**Do not claim the newer History, institutional UI, Saved Analyses actions, F1/F3/F5 builders or organization-member Settings UI are live on that Worker yet.** GitHub/CI/Pages source is materially ahead of Cloudflare production.
+**Do not claim the newer institutional UI, History/Saved actions, F1/F3/F5 builders, organization-member Settings UI, Decision Desk or decision-report UI are live on that Worker yet.** GitHub/CI/Pages source is materially ahead of Cloudflare production.
 
 Cloudflare frontend deployment remains blocked because Wrangler is unauthenticated and the dashboard remained behind human verification after the permitted safe attempt. Do not bypass verification, deploy to an alternate host, create a temporary account or make an unapproved billing change.
 
@@ -96,8 +114,7 @@ Without verified live provider evidence, the compatibility runtime returns UNKNO
 2. Full provider-capable FastAPI runtime — Cloudflare Container path remains Workers Paid gated.
 3. Provider credentials/contracts/licenses — unavailable evidence remains UNKNOWN/unavailable.
 4. Owned sender domain — Supabase/Brevo delivery works, but Rivexis does not yet have an authenticated owned sending domain.
-5. General analysis-report parity — do not expose report buttons until FastAPI + Edge persistence/rendering contracts are genuinely aligned.
 
 ## Immediate next execution target
 
-Close **general analysis-report parity**. Audit FastAPI report persistence/rendering against Supabase Edge, add only a real production-compatible contract with workspace authorization and truthful evidence/demo labeling, and expose web report actions only after backend parity and action-level coverage exist. Otherwise keep the action unavailable rather than simulate it.
+Close the next unblocked **monitoring/alerts operational parity** gap. Audit the existing FastAPI alert lifecycle against the Supabase compatibility runtime before exposing any alert-management UI. Prioritize durable authorized alert list/status, retry/requeue/delivery-state semantics and truthful service availability. Add backend parity first where required; expose UI only after the production contract exists and action-level coverage proves workspace isolation, permissions and CSRF. Do not imply continuous provider threat streaming unless a real configured provider contract exists.
