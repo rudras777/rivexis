@@ -60,28 +60,21 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 .decisionStage:after{content:"";position:absolute;right:-18px;bottom:4px;width:62%;height:62%;border-right:1px solid rgba(20,92,255,.2);border-bottom:1px solid rgba(20,92,255,.15);clip-path:polygon(18% 0,100% 0,100% 100%,0 100%);pointer-events:none}
 .decisionCard{border-radius:0 34px 0 0;border:1px solid rgba(80,107,137,.26);box-shadow:0 42px 110px rgba(4,24,48,.14);background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(245,249,253,.82));backdrop-filter:blur(18px)}
 .decisionCard:before{border-radius:0 34px 0 0;inset:10px -10px -10px 10px;background:transparent}
-.executiveBrief{padding:30px 30px 24px;transform:none}
-.executiveBrief .cardTopline{padding-bottom:17px;color:#65758a}
-.exampleBadge{color:#0b5b55;background:#e8f5f1;border-left:2px solid #0b8b73;padding:7px 9px;letter-spacing:.09em}
-.decisionOutcome{display:flex;align-items:flex-end;justify-content:space-between;padding:28px 0 8px}
-.decisionOutcome small{display:block;font-size:9px;font-weight:820;letter-spacing:.15em;color:#617187}
-.decisionOutcome h2{font-size:42px;line-height:1;margin:9px 0 0;letter-spacing:.015em;font-weight:620;color:var(--navy)}
-.outcomeIndex{font-size:9px;font-weight:800;letter-spacing:.14em;color:#7a899b;padding-bottom:5px}
-.decisionDirective{font-size:15px!important;line-height:1.55!important;color:#364b67!important;margin:10px 0 24px!important;max-width:390px!important}
-.decisionMetrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(36,65,99,.16);border-bottom:1px solid rgba(36,65,99,.16)}
-.decisionMetrics>div{display:grid;gap:5px;padding:18px 14px 17px;border-left:1px solid rgba(36,65,99,.13)}
-.decisionMetrics>div:first-child{border-left:0;padding-left:0}
-.decisionMetrics span{font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#6b7a8d}
-.decisionMetrics b{font-size:24px;font-weight:620;line-height:1;color:var(--navy)}
-.decisionMetrics b small{font-size:10px;color:#6b7a8d;margin-left:2px}
-.decisionMetrics i{font-size:11px;font-style:normal;color:#617187}
-.decisionPath{padding:22px 0 5px}
-.decisionPath>.metricLabel{display:block;margin-bottom:9px}
-.decisionPath>div{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start;padding:11px 0;border-top:1px solid rgba(36,65,99,.1)}
-.decisionPath>div>b{display:grid;place-items:center;width:22px;height:22px;background:#e9f1fc;color:var(--blue);font-size:9px;font-weight:850}
-.decisionPath p{display:grid;gap:3px;margin:0!important;font-size:12px!important;line-height:1.35!important;color:var(--navy)!important}
-.decisionPath strong{font-size:12px}.decisionPath small{font-size:11px;color:#65758a}
-.executiveBrief .decisionFoot{margin-top:11px;padding-top:15px}
+.evidenceFlow{padding:30px 30px 26px;transform:none}
+.evidenceFlow .cardTopline{padding-bottom:17px;color:#65758a}
+.flowBadge{color:var(--blue);border-left:2px solid var(--blue);padding:5px 0 5px 10px;letter-spacing:.11em}
+.flowIntro{padding:27px 0 22px}
+.flowIntro small{display:block;font-size:9px;font-weight:820;letter-spacing:.15em;color:#617187}
+.flowIntro h2{font-size:34px;line-height:1.05;margin:11px 0 13px;letter-spacing:-.035em;font-weight:610;color:var(--navy)}
+.flowIntro p{font-size:13px!important;line-height:1.55!important;color:#53647a!important;margin:0!important;max-width:400px!important}
+.flowSteps{list-style:none;padding:0;margin:0;border-top:1px solid rgba(36,65,99,.16)}
+.flowSteps li{display:grid;grid-template-columns:31px 1fr;gap:13px;align-items:start;padding:14px 0;border-bottom:1px solid rgba(36,65,99,.11)}
+.flowSteps li>b{display:grid;place-items:center;width:23px;height:23px;background:#e9f1fc;color:var(--blue);font-size:9px;font-weight:850}
+.flowSteps li>div{display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:baseline}
+.flowSteps strong{font-size:12px;color:var(--navy)}
+.flowSteps span{font-size:11px;line-height:1.45;color:#65758a}
+.flowLink{display:flex;align-items:center;justify-content:space-between;margin-top:19px;color:var(--blue);font-size:11px;font-weight:800;letter-spacing:.055em;text-transform:uppercase}
+.flowLink span{font-size:15px;transition:transform .18s ease}.flowLink:hover span{transform:translate(3px,-3px)}
 
 .signalStrip{max-width:1240px;border:0;border-top:1px solid rgba(36,65,99,.18);border-bottom:1px solid rgba(36,65,99,.18);border-radius:0;background:rgba(255,255,255,.22);box-shadow:none}
 .signalStrip>div{border-left:1px solid rgba(36,65,99,.14);min-height:112px;align-content:center}.signalStrip b{font-size:30px;font-weight:590}
@@ -152,11 +145,9 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 }
 
 @media(max-width:650px){
-  .executiveBrief{padding:22px 20px 18px}
-  .executiveBrief .cardTopline{align-items:flex-start;gap:12px}.exampleBadge{white-space:nowrap}
-  .decisionOutcome{padding-top:24px}.decisionOutcome h2{font-size:36px}
-  .decisionMetrics>div{padding:15px 9px}.decisionMetrics>div:first-child{padding-left:0}
-  .decisionMetrics b{font-size:21px}
+  .evidenceFlow{padding:22px 20px 20px}
+  .evidenceFlow .cardTopline{align-items:flex-start;gap:12px}.flowBadge{white-space:nowrap}
+  .flowIntro h2{font-size:30px}.flowSteps li>div{grid-template-columns:68px 1fr}
 }
 
 @media(max-width:640px){

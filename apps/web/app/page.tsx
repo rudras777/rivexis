@@ -18,13 +18,16 @@ const engines=[
 export default function Home(){return <><PublicNav/><main>
   <section className="hero">
     <div className="heroCopy"><div className="eyebrow"><span/>Decision intelligence for digital-asset risk</div><h1>Evidence before<br/><em>execution.</em></h1><p>Rivexis turns fragmented blockchain, market and protocol evidence into an explainable institutional decision—before capital or transactions are committed.</p><div className="heroActions"><Link className="button buttonLarge" href="/signup">Create workspace <span aria-hidden="true">↗</span></Link><Link className="ghost buttonLarge" href="/methodology">Review methodology</Link></div><div className="trustLine"><span>Evidence attributed</span><span>Conflicts preserved</span><span>Unknown stays unknown</span></div></div>
-    <div className="decisionStage"><div className="stageGlow"/><div className="decisionCard executiveBrief" aria-label="Illustrative decision brief">
-      <div className="cardTopline"><span>ILLUSTRATIVE DECISION BRIEF</span><span className="exampleBadge">EXAMPLE · NOT LIVE DATA</span></div>
-      <div className="decisionOutcome"><div><small>RECOMMENDED ACTION</small><h2>MODIFY</h2></div><span className="outcomeIndex">01 / DECISION</span></div>
-      <p className="decisionDirective">Proceed only after the two identified controls are resolved.</p>
-      <div className="decisionMetrics" aria-label="Illustrative decision evidence"><div><span>Risk index</span><b>42<small>/100</small></b><i>Moderate</i></div><div><span>Confidence</span><b>91<small>%</small></b><i>High</i></div><div><span>Evidence</span><b>18</b><i>Records</i></div></div>
-      <div className="decisionPath"><span className="metricLabel">WHY THIS OUTCOME</span><div><b>01</b><p><strong>Resolve material findings</strong><small>Two controls require remediation before execution.</small></p></div><div><b>02</b><p><strong>Re-run the evidence</strong><small>Confirm sources remain current and complete.</small></p></div></div>
-      <div className="decisionFoot"><span>POLICY RVE-04</span><span>CONFLICTS PRESERVED</span></div>
+    <div className="decisionStage"><div className="stageGlow"/><div className="decisionCard evidenceFlow" aria-label="Rivexis decision workflow">
+      <div className="cardTopline"><span>THE RIVEXIS OPERATING MODEL</span><span className="flowBadge">EVIDENCE → ACTION</span></div>
+      <div className="flowIntro"><small>DECISION WORKFLOW</small><h2>From signal<br/>to accountable action.</h2><p>Every conclusion follows a visible evidence path. Missing or conflicting inputs remain explicit.</p></div>
+      <ol className="flowSteps">
+        <li><b>01</b><div><strong>Observe</strong><span>Attribute blockchain, market and protocol evidence.</span></div></li>
+        <li><b>02</b><div><strong>Challenge</strong><span>Test freshness, integrity, gaps and source disagreement.</span></div></li>
+        <li><b>03</b><div><strong>Decide</strong><span>Resolve to PROCEED, MODIFY, WAIT, AVOID or UNKNOWN.</span></div></li>
+        <li><b>04</b><div><strong>Govern</strong><span>Retain rationale, controls and the supporting evidence record.</span></div></li>
+      </ol>
+      <Link className="flowLink" href="/methodology">Explore the decision methodology <span aria-hidden="true">↗</span></Link>
     </div></div>
   </section>
   <section className="signalStrip" aria-label="Rivexis operating principles"><div><b>10</b><span>Specialist engines</span></div><div><b>5</b><span>Decision outcomes</span></div><div><b>2</b><span>Intelligence domains</span></div><div><b>0</b><span>Fabricated signals</span></div></section>
