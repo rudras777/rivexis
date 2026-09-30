@@ -79,23 +79,33 @@ jobs:
           echo "::add-mask::$CF_TOKEN"
           echo "::add-mask::$CF_ACCOUNT_ID"
 
-          verify_json="$(curl -sS --max-time 20 \
+          user_verify_json="$(curl -sS --max-time 20 \
             -H "Authorization: Bearer ${CF_TOKEN}" \
             -H 'Content-Type: application/json' \
             https://api.cloudflare.com/client/v4/user/tokens/verify || true)"
-          VERIFY_JSON="$verify_json" python - <<'PY'
+          account_verify_json="$(curl -sS --max-time 20 \
+            -H "Authorization: Bearer ${CF_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/tokens/verify" || true)"
+          USER_VERIFY_JSON="$user_verify_json" ACCOUNT_VERIFY_JSON="$account_verify_json" python - <<'PY'
           import json, os, sys
-          raw=os.environ.get('VERIFY_JSON','')
-          try:
-              payload=json.loads(raw)
-          except Exception:
-              print('::error::Cloudflare token verification returned a non-JSON or empty response.')
-              sys.exit(1)
-          if payload.get('success') is not True:
+          payloads=[]
+          for key,label in (('USER_VERIFY_JSON','user'),('ACCOUNT_VERIFY_JSON','account')):
+              raw=os.environ.get(key,'')
+              try:
+                  payload=json.loads(raw)
+              except Exception:
+                  payload={}
+              payloads.append((label,payload))
+          if any(payload.get('success') is True for _,payload in payloads):
+              sys.exit(0)
+          summaries=[]
+          for label,payload in payloads:
               errors=payload.get('errors') or []
-              codes=', '.join(str(e.get('code')) for e in errors if e.get('code') is not None) or 'unknown'
-              print(f'::error::Cloudflare API token verification failed after safe normalization (codes: {codes}).')
-              sys.exit(1)
+              codes=','.join(str(e.get('code')) for e in errors if e.get('code') is not None) or 'unknown'
+              summaries.append(f'{label}:{codes}')
+          print(f"::error::Cloudflare token verification failed for both supported token scopes ({'; '.join(summaries)}).")
+          sys.exit(1)
           PY
 
           service_json="$(curl -sS --max-time 20 \
