@@ -76,14 +76,17 @@ export default function Settings(){
   });
 
   useEffect(()=>{
-    if(!members.data?.items)return;
-    setRoleDrafts(current=>{
-      const next={...current};
-      for(const member of members.data.items)if(!next[member.user_id])next[member.user_id]=member.role;
-      return next;
-    });
+    const next:Record<string,string>={};
+    for(const member of members.data?.items??[])next[member.user_id]=member.role;
+    setRoleDrafts(next);
     setPendingRemove("");
   },[members.data?.items,selectedOrgId]);
+
+  useEffect(()=>{
+    setClaimToken("");
+    setClaimRole("ANALYST");
+    setPendingRemove("");
+  },[selectedOrgId]);
 
   const memberRole=members.data?.member_role??selectedOrg?.member_role??"";
   const canAdmin=memberRole==="OWNER"||memberRole==="ADMIN";
@@ -110,36 +113,39 @@ export default function Settings(){
   });
 
   const updateMember=useMutation({
-    mutationFn:({member,nextRole}:{member:OrgMember;nextRole:string})=>api<OrgMember>(`/api/v1/organizations/${encodeURIComponent(selectedOrgId)}/members`,{method:"POST",body:JSON.stringify({email:member.email,role:nextRole})}),
-    onSuccess:r=>{
-      qc.setQueryData<MembersResponse>(["organization-members",selectedOrgId],old=>old?{...old,items:old.items.map(member=>member.user_id===r.user_id?{...member,...r}:member)}:old);
-      setRoleDrafts(current=>({...current,[r.user_id]:r.role}));
+    mutationFn:({orgId,member,nextRole}:{orgId:string;member:OrgMember;nextRole:string})=>api<OrgMember>(`/api/v1/organizations/${encodeURIComponent(orgId)}/members`,{method:"POST",body:JSON.stringify({email:member.email,role:nextRole})}),
+    onSuccess:(r,{orgId})=>{
+      qc.setQueryData<MembersResponse>(["organization-members",orgId],old=>old?{...old,items:old.items.map(member=>member.user_id===r.user_id?{...member,...r}:member)}:old);
+      if(selectedOrgId===orgId)setRoleDrafts(current=>({...current,[r.user_id]:r.role}));
     }
   });
 
   const acceptClaim=useMutation({
-    mutationFn:()=>api<OrgMember>(`/api/v1/organizations/${encodeURIComponent(selectedOrgId)}/members/claim`,{method:"POST",body:JSON.stringify({claim_token:claimToken.trim(),role:claimRole})}),
-    onSuccess:r=>{
-      qc.setQueryData<MembersResponse>(["organization-members",selectedOrgId],old=>old?{...old,items:[...old.items.filter(member=>member.user_id!==r.user_id),r]}:old);
-      setRoleDrafts(current=>({...current,[r.user_id]:r.role}));
-      setClaimToken("");
+    mutationFn:({orgId,token,nextRole}:{orgId:string;token:string;nextRole:string})=>api<OrgMember>(`/api/v1/organizations/${encodeURIComponent(orgId)}/members/claim`,{method:"POST",body:JSON.stringify({claim_token:token,role:nextRole})}),
+    onSuccess:(r,{orgId})=>{
+      qc.setQueryData<MembersResponse>(["organization-members",orgId],old=>old?{...old,items:[...old.items.filter(member=>member.user_id!==r.user_id),r]}:old);
+      if(selectedOrgId===orgId){
+        setRoleDrafts(current=>({...current,[r.user_id]:r.role}));
+        setClaimToken("");
+      }
     }
   });
 
   const removeMember=useMutation({
-    mutationFn:(member:OrgMember)=>api<void>(`/api/v1/organizations/${encodeURIComponent(selectedOrgId)}/members/${encodeURIComponent(member.user_id)}`,{method:"DELETE"}),
-    onSuccess:(_,member)=>{
-      qc.setQueryData<MembersResponse>(["organization-members",selectedOrgId],old=>old?{...old,items:old.items.filter(item=>item.user_id!==member.user_id)}:old);
-      setPendingRemove("");
+    mutationFn:({orgId,member}:{orgId:string;member:OrgMember})=>api<void>(`/api/v1/organizations/${encodeURIComponent(orgId)}/members/${encodeURIComponent(member.user_id)}`,{method:"DELETE"}),
+    onSuccess:(_, {orgId,member})=>{
+      qc.setQueryData<MembersResponse>(["organization-members",orgId],old=>old?{...old,items:old.items.filter(item=>item.user_id!==member.user_id)}:old);
+      if(selectedOrgId===orgId)setPendingRemove("");
     }
   });
 
   const createClaim=useMutation({
-    mutationFn:()=>api<MembershipClaim>(`/api/v1/organizations/${encodeURIComponent(joinOrgId.trim())}/membership-claim`,{method:"POST",body:JSON.stringify({})}),
+    mutationFn:(orgId:string)=>api<MembershipClaim>(`/api/v1/organizations/${encodeURIComponent(orgId)}/membership-claim`,{method:"POST",body:JSON.stringify({})}),
     onSuccess:r=>setGeneratedClaim(r),
   });
 
   const membershipMutationError=updateMember.error??acceptClaim.error??removeMember.error;
+  const membershipBusy=updateMember.isPending||acceptClaim.isPending||removeMember.isPending;
 
   return <>
     <div className="workspaceHeader"><div><h1>Workspaces & Organizations</h1><p>Operate personal workspaces, organization membership, and access roles from one evidence-boundary-aware control surface.</p></div><span className="badge">ACTIVE {workspaceId}</span></div>
@@ -157,8 +163,8 @@ export default function Settings(){
       {orgs.isPending?<p>Loading organizations…</p>:null}
       {orgs.isError?<p className="error" role="alert">{listError(orgs.error,"organizations")}</p>:null}
       {!orgs.isPending&&!orgs.isError&&!orgs.data?.items.length?<p>No organizations are currently associated with this account.</p>:null}
-      {!orgs.isPending&&!orgs.isError&&orgs.data?.items.length?<div className="tableWrap"><table className="table"><thead><tr><th>Name</th><th>Organization ID</th><th>Your role</th><th>Created</th><th>Action</th></tr></thead><tbody>{orgs.data.items.map(org=><tr key={org.id}><td>{org.name}</td><td><code>{org.id}</code></td><td>{org.member_role}</td><td>{createdAt(org.created_at)}</td><td><button className={org.id===selectedOrgId?"button":"ghost"} type="button" onClick={()=>setSelectedOrgId(org.id)}>{org.id===selectedOrgId?"Selected":"Manage"}</button></td></tr>)}</tbody></table></div>:null}
-      <div style={{display:"flex",gap:12,marginTop:16,alignItems:"end",flexWrap:"wrap"}}><label className="field" style={{flex:"1 1 260px"}}>Organization name<input value={orgName} onChange={e=>setOrgName(e.target.value)}/></label><button className="button" type="button" disabled={makeOrg.isPending||orgName.trim().length<2} onClick={()=>makeOrg.mutate()}>{makeOrg.isPending?"Creating…":"Create organization"}</button></div>
+      {!orgs.isPending&&!orgs.isError&&orgs.data?.items.length?<div className="tableWrap"><table className="table"><thead><tr><th>Name</th><th>Organization ID</th><th>Your role</th><th>Created</th><th>Action</th></tr></thead><tbody>{orgs.data.items.map(org=><tr key={org.id}><td>{org.name}</td><td><code>{org.id}</code></td><td>{org.member_role}</td><td>{createdAt(org.created_at)}</td><td><button className={org.id===selectedOrgId?"button":"ghost"} type="button" disabled={membershipBusy} onClick={()=>setSelectedOrgId(org.id)}>{org.id===selectedOrgId?"Selected":"Manage"}</button></td></tr>)}</tbody></table></div>:null}
+      <div style={{display:"flex",gap:12,marginTop:16,alignItems:"end",flexWrap:"wrap"}}><label className="field" style={{flex:"1 1 260px"}}>Organization name<input value={orgName} onChange={e=>setOrgName(e.target.value)}/></label><button className="button" type="button" disabled={makeOrg.isPending||name.trim().length<2} onClick={()=>makeOrg.mutate()}>{makeOrg.isPending?"Creating…":"Create organization"}</button></div>
       {makeOrg.isSuccess?<p role="status">Created <b>{makeOrg.data.name}</b>. Your membership role is {makeOrg.data.member_role}.</p>:null}{makeOrg.isError?<p className="error" role="alert">Rivexis could not create the organization. Review the input and retry.</p>:null}
     </section>
 
@@ -168,7 +174,7 @@ export default function Settings(){
       {!members.isPending&&!members.isError&&members.data?.items.length?<div className="tableWrap"><table className="table"><thead><tr><th>Member</th><th>Role</th><th>Joined</th><th>Controls</th></tr></thead><tbody>{members.data.items.map(member=>{
         const draft=roleDrafts[member.user_id]??member.role;
         const ownerRestricted=memberRole!=="OWNER"&&member.role==="OWNER";
-        return <tr key={member.user_id} data-testid="organization-member-row"><td><b>{member.email}</b><small style={{display:"block"}}>{member.user_id}</small></td><td><select aria-label={`Role for ${member.email}`} value={draft} disabled={!canAdmin||ownerRestricted||updateMember.isPending||removeMember.isPending} onChange={e=>setRoleDrafts(current=>({...current,[member.user_id]:e.target.value}))}>{(memberRole==="OWNER"?ORG_ROLES:ORG_ROLES.filter(value=>value!=="OWNER")).map(value=><option key={value} value={value}>{value}</option>)}</select></td><td>{createdAt(member.created_at)}</td><td><div className="actions"><button className="button" type="button" aria-label={`Update ${member.email}`} disabled={!canAdmin||ownerRestricted||draft===member.role||updateMember.isPending||removeMember.isPending} onClick={()=>updateMember.mutate({member,nextRole:draft})}>Update role</button><button className="ghost" type="button" aria-label={pendingRemove===member.user_id?`Confirm remove ${member.email}`:`Remove ${member.email}`} disabled={!canAdmin||ownerRestricted||removeMember.isPending||updateMember.isPending} onClick={()=>pendingRemove===member.user_id?removeMember.mutate(member):setPendingRemove(member.user_id)}>{pendingRemove===member.user_id?"Confirm remove":"Remove"}</button></div></td></tr>;
+        return <tr key={member.user_id} data-testid="organization-member-row"><td><b>{member.email}</b><small style={{display:"block"}}>{member.user_id}</small></td><td><select aria-label={`Role for ${member.email}`} value={draft} disabled={!canAdmin||ownerRestricted||membershipBusy} onChange={e=>setRoleDrafts(current=>({...current,[member.user_id]:e.target.value}))}>{(memberRole==="OWNER"?ORG_ROLES:ORG_ROLES.filter(value=>value!=="OWNER")).map(value=><option key={value} value={value}>{value}</option>)}</select></td><td>{createdAt(member.created_at)}</td><td><div className="actions"><button className="button" type="button" aria-label={`Update ${member.email}`} disabled={!canAdmin||ownerRestricted||draft===member.role||membershipBusy} onClick={()=>updateMember.mutate({orgId:selectedOrgId,member,nextRole:draft})}>Update role</button><button className="ghost" type="button" aria-label={pendingRemove===member.user_id?`Confirm remove ${member.email}`:`Remove ${member.email}`} disabled={!canAdmin||ownerRestricted||membershipBusy} onClick={()=>pendingRemove===member.user_id?removeMember.mutate({orgId:selectedOrgId,member}):setPendingRemove(member.user_id)}>{pendingRemove===member.user_id?"Confirm remove":"Remove"}</button></div></td></tr>;
       })}</tbody></table></div>:null}
       {!members.isPending&&!members.isError&&!members.data?.items.length?<p>No members were returned for this organization.</p>:null}
       {!canAdmin&&!members.isPending&&!members.isError?<p className="muted">Your {memberRole||"current"} role can inspect membership but cannot change roles or accept/remove members.</p>:null}
@@ -176,10 +182,10 @@ export default function Settings(){
       {updateMember.isSuccess?<p role="status">Updated {updateMember.data.email} to {updateMember.data.role}.</p>:null}
       {removeMember.isSuccess?<p role="status">Organization member removed.</p>:null}
 
-      <div className="advancedOnly"><div className="panelHeading"><div><b>Accept authenticated membership claim</b><p>Do not add a new person by email alone. The intended member signs in, generates a short-lived opaque claim for this organization ID, and shares that claim with an OWNER or ADMIN.</p></div><span className="stepLabel">CLAIM REQUIRED</span></div><div style={{display:"grid",gridTemplateColumns:"minmax(0,2fr) minmax(140px,.6fr) auto",gap:12,alignItems:"end"}}><label className="field">Membership claim token<input aria-label="Membership claim token" value={claimToken} onChange={e=>setClaimToken(e.target.value)} placeholder="Paste the member's short-lived claim"/></label><label className="field">Claim role<select aria-label="Claim role" value={claimRole} disabled={!canAdmin} onChange={e=>setClaimRole(e.target.value)}>{roleChoices.map(value=><option key={value} value={value}>{value}</option>)}</select></label><button className="button" type="button" disabled={!canAdmin||acceptClaim.isPending||claimToken.trim().length<32} onClick={()=>acceptClaim.mutate()}>{acceptClaim.isPending?"Accepting…":"Accept claim"}</button></div>{acceptClaim.isSuccess?<p role="status">Accepted authenticated membership for <b>{acceptClaim.data.email}</b> as {acceptClaim.data.role}.</p>:null}{acceptClaim.isError?<p className="error" role="alert">{membershipError(acceptClaim.error)}</p>:null}</div>
+      <div className="advancedOnly"><div className="panelHeading"><div><b>Accept authenticated membership claim</b><p>Do not add a new person by email alone. The intended member signs in, generates a short-lived opaque claim for this organization ID, and shares that claim with an OWNER or ADMIN.</p></div><span className="stepLabel">CLAIM REQUIRED</span></div><div style={{display:"grid",gridTemplateColumns:"minmax(0,2fr) minmax(140px,.6fr) auto",gap:12,alignItems:"end"}}><label className="field">Membership claim token<input aria-label="Membership claim token" value={claimToken} onChange={e=>setClaimToken(e.target.value)} placeholder="Paste the member's short-lived claim"/></label><label className="field">Claim role<select aria-label="Claim role" value={claimRole} disabled={!canAdmin||membershipBusy} onChange={e=>setClaimRole(e.target.value)}>{roleChoices.map(value=><option key={value} value={value}>{value}</option>)}</select></label><button className="button" type="button" disabled={!canAdmin||membershipBusy||claimToken.trim().length<32} onClick={()=>acceptClaim.mutate({orgId:selectedOrgId,token:claimToken.trim(),nextRole:claimRole})}>{acceptClaim.isPending?"Accepting…":"Accept claim"}</button></div>{acceptClaim.isSuccess?<p role="status">Accepted authenticated membership for <b>{acceptClaim.data.email}</b> as {acceptClaim.data.role}.</p>:null}{acceptClaim.isError?<p className="error" role="alert">{membershipError(acceptClaim.error)}</p>:null}</div>
     </section>:null}
 
-    <section className="panel" data-testid="membership-claim-generator"><div className="panelHeading"><div><span className="workspaceKicker">Join boundary</span><h2>Generate my membership claim</h2><p className="sectionLead">Use the organization ID supplied by its administrator. Rivexis creates a one-time opaque token tied to your authenticated account; it does not add you to the organization by itself.</p></div><span className="stepLabel">15 MINUTES</span></div><div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto",gap:12,alignItems:"end"}}><label className="field">Organization ID<input aria-label="Organization ID for membership claim" value={joinOrgId} onChange={e=>{setJoinOrgId(e.target.value);setGeneratedClaim(null)}} placeholder="Organization ID shared by the administrator"/></label><button className="button" type="button" disabled={createClaim.isPending||joinOrgId.trim().length<3} onClick={()=>createClaim.mutate()}>{createClaim.isPending?"Generating…":"Generate claim"}</button></div>
+    <section className="panel" data-testid="membership-claim-generator"><div className="panelHeading"><div><span className="workspaceKicker">Join boundary</span><h2>Generate my membership claim</h2><p className="sectionLead">Use the organization ID supplied by its administrator. Rivexis creates a one-time opaque token tied to your authenticated account; it does not add you to the organization by itself.</p></div><span className="stepLabel">15 MINUTES</span></div><div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto",gap:12,alignItems:"end"}}><label className="field">Organization ID<input aria-label="Organization ID for membership claim" value={joinOrgId} onChange={e=>{setJoinOrgId(e.target.value);setGeneratedClaim(null)}} placeholder="Organization ID shared by the administrator"/></label><button className="button" type="button" disabled={createClaim.isPending||joinOrgId.trim().length<3} onClick={()=>createClaim.mutate(joinOrgId.trim())}>{createClaim.isPending?"Generating…":"Generate claim"}</button></div>
       {generatedClaim?<div className="advancedOnly" data-testid="generated-membership-claim"><b>One-time membership claim</b><p>Share this token only with the intended organization OWNER or ADMIN. A new claim invalidates your previous unused claim for the same organization.</p><code style={{display:"block",overflowWrap:"anywhere",padding:"12px 0"}}>{generatedClaim.claim_token}</code><small>Expires {expiryLabel(generatedClaim.expires_at,generatedClaim.expires_in_seconds)}.</small></div>:null}
       {createClaim.isError?<p className="error" role="alert">{membershipError(createClaim.error)}</p>:null}
     </section>
