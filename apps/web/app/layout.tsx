@@ -2,6 +2,7 @@ import type {Metadata} from "next";
 import "./globals.css";
 import "./institutional-ui.css";
 import "./signature-ui.css";
+import "./royal-obsidian.css";
 import {Providers} from "@/components/Providers";
 import {ServiceAvailability} from "@/components/ServiceAvailability";
 
