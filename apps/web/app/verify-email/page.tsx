@@ -51,13 +51,13 @@ export default function VerifyEmail(){
       <h1>Verify your email</h1>
       <p>Enter the one-time code from Rivexis. Never share this code with another person.</p>
       {notice&&<div className="success" role="status">{notice}</div>}
-      <form className="form" onSubmit={codeForm.handleSubmit(confirm)}>
+      <form className="form" method="post" onSubmit={codeForm.handleSubmit(confirm)}>
         <label className="field">Verification code<input type="text" autoComplete="one-time-code" required {...codeForm.register("token")}/></label>
-        <button className="button" disabled={codeForm.formState.isSubmitting}>{codeForm.formState.isSubmitting?"Verifying…":"Verify account"}</button>
+        <button className="button" type="submit" disabled={codeForm.formState.isSubmitting}>{codeForm.formState.isSubmitting?"Verifying…":"Verify account"}</button>
       </form>
-      <form className="form secondaryForm" onSubmit={emailForm.handleSubmit(resend)}>
+      <form className="form secondaryForm" method="post" onSubmit={emailForm.handleSubmit(resend)}>
         <label className="field">Email<input type="email" autoComplete="email" required {...emailForm.register("email")}/></label>
-        <button className="ghost" disabled={emailForm.formState.isSubmitting}>{emailForm.formState.isSubmitting?"Sending…":"Send a new code"}</button>
+        <button className="ghost" type="submit" disabled={emailForm.formState.isSubmitting}>{emailForm.formState.isSubmitting?"Sending…":"Send a new code"}</button>
       </form>
       {error&&<div className="error authFlowError" role="alert">{error}</div>}
       <p className="authNote"><Link href="/login">Return to login</Link>.</p>

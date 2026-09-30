@@ -70,6 +70,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .top nav a:after{background:var(--ro-sapphire-bright)}
 .brand small{color:var(--ro-steel)}
 .brandMark{background:linear-gradient(145deg,#20262d,#0d1014);border-color:rgba(216,220,225,.28);color:var(--ro-platinum);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.mobileNav{display:none;position:relative;margin-left:auto}
+.mobileNav summary{list-style:none;cursor:pointer;color:var(--ro-platinum);font-weight:700;font-size:12px;letter-spacing:.04em;border:1px solid var(--ro-border);border-radius:var(--ro-radius);padding:10px 12px;background:rgba(18,22,27,.66);user-select:none}
+.mobileNav summary::-webkit-details-marker{display:none}
+.mobileNav[open] summary{background:var(--ro-graphite-elevated);border-color:rgba(22,117,209,.38)}
+.mobileNav nav{position:absolute;right:0;top:calc(100% + 12px);width:min(320px,calc(100vw - 28px));padding:10px;background:rgba(13,16,20,.985);border:1px solid var(--ro-border-strong);box-shadow:0 28px 68px rgba(0,0,0,.42);z-index:100;display:grid;gap:2px}
+.mobileNav nav a{display:flex;align-items:center;min-height:42px;padding:9px 10px;color:var(--ro-silver);border-left:2px solid transparent}
+.mobileNav nav a:hover{background:rgba(37,43,50,.6);border-left-color:var(--ro-sapphire-bright);color:var(--ro-white)}
+.mobileNav nav a:after{display:none}
+.mobileNav .mobileNavLogin{margin-top:8px;border-top:1px solid var(--ro-border);padding-top:12px}
+.mobileNav .mobileNavCta{justify-content:center;color:#fff;margin-top:4px;border-left:1px solid #267dc8}
 
 .button,.ghost,.sidebarLogout{border-radius:var(--ro-radius)}
 .button{background:linear-gradient(180deg,#176fc1,#0b4f9c);border-color:#267dc8;color:#f7faff;box-shadow:0 10px 28px rgba(11,79,156,.24),inset 0 1px 0 rgba(255,255,255,.17)}
@@ -173,8 +183,14 @@ option{background:#10151b;color:var(--ro-white)}
 
 @media (max-width:760px){
   .top{background:rgba(8,10,13,.96)}
+  .desktopPublicNav{display:none!important}
+  .mobileNav{display:block}
   .formPage{background-image:url('/visuals/auth-orbit.svg'),linear-gradient(180deg,#07090c,#0d1014)}
   .formCard{background:rgba(18,22,27,.97)}
+}
+
+@media (max-width:420px){
+  .publicActions .button{display:none}
 }
 
 @media (prefers-reduced-motion:reduce){

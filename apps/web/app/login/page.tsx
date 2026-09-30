@@ -42,11 +42,11 @@ export default function Login(){
       <h1>Log in</h1>
       <p>Access your Rivexis workspace.</p>
       {notice&&<div className="success" role="status">{notice}</div>}
-      <form className="form" onSubmit={handleSubmit(submit)}>
+      <form className="form" method="post" onSubmit={handleSubmit(submit)}>
         <label className="field">Email<input type="email" autoComplete="email" required {...register("email")}/></label>
         <label className="field">Password<input type="password" autoComplete="current-password" required minLength={8} {...register("password")}/></label>
         {error&&<div className="error" role="alert">{error}</div>}
-        <button className="button" disabled={isSubmitting}>{isSubmitting?"Logging in…":"Log in"}</button>
+        <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Logging in…":"Log in"}</button>
       </form>
       <p className="authNote"><Link href="/forgot-password">Forgot your password?</Link> <Link href="/verify-email">Verify an existing account</Link>. Need an account? <Link href="/signup">Create one</Link>.</p>
     </section>

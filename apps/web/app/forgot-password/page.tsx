@@ -31,10 +31,10 @@ export default function ForgotPassword(){
       <Brand variant="lockup"/>
       <h1>Reset password</h1>
       <p>Request a one-time recovery link. The response is identical whether or not the address is registered.</p>
-      {accepted?<div className="success" role="status">If an eligible account exists, a password reset email has been sent.</div>:<form className="form" onSubmit={handleSubmit(submit)}>
+      {accepted?<div className="success" role="status">If an eligible account exists, a password reset email has been sent.</div>:<form className="form" method="post" onSubmit={handleSubmit(submit)}>
         <label className="field">Email<input type="email" autoComplete="email" required {...register("email")}/></label>
         {error&&<div className="error" role="alert">{error}</div>}
-        <button className="button" disabled={isSubmitting}>{isSubmitting?"Requesting…":"Send reset link"}</button>
+        <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Requesting…":"Send reset link"}</button>
       </form>}
       <p className="authNote"><Link href="/login">Return to login</Link>.</p>
     </section>

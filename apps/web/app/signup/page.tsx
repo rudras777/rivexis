@@ -41,12 +41,12 @@ export default function Signup(){
       <Brand variant="lockup"/>
       <h1>Create workspace</h1>
       <p>Choose the role that controls terminology, defaults and reporting depth.</p>
-      <form className="form" onSubmit={handleSubmit(submit)}>
+      <form className="form" method="post" onSubmit={handleSubmit(submit)}>
         <label className="field">Email<input type="email" autoComplete="email" required {...register("email")}/></label>
         <label className="field">Password<input type="password" autoComplete="new-password" required minLength={8} {...register("password")}/></label>
         <label className="field">Who are you?<select {...register("role")}><option>Individual</option><option>Fund</option><option>Treasury</option><option>Analyst</option></select></label>
         {error&&<div className="error" role="alert">{error}</div>}
-        <button className="button" disabled={isSubmitting}>{isSubmitting?"Creating account…":"Continue"}</button>
+        <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Creating account…":"Continue"}</button>
       </form>
       <p className="authNote">We verify new accounts before workspace access. Already registered? <Link href="/login">Log in</Link>.</p>
     </section>

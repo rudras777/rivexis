@@ -15,6 +15,8 @@ const PUBLIC_ROUTES = [
   '/signup',
 ];
 
+const MUTATING_AUTH_FORMS = ['/login','/signup','/forgot-password','/verify-email','/reset-password'];
+
 test.describe('public route smoke', () => {
   for (const route of PUBLIC_ROUTES) {
     test(`${route} renders without page errors`, async ({ page }) => {
@@ -27,6 +29,29 @@ test.describe('public route smoke', () => {
       expect(pageErrors).toEqual([]);
     });
   }
+
+  for (const route of MUTATING_AUTH_FORMS) {
+    test(`${route} never exposes mutation inputs through GET semantics`, async ({ page }) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
+      const forms=page.locator('form');
+      await expect(forms.first()).toBeVisible();
+      const count=await forms.count();
+      for(let i=0;i<count;i++)await expect(forms.nth(i)).toHaveAttribute('method','post');
+      const submitButtons=page.locator('form button[type="submit"]');
+      expect(await submitButtons.count()).toBe(count);
+    });
+  }
+
+  test('mobile header keeps navigation and login reachable', async ({ page }) => {
+    await page.setViewportSize({width:390,height:844});
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const menu=page.locator('.mobileNav');
+    await expect(menu).toBeVisible();
+    await menu.locator('summary').click();
+    await expect(menu.getByRole('link',{name:'Platform'})).toBeVisible();
+    await expect(menu.getByRole('link',{name:'Log in'})).toBeVisible();
+    await expect(menu.getByRole('link',{name:'Start workspace'})).toBeVisible();
+  });
 
   test('degraded API availability is disclosed globally', async ({ page }) => {
     await page.route('**/health', route =>

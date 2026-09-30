@@ -55,14 +55,14 @@ export default function ResetPassword(){
       <Brand variant="lockup"/>
       <h1>Choose a new password</h1>
       <p>Completing recovery revokes existing sessions for this account.</p>
-      {complete?<div className="success" role="status">Password updated. <Link href="/login">Log in with your new password</Link>.</div>:<form className="form" onSubmit={handleSubmit(submit)}>
+      {complete?<div className="success" role="status">Password updated. <Link href="/login">Log in with your new password</Link>.</div>:<form className="form" method="post" onSubmit={handleSubmit(submit)}>
         {!hasRecoverySession&&<label className="field">Recovery token<input type="text" autoComplete="one-time-code" required {...register("token")}/></label>}
         {!hasRecoverySession&&<label className="field">Email<input type="email" autoComplete="email" {...register("email")}/></label>}
         <label className="field">New password<input type="password" autoComplete="new-password" required minLength={8} {...register("password")}/></label>
         <label className="field">Confirm new password<input type="password" autoComplete="new-password" required minLength={8} {...register("confirmPassword")}/></label>
         {errors.confirmPassword?.message&&<div className="error" role="alert">{errors.confirmPassword.message}</div>}
         {error&&<div className="error" role="alert">{error}</div>}
-        <button className="button" disabled={isSubmitting}>{isSubmitting?"Updating…":"Update password"}</button>
+        <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Updating…":"Update password"}</button>
       </form>}
       <p className="authNote"><Link href="/forgot-password">Request a new recovery link</Link>.</p>
     </section>
