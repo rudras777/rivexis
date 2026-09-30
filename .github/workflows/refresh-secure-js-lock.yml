@@ -1,0 +1,43 @@
+name: refresh-secure-js-lock
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/refresh-secure-js-lock.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-secure-js-lock
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Regenerate patched dependency lock
+        run: |
+          npm install --workspace @rivexis/web --save-exact next@16.3.8 --package-lock-only
+          npm install --workspace @rivexis/web --save-dev --save-exact @cloudflare/vite-plugin@1.62.3 --package-lock-only
+      - name: Verify clean install and audit threshold
+        run: |
+          npm ci
+          npm audit --audit-level=high
+      - name: Persist verified lock refresh and remove temporary workflow
+        run: |
+          git config user.name "Rivexis CI"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/refresh-secure-js-lock.yml
+          git add apps/web/package.json package-lock.json
+          git diff --cached --check
+          git commit -m "Patch Next.js and Cloudflare audit vulnerabilities"
+          git push origin HEAD:main
