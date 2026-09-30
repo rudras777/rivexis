@@ -18,5 +18,8 @@
     "check:frontend-ast": "node scripts/check_frontend_ast.js",
     "test:e2e": "npm --workspace @rivexis/web run test:e2e",
     "test:a11y": "npm --workspace @rivexis/web run test:a11y"
+  },
+  "overrides": {
+    "wrangler": "4.145.0"
   }
 }
