@@ -27,7 +27,7 @@ jobs:
       - name: Regenerate patched dependency lock
         run: |
           npm install --workspace @rivexis/web --save-exact next@16.3.8 --package-lock-only
-          npm install --workspace @rivexis/web --save-dev --save-exact @cloudflare/vite-plugin@1.62.3 --package-lock-only
+          npm install --workspace @rivexis/web --save-dev --save-exact @cloudflare/vite-plugin@1.62.3 wrangler@4.145.0 --package-lock-only
       - name: Verify clean install and audit threshold
         run: |
           npm ci
