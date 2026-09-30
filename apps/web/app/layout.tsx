@@ -3,6 +3,7 @@ import "./globals.css";
 import "./institutional-ui.css";
 import "./signature-ui.css";
 import "./royal-obsidian.css";
+import "./royal-graphite.css";
 import {Providers} from "@/components/Providers";
 import {ServiceAvailability} from "@/components/ServiceAvailability";
 
