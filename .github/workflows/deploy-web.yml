@@ -39,7 +39,7 @@ jobs:
           node-version: '24'
           cache: npm
 
-      - name: Verify Cloudflare deployment credentials exist
+      - name: Preflight Cloudflare deployment authority
         shell: bash
         run: |
           set -euo pipefail
@@ -51,6 +51,44 @@ jobs:
             echo "::error::CLOUDFLARE_ACCOUNT_ID is not configured in GitHub Actions secrets."
             exit 1
           fi
+
+          verify_json="$(curl -fsS --max-time 20 \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            https://api.cloudflare.com/client/v4/user/tokens/verify || true)"
+          VERIFY_JSON="$verify_json" python - <<'PY'
+          import json, os, sys
+          raw=os.environ.get('VERIFY_JSON','')
+          try:
+              payload=json.loads(raw)
+          except Exception:
+              print('::error::Cloudflare token verification returned a non-JSON or empty response.')
+              sys.exit(1)
+          if payload.get('success') is not True:
+              errors=payload.get('errors') or []
+              codes=', '.join(str(e.get('code')) for e in errors if e.get('code') is not None) or 'unknown'
+              print(f'::error::Cloudflare API token is invalid or malformed; verification failed (codes: {codes}). Replace the GitHub Actions secret with the raw API token value only, without a Bearer prefix.')
+              sys.exit(1)
+          PY
+
+          service_json="$(curl -fsS --max-time 20 \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/services/rivexis-web" || true)"
+          SERVICE_JSON="$service_json" python - <<'PY'
+          import json, os, sys
+          raw=os.environ.get('SERVICE_JSON','')
+          try:
+              payload=json.loads(raw)
+          except Exception:
+              print('::error::Cloudflare Worker access preflight returned a non-JSON or empty response.')
+              sys.exit(1)
+          if payload.get('success') is not True:
+              errors=payload.get('errors') or []
+              codes=', '.join(str(e.get('code')) for e in errors if e.get('code') is not None) or 'unknown'
+              print(f'::error::Cloudflare token/account pair cannot access the existing rivexis-web Worker (codes: {codes}). Check the account ID and narrowly scoped Worker permissions.')
+              sys.exit(1)
+          PY
 
       - name: Install locked dependencies
         run: npm ci
