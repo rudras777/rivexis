@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query";
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useMemo,useRef,useState} from "react";
 import {ApiError,api} from "@/lib/api";
 import {useWorkspace,workspaceQueryKey} from "@/components/WorkspaceContext";
 
@@ -140,6 +140,7 @@ function DecisionProvenance({detail}:{detail:Detail}){
 
 export default function History(){
   const {workspaceId,workspace}=useWorkspace();
+  const workspaceRef=useRef(workspaceId);
   const queryClient=useQueryClient();
   const savedQueryKey=workspaceQueryKey(workspaceId,"saved-analyses",true);
   const [selected,setSelected]=useState<Selection>(null);
@@ -147,14 +148,6 @@ export default function History(){
   const [typeFilter,setTypeFilter]=useState<HistoryTypeFilter>("all");
   const [modeFilter,setModeFilter]=useState<HistoryModeFilter>("all");
   const [notice,setNotice]=useState("");
-
-  useEffect(()=>{
-    setSelected(null);
-    setSearch("");
-    setTypeFilter("all");
-    setModeFilter("all");
-    setNotice("");
-  },[workspaceId]);
 
   const q=useQuery({
     queryKey:workspaceQueryKey(workspaceId,"history"),
@@ -175,12 +168,24 @@ export default function History(){
 
   const save=useMutation({
     mutationFn:(item:HistoryRow)=>api<SavedAnalysis>("/api/v1/saved-analyses",{method:"POST",body:JSON.stringify({analysis_id:item.id,title:savedTitle(item)})}),
-    onSuccess:(saved)=>{
-      setNotice(`Saved ${saved.analysis_id} as “${saved.title}”.`);
-      queryClient.setQueryData<{items:SavedAnalysis[]}>(savedQueryKey,current=>({items:[...(current?.items??[]).filter(item=>item.analysis_id!==saved.analysis_id),saved]}));
-      queryClient.invalidateQueries({queryKey:workspaceQueryKey(workspaceId,"saved-analyses")});
+    onSuccess:(saved,item)=>{
+      const originWorkspace=item.workspace_id;
+      const originQueryKey=workspaceQueryKey(originWorkspace,"saved-analyses",true);
+      queryClient.setQueryData<{items:SavedAnalysis[]}>(originQueryKey,current=>({items:[...(current?.items??[]).filter(row=>row.analysis_id!==saved.analysis_id),saved]}));
+      void queryClient.invalidateQueries({queryKey:workspaceQueryKey(originWorkspace,"saved-analyses")});
+      if(workspaceRef.current===originWorkspace)setNotice(`Saved ${saved.analysis_id} as “${saved.title}”.`);
     },
   });
+
+  useEffect(()=>{
+    workspaceRef.current=workspaceId;
+    setSelected(null);
+    setSearch("");
+    setTypeFilter("all");
+    setModeFilter("all");
+    setNotice("");
+    save.reset();
+  },[workspaceId]);
 
   const items=q.data?.items??[];
   const savedAnalysisIds=useMemo(()=>new Set((saved.data?.items??[]).map(item=>item.analysis_id)),[saved.data?.items]);
