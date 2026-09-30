@@ -9,8 +9,8 @@ async function healthMock(page:import("@playwright/test").Page){
   await page.route("**/health",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({status:"ready"})}));
 }
 
-test.describe("Rivexis signature visual system",()=>{
-  test("public and auth surfaces keep contextual graphics while using architectural controls",async({page})=>{
+test.describe("Rivexis Royal Obsidian visual system",()=>{
+  test("public and auth surfaces keep official branding, contextual graphics and Royal Obsidian materials",async({page})=>{
     await healthMock(page);
     await page.goto("/");
     const publicBrand=page.getByRole("link",{name:"Rivexis home"}).first().locator("img");
@@ -18,10 +18,12 @@ test.describe("Rivexis signature visual system",()=>{
     await expect(publicBrand).toHaveAttribute("alt","Rivexis");
     await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href",/rivexis-icon\.png/);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content",/rivexis-icon\.png/);
+    await expect(page.locator("html")).toHaveCSS("background-color","rgb(8, 10, 13)");
     const ambient=page.locator(".publicAmbient");
     await expect(ambient).toBeAttached();
     await expect(ambient).toHaveCSS("background-image",/public-signal-field\.svg/);
-    await expect(page.getByRole("link",{name:/Create workspace/})).toHaveCSS("border-radius","2px");
+    await expect(page.locator(".top")).toHaveCSS("background-color",/rgba\(8, 10, 13/);
+    await expect(page.getByRole("link",{name:/Create workspace/})).toHaveCSS("border-radius","4px");
     await expect(page.locator(".decisionCard")).toHaveCSS("border-top-right-radius","34px");
     const workflow=page.getByLabel("Rivexis decision workflow");
     await expect(workflow).toContainText("From signalto accountable action.");
@@ -39,13 +41,15 @@ test.describe("Rivexis signature visual system",()=>{
     await page.goto("/login");
     await expect(page.getByRole("link",{name:"Rivexis home"}).locator("img")).toHaveAttribute("src","/brand/rivexis-lockup.png");
     await expect(page.locator(".formPage")).toHaveCSS("background-image",/auth-orbit\.svg/);
+    await expect(page.locator(".formPage")).toHaveCSS("background-color","rgb(8, 10, 13)");
     await expect(page.locator(".formCard")).toHaveCSS("border-top-right-radius","44px");
-    await expect(page.getByLabel("Email")).toHaveCSS("border-radius","2px");
+    await expect(page.locator(".formCard")).toHaveCSS("color","rgb(242, 244, 246)");
+    await expect(page.getByLabel("Email")).toHaveCSS("border-radius","4px");
     const authGraphic=await page.request.get("/visuals/auth-orbit.svg");
     expect(authGraphic.ok()).toBeTruthy();
   });
 
-  test("authenticated shell keeps evidence graphics and removes generic pill/card treatment",async({page})=>{
+  test("authenticated shell keeps evidence graphics and uses the Royal Obsidian workstation surface",async({page})=>{
     await healthMock(page);
     await page.route("**/api/v1/workspaces",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[{id:"w-alpha",name:"Alpha Desk",role:"Analyst",access_role:"OWNER"}]})}));
     await page.route("**/api/v1/history?**",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[]})}));
@@ -57,8 +61,9 @@ test.describe("Rivexis signature visual system",()=>{
     const ambient=page.locator(".workspaceAmbient");
     await expect(ambient).toBeAttached();
     await expect(ambient).toHaveCSS("background-image",/workspace-evidence-field\.svg/);
+    await expect(page.locator(".appShell")).toHaveCSS("color","rgb(242, 244, 246)");
     await expect(page.getByRole("link",{name:"Overview"})).toHaveCSS("border-radius","0px");
-    await expect(page.getByRole("link",{name:/Run analysis/})).toHaveCSS("border-radius","2px");
+    await expect(page.getByRole("link",{name:/Run analysis/})).toHaveCSS("border-radius","4px");
     await expect(page.locator(".overviewBand")).toHaveCSS("border-top-right-radius","34px");
     await expect(page.locator(".panel").first()).toHaveCSS("border-top-right-radius","0px");
 
