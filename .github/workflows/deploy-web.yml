@@ -52,8 +52,35 @@ jobs:
             exit 1
           fi
 
+          CF_TOKEN="$(python - <<'PY'
+          import os
+          value=os.environ.get('CLOUDFLARE_API_TOKEN','').strip()
+          for quote in ('"', "'"):
+              if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
+                  value=value[1:-1].strip()
+          if value.lower().startswith('bearer '):
+              value=value[7:].strip()
+          print(value,end='')
+          PY
+          )"
+          CF_ACCOUNT_ID="$(python - <<'PY'
+          import os
+          value=os.environ.get('CLOUDFLARE_ACCOUNT_ID','').strip()
+          for quote in ('"', "'"):
+              if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
+                  value=value[1:-1].strip()
+          print(value,end='')
+          PY
+          )"
+          if [ -z "$CF_TOKEN" ] || [ -z "$CF_ACCOUNT_ID" ]; then
+            echo "::error::Cloudflare credentials are empty after safe normalization."
+            exit 1
+          fi
+          echo "::add-mask::$CF_TOKEN"
+          echo "::add-mask::$CF_ACCOUNT_ID"
+
           verify_json="$(curl -sS --max-time 20 \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Authorization: Bearer ${CF_TOKEN}" \
             -H 'Content-Type: application/json' \
             https://api.cloudflare.com/client/v4/user/tokens/verify || true)"
           VERIFY_JSON="$verify_json" python - <<'PY'
@@ -67,14 +94,14 @@ jobs:
           if payload.get('success') is not True:
               errors=payload.get('errors') or []
               codes=', '.join(str(e.get('code')) for e in errors if e.get('code') is not None) or 'unknown'
-              print(f'::error::Cloudflare API token is invalid or malformed; verification failed (codes: {codes}). Replace the GitHub Actions secret with the raw API token value only, without a Bearer prefix.')
+              print(f'::error::Cloudflare API token verification failed after safe normalization (codes: {codes}).')
               sys.exit(1)
           PY
 
           service_json="$(curl -sS --max-time 20 \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Authorization: Bearer ${CF_TOKEN}" \
             -H 'Content-Type: application/json' \
-            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/services/rivexis-web" || true)"
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/services/rivexis-web" || true)"
           SERVICE_JSON="$service_json" python - <<'PY'
           import json, os, sys
           raw=os.environ.get('SERVICE_JSON','')
@@ -86,7 +113,7 @@ jobs:
           if payload.get('success') is not True:
               errors=payload.get('errors') or []
               codes=', '.join(str(e.get('code')) for e in errors if e.get('code') is not None) or 'unknown'
-              print(f'::error::Cloudflare token/account pair cannot access the existing rivexis-web Worker (codes: {codes}). Check the account ID and narrowly scoped Worker permissions.')
+              print(f'::error::Cloudflare token/account pair cannot access the existing rivexis-web Worker (codes: {codes}).')
               sys.exit(1)
           PY
 
@@ -99,7 +126,32 @@ jobs:
           npm --workspace @rivexis/web run build:vinext
 
       - name: Deploy existing rivexis-web Worker
-        run: npm --workspace @rivexis/web run deploy:vinext
+        shell: bash
+        run: |
+          set -euo pipefail
+          CF_TOKEN="$(python - <<'PY'
+          import os
+          value=os.environ.get('CLOUDFLARE_API_TOKEN','').strip()
+          for quote in ('"', "'"):
+              if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
+                  value=value[1:-1].strip()
+          if value.lower().startswith('bearer '):
+              value=value[7:].strip()
+          print(value,end='')
+          PY
+          )"
+          CF_ACCOUNT_ID="$(python - <<'PY'
+          import os
+          value=os.environ.get('CLOUDFLARE_ACCOUNT_ID','').strip()
+          for quote in ('"', "'"):
+              if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
+                  value=value[1:-1].strip()
+          print(value,end='')
+          PY
+          )"
+          echo "::add-mask::$CF_TOKEN"
+          echo "::add-mask::$CF_ACCOUNT_ID"
+          CLOUDFLARE_API_TOKEN="$CF_TOKEN" CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID" npm --workspace @rivexis/web run deploy:vinext
 
       - name: Verify exact commit is live
         shell: bash
