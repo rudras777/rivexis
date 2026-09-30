@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query";
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useMemo,useRef,useState} from "react";
 import {ApiError,api,apiBlob} from "@/lib/api";
 import {useWorkspace,workspaceQueryKey} from "@/components/WorkspaceContext";
 
@@ -15,6 +15,7 @@ type HistoryRow={
 };
 type Detail=Record<string,unknown>;
 type ReportFormat="json"|"html"|"pdf";
+type CreateDecisionVars={workspaceId:string;analysisIds:string[];epoch:number};
 
 function message(error:unknown,kind:"history"|"decision"|"report"){
   if(error instanceof ApiError){
@@ -78,14 +79,26 @@ function DecisionDetail({decision}:{decision:Detail}){
 
 export default function DecisionDesk(){
   const {workspaceId,workspace}=useWorkspace();
+  const workspaceRef=useRef(workspaceId);
+  const epochRef=useRef(0);
   const queryClient=useQueryClient();
   const [selectedIds,setSelectedIds]=useState<string[]>([]);
   const [decisionId,setDecisionId]=useState("");
   const [reporting,setReporting]=useState<ReportFormat|null>(null);
+  const [decisionError,setDecisionError]=useState("");
   const [reportError,setReportError]=useState("");
   const [notice,setNotice]=useState("");
 
-  useEffect(()=>{setSelectedIds([]);setDecisionId("");setReporting(null);setReportError("");setNotice("")},[workspaceId]);
+  useEffect(()=>{
+    workspaceRef.current=workspaceId;
+    epochRef.current+=1;
+    setSelectedIds([]);
+    setDecisionId("");
+    setReporting(null);
+    setDecisionError("");
+    setReportError("");
+    setNotice("");
+  },[workspaceId]);
 
   const history=useQuery({
     queryKey:workspaceQueryKey(workspaceId,"history"),
@@ -103,21 +116,26 @@ export default function DecisionDesk(){
   });
 
   const createDecision=useMutation({
-    mutationFn:async()=>{
-      const details=await Promise.all(selectedIds.map(id=>api<Detail>(`/api/v1/analyses/${encodeURIComponent(id)}`)));
+    mutationFn:async(vars:CreateDecisionVars)=>{
+      const details=await Promise.all(vars.analysisIds.map(id=>api<Detail>(`/api/v1/analyses/${encodeURIComponent(id)}`)));
       return api<Detail>("/api/v1/decisions/analyze",{method:"POST",body:JSON.stringify({engine_results:details})});
     },
-    onSuccess:result=>{
+    onSuccess:(result,vars)=>{
+      void queryClient.invalidateQueries({queryKey:workspaceQueryKey(vars.workspaceId,"history")});
+      if(workspaceRef.current!==vars.workspaceId||epochRef.current!==vars.epoch)return;
       const id=typeof result.decision_id==="string"?result.decision_id:"";
       if(id)setDecisionId(id);
-      setNotice(id?`Persisted decision ${id} created from ${selectedIds.length} canonical analysis reference${selectedIds.length===1?"":"s"}.`:"Decision created.");
+      setDecisionError("");
+      setNotice(id?`Persisted decision ${id} created from ${vars.analysisIds.length} canonical analysis reference${vars.analysisIds.length===1?"":"s"}.`:"Decision created.");
       setReportError("");
-      void queryClient.invalidateQueries({queryKey:workspaceQueryKey(workspaceId,"history")});
+    },
+    onError:(error,vars)=>{
+      if(workspaceRef.current===vars.workspaceId&&epochRef.current===vars.epoch)setDecisionError(message(error,"decision"));
     },
   });
 
   function toggle(item:HistoryRow){
-    setNotice("");setReportError("");
+    setNotice("");setDecisionError("");setReportError("");
     setSelectedIds(current=>{
       if(current.includes(item.id))return current.filter(id=>id!==item.id);
       if(current.length>=10)return current;
@@ -128,14 +146,23 @@ export default function DecisionDesk(){
 
   async function generate(format:ReportFormat){
     if(!decisionId||reporting)return;
+    const originWorkspace=workspaceId;
+    const originDecision=decisionId;
+    const originEpoch=epochRef.current;
     setReporting(format);setReportError("");
     try{
-      const blob=await apiBlob("/api/v1/reports",{method:"POST",body:JSON.stringify({decision_id:decisionId,format})});
-      download(blob,`rivexis-decision-${decisionId}.${format}`);
-      setNotice(`Persisted ${format.toUpperCase()} report generated for decision ${decisionId}.`);
-    }catch(error){setReportError(message(error,"report"))}
-    finally{setReporting(null)}
+      const blob=await apiBlob("/api/v1/reports",{method:"POST",body:JSON.stringify({decision_id:originDecision,format})});
+      if(workspaceRef.current!==originWorkspace||epochRef.current!==originEpoch)return;
+      download(blob,`rivexis-decision-${originDecision}.${format}`);
+      setNotice(`Persisted ${format.toUpperCase()} report generated for decision ${originDecision}.`);
+    }catch(error){
+      if(workspaceRef.current===originWorkspace&&epochRef.current===originEpoch)setReportError(message(error,"report"));
+    }finally{
+      if(workspaceRef.current===originWorkspace&&epochRef.current===originEpoch)setReporting(null);
+    }
   }
+
+  const operationBusy=createDecision.isPending||Boolean(reporting);
 
   return <>
     <div className="workspaceHeader"><div><h1>Decision Desk</h1><p>Synthesize canonical persisted analyses into a decision, then generate a persisted evidence-grounded report.</p></div><span className="badge">{workspace.name}</span></div>
@@ -150,19 +177,19 @@ export default function DecisionDesk(){
         const checked=selectedIds.includes(item.id);
         const duplicateEngine=Boolean(item.engine_id)&&selectedEngines.has(item.engine_id)&&!checked;
         const limitReached=selectedIds.length>=10&&!checked;
-        return <tr key={item.id}><td><input type="checkbox" aria-label={`Select analysis ${item.id} for decision`} checked={checked} disabled={duplicateEngine||limitReached||createDecision.isPending} onChange={()=>toggle(item)}/></td><td>{item.engine_id??"—"}</td><td><code>{item.id}</code></td><td>{item.demo===true?"Demo":"Non-demo"}</td><td>{recordedAt(item.created_at)}</td></tr>;
+        return <tr key={item.id}><td><input type="checkbox" aria-label={`Select analysis ${item.id} for decision`} checked={checked} disabled={duplicateEngine||limitReached||operationBusy} onChange={()=>toggle(item)}/></td><td>{item.engine_id??"—"}</td><td><code>{item.id}</code></td><td>{item.demo===true?"Demo":"Non-demo"}</td><td>{recordedAt(item.created_at)}</td></tr>;
       })}</tbody></table></div>:null}
-      <div className="runBar"><div><span>CANONICAL PERSISTED INPUTS</span><small>{selectedIds.length?`${selectedIds.length} reference${selectedIds.length===1?"":"s"} ready for server rehydration`:"Select at least one analysis"}</small></div><button className="button runButton" disabled={!selectedIds.length||createDecision.isPending} onClick={()=>createDecision.mutate()}>{createDecision.isPending?"Creating decision…":"Create canonical decision ↗"}</button></div>
-      {createDecision.isError?<p className="error" role="alert">{message(createDecision.error,"decision")}</p>:null}
+      <div className="runBar"><div><span>CANONICAL PERSISTED INPUTS</span><small>{selectedIds.length?`${selectedIds.length} reference${selectedIds.length===1?"":"s"} ready for server rehydration`:"Select at least one analysis"}</small></div><button className="button runButton" disabled={!selectedIds.length||operationBusy} onClick={()=>{setDecisionError("");setNotice("");createDecision.mutate({workspaceId,analysisIds:[...selectedIds],epoch:epochRef.current})}}>{createDecision.isPending?"Creating decision…":"Create canonical decision ↗"}</button></div>
+      {decisionError?<p className="error" role="alert">{decisionError}</p>:null}
       {notice?<p className="success" role="status">{notice}</p>:null}
     </section>
 
-    {decisions.length?<section className="panel"><div className="panelHeading"><div><span className="workspaceKicker">Decision history</span><h2>Persisted decisions</h2></div><span className="stepLabel">{decisions.length} RECENT</span></div><div className="tableWrap"><table className="table"><thead><tr><th>Reference</th><th>Recorded</th><th>Action</th></tr></thead><tbody>{decisions.map(item=><tr key={item.id}><td><code>{item.id}</code></td><td>{recordedAt(item.created_at)}</td><td><button className={decisionId===item.id?"button":"ghost"} onClick={()=>{setDecisionId(item.id);setReportError("")}}>{decisionId===item.id?"Selected":"Inspect"}</button></td></tr>)}</tbody></table></div></section>:null}
+    {decisions.length?<section className="panel"><div className="panelHeading"><div><span className="workspaceKicker">Decision history</span><h2>Persisted decisions</h2></div><span className="stepLabel">{decisions.length} RECENT</span></div><div className="tableWrap"><table className="table"><thead><tr><th>Reference</th><th>Recorded</th><th>Action</th></tr></thead><tbody>{decisions.map(item=><tr key={item.id}><td><code>{item.id}</code></td><td>{recordedAt(item.created_at)}</td><td><button className={decisionId===item.id?"button":"ghost"} disabled={operationBusy} onClick={()=>{setDecisionId(item.id);setReportError("");setNotice("")}}>{decisionId===item.id?"Selected":"Inspect"}</button></td></tr>)}</tbody></table></div></section>:null}
 
     {decisionId?<section className="panel" aria-live="polite" data-testid="decision-report-workbench"><div className="panelHeading"><div><span className="workspaceKicker">Decision provenance</span><h2>Persisted decision & reports</h2><p>Reports are created server-side from this persisted decision. JSON, HTML and PDF all record a report row before rendering.</p></div><span className="stepLabel">{decisionId}</span></div>
       {decision.isPending?<p>Loading canonical decision…</p>:null}
       {decision.isError?<p className="error" role="alert">{message(decision.error,"decision")}</p>:null}
-      {decision.data?<><DecisionDetail decision={decision.data}/><div className="runBar"><div><span>PERSISTED REPORT OUTPUT</span><small>JSON · HTML · PDF</small></div><div className="actions"><button className="ghost" disabled={Boolean(reporting)} onClick={()=>void generate("json")}>{reporting==="json"?"Generating…":"Download JSON"}</button><button className="ghost" disabled={Boolean(reporting)} onClick={()=>void generate("html")}>{reporting==="html"?"Generating…":"Download HTML"}</button><button className="button" disabled={Boolean(reporting)} onClick={()=>void generate("pdf")}>{reporting==="pdf"?"Generating…":"Download PDF"}</button></div></div></>:null}
+      {decision.data?<><DecisionDetail decision={decision.data}/><div className="runBar"><div><span>PERSISTED REPORT OUTPUT</span><small>JSON · HTML · PDF</small></div><div className="actions"><button className="ghost" disabled={operationBusy} onClick={()=>void generate("json")}>{reporting==="json"?"Generating…":"Download JSON"}</button><button className="ghost" disabled={operationBusy} onClick={()=>void generate("html")}>{reporting==="html"?"Generating…":"Download HTML"}</button><button className="button" disabled={operationBusy} onClick={()=>void generate("pdf")}>{reporting==="pdf"?"Generating…":"Download PDF"}</button></div></div></>:null}
       {reportError?<p className="error" role="alert">{reportError}</p>:null}
     </section>:null}
   </>;
