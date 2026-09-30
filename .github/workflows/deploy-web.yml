@@ -52,7 +52,7 @@ jobs:
             exit 1
           fi
 
-          verify_json="$(curl -fsS --max-time 20 \
+          verify_json="$(curl -sS --max-time 20 \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -H 'Content-Type: application/json' \
             https://api.cloudflare.com/client/v4/user/tokens/verify || true)"
@@ -71,7 +71,7 @@ jobs:
               sys.exit(1)
           PY
 
-          service_json="$(curl -fsS --max-time 20 \
+          service_json="$(curl -sS --max-time 20 \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -H 'Content-Type: application/json' \
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/services/rivexis-web" || true)"
