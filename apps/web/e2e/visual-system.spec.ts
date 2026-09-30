@@ -19,9 +19,9 @@ test.describe("Rivexis Royal Obsidian visual system",()=>{
     await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href",/rivexis-icon\.png/);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content",/rivexis-icon\.png/);
     await expect(page.locator("html")).toHaveCSS("background-color","rgb(8, 10, 13)");
-    const ambient=page.locator(".publicAmbient");
-    await expect(ambient).toBeAttached();
-    await expect(ambient).toHaveCSS("background-image",/public-signal-field\.svg/);
+    const heroTechnicalLayer=await page.locator(".hero").evaluate(element=>getComputedStyle(element,"::before").backgroundImage);
+    expect(heroTechnicalLayer).toContain("linear-gradient");
+    expect(heroTechnicalLayer).toContain("radial-gradient");
     await expect(page.locator(".top")).toHaveCSS("background-color",/rgba\(8, 10, 13/);
     await expect(page.getByRole("link",{name:/Create workspace/})).toHaveCSS("border-radius","4px");
     await expect(page.locator(".decisionCard")).toHaveCSS("border-top-right-radius","34px");
@@ -31,9 +31,6 @@ test.describe("Rivexis Royal Obsidian visual system",()=>{
     await expect(workflow.getByRole("link",{name:/Explore the decision methodology/})).toHaveAttribute("href","/methodology");
     await expect(page.locator(".signalStrip")).toHaveCSS("border-top-left-radius","0px");
 
-    const publicGraphic=await page.request.get("/visuals/public-signal-field.svg");
-    expect(publicGraphic.ok()).toBeTruthy();
-    expect(publicGraphic.headers()["content-type"]).toContain("image/svg+xml");
     const officialWordmark=await page.request.get("/brand/rivexis-wordmark.png");
     expect(officialWordmark.ok()).toBeTruthy();
     expect(officialWordmark.headers()["content-type"]).toContain("image/png");
@@ -57,7 +54,6 @@ test.describe("Rivexis Royal Obsidian visual system",()=>{
 
     await page.goto("/workspace");
     await expect(page.getByRole("link",{name:"Rivexis home"}).locator("img")).toHaveAttribute("src","/brand/rivexis-wordmark.png");
-    await expect(page.locator(".workspaceAmbient")).toHaveCSS("content","normal");
     const ambient=page.locator(".workspaceAmbient");
     await expect(ambient).toBeAttached();
     await expect(ambient).toHaveCSS("background-image",/workspace-evidence-field\.svg/);
