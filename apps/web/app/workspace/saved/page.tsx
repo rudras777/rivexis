@@ -1,7 +1,7 @@
 "use client";
 
 import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query";
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useMemo,useRef,useState} from "react";
 import {ApiError,api} from "@/lib/api";
 import {useWorkspace,workspaceQueryKey} from "@/components/WorkspaceContext";
 
@@ -15,6 +15,8 @@ type SavedAnalysis={
 };
 
 type Detail=Record<string,unknown>;
+type ArchiveVars={workspaceId:string;id:string;archived:boolean};
+type RemoveVars={workspaceId:string;id:string;analysisId:string};
 
 function savedError(error:unknown){
   if(error instanceof ApiError){
@@ -66,20 +68,13 @@ function evidenceCount(value:unknown){
 
 export default function Saved(){
   const {workspaceId,workspace}=useWorkspace();
+  const workspaceRef=useRef(workspaceId);
   const queryClient=useQueryClient();
   const [includeArchived,setIncludeArchived]=useState(false);
   const [search,setSearch]=useState("");
   const [selected,setSelected]=useState<string|null>(null);
   const [deleteConfirm,setDeleteConfirm]=useState<string|null>(null);
   const [notice,setNotice]=useState("");
-
-  useEffect(()=>{
-    setIncludeArchived(false);
-    setSearch("");
-    setSelected(null);
-    setDeleteConfirm(null);
-    setNotice("");
-  },[workspaceId]);
 
   const q=useQuery({
     queryKey:workspaceQueryKey(workspaceId,"saved-analyses",includeArchived),
@@ -95,24 +90,36 @@ export default function Saved(){
   });
 
   const archive=useMutation({
-    mutationFn:({id,archived}:{id:string;archived:boolean})=>api<SavedAnalysis>(`/api/v1/saved-analyses/${encodeURIComponent(id)}?archived=${archived}`,{method:"PATCH"}),
-    onSuccess:(item)=>{
+    mutationFn:({id,archived}:ArchiveVars)=>api<SavedAnalysis>(`/api/v1/saved-analyses/${encodeURIComponent(id)}?archived=${archived}`,{method:"PATCH"}),
+    onSuccess:(item,vars)=>{
+      void queryClient.invalidateQueries({queryKey:workspaceQueryKey(vars.workspaceId,"saved-analyses")});
+      if(workspaceRef.current!==vars.workspaceId)return;
       setNotice(item.archived?"Saved analysis archived.":"Saved analysis restored to the active list.");
       setDeleteConfirm(null);
-      queryClient.invalidateQueries({queryKey:workspaceQueryKey(workspaceId,"saved-analyses")});
     },
   });
 
   const remove=useMutation({
-    mutationFn:(id:string)=>api<void>(`/api/v1/saved-analyses/${encodeURIComponent(id)}`,{method:"DELETE"}),
-    onSuccess:(_,id)=>{
-      const removed=q.data?.items.find(item=>item.id===id);
-      if(removed&&selected===removed.analysis_id)setSelected(null);
+    mutationFn:({id}:RemoveVars)=>api<void>(`/api/v1/saved-analyses/${encodeURIComponent(id)}`,{method:"DELETE"}),
+    onSuccess:(_,vars)=>{
+      void queryClient.invalidateQueries({queryKey:workspaceQueryKey(vars.workspaceId,"saved-analyses")});
+      if(workspaceRef.current!==vars.workspaceId)return;
+      if(selected===vars.analysisId)setSelected(null);
       setDeleteConfirm(null);
       setNotice("Saved reference deleted. The underlying persisted analysis remains in workspace history.");
-      queryClient.invalidateQueries({queryKey:workspaceQueryKey(workspaceId,"saved-analyses")});
     },
   });
+
+  useEffect(()=>{
+    workspaceRef.current=workspaceId;
+    setIncludeArchived(false);
+    setSearch("");
+    setSelected(null);
+    setDeleteConfirm(null);
+    setNotice("");
+    archive.reset();
+    remove.reset();
+  },[workspaceId]);
 
   const items=q.data?.items??[];
   const filtered=useMemo(()=>{
@@ -142,7 +149,7 @@ export default function Saved(){
       {!q.isPending&&!q.isError&&items.length&&!filtered.length?<p>No saved analyses match the current search and visibility filters.</p>:null}
       {!q.isPending&&!q.isError&&filtered.length?<><p className="sectionLead">Saved references point to canonical persisted analyses. Archiving hides a reference from the default view; deleting a saved reference does not delete the underlying analysis history.</p><div className="tableWrap"><table className="table"><thead><tr><th>Title</th><th>Analysis reference</th><th>Status</th><th>Saved</th><th>Actions</th></tr></thead><tbody>{filtered.map(item=>{
         const busyArchive=archive.isPending&&archive.variables?.id===item.id;
-        const busyDelete=remove.isPending&&remove.variables===item.id;
+        const busyDelete=remove.isPending&&remove.variables?.id===item.id;
         const isSelected=selected===item.analysis_id;
         return <tr key={item.id}>
           <td>{item.title}</td>
@@ -151,8 +158,8 @@ export default function Saved(){
           <td>{savedAt(item.created_at)}</td>
           <td><div className="actions">
             <button className="ghost" onClick={()=>setSelected(current=>current===item.analysis_id?null:item.analysis_id)} aria-expanded={isSelected}>{isSelected?"Hide evidence":"Inspect evidence"}</button>
-            <button className="ghost" disabled={busyArchive||busyDelete} onClick={()=>archive.mutate({id:item.id,archived:!item.archived})}>{busyArchive?"Updating…":item.archived?"Restore":"Archive"}</button>
-            {deleteConfirm===item.id?<><button className="button" disabled={busyDelete||busyArchive} onClick={()=>remove.mutate(item.id)}>{busyDelete?"Deleting…":"Confirm delete"}</button><button className="ghost" disabled={busyDelete} onClick={()=>setDeleteConfirm(null)}>Cancel</button></>:<button className="ghost" disabled={busyArchive||busyDelete} onClick={()=>setDeleteConfirm(item.id)}>Delete</button>}
+            <button className="ghost" disabled={busyArchive||busyDelete} onClick={()=>archive.mutate({workspaceId,id:item.id,archived:!item.archived})}>{busyArchive?"Updating…":item.archived?"Restore":"Archive"}</button>
+            {deleteConfirm===item.id?<><button className="button" disabled={busyDelete||busyArchive} onClick={()=>remove.mutate({workspaceId,id:item.id,analysisId:item.analysis_id})}>{busyDelete?"Deleting…":"Confirm delete"}</button><button className="ghost" disabled={busyDelete} onClick={()=>setDeleteConfirm(null)}>Cancel</button></>:<button className="ghost" disabled={busyArchive||busyDelete} onClick={()=>setDeleteConfirm(item.id)}>Delete</button>}
           </div></td>
         </tr>;
       })}</tbody></table></div></>:null}
