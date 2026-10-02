@@ -6,7 +6,7 @@
     "apps/api/cloudflare"
   ],
   "scripts": {
-    "build": "npm --workspace @rivexis/web run build:vinext",
+    "build": "node scripts/cloudflare-workers-build.mjs",
     "deploy": "npm --workspace @rivexis/web run deploy",
     "dev:web": "npm --workspace @rivexis/web run dev",
     "build:web": "npm --workspace @rivexis/web run build",
