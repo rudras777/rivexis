@@ -8,8 +8,7 @@ This file is the authoritative compact continuation point for normal-chat execut
 
 - Repository: `rudras777/rivexis`; branch: `main`.
 - Runtime/deployment source immediately before this state-note commit: `c35e39f2c7f27a3094e9094b3a430e91743ff832` (`Make token-based deploy a manual fallback`).
-- Last fully certified predecessor before the native-Builds preparation: `c498f1d18ac59c2bd53f161316f0516ddc584da0`; CI run `36976960298` — **SUCCESS**.
-- The current head must be exact-head certified after this state-note commit before it is called certified.
+- Exact-head predecessor `ec1d2a08060f568d035333c5ec54317eb8d5f529` passed all CI gates in run `36978799270`.
 - Certified gates include Python API lint/tests/audit, Edge typecheck/tests, PostgreSQL migrations/runtime controls, invariants, migration checks, secret scan, web typecheck/build, Vinext build, `npm audit --audit-level=high`, Playwright browser tests and accessibility checks.
 - JavaScript security graph remains patched and locked: Next `16.3.8`, `@cloudflare/vite-plugin` `1.62.3`, Wrangler `4.145.0`, with the root Wrangler override retained.
 - CI runtime remains aligned on Node 24/npm 11.
@@ -54,50 +53,39 @@ Production URL:
 
 ### Deployed / production verified
 
-Production is **not yet on current source**.
+Production is not called current until the public Worker exposes the exact certified Git commit through the `rivexis-build` metadata marker.
 
-Latest independently observed public build marker before this state update:
+Last independently observed stale marker before native-Git deployment verification:
 
 `fcea992098b377780b77516a0230490cbd83ad5d`
-
-The public Worker is therefore stale relative to GitHub source. `/health` is ready, but current-source parity must not be claimed until exact-SHA promotion succeeds.
 
 ## Deployment architecture
 
 ### Primary path: Cloudflare Workers Builds + GitHub
 
-The preferred production path is now Cloudflare Workers Builds connected directly to the existing `rivexis-web` Worker and `rudras777/rivexis` GitHub repository.
+The preferred production path is Cloudflare Workers Builds connected directly to the existing `rivexis-web` Worker and `rudras777/rivexis` GitHub repository.
 
-Why this is preferred:
-
-- Cloudflare can automatically create and manage the Workers Builds API token for the account;
-- Git pushes to the configured production branch can trigger builds/deployments without storing a manually copied Cloudflare API token in GitHub Actions;
-- Cloudflare injects `WORKERS_CI_COMMIT_SHA`, allowing exact source-to-production attribution;
-- the existing Worker name already matches `apps/web/wrangler.jsonc`: `rivexis-web`.
-
-Source preparation already completed:
+Source preparation completed:
 
 - `apps/web/scripts/cloudflare-workers-build-deploy.mjs` requires a valid `WORKERS_CI_COMMIT_SHA`, restricts itself to `WORKERS_CI=1`, forces `NEXT_PUBLIC_RIVEXIS_API_URL=same-origin`, and stamps `NEXT_PUBLIC_RIVEXIS_BUILD_SHA` from the exact Cloudflare build commit;
 - `apps/web/package.json` exposes this as the standard `deploy` script while preserving `deploy:vinext`;
 - CI performs `node --check` on the native Workers Builds entrypoint;
-- the existing `deploy-web` GitHub Actions workflow is now `workflow_dispatch` only, retained as a manual token-based fallback rather than auto-failing after every successful CI run.
+- the existing `deploy-web` GitHub Actions workflow is `workflow_dispatch` only, retained as a manual token-based fallback rather than auto-failing after every successful CI run.
 
 Expected native Workers Builds configuration for the existing Worker:
 
 - repository: `rudras777/rivexis`;
 - production branch: `main`;
 - root directory: `apps/web`;
-- deploy command: use the detected package `deploy` script (`npm run deploy`);
-- Workers Builds API token: allow Cloudflare to create/manage its own token;
-- Worker name must remain `rivexis-web`.
+- deploy command: `npm run deploy`;
+- Workers Builds deployment authority: Cloudflare-managed;
+- Worker name: `rivexis-web`.
 
-After the Git integration is saved, push/current-main build must complete successfully and the public Worker must expose `rivexis-build` equal to the exact deployed commit before production parity is claimed.
+The owner reported this Git connection completed on 2026-10-02. This state-note commit intentionally creates a fresh `main` push so the new Cloudflare integration can prove itself on a post-connection commit. Do not call the integration verified until a Cloudflare build/deploy signal appears and the public Worker marker equals the exact new head.
 
 ### Manual fallback: GitHub Actions token deploy
 
 The GitHub Actions `deploy-web` workflow remains available only through manual dispatch. Its stored `CLOUDFLARE_API_TOKEN` is currently invalid and repeated verification returned Cloudflare error `6003`; the account-ID secret is structurally valid. This fallback must not be used unless a valid token is deliberately configured.
-
-A browser recovery path established that the owner can authenticate to Cloudflare on the user's recognized device, but the remote automation browser cannot inherit that local authenticated session. No password, passkey, MFA code or recovery credential was requested, captured, guessed or bypassed.
 
 ## Security/evidence invariants
 
@@ -114,8 +102,8 @@ Keep all of these non-negotiable:
 
 ## Immediate execution target
 
-1. Exact-head certify this state-note commit.
-2. In the authenticated Cloudflare owner session, connect the existing `rivexis-web` Worker to GitHub repository `rudras777/rivexis`, production branch `main`, root directory `apps/web`, using Cloudflare-managed Workers Builds deployment authority and the detected `npm run deploy` command.
-3. Trigger/build the newest `main` through Workers Builds.
-4. Independently fetch production and confirm `rivexis-build` equals the deployed certified head before stating `deployed` or `production verified`.
+1. Observe Cloudflare Workers Builds on this fresh post-connection push.
+2. Exact-head certify this trigger commit through GitHub CI.
+3. If the Cloudflare build fails, fix the build configuration/source and push again.
+4. Independently fetch production and confirm `rivexis-build` equals the exact deployed certified head before stating `deployed` or `production verified`.
 5. After native deployment is verified, retire or rotate the invalid GitHub `CLOUDFLARE_API_TOKEN` fallback secret as appropriate.
