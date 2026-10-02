@@ -10,17 +10,20 @@ if(process.env.WORKERS_CI!=="1"){
   throw new Error("This deployment entrypoint is reserved for Cloudflare Workers Builds. Use the existing authenticated deploy workflow for other environments.");
 }
 
-const command=process.platform==="win32"?"npm.cmd":"npm";
+const npmCommand=process.platform==="win32"?"npm.cmd":"npm";
+const npxCommand=process.platform==="win32"?"npx.cmd":"npx";
 const packageRoot=fileURLToPath(new URL("..",import.meta.url));
-const result=spawnSync(command,["run","deploy:vinext"],{
-  cwd:packageRoot,
-  stdio:"inherit",
-  env:{
-    ...process.env,
-    NEXT_PUBLIC_RIVEXIS_API_URL:"same-origin",
-    NEXT_PUBLIC_RIVEXIS_BUILD_SHA:commitSha,
-  },
-});
+const env={
+  ...process.env,
+  NEXT_PUBLIC_RIVEXIS_API_URL:"same-origin",
+  NEXT_PUBLIC_RIVEXIS_BUILD_SHA:commitSha,
+};
 
-if(result.error)throw result.error;
-process.exit(result.status??1);
+function run(command,args){
+  const result=spawnSync(command,args,{cwd:packageRoot,stdio:"inherit",env});
+  if(result.error)throw result.error;
+  if((result.status??1)!==0)process.exit(result.status??1);
+}
+
+run(npmCommand,["run","build:vinext"]);
+run(npxCommand,["wrangler","deploy","--config","dist/server/wrangler.json"]);
