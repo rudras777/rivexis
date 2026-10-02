@@ -44,18 +44,24 @@ jobs:
               if value.upper().startswith(prefix):
                   value=value[len(prefix):].strip()
           value=value.strip().strip('"\'`;,')
-          match=re.match(r'(?i)^Bearer\s+(.+)$', value)
-          if match:
-              value=match.group(1).strip().strip('"\'`;,')
+          bearer=re.search(r'(?i)Bearer\s+([^\s"\']+)', value)
+          if bearer:
+              value=bearer.group(1).strip()
+          prefixed=re.search(r'(cf(?:ut|at)_[A-Za-z0-9_-]{35,})', value)
+          if prefixed:
+              value=prefixed.group(1)
+          else:
+              candidates=re.findall(r'(?<![A-Za-z0-9_-])([A-Za-z0-9_-]{35,100})(?![A-Za-z0-9_-])', value)
+              candidates=[c for c in candidates if c.upper() not in {'CLOUDFLARE_API_TOKEN','CF_API_TOKEN'}]
+              if candidates:
+                  value=max(candidates, key=len)
+          value=''.join(value.split()).strip().strip('"\'`;,')
           print(value, end='')
           PY
           )"
           normalized_account="$(python - <<'PY'
           import os, re
           value=os.environ.get('CLOUDFLARE_ACCOUNT_ID','').strip()
-          for prefix in ('CLOUDFLARE_ACCOUNT_ID=','CF_ACCOUNT_ID='):
-              if value.upper().startswith(prefix):
-                  value=value[len(prefix):].strip()
           match=re.search(r'\b[0-9a-fA-F]{32}\b', value)
           if match:
               value=match.group(0)
@@ -72,18 +78,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          response="$(curl -sS --max-time 20 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H 'Content-Type: application/json' https://api.cloudflare.com/client/v4/user/tokens/verify || true)"
-          RESPONSE="$response" python - <<'PY'
+          user_response="$(curl -sS --max-time 20 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H 'Content-Type: application/json' https://api.cloudflare.com/client/v4/user/tokens/verify || true)"
+          account_response="$(curl -sS --max-time 20 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H 'Content-Type: application/json' "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/tokens/verify" || true)"
+          USER_RESPONSE="$user_response" ACCOUNT_RESPONSE="$account_response" python - <<'PY'
           import json, os, sys
-          try:
-              payload=json.loads(os.environ.get('RESPONSE',''))
-          except Exception:
-              payload={}
-          if payload.get('success') is not True:
+          payloads=[]
+          for key,label in [('USER_RESPONSE','user'),('ACCOUNT_RESPONSE','account')]:
+              try:
+                  payload=json.loads(os.environ.get(key,''))
+              except Exception:
+                  payload={}
+              payloads.append((label,payload))
+          if any(payload.get('success') is True for _,payload in payloads):
+              sys.exit(0)
+          summaries=[]
+          for label,payload in payloads:
               errors=payload.get('errors') or []
               codes=','.join(str(e.get('code')) for e in errors if e.get('code') is not None) or 'unknown'
-              print(f'::error::Cloudflare token verification failed (codes: {codes})')
-              sys.exit(1)
+              summaries.append(f'{label}:{codes}')
+          print(f"::error::Cloudflare token verification failed ({'; '.join(summaries)})")
+          sys.exit(1)
           PY
       - name: Install locked dependencies
         run: npm ci
