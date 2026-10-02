@@ -1,0 +1,115 @@
+name: device-production-deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/device-deploy.trigger'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rivexis-device-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  authorize-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Start Cloudflare device authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/rivexis-device-public.pem <<'PEM'
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2/k26j4YjDR+HOEouZJ1
+          VkRfAQohpXu+aVlCA3gZjG/5qoVR+T/nm0xClS3E2DkNUpYKfn+FzZzDawPVn7VK
+          vIZlxH+km3VbqGTmFZ6uuD4CDVC3dattT3axHMfJTlnzSorMeJoMqfDNrQtjtzrk
+          G07j/4v8XActQgl6q9cZED3E+jx/cXCnGbQ1Bpu+2jEu/GmYYq9Yl3a25FvIu2EJ
+          vlzDEBxBAytodkSgxb1JYzeJA2pRLgRKdVXAn4DmG2U4Zph1RBmJQ41ZhgYetrru
+          rLJaEvSsESVFGipkKiqtW7VwtD+OexLWnHF8/0AA/6MKYiDZooRo+zbVWKigSlhZ
+          owIDAQAB
+          -----END PUBLIC KEY-----
+          PEM
+
+          : > /tmp/wrangler-device.log
+          npx wrangler login --device --browser=false --no-use-keyring > /tmp/wrangler-device.log 2>&1 &
+          LOGIN_PID=$!
+
+          ready=0
+          for i in $(seq 1 45); do
+            if grep -q 'oauth2/device' /tmp/wrangler-device.log && grep -qi 'code' /tmp/wrangler-device.log; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$LOGIN_PID" 2>/dev/null; then
+              cat /tmp/wrangler-device.log
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo '::error::Wrangler did not produce a device authorization request.'
+            kill "$LOGIN_PID" 2>/dev/null || true
+            exit 1
+          fi
+
+          python - <<'PY' > /tmp/device-payload.txt
+          import re
+          text=open('/tmp/wrangler-device.log','r',errors='ignore').read()
+          urlm=re.search(r'https://dash\.cloudflare\.com/oauth2/device(?:\?[^\s]+)?', text)
+          codem=re.search(r'enter the code:\s*\n\s*([A-Za-z0-9_-]+)', text, re.I)
+          if not codem:
+              codem=re.search(r'code[:\s]+([A-Za-z0-9_-]{6,})', text, re.I)
+          if not urlm or not codem:
+              raise SystemExit('device authorization details were not parseable')
+          print(urlm.group(0))
+          print(codem.group(1))
+          PY
+
+          openssl pkeyutl -encrypt -pubin -inkey /tmp/rivexis-device-public.pem \
+            -pkeyopt rsa_padding_mode:oaep \
+            -in /tmp/device-payload.txt -out /tmp/device-payload.enc
+          printf 'RIVEXIS_DEVICE_AUTH_ENCRYPTED=' 
+          base64 -w0 /tmp/device-payload.enc
+          printf '\n'
+
+          wait "$LOGIN_PID"
+
+      - name: Build exact production commit
+        run: |
+          npm run typecheck:web
+          WORKERS_CI=1 WORKERS_CI_COMMIT_SHA="${GITHUB_SHA}" npm run build
+
+      - name: Deploy authoritative Worker
+        run: npx wrangler deploy --config wrangler.jsonc
+
+      - name: Verify exact SHA on main production URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://rivexis-web.rudrasingh0718.workers.dev/?build=${GITHUB_SHA}"
+          for attempt in $(seq 1 12); do
+            body="$(curl -fsS --max-time 20 -H 'Cache-Control: no-cache' "$url" || true)"
+            if printf '%s' "$body" | grep -Fq 'rivexis-build' && printf '%s' "$body" | grep -Fq "$GITHUB_SHA"; then
+              echo "Verified exact production SHA ${GITHUB_SHA}." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Main production URL did not expose expected SHA ${GITHUB_SHA}."
+          exit 1
