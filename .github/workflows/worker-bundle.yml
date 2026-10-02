@@ -49,22 +49,3 @@ jobs:
           WORKERS_CI_COMMIT_SHA: ${{ github.sha }}
       - name: Run Cloudflare default root deploy dry-run
         run: npx wrangler deploy --dry-run
-
-  temporary-royal-obsidian-preview:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Install repository root
-        run: npm ci
-      - name: Build exact preview commit
-        run: npm run build
-        env:
-          WORKERS_CI: '1'
-          WORKERS_CI_COMMIT_SHA: ${{ github.sha }}
-      - name: Deploy tokenless temporary Cloudflare preview
-        run: npx wrangler deploy --temporary --config wrangler.jsonc
