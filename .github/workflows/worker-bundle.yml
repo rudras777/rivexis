@@ -28,7 +28,24 @@ jobs:
         env:
           NEXT_PUBLIC_RIVEXIS_API_URL: same-origin
           NEXT_PUBLIC_RIVEXIS_BUILD_SHA: ${{ github.sha }}
-      - name: Show generated Worker deployment config
-        run: cat dist/server/wrangler.json
       - name: Validate generated Worker with Wrangler dry-run
         run: npx wrangler deploy --config dist/server/wrangler.json --dry-run
+
+  validate-cloudflare-default-root:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install repository root
+        run: npm ci
+      - name: Run Cloudflare default root build
+        run: npm run build
+        env:
+          WORKERS_CI: '1'
+          WORKERS_CI_COMMIT_SHA: ${{ github.sha }}
+      - name: Run Cloudflare default root deploy dry-run
+        run: npx wrangler deploy --dry-run
