@@ -53,23 +53,36 @@ jobs:
           fi
 
           CF_TOKEN="$(python - <<'PY'
-          import os
+          import os,re
           value=os.environ.get('CLOUDFLARE_API_TOKEN','').strip()
           for quote in ('"', "'"):
               if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
                   value=value[1:-1].strip()
-          if value.lower().startswith('bearer '):
-              value=value[7:].strip()
-          print(value,end='')
+          for prefix in ('CLOUDFLARE_API_TOKEN=','CF_API_TOKEN='):
+              if value.upper().startswith(prefix):
+                  value=value[len(prefix):].strip()
+          bearer=re.search(r'(?i)Bearer\s+([^\s"\']+)',value)
+          if bearer:
+              value=bearer.group(1).strip()
+          prefixed=re.search(r'(cf(?:ut|at)_[A-Za-z0-9_-]+)',value)
+          if prefixed:
+              value=prefixed.group(1)
+          print(value.strip().strip('"\'`;,') ,end='')
           PY
           )"
           CF_ACCOUNT_ID="$(python - <<'PY'
-          import os
+          import os,re
           value=os.environ.get('CLOUDFLARE_ACCOUNT_ID','').strip()
           for quote in ('"', "'"):
               if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
                   value=value[1:-1].strip()
-          print(value,end='')
+          for prefix in ('CLOUDFLARE_ACCOUNT_ID=','CF_ACCOUNT_ID='):
+              if value.upper().startswith(prefix):
+                  value=value[len(prefix):].strip()
+          match=re.search(r'\b[0-9a-fA-F]{32}\b',value)
+          if match:
+              value=match.group(0)
+          print(value.strip().strip('"\'`;,') ,end='')
           PY
           )"
           if [ -z "$CF_TOKEN" ] || [ -z "$CF_ACCOUNT_ID" ]; then
@@ -140,23 +153,36 @@ jobs:
         run: |
           set -euo pipefail
           CF_TOKEN="$(python - <<'PY'
-          import os
+          import os,re
           value=os.environ.get('CLOUDFLARE_API_TOKEN','').strip()
           for quote in ('"', "'"):
               if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
                   value=value[1:-1].strip()
-          if value.lower().startswith('bearer '):
-              value=value[7:].strip()
-          print(value,end='')
+          for prefix in ('CLOUDFLARE_API_TOKEN=','CF_API_TOKEN='):
+              if value.upper().startswith(prefix):
+                  value=value[len(prefix):].strip()
+          bearer=re.search(r'(?i)Bearer\s+([^\s"\']+)',value)
+          if bearer:
+              value=bearer.group(1).strip()
+          prefixed=re.search(r'(cf(?:ut|at)_[A-Za-z0-9_-]+)',value)
+          if prefixed:
+              value=prefixed.group(1)
+          print(value.strip().strip('"\'`;,') ,end='')
           PY
           )"
           CF_ACCOUNT_ID="$(python - <<'PY'
-          import os
+          import os,re
           value=os.environ.get('CLOUDFLARE_ACCOUNT_ID','').strip()
           for quote in ('"', "'"):
               if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
                   value=value[1:-1].strip()
-          print(value,end='')
+          for prefix in ('CLOUDFLARE_ACCOUNT_ID=','CF_ACCOUNT_ID='):
+              if value.upper().startswith(prefix):
+                  value=value[len(prefix):].strip()
+          match=re.search(r'\b[0-9a-fA-F]{32}\b',value)
+          if match:
+              value=match.group(0)
+          print(value.strip().strip('"\'`;,') ,end='')
           PY
           )"
           echo "::add-mask::$CF_TOKEN"
