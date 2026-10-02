@@ -1,0 +1,27 @@
+name: worker-bundle
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-worker-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Build Vinext Cloudflare output
+        run: npm --workspace @rivexis/web run build:vinext
+        env:
+          NEXT_PUBLIC_RIVEXIS_API_URL: same-origin
+          NEXT_PUBLIC_RIVEXIS_BUILD_SHA: ${{ github.sha }}
+      - name: Validate generated Worker with Wrangler dry-run
+        run: npm --workspace @rivexis/web exec -- wrangler deploy --config dist/server/wrangler.json --dry-run
