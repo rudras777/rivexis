@@ -4,6 +4,7 @@ import "./institutional-ui.css";
 import "./signature-ui.css";
 import "./royal-obsidian.css";
 import "./royal-graphite.css";
+import "./royal-finish.css";
 import {Providers} from "@/components/Providers";
 import {ServiceAvailability} from "@/components/ServiceAvailability";
 
