@@ -1,4 +1,5 @@
 import {spawnSync} from "node:child_process";
+import {fileURLToPath} from "node:url";
 
 const commitSha=(process.env.WORKERS_CI_COMMIT_SHA||"").trim();
 if(!/^[0-9a-f]{40}$/i.test(commitSha)){
@@ -10,7 +11,9 @@ if(process.env.WORKERS_CI!=="1"){
 }
 
 const command=process.platform==="win32"?"npm.cmd":"npm";
-const result=spawnSync(command,["--workspace","@rivexis/web","run","deploy:vinext"],{
+const packageRoot=fileURLToPath(new URL("..",import.meta.url));
+const result=spawnSync(command,["run","deploy:vinext"],{
+  cwd:packageRoot,
   stdio:"inherit",
   env:{
     ...process.env,
