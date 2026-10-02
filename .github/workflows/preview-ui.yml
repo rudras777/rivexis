@@ -1,0 +1,30 @@
+name: preview-ui
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/preview.trigger'
+
+permissions:
+  contents: read
+
+jobs:
+  publish-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install repository
+        run: npm ci
+      - name: Build exact preview commit
+        run: npm run build
+        env:
+          WORKERS_CI: '1'
+          WORKERS_CI_COMMIT_SHA: ${{ github.sha }}
+      - name: Publish temporary Cloudflare preview
+        run: npx wrangler deploy --temporary --config wrangler.jsonc
