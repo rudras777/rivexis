@@ -10,7 +10,7 @@ async function healthMock(page:import("@playwright/test").Page){
 }
 
 test.describe("Rivexis Royal Graphite visual system",()=>{
-  test("public and auth surfaces keep official branding, contextual graphics and Royal Graphite materials",async({page})=>{
+  test("public and auth surfaces keep official branding, architectural graphics and the final institutional structure",async({page})=>{
     await healthMock(page);
     await page.goto("/");
     const publicBrand=page.getByRole("link",{name:"Rivexis home"}).first().locator("img");
@@ -23,13 +23,16 @@ test.describe("Rivexis Royal Graphite visual system",()=>{
     expect(heroTechnicalLayer).toContain("linear-gradient");
     expect(heroTechnicalLayer).toContain("radial-gradient");
     await expect(page.locator(".top")).toHaveCSS("background-color",/rgba\(6, 7, 8/);
-    await expect(page.getByRole("link",{name:/Create workspace/})).toHaveCSS("border-radius","4px");
-    await expect(page.locator(".decisionCard")).toHaveCSS("border-top-right-radius","34px");
+    await expect(page.getByRole("link",{name:/Create workspace/})).toHaveCSS("border-radius","2px");
+    await expect(page.locator(".decisionCard")).toHaveCSS("border-top-right-radius","0px");
     const workflow=page.getByLabel("Rivexis decision workflow");
     await expect(workflow).toContainText("From signalto accountable action.");
     for(const step of ["Observe","Challenge","Decide","Govern"])await expect(workflow).toContainText(step);
     await expect(workflow.getByRole("link",{name:/Explore the decision methodology/})).toHaveAttribute("href","/methodology");
-    await expect(page.locator(".signalStrip")).toHaveCSS("border-top-left-radius","0px");
+    await expect(page.locator(".signalStrip")).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
+    await expect(page.locator(".engineCard").first()).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
+    await expect(page.locator(".engineCard").first()).toHaveCSS("border-top-right-radius","0px");
+    await expect(page.locator(".principleGrid > div").first()).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
 
     const officialWordmark=await page.request.get("/brand/rivexis-wordmark.png");
     expect(officialWordmark.ok()).toBeTruthy();
@@ -39,14 +42,14 @@ test.describe("Rivexis Royal Graphite visual system",()=>{
     await expect(page.getByRole("link",{name:"Rivexis home"}).locator("img")).toHaveAttribute("src","/brand/rivexis-lockup.png");
     await expect(page.locator(".formPage")).toHaveCSS("background-image",/auth-orbit\.svg/);
     await expect(page.locator(".formPage")).toHaveCSS("background-color","rgb(6, 7, 8)");
-    await expect(page.locator(".formCard")).toHaveCSS("border-top-right-radius","44px");
+    await expect(page.locator(".formCard")).toHaveCSS("border-top-right-radius","0px");
     await expect(page.locator(".formCard")).toHaveCSS("color","rgb(241, 242, 242)");
-    await expect(page.getByLabel("Email")).toHaveCSS("border-radius","4px");
+    await expect(page.getByLabel("Email")).toHaveCSS("border-radius","1px");
     const authGraphic=await page.request.get("/visuals/auth-orbit.svg");
     expect(authGraphic.ok()).toBeTruthy();
   });
 
-  test("authenticated shell keeps evidence graphics and uses the Royal Graphite workstation surface",async({page})=>{
+  test("authenticated shell keeps evidence graphics and uses the final institutional workstation geometry",async({page})=>{
     await healthMock(page);
     await page.route("**/api/v1/workspaces",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[{id:"w-alpha",name:"Alpha Desk",role:"Analyst",access_role:"OWNER"}]})}));
     await page.route("**/api/v1/history?**",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[]})}));
@@ -59,8 +62,8 @@ test.describe("Rivexis Royal Graphite visual system",()=>{
     await expect(ambient).toHaveCSS("background-image",/workspace-evidence-field\.svg/);
     await expect(page.locator(".appShell")).toHaveCSS("color","rgb(241, 242, 242)");
     await expect(page.getByRole("link",{name:"Overview"})).toHaveCSS("border-radius","0px");
-    await expect(page.getByRole("link",{name:/Run analysis/})).toHaveCSS("border-radius","4px");
-    await expect(page.locator(".overviewBand")).toHaveCSS("border-top-right-radius","34px");
+    await expect(page.getByRole("link",{name:/Run analysis/})).toHaveCSS("border-radius","2px");
+    await expect(page.locator(".overviewBand")).toHaveCSS("border-top-right-radius","0px");
     await expect(page.locator(".panel").first()).toHaveCSS("border-top-right-radius","0px");
 
     const workspaceGraphic=await page.request.get("/visuals/workspace-evidence-field.svg");
