@@ -2,21 +2,21 @@
 
 Last updated: 2026-10-02
 
-This file is the authoritative compact continuation point for normal-chat execution. Always verify current `main`, current CI and the live Worker before making claims. Never reset to an older snapshot.
+This file is the authoritative compact continuation point for normal-chat execution. Always verify current `main`, current CI, Cloudflare build/deploy state and the live Worker before making claims. Never reset to an older snapshot.
 
 ## Current source and certification
 
 - Repository: `rudras777/rivexis`; branch: `main`.
-- Source immediately before this state-note commit: `c498f1d18ac59c2bd53f161316f0516ddc584da0` (`Remove temporary Cloudflare credential diagnostic`).
-- Exact-head CI run: `36976960298` — **SUCCESS**.
+- Runtime/deployment source immediately before this state-note commit: `c35e39f2c7f27a3094e9094b3a430e91743ff832` (`Make token-based deploy a manual fallback`).
+- Last fully certified predecessor before the native-Builds preparation: `c498f1d18ac59c2bd53f161316f0516ddc584da0`; CI run `36976960298` — **SUCCESS**.
+- The current head must be exact-head certified after this state-note commit before it is called certified.
 - Certified gates include Python API lint/tests/audit, Edge typecheck/tests, PostgreSQL migrations/runtime controls, invariants, migration checks, secret scan, web typecheck/build, Vinext build, `npm audit --audit-level=high`, Playwright browser tests and accessibility checks.
 - JavaScript security graph remains patched and locked: Next `16.3.8`, `@cloudflare/vite-plugin` `1.62.3`, Wrangler `4.145.0`, with the root Wrangler override retained.
-- CI/deploy Node runtime remains aligned on Node 24/npm 11.
-- The temporary credential-shape diagnostic workflow used during deployment triage was removed from `main`; no credential value was printed or persisted in source.
+- CI runtime remains aligned on Node 24/npm 11.
 
 ## Royal Graphite production source
 
-The current certified source applies the Royal Graphite / Obsidian system across the shared public, authentication and authenticated shells:
+The current source applies the Royal Graphite / Obsidian system across the shared public, authentication and authenticated shells:
 
 - obsidian black canvas with layered charcoal, graphite and gunmetal surfaces;
 - platinum, silver and pearl text/detail hierarchy;
@@ -27,8 +27,6 @@ The current certified source applies the Royal Graphite / Obsidian system across
 - dark authentication cards, inputs, tables, panels, evidence surfaces and navigation rail;
 - accessible contrast, visible focus states and reduced-motion support retained.
 
-Visual-system browser assertions were updated to certify the actual Royal Graphite palette and all certified browser/accessibility tests pass.
-
 ## Functionality and scope hardening in current source
 
 - Public mobile navigation keeps Platform, product sections, login and workspace creation reachable on small screens.
@@ -36,8 +34,9 @@ Visual-system browser assertions were updated to certify the actual Royal Graphi
 - Saved analyses, history and Decision Desk async completions are scoped to their originating workspace so switching workspaces cannot leak stale completion state into another workspace.
 - Organization member role/update/remove/claim mutation results are scoped to the originating organization; stale success/error UI is not rendered under another organization.
 - Membership-claim organization input is frozen while claim generation is pending.
+- `organization-scope-switching.spec.ts` now includes regression coverage for role-draft isolation, stale completed mutation banners and claim-target locking while the request is pending.
+- Current source audit found no `href="#"` placeholder navigation, no TODO stubs and no null click handlers.
 - Existing authentication, CSRF, RLS, tenant isolation and evidence rules were not weakened.
-- Current browser coverage is the authority for functional claims; untested controls must not be called production-verified.
 
 ## Backend production truth
 
@@ -53,29 +52,52 @@ Production URL:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-### Source implemented / CI certified
-
-Royal Graphite, current functionality hardening and deployment workflow hardening are implemented in GitHub. Exact-head CI passed for cleanup source `c498f1d18ac59c2bd53f161316f0516ddc584da0` in run `36976960298`.
-
 ### Deployed / production verified
 
-Production is **not yet on the certified source**.
+Production is **not yet on current source**.
 
 Latest independently observed public build marker before this state update:
 
 `fcea992098b377780b77516a0230490cbd83ad5d`
 
-Therefore the public Worker remains stale relative to certified GitHub source. `/health` is ready, but current-source parity must not be claimed until exact-SHA promotion succeeds.
+The public Worker is therefore stale relative to GitHub source. `/health` is ready, but current-source parity must not be claimed until exact-SHA promotion succeeds.
 
-## Current deployment blocker
+## Deployment architecture
 
-The deployment workflow now safely normalizes common accidental wrappers around `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, verifies both supported Cloudflare user/account token scopes, checks access to the existing `rivexis-web` Worker before build/deploy, and never prints credential values.
+### Primary path: Cloudflare Workers Builds + GitHub
 
-Repeated preflight verification still returns Cloudflare error `6003` for the stored API-token secret after safe normalization. The account-ID secret has been structurally confirmed as a correctly formed 32-character Cloudflare account ID, while the stored API-token value does not match a valid current or legacy Cloudflare API-token format and cannot authenticate either supported token scope.
+The preferred production path is now Cloudflare Workers Builds connected directly to the existing `rivexis-web` Worker and `rudras777/rivexis` GitHub repository.
 
-A browser recovery path was also attempted. No authenticated Cloudflare dashboard session exists in the remote browser, and federated sign-in requires owner authentication on a recognized device. No password, passkey, MFA code or recovery credential was requested, captured, guessed or bypassed.
+Why this is preferred:
 
-This is an external deployment-authority blocker, not an application build, test, database or source-code failure.
+- Cloudflare can automatically create and manage the Workers Builds API token for the account;
+- Git pushes to the configured production branch can trigger builds/deployments without storing a manually copied Cloudflare API token in GitHub Actions;
+- Cloudflare injects `WORKERS_CI_COMMIT_SHA`, allowing exact source-to-production attribution;
+- the existing Worker name already matches `apps/web/wrangler.jsonc`: `rivexis-web`.
+
+Source preparation already completed:
+
+- `apps/web/scripts/cloudflare-workers-build-deploy.mjs` requires a valid `WORKERS_CI_COMMIT_SHA`, restricts itself to `WORKERS_CI=1`, forces `NEXT_PUBLIC_RIVEXIS_API_URL=same-origin`, and stamps `NEXT_PUBLIC_RIVEXIS_BUILD_SHA` from the exact Cloudflare build commit;
+- `apps/web/package.json` exposes this as the standard `deploy` script while preserving `deploy:vinext`;
+- CI performs `node --check` on the native Workers Builds entrypoint;
+- the existing `deploy-web` GitHub Actions workflow is now `workflow_dispatch` only, retained as a manual token-based fallback rather than auto-failing after every successful CI run.
+
+Expected native Workers Builds configuration for the existing Worker:
+
+- repository: `rudras777/rivexis`;
+- production branch: `main`;
+- root directory: `apps/web`;
+- deploy command: use the detected package `deploy` script (`npm run deploy`);
+- Workers Builds API token: allow Cloudflare to create/manage its own token;
+- Worker name must remain `rivexis-web`.
+
+After the Git integration is saved, push/current-main build must complete successfully and the public Worker must expose `rivexis-build` equal to the exact deployed commit before production parity is claimed.
+
+### Manual fallback: GitHub Actions token deploy
+
+The GitHub Actions `deploy-web` workflow remains available only through manual dispatch. Its stored `CLOUDFLARE_API_TOKEN` is currently invalid and repeated verification returned Cloudflare error `6003`; the account-ID secret is structurally valid. This fallback must not be used unless a valid token is deliberately configured.
+
+A browser recovery path established that the owner can authenticate to Cloudflare on the user's recognized device, but the remote automation browser cannot inherit that local authenticated session. No password, passkey, MFA code or recovery credential was requested, captured, guessed or bypassed.
 
 ## Security/evidence invariants
 
@@ -92,8 +114,8 @@ Keep all of these non-negotiable:
 
 ## Immediate execution target
 
-1. Restore valid Cloudflare deployment authority by replacing `CLOUDFLARE_API_TOKEN` with a valid Cloudflare API token for the account containing `rivexis-web`, or by authenticating the Cloudflare dashboard on a recognized owner device and establishing an authorized Git/Workers deployment path.
-2. Re-run `deploy-web` only after CI success.
-3. Require the workflow's exact-SHA verification step to pass.
+1. Exact-head certify this state-note commit.
+2. In the authenticated Cloudflare owner session, connect the existing `rivexis-web` Worker to GitHub repository `rudras777/rivexis`, production branch `main`, root directory `apps/web`, using Cloudflare-managed Workers Builds deployment authority and the detected `npm run deploy` command.
+3. Trigger/build the newest `main` through Workers Builds.
 4. Independently fetch production and confirm `rivexis-build` equals the deployed certified head before stating `deployed` or `production verified`.
-5. Continue route/control-level hardening only from the newest `main` after production parity is established.
+5. After native deployment is verified, retire or rotate the invalid GitHub `CLOUDFLARE_API_TOKEN` fallback secret as appropriate.
