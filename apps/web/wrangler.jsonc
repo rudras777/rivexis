@@ -1,6 +1,7 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "rivexis-web",
+  "account_id": "0b22778ba197266a58dd26eeef0334a8",
   "compatibility_date": "2026-09-22",
   "compatibility_flags": [
     "nodejs_compat"
