@@ -11,19 +11,18 @@ if(process.env.WORKERS_CI!=="1"){
 }
 
 const npmCommand=process.platform==="win32"?"npm.cmd":"npm";
-const npxCommand=process.platform==="win32"?"npx.cmd":"npx";
 const packageRoot=fileURLToPath(new URL("..",import.meta.url));
 const env={
   ...process.env,
+  CLOUDFLARE_ACCOUNT_ID:process.env.CLOUDFLARE_ACCOUNT_ID||"0b22778ba197266a58dd26eeef0334a8",
   NEXT_PUBLIC_RIVEXIS_API_URL:"same-origin",
   NEXT_PUBLIC_RIVEXIS_BUILD_SHA:commitSha,
 };
 
-function run(command,args){
-  const result=spawnSync(command,args,{cwd:packageRoot,stdio:"inherit",env});
-  if(result.error)throw result.error;
-  if((result.status??1)!==0)process.exit(result.status??1);
-}
-
-run(npmCommand,["run","build:vinext"]);
-run(npxCommand,["wrangler","deploy","--config","dist/server/wrangler.json"]);
+const result=spawnSync(npmCommand,["run","deploy:vinext"],{
+  cwd:packageRoot,
+  stdio:"inherit",
+  env,
+});
+if(result.error)throw result.error;
+process.exit(result.status??1);
