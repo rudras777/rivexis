@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient, type SupabaseClient, type User} from "npm:@supabase/supabase-js@2";
 import {analysisResult} from "./analysis.mjs";
 import {createMembershipClaimToken,hashMembershipClaimToken} from "./membership.mjs";
+import {parseRole,roleOrDefault} from "./role.mjs";
 
 type Json=Record<string,unknown>;
 type SessionCookie={access_token:string;refresh_token:string;csrf:string};
@@ -12,7 +13,6 @@ const ANON_KEY=Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LIVE_ORIGIN="https://rivexis-web.rudrasingh0718.workers.dev";
 const COOKIE="rvx_session";
-const ROLES=new Set(["Individual","Fund","Treasury","Analyst"]);
 const ORG_ROLES=new Set(["OWNER","ADMIN","ANALYST","VIEWER"]);
 const ENGINE_PATHS:Record<string,string>={
   simulations:"B1",security:"B2",monitoring:"B3",entities:"B4",routes:"B5",
@@ -89,13 +89,12 @@ function sessionCookie(session:SessionCookie,maxAge=60*60*24*30){
   return `${COOKIE}=${encode(session)}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
 }
 function clearCookie(){return `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`}
-function role(value:unknown){return typeof value==="string"&&ROLES.has(value)?value:"Individual"}
 async function body(req:Request):Promise<Json>{
   try{const value=await req.json();return value&&typeof value==="object"&&!Array.isArray(value)?value as Json:{}}catch{return {}}
 }
 
 async function ensureAppUser(user:User){
-  return await bridge("ensure_user",user.id,{email:(user.email??"").toLowerCase(),role:role(user.user_metadata?.role)}) as Json;
+  return await bridge("ensure_user",user.id,{email:(user.email??"").toLowerCase(),role:roleOrDefault(user.user_metadata?.role)}) as Json;
 }
 
 async function authenticate(req:Request):Promise<AuthContext|null>{
@@ -163,8 +162,8 @@ async function handleAuth(req:Request,path:string){
   if(path==="/api/v1/auth/web/signup"){
     const email=typeof input.email==="string"?input.email.trim().toLowerCase():"";
     const password=typeof input.password==="string"?input.password:"";
-    const userRole=role(input.role);
-    if(!email||password.length<8)return error(req,422,"Check your email, password, and role, then try again");
+    const userRole=parseRole(input.role);
+    if(!email||password.length<8||!userRole)return error(req,422,"Check your email, password, and role, then try again");
     const {data,error:signUpError}=await authClient.auth.signUp({email,password,options:{data:{role:userRole},emailRedirectTo:`${LIVE_ORIGIN}/login?verified=1`}});
     if(signUpError)return error(req,signUpError.status===429?429:409,"Unable to create account with those details");
     if(data.user&&data.session){
@@ -277,13 +276,14 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   }
   if(path==="/api/v1/me"&&method==="GET")return json(req,{id:auth.user.id,email:auth.user.email,role:auth.appUser.role,email_verified:Boolean(auth.user.email_confirmed_at)},200,auth.cookie);
   if(path==="/api/v1/me/role"&&method==="PATCH"){
-    const input=await body(req);const nextRole=role(input.role);
+    const input=await body(req);const nextRole=parseRole(input.role);
+    if(!nextRole)return error(req,422,"Invalid role",auth.cookie);
     return json(req,await bridge("update_role",auth.user.id,{role:nextRole}),200,auth.cookie);
   }
   if(path==="/api/v1/workspaces"&&method==="GET")return json(req,{items:await allWorkspaces(auth.user.id)},200,auth.cookie);
   if(path==="/api/v1/workspaces"&&method==="POST"){
-    const input=await body(req);const name=typeof input.name==="string"?input.name.trim():"";const workspaceRole=role(input.role);
-    if(name.length<2)return error(req,422,"Workspace name is required",auth.cookie);
+    const input=await body(req);const name=typeof input.name==="string"?input.name.trim():"";const workspaceRole=parseRole(input.role);
+    if(name.length<2||!workspaceRole)return error(req,422,"Workspace name and valid role are required",auth.cookie);
     return json(req,await bridge("create_workspace",auth.user.id,{name,role:workspaceRole}),200,auth.cookie);
   }
   if(path==="/api/v1/organizations"&&method==="GET"){
