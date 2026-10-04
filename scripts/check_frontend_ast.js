@@ -68,4 +68,16 @@ const browserFiles = [
 for (const rel of browserFiles) {
   if (!fs.existsSync(path.join(root, rel))) throw new Error(`missing browser certification file: ${rel}`);
 }
-console.log(`Browser certification harness: PASS (${browserFiles.length} files present)`);
+
+const settingsSource = fs.readFileSync(path.join(root,"app","workspace","settings","page.tsx"),"utf8");
+const edgeSource = fs.readFileSync(path.join(repoRoot,"supabase","functions","rivexis-api","index.ts"),"utf8");
+if (!settingsSource.includes("orgWorkspaceRuntimeReady=runtimeCapabilities.data?.capabilities?.organization_workspace_create===true")) {
+  throw new Error("organization workspace UI must be gated by the deployed Edge capability");
+}
+if (!settingsSource.includes("No fallback to a personal workspace is permitted.")) {
+  throw new Error("organization workspace capability failure must remain fail-closed");
+}
+if (!edgeSource.includes("capabilities:{organization_workspace_create:true}")) {
+  throw new Error("Edge health must advertise organization workspace capability only in capable source");
+}
+console.log(`Browser certification harness: PASS (${browserFiles.length} files present; organization workspace release gate is fail-closed)`);
