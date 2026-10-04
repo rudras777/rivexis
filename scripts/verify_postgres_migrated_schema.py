@@ -13,7 +13,7 @@ from sqlalchemy import text
 
 from rivexis_api.services.db import engine
 
-EXPECTED_ALEMBIC_HEAD = "0015_authenticated_org_bootstrap"
+EXPECTED_ALEMBIC_HEAD = "0016_supabase_network_hardening"
 EXPECTED_APPLICATION_TABLES = 56
 
 
