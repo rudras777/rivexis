@@ -15,11 +15,18 @@ def _postgres() -> bool:
 def upgrade() -> None:
     if not _postgres():
         return
+    # pg_net is a platform-managed extension on hosted Supabase. Its schema ACLs
+    # may be restored by the platform, and the Rivexis migration role is not the
+    # owner there. Harden only when the executing role owns schema net; hosted
+    # Supabase exposure is instead governed by the Data API exposed-schema list.
     op.execute(
         """
         DO $$
+        DECLARE
+            net_owner oid;
         BEGIN
-            IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'net') THEN
+            SELECT nspowner INTO net_owner FROM pg_namespace WHERE nspname = 'net';
+            IF net_owner IS NOT NULL AND net_owner = (SELECT oid FROM pg_roles WHERE rolname = current_user) THEN
                 REVOKE USAGE ON SCHEMA net FROM PUBLIC;
                 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA net FROM PUBLIC;
 
@@ -48,8 +55,11 @@ def downgrade() -> None:
     op.execute(
         """
         DO $$
+        DECLARE
+            net_owner oid;
         BEGIN
-            IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'net') THEN
+            SELECT nspowner INTO net_owner FROM pg_namespace WHERE nspname = 'net';
+            IF net_owner IS NOT NULL AND net_owner = (SELECT oid FROM pg_roles WHERE rolname = current_user) THEN
                 GRANT USAGE ON SCHEMA net TO PUBLIC;
                 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA net TO PUBLIC;
 
