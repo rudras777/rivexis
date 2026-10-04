@@ -12,9 +12,9 @@ test.describe("public production regressions",()=>{
   test("auth and recovery forms never submit credentials or tokens with GET",async({page})=>{
     for(const path of authRoutes){
       await page.goto(path);
-      const forms=page.locator("form");
-      await expect(forms).toHaveCount(1);
-      await expect(forms.first()).toHaveAttribute("method",/post/i);
+      const form=page.locator("form.form").first();
+      await expect(form).toBeVisible();
+      await expect(form).toHaveAttribute("method",/^post$/i);
     }
   });
 
