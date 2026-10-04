@@ -9,6 +9,7 @@ from rivexis_api.services.transactional_email import (
     EmailConfigurationError,
     EmailDeliveryError,
     EmailSettings,
+    RIVEXIS_BRAND_EXPANSION,
     send_template_email,
     validate_email_configuration,
 )
@@ -113,6 +114,26 @@ def test_provider_acceptance_is_not_mislabeled_as_delivery():
     assert request["json"]["headers"]["idempotencyKey"] == "reset-12345678"
     assert request["json"]["templateId"] == 2
     assert request["headers"]["api-key"] == "test-api-key-not-a-secret"
+
+
+def test_auth_template_request_enforces_canonical_rivexis_brand_expansion():
+    client = FakeClient(FakeResponse(201, {"messageId": "<provider-message-id>"}))
+    send_template_email(
+        recipient="user@example.com",
+        kind="verification",
+        params={
+            "code": "123456",
+            "expiry_minutes": 10,
+            "brand_expansion": "Risk · Value · Execution · Intelligence",
+        },
+        idempotency_key="verify-brand-1234",
+        cfg=cfg(),
+        client=client,
+    )
+    _, request = client.calls[0]
+    assert RIVEXIS_BRAND_EXPANSION == "Risk · Value · Execution · Analysis"
+    assert request["json"]["params"]["brand_expansion"] == RIVEXIS_BRAND_EXPANSION
+    assert "Intelligence" not in request["json"]["params"]["brand_expansion"]
 
 
 def test_sandbox_request_is_explicitly_marked_and_dropped_by_brevo_contract():
