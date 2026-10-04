@@ -8,6 +8,7 @@ grant select(organization_id,user_id,role,created_at)
   to rivexis_alert_dispatcher;
 
 grant rivexis_alert_dispatcher to postgres with set true, inherit false;
+grant create on schema public to rivexis_alert_dispatcher;
 set local role rivexis_alert_dispatcher;
 
 create or replace function public.rivexis_edge_alert_dispatch(
@@ -198,4 +199,5 @@ end;
 $$;
 
 reset role;
+revoke create on schema public from rivexis_alert_dispatcher;
 revoke rivexis_alert_dispatcher from postgres;
