@@ -1,0 +1,64 @@
+name: one-shot-org-workspace-edge
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/one-shot-org-workspace-edge.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply exact Edge parity patch
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path=Path('supabase/functions/rivexis-api/index.ts')
+          text=path.read_text()
+
+          anchor='''async function bridge(action:string,userId:string,payload:Json={}):Promise<any>{\n  const {data,error}=await admin.rpc("rivexis_edge_bridge",{p_action:action,p_actor_user_id:userId,p_payload:payload});\n  if(error)throw new Error(error.message);\n  return data;\n}\n'''
+          replacement=anchor+'''\nasync function organizationWorkspaceBridge(userId:string,payload:Json={}):Promise<any>{\n  const {data,error}=await admin.rpc("rivexis_edge_create_organization_workspace",{p_actor_user_id:userId,p_payload:payload});\n  if(error)throw new Error(error.message);\n  return data;\n}\n'''
+          if text.count(anchor)!=1:
+              raise SystemExit('bridge anchor mismatch')
+          text=text.replace(anchor,replacement,1)
+
+          old='''  if(path==="/api/v1/workspaces"&&method==="POST"){\n    const input=await body(req);const name=typeof input.name==="string"?input.name.trim():"";const workspaceRole=parseRole(input.role);\n    if(name.length<2||!workspaceRole)return error(req,422,"Workspace name and valid role are required",auth.cookie);\n    return json(req,await bridge("create_workspace",auth.user.id,{name,role:workspaceRole}),200,auth.cookie);\n  }\n'''
+          new='''  if(path==="/api/v1/workspaces"&&method==="POST"){\n    const input=await body(req);const name=typeof input.name==="string"?input.name.trim():"";const workspaceRole=parseRole(input.role);\n    const organizationId=typeof input.organization_id==="string"?input.organization_id.trim():"";\n    if(name.length<2||!workspaceRole)return error(req,422,"Workspace name and valid role are required",auth.cookie);\n    if(organizationId&&organizationId.length!==36)return error(req,422,"Organization ID is invalid",auth.cookie);\n    try{\n      const created=organizationId\n        ?await organizationWorkspaceBridge(auth.user.id,{name,role:workspaceRole,organization_id:organizationId})\n        :await bridge("create_workspace",auth.user.id,{name,role:workspaceRole});\n      return json(req,created,200,auth.cookie);\n    }catch(cause){\n      const detail=cause instanceof Error?cause.message:"Workspace creation failed";\n      const normalized=detail.toLowerCase();\n      if(normalized.includes("organization write access required")||normalized.includes("organization not found or access denied"))return error(req,403,"Organization write access required",auth.cookie);\n      if(normalized.includes("workspace name")||normalized.includes("invalid role")||normalized.includes("organization is required"))return error(req,422,"Workspace name, role, or organization is invalid",auth.cookie);\n      return error(req,500,"Rivexis could not create the workspace safely",auth.cookie);\n    }\n  }\n'''
+          if text.count(old)!=1:
+              raise SystemExit('workspace POST anchor mismatch')
+          path.write_text(text.replace(old,new,1))
+
+          test=Path('supabase/functions/rivexis-api/organization-workspace.test.mjs')
+          test.write_text('''import test from "node:test";\nimport assert from "node:assert/strict";\nimport {readFile} from "node:fs/promises";\n\ntest("Edge workspace creation forwards explicit organization scope through the dedicated RPC",async()=>{\n  const source=await readFile(new URL("./index.ts",import.meta.url),"utf8");\n  assert.match(source,/rivexis_edge_create_organization_workspace/);\n  assert.match(source,/organization_id:organizationId/);\n  assert.match(source,/Organization write access required/);\n  assert.match(source,/organizationId\\?await organizationWorkspaceBridge/);\n});\n''')
+
+          pkg=Path('package.json')
+          package=pkg.read_text()
+          old_script='supabase/functions/rivexis-api/role.test.mjs supabase/functions/rivexis-alert-dispatch/delivery.test.mjs'
+          new_script='supabase/functions/rivexis-api/role.test.mjs supabase/functions/rivexis-api/organization-workspace.test.mjs supabase/functions/rivexis-alert-dispatch/delivery.test.mjs'
+          if package.count(old_script)!=1:
+              raise SystemExit('test script anchor mismatch')
+          pkg.write_text(package.replace(old_script,new_script,1))
+      - name: Verify patched Edge source
+        run: |
+          npm ci
+          npm run typecheck:api-edge
+          npm run test:api-edge
+      - name: Remove one-shot workflow and push patch
+        run: |
+          rm .github/workflows/one-shot-org-workspace-edge.yml
+          git config user.name "Rivexis Maintenance"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Add Edge organization workspace parity"
+          git push origin HEAD:main
