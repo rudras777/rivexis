@@ -25,6 +25,7 @@ jobs:
       - run: node --check apps/web/scripts/cloudflare-workers-build-deploy.mjs
       - run: npm run typecheck:api-edge
       - run: npm run test:api-edge
+      - run: npm run lint:web
       - run: npm run typecheck:web
       - run: npm run build:web
       - run: npm --workspace @rivexis/web run build:vinext

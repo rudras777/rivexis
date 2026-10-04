@@ -3,7 +3,8 @@ const path = require("path");
 const ts = require("typescript");
 const {spawnSync} = require("child_process");
 
-const root = path.join(process.cwd(), "apps", "web");
+const repoRoot = path.resolve(__dirname, "..");
+const root = path.join(repoRoot, "apps", "web");
 const files = [];
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
