@@ -1,4 +1,9 @@
 /* Verified public-production regressions. Keep this file small and remove rules when their owning component absorbs them. */
+@media (max-width:1120px){
+  .desktopPublicNav{display:none!important}
+  .mobileNav{display:block}
+}
+
 @media (max-width:760px){
   .decisionStage{min-width:0;max-width:100%;overflow:clip}
   .decisionStage .stageGlow{left:auto;right:0;width:100%;max-width:100%;height:min(420px,100vw)}
