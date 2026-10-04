@@ -5,8 +5,10 @@ const navItems=[
   ["Platform","/platform"],
   ["Blockchain","/blockchain-intelligence"],
   ["Crypto Finance","/crypto-finance"],
+  ["DeFi Risk","/defi-risk"],
   ["Methodology","/methodology"],
   ["Security","/security"],
+  ["Docs","/docs"],
 ] as const;
 
 export function PublicNav(){
