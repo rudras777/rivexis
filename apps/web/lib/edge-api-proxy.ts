@@ -8,7 +8,17 @@ function upstreamBase(path:string){
   return EDGE_API_URL;
 }
 
+function e2eUpstreamBlocked(){
+  return process.env.RIVEXIS_E2E_BLOCK_EXTERNAL_UPSTREAM==="1";
+}
+
 export async function proxyEdgeApi(request:Request,path:string){
+  if(e2eUpstreamBlocked()){
+    return new Response(JSON.stringify({detail:"External API upstream disabled in local E2E"}),{
+      status:503,
+      headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"},
+    });
+  }
   const source=new URL(request.url);
   const target=new URL(`${upstreamBase(path)}${path}`);
   target.search=source.search;
