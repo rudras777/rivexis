@@ -77,6 +77,7 @@ required_supabase_sources = {
     "014_alert_dispatcher_extensions_usage.sql",
     "015_alert_dispatcher_object_grants.sql",
     "016_restrict_alert_requeue.sql",
+    "017_alert_dispatch_org_owner_recipient.sql",
 }
 actual_supabase_sources = {path.name for path in SUPABASE_INFRA.glob("*.sql")}
 missing_supabase_sources = required_supabase_sources - actual_supabase_sources
@@ -104,9 +105,17 @@ assert "delivery_status in ('retry','dead_letter')" in requeue_hardening
 assert "only failed alert deliveries can be requeued" in requeue_hardening
 assert "delivery_status='pending'" in requeue_hardening
 
+org_alert_recipient = (SUPABASE_INFRA / "017_alert_dispatch_org_owner_recipient.sql").read_text().lower()
+assert "from public.organization_members om" in org_alert_recipient
+assert "om.role='owner'" in org_alert_recipient
+assert "order by om.created_at,om.user_id" in org_alert_recipient
+assert "coalesce(w.owner_user_id,org_owner.user_id)" in org_alert_recipient
+assert "grant create on schema public to rivexis_alert_dispatcher" in org_alert_recipient
+assert "revoke create on schema public from rivexis_alert_dispatcher" in org_alert_recipient
+
 print(
     "Alembic/schema parity: PASS "
     "(53/53 blueprint tables + 2 runtime-control tables + auth security state; clean downgrade); "
-    "Supabase infrastructure sources: PASS (001-016 present; migrator bootstrap is credential-free; "
-    "delivered alerts cannot be manually requeued)"
+    "Supabase infrastructure sources: PASS (001-017 present; credential-free bootstrap; "
+    "delivered alerts cannot be manually requeued; organization alerts resolve to an OWNER recipient)"
 )
