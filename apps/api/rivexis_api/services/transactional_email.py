@@ -8,6 +8,7 @@ from typing import Any, Mapping
 import httpx
 
 BREVO_SEND_URL = "https://api.brevo.com/v3/smtp/email"
+RIVEXIS_BRAND_EXPANSION = "Risk · Value · Execution · Analysis"
 _IDEMPOTENCY_RE = re.compile(r"^[A-Za-z0-9._:-]{8,128}$")
 
 
@@ -169,11 +170,17 @@ def send_template_email(
         # Brevo sandbox drop validates the request but intentionally sends no email.
         provider_headers["X-Sib-Sandbox"] = "drop"
 
+    template_params = dict(params)
+    # The public Rivexis identity expansion is a product invariant, not caller data.
+    # Always overwrite it here so stale callers cannot reintroduce the deprecated
+    # "Intelligence" expansion into templates that render this parameter.
+    template_params["brand_expansion"] = RIVEXIS_BRAND_EXPANSION
+
     body = {
         "sender": {"email": current.sender_email, "name": current.sender_name},
         "to": [{"email": recipient.strip()}],
         "templateId": template_id,
-        "params": dict(params),
+        "params": template_params,
         "headers": provider_headers,
         "tags": [f"rivexis-{kind.replace('_', '-')}"]
     }
