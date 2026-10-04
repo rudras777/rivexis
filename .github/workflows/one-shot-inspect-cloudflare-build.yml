@@ -1,0 +1,137 @@
+name: one-shot-inspect-cloudflare-build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/one-shot-inspect-cloudflare-build.yml
+
+permissions:
+  contents: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect Cloudflare Workers Build metadata without exposing secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          BUILD_UUID: 298b72cb-b047-46bd-aff4-d0d8993267f6
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, re, urllib.request, urllib.error
+
+          token=os.environ.get('CLOUDFLARE_API_TOKEN','').strip().strip('"\'')
+          account=os.environ.get('CLOUDFLARE_ACCOUNT_ID','').strip().strip('"\'')
+          build_uuid=os.environ['BUILD_UUID']
+          if not token or not account:
+              raise SystemExit('Cloudflare deployment credentials are not configured')
+
+          def get(path):
+              req=urllib.request.Request(
+                  'https://api.cloudflare.com/client/v4'+path,
+                  headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+              )
+              try:
+                  with urllib.request.urlopen(req,timeout=25) as resp:
+                      return resp.status,json.loads(resp.read().decode())
+              except urllib.error.HTTPError as exc:
+                  raw=exc.read().decode(errors='replace')
+                  try: payload=json.loads(raw)
+                  except Exception: payload={}
+                  return exc.code,payload
+
+          def safe_errors(payload):
+              return [{'code':e.get('code'),'message':str(e.get('message',''))[:180]} for e in (payload.get('errors') or [])]
+
+          status,scripts=get(f'/accounts/{account}/workers/scripts')
+          print('workers_scripts_status=',status)
+          if status!=200 or scripts.get('success') is not True:
+              print('workers_scripts_errors=',json.dumps(safe_errors(scripts)))
+              raise SystemExit(0)
+          worker=next((x for x in scripts.get('result',[]) if x.get('id')=='rivexis-web'),None)
+          if not worker:
+              print('worker_tag=NOT_FOUND')
+              raise SystemExit(0)
+          tag=worker.get('tag')
+          print('worker_tag_present=',bool(tag))
+
+          status,triggers=get(f'/accounts/{account}/builds/workers/{tag}/triggers')
+          print('triggers_status=',status)
+          if status==200 and triggers.get('success') is True:
+              safe=[]
+              for t in triggers.get('result') or []:
+                  safe.append({
+                      'trigger_uuid':t.get('trigger_uuid'),
+                      'trigger_name':t.get('trigger_name'),
+                      'build_command':t.get('build_command'),
+                      'deploy_command':t.get('deploy_command'),
+                      'root_directory':t.get('root_directory'),
+                      'branch_includes':t.get('branch_includes'),
+                      'branch_excludes':t.get('branch_excludes'),
+                      'path_includes':t.get('path_includes'),
+                      'path_excludes':t.get('path_excludes'),
+                  })
+              print('triggers=',json.dumps(safe,sort_keys=True))
+          else:
+              print('triggers_errors=',json.dumps(safe_errors(triggers)))
+
+          status,builds=get(f'/accounts/{account}/builds/workers/{tag}/builds')
+          print('builds_status=',status)
+          target=None
+          if status==200 and builds.get('success') is True:
+              result=builds.get('result') or []
+              if isinstance(result,dict): result=result.get('builds') or []
+              target=next((b for b in result if b.get('build_uuid')==build_uuid),None)
+              if target:
+                  meta=target.get('build_trigger_metadata') or {}
+                  safe={
+                      'build_uuid':target.get('build_uuid'),
+                      'build_outcome':target.get('build_outcome'),
+                      'status':target.get('status'),
+                      'branch':meta.get('branch'),
+                      'commit_hash':meta.get('commit_hash'),
+                      'build_command':meta.get('build_command'),
+                      'deploy_command':meta.get('deploy_command'),
+                      'root_directory':meta.get('root_directory'),
+                      'trigger_source':meta.get('build_trigger_source'),
+                  }
+                  print('target_build=',json.dumps(safe,sort_keys=True))
+              else:
+                  print('target_build=NOT_FOUND_IN_RECENT_LIST')
+          else:
+              print('builds_errors=',json.dumps(safe_errors(builds)))
+
+          status,logs=get(f'/accounts/{account}/builds/builds/{build_uuid}/logs')
+          print('logs_status=',status)
+          if status!=200 or logs.get('success') is not True:
+              print('logs_errors=',json.dumps(safe_errors(logs)))
+              raise SystemExit(0)
+
+          raw=json.dumps(logs.get('result') or '')
+          raw=re.sub(r'(?i)(authorization|token|secret|password|apikey|api_key)[=: ]+[^\\s,;\"}]+',r'\\1=[REDACTED]',raw)
+          raw=re.sub(r'cf(?:ut|at)_[A-Za-z0-9_-]+','[REDACTED_TOKEN]',raw)
+          candidates=[]
+          for piece in re.split(r'\\n|\\r|(?<=})\\s*(?={)',raw):
+              low=piece.lower()
+              if any(term in low for term in ['error','failed','failure','exit code','command not found','enoent','npm err','wrangler','root directory','build command','deploy command']):
+                  clean=re.sub(r'https?://[^\\s\"}]+','[URL]',piece)
+                  clean=re.sub(r'\\s+',' ',clean).strip()
+                  if clean and clean not in candidates:
+                      candidates.append(clean[:500])
+              if len(candidates)>=12: break
+          print('safe_error_excerpt=',json.dumps(candidates))
+          PY
+      - name: Remove diagnostic workflow
+        if: always()
+        run: |
+          rm .github/workflows/one-shot-inspect-cloudflare-build.yml
+          git config user.name "Rivexis Maintenance"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove Cloudflare build diagnostic workflow" || exit 0
+          git push origin HEAD:main
