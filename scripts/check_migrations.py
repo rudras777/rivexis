@@ -76,6 +76,7 @@ required_supabase_sources = {
     "013_edge_alert_delivery_scheduler.sql",
     "014_alert_dispatcher_extensions_usage.sql",
     "015_alert_dispatcher_object_grants.sql",
+    "016_restrict_alert_requeue.sql",
 }
 actual_supabase_sources = {path.name for path in SUPABASE_INFRA.glob("*.sql")}
 missing_supabase_sources = required_supabase_sources - actual_supabase_sources
@@ -98,8 +99,14 @@ assert "create role rivexis_migrator" in migrator_bootstrap
 assert "nologin" in migrator_bootstrap
 assert "nobypassrls" in migrator_bootstrap
 
+requeue_hardening = (SUPABASE_INFRA / "016_restrict_alert_requeue.sql").read_text().lower()
+assert "delivery_status in ('retry','dead_letter')" in requeue_hardening
+assert "only failed alert deliveries can be requeued" in requeue_hardening
+assert "delivery_status='pending'" in requeue_hardening
+
 print(
     "Alembic/schema parity: PASS "
     "(53/53 blueprint tables + 2 runtime-control tables + auth security state; clean downgrade); "
-    "Supabase infrastructure sources: PASS (001-015 present; migrator bootstrap is credential-free)"
+    "Supabase infrastructure sources: PASS (001-016 present; migrator bootstrap is credential-free; "
+    "delivered alerts cannot be manually requeued)"
 )
