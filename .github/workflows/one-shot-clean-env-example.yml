@@ -1,0 +1,48 @@
+name: one-shot-clean-env-example
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/one-shot-clean-env-example.yml
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove the duplicate certification-chain assignment exactly once
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('.env.example')
+          text=path.read_text()
+          old='''# Protocol-adapter staging certification (non-secret target addresses/IDs)\nRIVEXIS_REQUIRE_PROTOCOL_ADAPTER_CERTIFICATION=false\nRIVEXIS_CERTIFICATION_CHAIN=ethereum\nRIVEXIS_CERT_AT_BLOCK=\n'''
+          new='''# Protocol-adapter staging certification (non-secret target addresses/IDs)\n# Reuses RIVEXIS_CERTIFICATION_CHAIN from the staging-certification section above.\nRIVEXIS_REQUIRE_PROTOCOL_ADAPTER_CERTIFICATION=false\nRIVEXIS_CERT_AT_BLOCK=\n'''
+          if text.count(old)!=1:
+              raise SystemExit(f'expected exactly one duplicate certification-chain block, found {text.count(old)}')
+          path.write_text(text.replace(old,new,1))
+          active=[]
+          for raw in path.read_text().splitlines():
+              line=raw.strip()
+              if not line or line.startswith('#') or '=' not in line:
+                  continue
+              active.append(line.split('=',1)[0])
+          duplicates=sorted({key for key in active if active.count(key)>1})
+          if duplicates:
+              raise SystemExit(f'duplicate active env keys remain: {duplicates}')
+          PY
+      - name: Commit cleanup and remove one-shot workflow
+        shell: bash
+        run: |
+          rm .github/workflows/one-shot-clean-env-example.yml
+          git config user.name "Rivexis Maintenance"
+          git config user.email "actions@users.noreply.github.com"
+          git add .env.example .github/workflows/one-shot-clean-env-example.yml
+          git diff --cached --check
+          git commit -m "Remove duplicate environment example key"
+          git push origin HEAD:main
