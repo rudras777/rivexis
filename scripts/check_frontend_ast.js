@@ -63,6 +63,7 @@ const browserFiles = [
   "e2e/public-smoke.spec.ts",
   "e2e/accessibility.spec.ts",
   "e2e/security.spec.ts",
+  "e2e/organization-workspace-create.spec.ts",
 ];
 for (const rel of browserFiles) {
   if (!fs.existsSync(path.join(root, rel))) throw new Error(`missing browser certification file: ${rel}`);
