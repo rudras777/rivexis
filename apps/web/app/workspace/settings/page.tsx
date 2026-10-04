@@ -63,6 +63,7 @@ export default function Settings(){
 
   const ws=useQuery({queryKey:["workspace-settings"],queryFn:()=>api<{items:Workspace[]}>("/api/v1/workspaces"),retry:false});
   const orgs=useQuery({queryKey:["organizations"],queryFn:()=>api<{items:Org[]}>("/api/v1/organizations"),retry:false});
+  const runtimeCapabilities=useQuery({queryKey:["runtime-capabilities"],queryFn:()=>api<{capabilities?:{organization_workspace_create?:boolean}}>("/health"),retry:false});
 
   useEffect(()=>{
     const items=orgs.data?.items??[];
@@ -92,7 +93,8 @@ export default function Settings(){
 
   const memberRole=members.data?.member_role??selectedOrg?.member_role??"";
   const canAdmin=memberRole==="OWNER"||memberRole==="ADMIN";
-  const canCreateOrgWorkspace=memberRole==="OWNER"||memberRole==="ADMIN"||memberRole==="ANALYST";
+  const orgWorkspaceRuntimeReady=runtimeCapabilities.data?.capabilities?.organization_workspace_create===true;
+  const canCreateOrgWorkspace=orgWorkspaceRuntimeReady&&(memberRole==="OWNER"||memberRole==="ADMIN"||memberRole==="ANALYST");
   const roleChoices=memberRole==="OWNER"?ORG_ROLES:ORG_ROLES.filter(value=>value!=="OWNER");
 
   const makeWs=useMutation({
@@ -188,7 +190,8 @@ export default function Settings(){
 
     {selectedOrg?<section className="panel" data-testid="organization-workspace-create"><div className="panelHeading"><div><span className="workspaceKicker">Organization workspace</span><h2>Create {selectedOrg.name} workspace</h2><p className="sectionLead">This workspace is governed by current organization membership. Creator lineage never overrides a later role downgrade or membership removal.</p></div><span className="badge">{memberRole||selectedOrg.member_role}</span></div>
       <div style={{display:"grid",gridTemplateColumns:"2fr 1fr auto",gap:12,alignItems:"end"}}><label className="field">Organization workspace name<input aria-label="Organization workspace name" value={orgWorkspaceName} onChange={e=>setOrgWorkspaceName(e.target.value)}/></label><label className="field">Context<select aria-label="Organization workspace context" value={orgWorkspaceRole} onChange={e=>setOrgWorkspaceRole(e.target.value)}><option>Individual</option><option>Fund</option><option>Treasury</option><option>Analyst</option></select></label><button className="button" type="button" disabled={!canCreateOrgWorkspace||makeOrgWs.isPending||orgWorkspaceName.trim().length<2} onClick={()=>makeOrgWs.mutate()}>{makeOrgWs.isPending?"Creating…":"Create organization workspace"}</button></div>
-      {!canCreateOrgWorkspace?<p className="sectionLead">VIEWER membership is read-only. Ask an organization owner or administrator to grant ANALYST or higher access before creating a workspace.</p>:null}
+      {!orgWorkspaceRuntimeReady?<p className="sectionLead" role="status">Organization workspace creation is locked until the production Edge runtime advertises the required capability. No fallback to a personal workspace is permitted.</p>:null}
+      {orgWorkspaceRuntimeReady&&!canCreateOrgWorkspace?<p className="sectionLead">VIEWER membership is read-only. Ask an organization owner or administrator to grant ANALYST or higher access before creating a workspace.</p>:null}
       {makeOrgWs.isSuccess?<p role="status">Created <b>{makeOrgWs.data.name}</b> inside <b>{selectedOrg.name}</b> with {makeOrgWs.data.access_role} access and made it active.</p>:null}
       {makeOrgWs.isError?<p className="error" role="alert">{makeOrgWs.error instanceof ApiError&&makeOrgWs.error.status===403?"Your current organization role does not permit workspace creation.":"Rivexis could not create the organization workspace safely. Review the input and retry."}</p>:null}
     </section>:null}

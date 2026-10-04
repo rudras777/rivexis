@@ -492,7 +492,7 @@ Deno.serve(async(req:Request)=>{
   const position=url.pathname.indexOf(marker);
   const path=position>=0?url.pathname.slice(position+marker.length)||"/":url.pathname;
   try{
-    if(path==="/health")return json(req,{status:"ready",service:"rivexis-api",runtime:"supabase-edge",api_version:"v1",environment:"production"});
+    if(path==="/health")return json(req,{status:"ready",service:"rivexis-api",runtime:"supabase-edge",api_version:"v1",environment:"production",capabilities:{organization_workspace_create:true}});
     if(path.startsWith("/api/v1/auth/web/login")||path.startsWith("/api/v1/auth/web/signup")||path.startsWith("/api/v1/auth/email-verification/")||path.startsWith("/api/v1/auth/password-reset/"))return await handleAuth(req,path);
     const auth=await authenticate(req);
     if(!auth)return error(req,401,"Authentication required",clearCookie());

@@ -7,7 +7,7 @@ const corsHeaders={
 
 test("organization workspace creation is explicitly scoped to the selected writable organization",async({page})=>{
   let posted:Record<string,unknown>|null=null;
-  await page.route("**/health",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({status:"ready"})}));
+  await page.route("**/health",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({status:"ready",capabilities:{organization_workspace_create:true}})}));
   await page.route("**/api/v1/auth/web/csrf",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({csrf_token:"org-workspace-csrf"})}));
   await page.route("**/api/v1/workspaces",async route=>{
     if(route.request().method()==="POST"){
@@ -32,7 +32,7 @@ test("organization workspace creation is explicitly scoped to the selected writa
 });
 
 test("viewer organization membership cannot create a workspace",async({page})=>{
-  await page.route("**/health",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({status:"ready"})}));
+  await page.route("**/health",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({status:"ready",capabilities:{organization_workspace_create:true}})}));
   await page.route("**/api/v1/workspaces",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[]})}));
   await page.route("**/api/v1/organizations",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[{id:"org-view",name:"Read Only Council",member_role:"VIEWER",created_at:"2026-10-04T14:00:00Z"}]})}));
   await page.route("**/api/v1/organizations/org-view/members",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({member_role:"VIEWER",items:[]})}));
