@@ -13,7 +13,7 @@ from sqlalchemy import text
 
 from rivexis_api.services.db import engine
 
-EXPECTED_ALEMBIC_HEAD = "0016_supabase_network_hardening"
+EXPECTED_ALEMBIC_HEAD = "0017_function_default_privileges"
 EXPECTED_APPLICATION_TABLES = 56
 
 
@@ -186,13 +186,44 @@ def main() -> int:
                 ),
                 0,
             )
+            _assert_equal(
+                "function default-ACL rows for migration role",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_default_acl d
+                    WHERE d.defaclrole = (SELECT oid FROM pg_roles WHERE rolname=current_user)
+                      AND d.defaclnamespace = 'public'::regnamespace
+                      AND d.defaclobjtype = 'f'
+                    """,
+                ),
+                1,
+            )
+            _assert_equal(
+                "PUBLIC execute grants in function default ACL",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_default_acl d
+                    CROSS JOIN LATERAL aclexplode(d.defaclacl) a
+                    WHERE d.defaclrole = (SELECT oid FROM pg_roles WHERE rolname=current_user)
+                      AND d.defaclnamespace = 'public'::regnamespace
+                      AND d.defaclobjtype = 'f'
+                      AND a.grantee = 0
+                      AND a.privilege_type = 'EXECUTE'
+                    """,
+                ),
+                0,
+            )
 
         print(
             "PostgreSQL migrated-schema verification: PASS "
             f"(head={EXPECTED_ALEMBIC_HEAD}; tables={EXPECTED_APPLICATION_TABLES}; "
             "FK indexes covered; dual-mode authenticated organization bootstrap certified; "
             "auth-state FORCE RLS/service policy certified; redundant indexes absent; "
-            "RLS lookup rewrite present)"
+            "RLS lookup rewrite present; future functions fail closed by default)"
         )
         return 0
     except Exception as exc:  # noqa: BLE001 - certification converts every failure into an explicit gate
