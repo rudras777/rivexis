@@ -28,6 +28,12 @@ async function bridge(action:string,userId:string,payload:Json={}):Promise<any>{
   return data;
 }
 
+async function organizationWorkspaceBridge(userId:string,payload:Json={}):Promise<any>{
+  const {data,error}=await admin.rpc("rivexis_edge_create_organization_workspace",{p_actor_user_id:userId,p_payload:payload});
+  if(error)throw new Error(error.message);
+  return data;
+}
+
 async function savedBridge(action:string,userId:string,payload:Json={}):Promise<any>{
   const {data,error}=await admin.rpc("rivexis_edge_saved_analysis",{p_action:action,p_actor_user_id:userId,p_payload:payload});
   if(error)throw new Error(error.message);
@@ -283,8 +289,21 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   if(path==="/api/v1/workspaces"&&method==="GET")return json(req,{items:await allWorkspaces(auth.user.id)},200,auth.cookie);
   if(path==="/api/v1/workspaces"&&method==="POST"){
     const input=await body(req);const name=typeof input.name==="string"?input.name.trim():"";const workspaceRole=parseRole(input.role);
+    const organizationId=typeof input.organization_id==="string"?input.organization_id.trim():"";
     if(name.length<2||!workspaceRole)return error(req,422,"Workspace name and valid role are required",auth.cookie);
-    return json(req,await bridge("create_workspace",auth.user.id,{name,role:workspaceRole}),200,auth.cookie);
+    if(organizationId&&organizationId.length!==36)return error(req,422,"Organization ID is invalid",auth.cookie);
+    try{
+      const created=organizationId
+        ?await organizationWorkspaceBridge(auth.user.id,{name,role:workspaceRole,organization_id:organizationId})
+        :await bridge("create_workspace",auth.user.id,{name,role:workspaceRole});
+      return json(req,created,200,auth.cookie);
+    }catch(cause){
+      const detail=cause instanceof Error?cause.message:"Workspace creation failed";
+      const normalized=detail.toLowerCase();
+      if(normalized.includes("organization write access required")||normalized.includes("organization not found or access denied"))return error(req,403,"Organization write access required",auth.cookie);
+      if(normalized.includes("workspace name")||normalized.includes("invalid role")||normalized.includes("organization is required"))return error(req,422,"Workspace name, role, or organization is invalid",auth.cookie);
+      return error(req,500,"Rivexis could not create the workspace safely",auth.cookie);
+    }
   }
   if(path==="/api/v1/organizations"&&method==="GET"){
     return json(req,await bridge("list_organizations",auth.user.id),200,auth.cookie);
