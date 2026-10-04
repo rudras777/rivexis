@@ -51,6 +51,8 @@ export default function Settings(){
   const [name,setName]=useState("Institutional Workspace");
   const [role,setRole]=useState("Analyst");
   const [orgName,setOrgName]=useState("Rivexis Organization");
+  const [orgWorkspaceName,setOrgWorkspaceName]=useState("Organization Workspace");
+  const [orgWorkspaceRole,setOrgWorkspaceRole]=useState("Analyst");
   const [selectedOrgId,setSelectedOrgId]=useState("");
   const [roleDrafts,setRoleDrafts]=useState<Record<string,string>>({});
   const [claimToken,setClaimToken]=useState("");
@@ -90,10 +92,22 @@ export default function Settings(){
 
   const memberRole=members.data?.member_role??selectedOrg?.member_role??"";
   const canAdmin=memberRole==="OWNER"||memberRole==="ADMIN";
+  const canCreateOrgWorkspace=memberRole==="OWNER"||memberRole==="ADMIN"||memberRole==="ANALYST";
   const roleChoices=memberRole==="OWNER"?ORG_ROLES:ORG_ROLES.filter(value=>value!=="OWNER");
 
   const makeWs=useMutation({
     mutationFn:()=>api<Workspace>("/api/v1/workspaces",{method:"POST",body:JSON.stringify({name:name.trim(),role})}),
+    onSuccess:r=>{
+      qc.setQueryData<{items:Workspace[]}>(["workspace-settings"],old=>({items:[...(old?.items??[]).filter(w=>w.id!==r.id),r]}));
+      qc.setQueryData<{items:Workspace[]}>(["workspaces-shell"],old=>({items:[...(old?.items??[]).filter(w=>w.id!==r.id),r]}));
+      switchWorkspace(r.id);
+      void qc.invalidateQueries({queryKey:["workspace-settings"]});
+      void qc.invalidateQueries({queryKey:["workspaces-shell"]});
+    }
+  });
+
+  const makeOrgWs=useMutation({
+    mutationFn:()=>api<Workspace>("/api/v1/workspaces",{method:"POST",body:JSON.stringify({name:orgWorkspaceName.trim(),role:orgWorkspaceRole,organization_id:selectedOrgId})}),
     onSuccess:r=>{
       qc.setQueryData<{items:Workspace[]}>(["workspace-settings"],old=>({items:[...(old?.items??[]).filter(w=>w.id!==r.id),r]}));
       qc.setQueryData<{items:Workspace[]}>(["workspaces-shell"],old=>({items:[...(old?.items??[]).filter(w=>w.id!==r.id),r]}));
@@ -171,6 +185,13 @@ export default function Settings(){
       <div style={{display:"flex",gap:12,marginTop:16,alignItems:"end",flexWrap:"wrap"}}><label className="field" style={{flex:"1 1 260px"}}>Organization name<input value={orgName} onChange={e=>setOrgName(e.target.value)}/></label><button className="button" type="button" disabled={makeOrg.isPending||orgName.trim().length<2} onClick={()=>makeOrg.mutate()}>{makeOrg.isPending?"Creating…":"Create organization"}</button></div>
       {makeOrg.isSuccess?<p role="status">Created <b>{makeOrg.data.name}</b>. Your membership role is {makeOrg.data.member_role}.</p>:null}{makeOrg.isError?<p className="error" role="alert">Rivexis could not create the organization. Review the input and retry.</p>:null}
     </section>
+
+    {selectedOrg?<section className="panel" data-testid="organization-workspace-create"><div className="panelHeading"><div><span className="workspaceKicker">Organization workspace</span><h2>Create {selectedOrg.name} workspace</h2><p className="sectionLead">This workspace is governed by current organization membership. Creator lineage never overrides a later role downgrade or membership removal.</p></div><span className="badge">{memberRole||selectedOrg.member_role}</span></div>
+      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr auto",gap:12,alignItems:"end"}}><label className="field">Organization workspace name<input aria-label="Organization workspace name" value={orgWorkspaceName} onChange={e=>setOrgWorkspaceName(e.target.value)}/></label><label className="field">Context<select aria-label="Organization workspace context" value={orgWorkspaceRole} onChange={e=>setOrgWorkspaceRole(e.target.value)}><option>Individual</option><option>Fund</option><option>Treasury</option><option>Analyst</option></select></label><button className="button" type="button" disabled={!canCreateOrgWorkspace||makeOrgWs.isPending||orgWorkspaceName.trim().length<2} onClick={()=>makeOrgWs.mutate()}>{makeOrgWs.isPending?"Creating…":"Create organization workspace"}</button></div>
+      {!canCreateOrgWorkspace?<p className="sectionLead">VIEWER membership is read-only. Ask an organization owner or administrator to grant ANALYST or higher access before creating a workspace.</p>:null}
+      {makeOrgWs.isSuccess?<p role="status">Created <b>{makeOrgWs.data.name}</b> inside <b>{selectedOrg.name}</b> with {makeOrgWs.data.access_role} access and made it active.</p>:null}
+      {makeOrgWs.isError?<p className="error" role="alert">{makeOrgWs.error instanceof ApiError&&makeOrgWs.error.status===403?"Your current organization role does not permit workspace creation.":"Rivexis could not create the organization workspace safely. Review the input and retry."}</p>:null}
+    </section>:null}
 
     {selectedOrg?<section className="panel" data-testid="organization-member-admin"><div className="panelHeading"><div><span className="workspaceKicker">Authenticated membership</span><h2>{selectedOrg.name} members</h2><p className="sectionLead">Existing members can have roles changed by authorized organization administrators. New members are accepted only from short-lived claims generated by the target authenticated account.</p></div><span className="stepLabel">{selectedOrg.id}</span></div>
       {members.isPending?<p>Loading organization members…</p>:null}
