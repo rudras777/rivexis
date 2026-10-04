@@ -13,7 +13,7 @@ from sqlalchemy import text
 
 from rivexis_api.services.db import engine
 
-EXPECTED_ALEMBIC_HEAD = "0014_organization_rls_bootstrap"
+EXPECTED_ALEMBIC_HEAD = "0015_authenticated_org_bootstrap"
 EXPECTED_APPLICATION_TABLES = 56
 
 
@@ -134,6 +134,9 @@ def main() -> int:
                       AND tablename='organizations'
                       AND policyname='rivexis_organization_bootstrap_insert'
                       AND cmd='INSERT'
+                      AND position('IS NULL' in coalesce(with_check,'')) > 0
+                      AND position('OWNER' in coalesce(with_check,'')) > 0
+                      AND position('rivexis.user_id' in coalesce(with_check,'')) > 0
                     """,
                 ),
                 1,
@@ -187,7 +190,7 @@ def main() -> int:
         print(
             "PostgreSQL migrated-schema verification: PASS "
             f"(head={EXPECTED_ALEMBIC_HEAD}; tables={EXPECTED_APPLICATION_TABLES}; "
-            "FK indexes covered; organization bootstrap/RLS certified; "
+            "FK indexes covered; dual-mode authenticated organization bootstrap certified; "
             "auth-state FORCE RLS/service policy certified; redundant indexes absent; "
             "RLS lookup rewrite present)"
         )
