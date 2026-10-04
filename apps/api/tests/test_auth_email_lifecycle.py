@@ -4,6 +4,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from rivexis_api.services import auth_email
 from rivexis_api.services.auth_rate_limit import reset_auth_rate_limit_for_tests
+from rivexis_api.services.db import SessionLocal
 from rivexis_api.services.transactional_email import EmailAcceptance, EmailDeliveryError
 
 
@@ -163,3 +164,61 @@ def test_password_reset_request_does_not_disclose_account_existence(client, monk
     assert existing.status_code == 202
     assert missing.status_code == 202
     assert existing.json() == missing.json() == {"status": "accepted"}
+
+
+def test_legacy_user_is_verified_only_after_valid_password_reset_token_is_consumed(client, monkeypatch):
+    reset_auth_rate_limit_for_tests()
+    monkeypatch.delenv("RIVEXIS_EMAIL_VERIFICATION_REQUIRED", raising=False)
+    monkeypatch.setenv("RIVEXIS_PUBLIC_WEB_URL", "https://rivexis.example")
+
+    signup = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "legacy-reset@example.com", "password": "old-password-123", "role": "Analyst"},
+    )
+    assert signup.status_code == 200
+    user = auth_email.get_user("legacy-reset@example.com")
+    assert user is not None
+
+    # Simulate an account created before user_auth_state existed.
+    with SessionLocal() as db:
+        state = db.get(auth_email.UserAuthStateRow, user.id)
+        assert state is not None
+        db.delete(state)
+        db.commit()
+
+    monkeypatch.setenv("RIVEXIS_EMAIL_VERIFICATION_REQUIRED", "true")
+    captured: dict[str, str] = {}
+
+    def fake_send(**kwargs):
+        reset_url = kwargs["params"]["reset_url"]
+        captured["token"] = parse_qs(urlsplit(reset_url).query)["token"][0]
+        return _accepted()
+
+    monkeypatch.setattr(auth_email, "send_template_email", fake_send)
+    requested = client.post("/api/v1/auth/password-reset/request", json={"email": "legacy-reset@example.com"})
+    assert requested.status_code == 202
+    assert captured["token"]
+
+    with SessionLocal() as db:
+        state = db.get(auth_email.UserAuthStateRow, user.id)
+        assert state is not None
+        assert state.email_verified_at is None
+        assert state.password_reset_token_digest is not None
+
+    blocked = client.post(
+        "/api/v1/auth/login",
+        json={"email": "legacy-reset@example.com", "password": "old-password-123"},
+    )
+    assert blocked.status_code == 403
+
+    confirmed = client.post(
+        "/api/v1/auth/password-reset/confirm",
+        json={"token": captured["token"], "password": "new-password-456"},
+    )
+    assert confirmed.status_code == 200
+
+    with SessionLocal() as db:
+        state = db.get(auth_email.UserAuthStateRow, user.id)
+        assert state is not None
+        assert state.email_verified_at is not None
+        assert state.password_reset_token_digest is None

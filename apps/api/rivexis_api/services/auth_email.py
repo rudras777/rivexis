@@ -235,7 +235,10 @@ def issue_password_reset_email(user: UserRow) -> EmailAcceptance:
     with SessionLocal() as db:
         row = db.get(UserAuthStateRow, user.id)
         if row is None:
-            row = UserAuthStateRow(user_id=user.id, email_verified_at=now())
+            # Creating a reset challenge is not proof of mailbox ownership. Legacy
+            # users without auth state remain unverified until the reset token is
+            # actually consumed successfully.
+            row = UserAuthStateRow(user_id=user.id)
             db.add(row)
         row.password_reset_token_digest = token_digest
         row.password_reset_expires_at = expires_at
@@ -289,6 +292,9 @@ def consume_password_reset_token(raw_token: str, new_password_hash: str) -> User
             return None
         user.password_hash = new_password_hash
         user.token_version = int(user.token_version or 0) + 1
+        if row.email_verified_at is None:
+            # A successfully consumed reset token proves control of the mailbox.
+            row.email_verified_at = current
         row.password_reset_token_digest = None
         row.password_reset_expires_at = None
         row.updated_at = current
