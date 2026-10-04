@@ -1,0 +1,102 @@
+name: edge-role-hardening-one-shot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/edge-role-hardening.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-self-delete:
+    if: github.event.head_commit.message == 'Apply one-shot Edge role hardening'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Apply exact Edge role contract hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          index = Path('supabase/functions/rivexis-api/index.ts')
+          text = index.read_text()
+
+          replacements = [
+              (
+                  'import {createMembershipClaimToken,hashMembershipClaimToken} from "./membership.mjs";\n',
+                  'import {createMembershipClaimToken,hashMembershipClaimToken} from "./membership.mjs";\nimport {parseRole,roleOrDefault} from "./role.mjs";\n',
+              ),
+              ('const ROLES=new Set(["Individual","Fund","Treasury","Analyst"]);\n', ''),
+              ('function role(value:unknown){return typeof value==="string"&&ROLES.has(value)?value:"Individual"}\n', ''),
+              (
+                  'return await bridge("ensure_user",user.id,{email:(user.email??"").toLowerCase(),role:role(user.user_metadata?.role)}) as Json;',
+                  'return await bridge("ensure_user",user.id,{email:(user.email??"").toLowerCase(),role:roleOrDefault(user.user_metadata?.role)}) as Json;',
+              ),
+              (
+                  'const userRole=role(input.role);\n    if(!email||password.length<8)return error(req,422,"Check your email, password, and role, then try again");',
+                  'const userRole=parseRole(input.role);\n    if(!email||password.length<8||!userRole)return error(req,422,"Check your email, password, and role, then try again");',
+              ),
+              (
+                  'const input=await body(req);const nextRole=role(input.role);\n    return json(req,await bridge("update_role",auth.user.id,{role:nextRole}),200,auth.cookie);',
+                  'const input=await body(req);const nextRole=parseRole(input.role);\n    if(!nextRole)return error(req,422,"Invalid role",auth.cookie);\n    return json(req,await bridge("update_role",auth.user.id,{role:nextRole}),200,auth.cookie);',
+              ),
+              (
+                  'const input=await body(req);const name=typeof input.name==="string"?input.name.trim():"";const workspaceRole=role(input.role);\n    if(name.length<2)return error(req,422,"Workspace name is required",auth.cookie);',
+                  'const input=await body(req);const name=typeof input.name==="string"?input.name.trim():"";const workspaceRole=parseRole(input.role);\n    if(name.length<2||!workspaceRole)return error(req,422,"Workspace name and valid role are required",auth.cookie);',
+              ),
+          ]
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected exactly one Edge source match, found {count}: {old[:90]!r}')
+              text = text.replace(old, new, 1)
+          index.write_text(text)
+
+          role = Path('supabase/functions/rivexis-api/role.mjs')
+          role.write_text('''export const RIVEXIS_ROLES=Object.freeze(["Individual","Fund","Treasury","Analyst"]);\nconst ROLE_SET=new Set(RIVEXIS_ROLES);\n\nexport function parseRole(value){\n  return typeof value==="string"&&ROLE_SET.has(value)?value:null;\n}\n\nexport function roleOrDefault(value,fallback="Individual"){\n  return parseRole(value)??fallback;\n}\n''')
+
+          test = Path('supabase/functions/rivexis-api/role.test.mjs')
+          test.write_text('''import test from "node:test";\nimport assert from "node:assert/strict";\nimport {parseRole,roleOrDefault,RIVEXIS_ROLES} from "./role.mjs";\n\ntest("accepts only the four public Rivexis roles",()=>{\n  assert.deepEqual(RIVEXIS_ROLES,["Individual","Fund","Treasury","Analyst"]);\n  for(const value of RIVEXIS_ROLES)assert.equal(parseRole(value),value);\n});\n\ntest("rejects malformed or unknown roles instead of silently downgrading",()=>{\n  for(const value of [undefined,null,"","individual","OWNER","Admin",42,{},[]])assert.equal(parseRole(value),null);\n});\n\ntest("legacy metadata may still receive an explicit safe default",()=>{\n  assert.equal(roleOrDefault(undefined),"Individual");\n  assert.equal(roleOrDefault("Analyst"),"Analyst");\n});\n''')
+
+          package = Path('package.json')
+          data = json.loads(package.read_text())
+          data['scripts']['test:api-edge'] = (
+              'node --test '
+              'supabase/functions/rivexis-api/analysis.test.mjs '
+              'supabase/functions/rivexis-api/decision-report.test.mjs '
+              'supabase/functions/rivexis-api/membership.test.mjs '
+              'supabase/functions/rivexis-api/role.test.mjs '
+              'supabase/functions/rivexis-alert-dispatch/delivery.test.mjs'
+          )
+          package.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: Test hardened Edge contract
+        run: |
+          npm ci
+          npm run test:api-edge
+          npm run typecheck:api-edge
+          git diff --check
+          grep -F 'if(!nextRole)return error(req,422,"Invalid role"' supabase/functions/rivexis-api/index.ts
+          grep -F 'if(name.length<2||!workspaceRole)' supabase/functions/rivexis-api/index.ts
+      - name: Commit tested patch and remove maintenance workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/edge-role-hardening.yml
+          git config user.name "Rivexis CI Maintenance"
+          git config user.email "actions@users.noreply.github.com"
+          git add package.json supabase/functions/rivexis-api/index.ts supabase/functions/rivexis-api/role.mjs supabase/functions/rivexis-api/role.test.mjs .github/workflows/edge-role-hardening.yml
+          git commit -m "Harden Edge role validation and test coverage"
+          git push origin HEAD:main
