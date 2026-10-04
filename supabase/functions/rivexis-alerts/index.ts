@@ -76,6 +76,7 @@ function bridgeFailure(req:Request,cause:unknown,cookie?:string){
   if(normalized.includes("write access required"))return error(req,403,"Workspace write access required",cookie);
   if(normalized.includes("workspace not found")||normalized.includes("alert not found"))return error(req,404,"Alert or workspace not found",cookie);
   if(normalized.includes("invalid alert status"))return error(req,422,"Invalid alert status",cookie);
+  if(normalized.includes("only failed alert deliveries can be requeued"))return error(req,409,"Only failed alert deliveries can be requeued",cookie);
   return error(req,500,"Rivexis could not complete the alert request safely",cookie);
 }
 
