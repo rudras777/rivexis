@@ -5,11 +5,12 @@ import "./signature-ui.css";
 import "./royal-obsidian.css";
 import "./royal-graphite.css";
 import "./royal-finish.css";
+import "./production-fixes.css";
 import {Providers} from "@/components/Providers";
 import {ServiceAvailability} from "@/components/ServiceAvailability";
 
 export const metadata:Metadata={
-  title:"Rivexis — Institutional Blockchain Risk Intelligence",
+  title:{default:"Rivexis — Institutional Blockchain Risk Intelligence",template:"%s | Rivexis"},
   description:"Evidence-driven blockchain intelligence and crypto-finance risk decision infrastructure.",
   metadataBase:new URL("https://rivexis-web.rudrasingh0718.workers.dev"),
   icons:{
