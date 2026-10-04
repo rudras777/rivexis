@@ -187,14 +187,14 @@ def main() -> int:
                 0,
             )
             _assert_equal(
-                "function default-ACL rows for migration role",
+                "global function default-ACL rows for migration role",
                 _scalar(
                     connection,
                     """
                     SELECT count(*)
                     FROM pg_default_acl d
                     WHERE d.defaclrole = (SELECT oid FROM pg_roles WHERE rolname=current_user)
-                      AND d.defaclnamespace = 'public'::regnamespace
+                      AND d.defaclnamespace = 0
                       AND d.defaclobjtype = 'f'
                     """,
                 ),
@@ -209,7 +209,7 @@ def main() -> int:
                     FROM pg_default_acl d
                     CROSS JOIN LATERAL aclexplode(d.defaclacl) a
                     WHERE d.defaclrole = (SELECT oid FROM pg_roles WHERE rolname=current_user)
-                      AND d.defaclnamespace = 'public'::regnamespace
+                      AND d.defaclnamespace = 0
                       AND d.defaclobjtype = 'f'
                       AND a.grantee = 0
                       AND a.privilege_type = 'EXECUTE'
