@@ -80,6 +80,7 @@ required_supabase_sources = {
     "017_alert_dispatch_org_owner_recipient.sql",
     "018_edge_org_workspace_create.sql",
     "019_fix_org_workspace_membership_rls_context.sql",
+    "020_alert_dispatch_org_workspace_grants.sql",
 }
 actual_supabase_sources = {path.name for path in SUPABASE_INFRA.glob("*.sql")}
 missing_supabase_sources = required_supabase_sources - actual_supabase_sources
@@ -127,10 +128,19 @@ assert user_context_index < membership_lookup_index, (
     "Organization workspace membership lookup must run after the actor RLS context is established"
 )
 
+dispatch_org_grants = (SUPABASE_INFRA / "020_alert_dispatch_org_workspace_grants.sql").read_text().lower()
+assert "set local role rivexis_migrator" in dispatch_org_grants
+assert "grant select(organization_id)" in dispatch_org_grants
+assert "on table public.workspaces" in dispatch_org_grants
+assert "grant select(organization_id,user_id,role,created_at)" in dispatch_org_grants
+assert "on table public.organization_members" in dispatch_org_grants
+assert "to rivexis_alert_dispatcher" in dispatch_org_grants
+
 print(
     "Alembic/schema parity: PASS "
     "(53/53 blueprint tables + 2 runtime-control tables + auth security state; clean downgrade); "
-    "Supabase infrastructure sources: PASS (001-019 present; credential-free bootstrap; "
+    "Supabase infrastructure sources: PASS (001-020 present; credential-free bootstrap; "
     "delivered alerts cannot be manually requeued; organization alerts resolve to an OWNER recipient; "
-    "organization workspace creation is membership-bound and service-role-only)"
+    "organization workspace creation is membership-bound and service-role-only; "
+    "organization-aware dispatcher lookup grants are least-privilege and owner-applied)"
 )
