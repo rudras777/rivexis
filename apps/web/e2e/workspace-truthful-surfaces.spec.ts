@@ -37,7 +37,7 @@ test.describe("truthful workspace foundations",()=>{
     await expect(page.getByRole("heading",{name:"Product metadata"})).toBeVisible();
     await expect(page.getByText("They are not live activity totals for Alpha Desk.")).toBeVisible();
     await expect(page.getByTestId("workspace-dashboard-activity")).toContainText("B2");
-    await expect(page.getByTestId("workspace-dashboard-activity")).toContainText("Connected/direct");
+    await expect(page.getByTestId("workspace-dashboard-activity")).toContainText("Non-demo request");
 
     await workspaceSelector(page).selectOption("w-beta");
     await expect(page.getByTestId("workspace-dashboard-activity")).toContainText("decision");
