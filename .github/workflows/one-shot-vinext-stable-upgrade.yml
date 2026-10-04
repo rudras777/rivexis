@@ -1,0 +1,74 @@
+name: one-shot-vinext-stable-upgrade
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/one-shot-vinext-stable-upgrade.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rivexis-vinext-stable-upgrade
+  cancel-in-progress: false
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install stable Vinext toolchain in the working tree
+        run: npm install --workspace @rivexis/web --save-exact vinext@1.0.0 @vinext/cloudflare@latest
+      - name: Report resolved toolchain
+        run: npm ls vinext @vinext/cloudflare vite-plugin-dynamic-import vite-plugin-commonjs fast-glob braces || true
+      - name: Require no high or critical npm advisory
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm audit --json > /tmp/audit.json || true
+          node - <<'NODE'
+          const fs=require('fs');
+          const report=JSON.parse(fs.readFileSync('/tmp/audit.json','utf8'));
+          const severe=Object.entries(report.vulnerabilities||{}).filter(([,v])=>v?.severity==='high'||v?.severity==='critical');
+          if(severe.length){
+            console.error('Stable upgrade still has high/critical advisories:', severe.map(([name,v])=>`${name}:${v.severity}`).join(', '));
+            process.exit(1);
+          }
+          console.log('Stable upgrade npm audit: PASS (no high/critical vulnerabilities)');
+          NODE
+      - name: Edge typecheck and tests
+        run: |
+          npm run typecheck:api-edge
+          npm run test:api-edge
+      - name: Web static checks
+        run: |
+          npm run lint:web
+          npm run typecheck:web
+      - name: Build both web paths
+        run: |
+          npm run build:web
+          npm --workspace @rivexis/web run build:vinext
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Full browser regression suite
+        run: npm run test:e2e
+      - name: Cloudflare Worker dry run
+        working-directory: apps/web
+        run: npx wrangler deploy --config dist/server/wrangler.json --dry-run
+      - name: Commit only after the complete gate passes
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/one-shot-vinext-stable-upgrade.yml
+          git config user.name "Rivexis Maintenance"
+          git config user.email "actions@users.noreply.github.com"
+          git add apps/web/package.json package-lock.json .github/workflows/one-shot-vinext-stable-upgrade.yml
+          git diff --cached --check
+          git commit -m "Upgrade Rivexis to stable Vinext toolchain"
+          git push origin HEAD:main
