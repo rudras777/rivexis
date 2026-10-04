@@ -84,6 +84,7 @@ required_supabase_sources = {
     "021_lock_org_workspace_rpc_execution.sql",
     "022_explicit_deny_alert_delivery_runtime_rls.sql",
     "023_remove_unused_app_delete_privileges.sql",
+    "024_make_audit_and_provider_telemetry_append_only.sql",
 }
 actual_supabase_sources = {path.name for path in SUPABASE_INFRA.glob("*.sql")}
 missing_supabase_sources = required_supabase_sources - actual_supabase_sources
@@ -158,14 +159,20 @@ assert "set local role rivexis_migrator" in app_delete_reduction
 assert "revoke delete on table public.users from rivexis_app" in app_delete_reduction
 assert "revoke delete on table public.data_sources from rivexis_app" in app_delete_reduction
 
+append_only_evidence = (SUPABASE_INFRA / "024_make_audit_and_provider_telemetry_append_only.sql").read_text().lower()
+assert "set local role rivexis_migrator" in append_only_evidence
+assert "revoke update on table public.audit_logs from rivexis_app" in append_only_evidence
+assert "revoke update on table public.provider_requests from rivexis_app" in append_only_evidence
+
 print(
     "Alembic/schema parity: PASS "
     "(53/53 blueprint tables + 2 runtime-control tables + auth security state; clean downgrade); "
-    "Supabase infrastructure sources: PASS (001-023 present; credential-free bootstrap; "
+    "Supabase infrastructure sources: PASS (001-024 present; credential-free bootstrap; "
     "delivered alerts cannot be manually requeued; organization alerts resolve to an OWNER recipient; "
     "organization workspace creation is membership-bound and service-role-only; "
     "organization-aware dispatcher lookup grants are least-privilege and owner-applied; "
     "organization workspace SECURITY DEFINER execution is locked to service_role; "
     "alert delivery runtime has an explicit deny-all ordinary-role RLS policy; "
-    "unused destructive app privileges are revoked from global identity/provider metadata tables)"
+    "unused destructive app privileges are revoked from global identity/provider metadata tables; "
+    "audit/provider request evidence is append-only to normal runtime code)"
 )
