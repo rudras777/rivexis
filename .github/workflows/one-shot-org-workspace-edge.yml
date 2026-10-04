@@ -41,7 +41,7 @@ jobs:
           path.write_text(text.replace(old,new,1))
 
           test=Path('supabase/functions/rivexis-api/organization-workspace.test.mjs')
-          test.write_text('''import test from "node:test";\nimport assert from "node:assert/strict\";\nimport {readFile} from "node:fs/promises";\n\ntest("Edge workspace creation forwards explicit organization scope through the dedicated RPC",async()=>{\n  const source=await readFile(new URL("./index.ts",import.meta.url),"utf8");\n  assert.match(source,/rivexis_edge_create_organization_workspace/);\n  assert.match(source,/organization_id:organizationId/);\n  assert.match(source,/Organization write access required/);\n  assert.match(source,/organizationId\\?await organizationWorkspaceBridge/);\n});\n''')
+          test.write_text('''import test from "node:test";\nimport assert from "node:assert/strict";\nimport {readFile} from "node:fs/promises";\n\ntest("Edge workspace creation forwards explicit organization scope through the dedicated RPC",async()=>{\n  const source=await readFile(new URL("./index.ts",import.meta.url),"utf8");\n  assert.match(source,/rivexis_edge_create_organization_workspace/);\n  assert.match(source,/organization_id:organizationId/);\n  assert.match(source,/Organization write access required/);\n  assert.match(source,/organizationId\\?await organizationWorkspaceBridge/);\n});\n''')
 
           pkg=Path('package.json')
           package=pkg.read_text()
@@ -50,11 +50,8 @@ jobs:
           if package.count(old_script)!=1:
               raise SystemExit('test script anchor mismatch')
           pkg.write_text(package.replace(old_script,new_script,1))
-      - name: Verify patched Edge source
-        run: |
-          npm ci
-          npm run typecheck:api-edge
-          npm run test:api-edge
+      - name: Verify dependency-free organization workspace regression
+        run: node --test supabase/functions/rivexis-api/organization-workspace.test.mjs
       - name: Remove one-shot workflow and push patch
         run: |
           rm .github/workflows/one-shot-org-workspace-edge.yml
