@@ -1,109 +1,116 @@
 # Rivexis Current Build State
 
-Last updated: 2026-10-02
+Last updated: 2026-10-04
 
-This file is the authoritative compact continuation point for normal-chat execution. Always verify current `main`, current CI, Cloudflare build/deploy state and the live Worker before making claims. Never reset to an older snapshot.
+This is the authoritative compact continuation point for normal-chat execution. Always verify current `main`, current CI, Supabase runtime state, Cloudflare deployment state, and the live Worker before making production claims. Never reset to an older handoff or ZIP snapshot.
 
-## Current source and certification
+## Current source baseline
 
 - Repository: `rudras777/rivexis`; branch: `main`.
-- Runtime/deployment source immediately before this state-note commit: `c35e39f2c7f27a3094e9094b3a430e91743ff832` (`Make token-based deploy a manual fallback`).
-- Exact-head predecessor `ec1d2a08060f568d035333c5ec54317eb8d5f529` passed all CI gates in run `36978799270`.
-- Certified gates include Python API lint/tests/audit, Edge typecheck/tests, PostgreSQL migrations/runtime controls, invariants, migration checks, secret scan, web typecheck/build, Vinext build, `npm audit --audit-level=high`, Playwright browser tests and accessibility checks.
-- JavaScript security graph remains patched and locked: Next `16.3.8`, `@cloudflare/vite-plugin` `1.62.3`, Wrangler `4.145.0`, with the root Wrangler override retained.
-- CI runtime remains aligned on Node 24/npm 11.
+- Hardened source immediately before this state-note commit: `95920e1eb153fed2ed41d283fefbe0044ed90c3b` (`Harden Edge role validation and test coverage`).
+- The preceding fully certified application commit `0aa47be79370c13fae2b90a9da9b290279e70911` passed API tests/audit, PostgreSQL migration certification, invariants/secret scan, real frontend static validation, typechecks/builds, the scoped npm audit gate and full Playwright E2E.
+- The one-shot role-hardening workflow tested its exact Edge patch and self-deleted successfully. Because a `GITHUB_TOKEN` self-push does not trigger normal repository CI, this state-note commit intentionally creates a fresh ordinary `main` push so the complete `95920e1e...` tree and this note are re-certified through standard CI/Worker workflows.
 
-## Royal Graphite production source
+## Repairs completed on 2026-10-04
 
-The current source applies the Royal Graphite / Obsidian system across the shared public, authentication and authenticated shells:
+### Database / tenant security
 
-- obsidian black canvas with layered charcoal, graphite and gunmetal surfaces;
-- platinum, silver and pearl text/detail hierarchy;
-- restrained neutral metallic action treatment instead of electric-blue dominance;
-- technical grid/radial visual fields rather than blank-white surfaces;
-- official Rivexis wordmark, lockup and icon assets retained;
-- compact institutional controls instead of generic rounded AI/SaaS boxes;
-- dark authentication cards, inputs, tables, panels, evidence surfaces and navigation rail;
-- accessible contrast, visible focus states and reduced-motion support retained.
+- Organization RLS was split into explicit SELECT/UPDATE/DELETE policies plus one secure INSERT bootstrap policy.
+- Repeated `current_setting(...)` policy lookups were rewritten to cached scalar subqueries.
+- FORCE RLS and least-privilege runtime roles were preserved.
+- Both organization bootstrap paths were rollback-tested: the pre-scoped Supabase Edge path and the authenticated FastAPI path. No probe rows persisted.
+- The current organization bootstrap contract is source-controlled in Supabase migrations and Alembic and certified by PostgreSQL CI.
+- Anonymous/public roles have no CREATE privilege on the `public` schema; Rivexis SECURITY DEFINER bridge RPCs are not executable by `anon` or `authenticated`.
 
-## Functionality and scope hardening in current source
+### Authentication / email lifecycle
 
-- Public mobile navigation keeps Platform, product sections, login and workspace creation reachable on small screens.
-- Login, signup, forgot-password, verify-email and reset-password forms explicitly use POST semantics.
-- Saved analyses, history and Decision Desk async completions are scoped to their originating workspace so switching workspaces cannot leak stale completion state into another workspace.
-- Organization member role/update/remove/claim mutation results are scoped to the originating organization; stale success/error UI is not rendered under another organization.
-- Membership-claim organization input is frozen while claim generation is pending.
-- `organization-scope-switching.spec.ts` now includes regression coverage for role-draft isolation, stale completed mutation banners and claim-target locking while the request is pending.
-- Current source audit found no `href="#"` placeholder navigation, no TODO stubs and no null click handlers.
-- Existing authentication, CSRF, RLS, tenant isolation and evidence rules were not weakened.
+- Browser auth/recovery forms retain explicit POST semantics so passwords and verification/recovery values do not fall back into query strings.
+- FastAPI password-reset state no longer marks a user email as verified merely because a reset was requested. A legacy user remains unverified until a valid reset token is actually consumed.
+- A regression test covers the legacy-account reset edge case and session revocation behavior.
+- The live Supabase Edge runtime uses Supabase Auth as its browser identity authority; `email_confirmed_at` is the live verification source.
+- Supabase leaked-password protection remains disabled and requires an authenticated Supabase dashboard/configuration action to enable.
 
-## Backend production truth
+### Edge API contract / test coverage
 
-- Authoritative compatibility backend is Supabase Edge/PostgreSQL.
-- Public same-origin `/health` returns ready JSON for service `rivexis-api`, runtime `supabase-edge`, API version `v1`, environment `production`.
-- Supabase project is `ACTIVE_HEALTHY`.
-- Latest security-advisor review found no critical finding. Informational/advisory items included deny-by-default RLS information, `pg_net` in `public`, and leaked-password protection disabled. Do not move `pg_net` blindly because the certified scheduled dispatch path depends on it.
-- Existing alert scheduler/Brevo, decision-report, monitoring, organization, history and engine compatibility work remains preserved unless a newer source explicitly changes it.
+- Invalid public roles no longer silently coerce to `Individual` in source. Signup, user-role update and workspace creation reject malformed roles; legacy metadata may still receive an explicit safe `Individual` default.
+- `membership.test.mjs`, which existed but was previously omitted from the root Edge test command, is now included.
+- A dedicated role parser/test was added to enforce the four public roles: `Individual`, `Fund`, `Treasury`, `Analyst`.
+- The temporary write-capable one-shot maintenance workflow removed itself after applying and testing this patch.
 
-## Authoritative frontend truth
+### CI / dependency controls
+
+- The old Next 16 `next lint || tsc --noEmit` fallback was removed because it could pass without performing a real lint/static gate.
+- `lint:web` now executes the existing frontend AST validator and CI runs it separately from TypeScript typecheck.
+- The AST gate checks TS/TSX parse diagnostics, duplicate object-literal keys and presence of the browser certification harness.
+- The known unpatched `braces` High advisory reached through the Vinext/Cloudflare build chain is handled by a narrow fail-closed CI exception for exactly `GHSA-vfj7-8cjw-p6xm`. Any other High/Critical advisory, severity escalation, malformed audit output or changed dependency chain still fails CI.
+
+### Web/UI regressions
+
+- Route-specific titles are present in current source.
+- Mobile landing-page overflow was fixed and regression-tested.
+- Mobile public navigation is covered by browser regression tests.
+- Login/signup/password-reset/email-verification fallback semantics are covered by browser tests.
+
+## Supabase production truth
+
+- Project: Rivexis (`ivszvufdonfgwjpfgwii`), region `ap-south-1`.
+- Project health: `ACTIVE_HEALTHY` at the latest audit.
+- Runtime logs inspected on 2026-10-04 showed zero severe events across Postgres, PostgREST, Edge Functions and the pooler in the checked window.
+- `pg_net` is installed in `public`, but installed version `0.20.4` reports `relocatable = false`; do not force-move it to another schema.
+- `alert_delivery_runtime` intentionally has RLS with no user-facing policies and remains deny-by-default.
+- Unused-index advisor findings are informational. Do not delete structural/FK or low-traffic indexes merely because usage counters are currently zero.
+- Three application `public.users` rows currently have no custom `user_auth_state` row. This does not break the live browser runtime because Supabase Edge uses Supabase Auth for identity/verification; treat it as cross-runtime compatibility debt, not permission to fabricate verification state.
+- Deployed `rivexis-api` was version 9 at the latest runtime inspection. Its source is tracked in `supabase/functions/rivexis-api`; current `main` contains the stricter role-validation patch and should not be called deployed until a newer Edge function version is explicitly deployed and smoke-tested.
+
+## Cloudflare frontend production truth
 
 Production URL:
 
 `https://rivexis-web.rudrasingh0718.workers.dev/`
 
-### Deployed / production verified
+Production is current only when the public Worker exposes the exact certified Git commit through the `rivexis-build` metadata marker.
 
-Production is not called current until the public Worker exposes the exact certified Git commit through the `rivexis-build` metadata marker.
-
-Last independently observed stale marker before native-Git deployment verification:
+Last independently observed live marker on 2026-10-04:
 
 `fcea992098b377780b77516a0230490cbd83ad5d`
 
-## Deployment architecture
+That marker is stale relative to current `main`. The live public site therefore must not be described as current even when source CI is green.
 
-### Primary path: Cloudflare Workers Builds + GitHub
+### Deployment blocker
 
-The preferred production path is Cloudflare Workers Builds connected directly to the existing `rivexis-web` Worker and `rudras777/rivexis` GitHub repository.
+- GitHub's manual Cloudflare deployment workflow is fail-closed and correctly verifies deployment authority before build/deploy.
+- The stored `CLOUDFLARE_API_TOKEN` currently fails Cloudflare verification with error `6003`; the token must be replaced with a valid least-privileged Bearer API token.
+- A secure browser attempt on 2026-10-04 found both Cloudflare and GitHub browser sessions unauthenticated, so no credential was created, copied or changed.
+- Do not bypass the authority check, expose a Cloudflare token in chat, or weaken the workflow to force a deployment.
 
-Source preparation completed:
+## Brevo / transactional email truth
 
-- `apps/web/scripts/cloudflare-workers-build-deploy.mjs` requires a valid `WORKERS_CI_COMMIT_SHA`, restricts itself to `WORKERS_CI=1`, forces `NEXT_PUBLIC_RIVEXIS_API_URL=same-origin`, and stamps `NEXT_PUBLIC_RIVEXIS_BUILD_SHA` from the exact Cloudflare build commit;
-- `apps/web/package.json` exposes this as the standard `deploy` script while preserving `deploy:vinext`;
-- CI performs `node --check` on the native Workers Builds entrypoint;
-- the existing `deploy-web` GitHub Actions workflow is `workflow_dispatch` only, retained as a manual token-based fallback rather than auto-failing after every successful CI run.
+- The Brevo connector is currently unable to connect to the account, so Brevo-side account/template/delivery certification is blocked until the connector is re-authenticated.
+- Provider acceptance is not inbox-delivery proof. Do not claim verification/reset delivery is certified until the Brevo connection and an end-to-end email test are verified.
 
-Expected native Workers Builds configuration for the existing Worker:
+## Repository governance
 
-- repository: `rudras777/rivexis`;
-- production branch: `main`;
-- root directory: `apps/web`;
-- deploy command: `npm run deploy`;
-- Workers Builds deployment authority: Cloudflare-managed;
-- Worker name: `rivexis-web`.
+- `main` is currently unprotected. The available GitHub App connection does not expose repository-administration writes for branch protection, and the browser session is not authenticated.
+- Do not weaken CI because branch protection is absent. When GitHub admin access is available, require the standard CI checks before direct/merged changes to `main`.
 
-The owner reported this Git connection completed on 2026-10-02. This state-note commit intentionally creates a fresh `main` push so the new Cloudflare integration can prove itself on a post-connection commit. Do not call the integration verified until a Cloudflare build/deploy signal appears and the public Worker marker equals the exact new head.
+## Security / evidence invariants
 
-### Manual fallback: GitHub Actions token deploy
-
-The GitHub Actions `deploy-web` workflow remains available only through manual dispatch. Its stored `CLOUDFLARE_API_TOKEN` is currently invalid and repeated verification returned Cloudflare error `6003`; the account-ID secret is structurally valid. This fallback must not be used unless a valid token is deliberately configured.
-
-## Security/evidence invariants
-
-Keep all of these non-negotiable:
+Keep these non-negotiable:
 
 - never weaken authentication, CSRF, RLS or tenant isolation to make a UI path appear functional;
-- never expose secrets or persist credentials in source/logs;
+- never expose or persist credentials in source, logs or chat;
 - never fabricate provider evidence;
 - missing/unverified provider evidence remains UNKNOWN/unavailable;
 - demonstration output stays explicitly synthetic;
-- provider acceptance is not inbox-delivery proof;
 - continuous alert delivery is not continuous threat ingestion;
-- every legitimate source change must be committed to `main` and re-certified.
+- every legitimate source change must be committed to `main` and re-certified;
+- source, deployed Edge runtime and deployed Cloudflare Worker are three separate states and must be verified independently.
 
 ## Immediate execution target
 
-1. Observe Cloudflare Workers Builds on this fresh post-connection push.
-2. Exact-head certify this trigger commit through GitHub CI.
-3. If the Cloudflare build fails, fix the build configuration/source and push again.
-4. Independently fetch production and confirm `rivexis-build` equals the exact deployed certified head before stating `deployed` or `production verified`.
-5. After native deployment is verified, retire or rotate the invalid GitHub `CLOUDFLARE_API_TOKEN` fallback secret as appropriate.
+1. Certify this fresh `main` push through standard GitHub CI and Worker dry-run workflows.
+2. Deploy and smoke-test the hardened `rivexis-api` Edge source so production no longer trails the role-validation contract.
+3. Re-authenticate Brevo and certify transactional verification/reset delivery.
+4. Replace the invalid GitHub `CLOUDFLARE_API_TOKEN` through authenticated Cloudflare/GitHub UI without exposing it, trigger production deployment, and verify the live `rivexis-build` marker equals the exact certified head.
+5. Enable Supabase leaked-password protection through authenticated Auth settings when access is available.
+6. Enable branch protection / required checks on `main` when GitHub administrative access is available.
