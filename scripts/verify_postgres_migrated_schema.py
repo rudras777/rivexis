@@ -13,7 +13,7 @@ from sqlalchemy import text
 
 from rivexis_api.services.db import engine
 
-EXPECTED_ALEMBIC_HEAD = "0013_auth_email_lifecycle"
+EXPECTED_ALEMBIC_HEAD = "0014_organization_rls_bootstrap"
 EXPECTED_APPLICATION_TABLES = 56
 
 
@@ -110,6 +110,35 @@ def main() -> int:
                 0,
             )
             _assert_equal(
+                "organization insert-policy count",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_policies
+                    WHERE schemaname='public'
+                      AND tablename='organizations'
+                      AND cmd='INSERT'
+                    """,
+                ),
+                1,
+            )
+            _assert_equal(
+                "secure organization bootstrap policy",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_policies
+                    WHERE schemaname='public'
+                      AND tablename='organizations'
+                      AND policyname='rivexis_organization_bootstrap_insert'
+                      AND cmd='INSERT'
+                    """,
+                ),
+                1,
+            )
+            _assert_equal(
                 "auth-state RLS/force-RLS contract",
                 _scalar(
                     connection,
@@ -158,8 +187,9 @@ def main() -> int:
         print(
             "PostgreSQL migrated-schema verification: PASS "
             f"(head={EXPECTED_ALEMBIC_HEAD}; tables={EXPECTED_APPLICATION_TABLES}; "
-            "FK indexes covered; auth-state FORCE RLS/service policy certified; "
-            "redundant indexes absent; RLS lookup rewrite present)"
+            "FK indexes covered; organization bootstrap/RLS certified; "
+            "auth-state FORCE RLS/service policy certified; redundant indexes absent; "
+            "RLS lookup rewrite present)"
         )
         return 0
     except Exception as exc:  # noqa: BLE001 - certification converts every failure into an explicit gate
