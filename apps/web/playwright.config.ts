@@ -26,7 +26,6 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      ...process.env,
       RIVEXIS_E2E_BLOCK_EXTERNAL_UPSTREAM: '1',
     },
   },
