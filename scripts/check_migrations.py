@@ -81,6 +81,7 @@ required_supabase_sources = {
     "018_edge_org_workspace_create.sql",
     "019_fix_org_workspace_membership_rls_context.sql",
     "020_alert_dispatch_org_workspace_grants.sql",
+    "021_lock_org_workspace_rpc_execution.sql",
 }
 actual_supabase_sources = {path.name for path in SUPABASE_INFRA.glob("*.sql")}
 missing_supabase_sources = required_supabase_sources - actual_supabase_sources
@@ -136,11 +137,19 @@ assert "grant select(organization_id,user_id,role,created_at)" in dispatch_org_g
 assert "on table public.organization_members" in dispatch_org_grants
 assert "to rivexis_alert_dispatcher" in dispatch_org_grants
 
+org_workspace_rpc_lock = (SUPABASE_INFRA / "021_lock_org_workspace_rpc_execution.sql").read_text().lower()
+assert "set local role rivexis_migrator" in org_workspace_rpc_lock
+assert "revoke all on function public.rivexis_edge_create_organization_workspace(text,jsonb) from public" in org_workspace_rpc_lock
+assert "revoke all on function public.rivexis_edge_create_organization_workspace(text,jsonb) from anon" in org_workspace_rpc_lock
+assert "revoke all on function public.rivexis_edge_create_organization_workspace(text,jsonb) from authenticated" in org_workspace_rpc_lock
+assert "grant execute on function public.rivexis_edge_create_organization_workspace(text,jsonb) to service_role" in org_workspace_rpc_lock
+
 print(
     "Alembic/schema parity: PASS "
     "(53/53 blueprint tables + 2 runtime-control tables + auth security state; clean downgrade); "
-    "Supabase infrastructure sources: PASS (001-020 present; credential-free bootstrap; "
+    "Supabase infrastructure sources: PASS (001-021 present; credential-free bootstrap; "
     "delivered alerts cannot be manually requeued; organization alerts resolve to an OWNER recipient; "
     "organization workspace creation is membership-bound and service-role-only; "
-    "organization-aware dispatcher lookup grants are least-privilege and owner-applied)"
+    "organization-aware dispatcher lookup grants are least-privilege and owner-applied; "
+    "organization workspace SECURITY DEFINER execution is locked to service_role)"
 )
