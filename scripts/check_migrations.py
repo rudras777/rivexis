@@ -78,6 +78,8 @@ required_supabase_sources = {
     "015_alert_dispatcher_object_grants.sql",
     "016_restrict_alert_requeue.sql",
     "017_alert_dispatch_org_owner_recipient.sql",
+    "018_edge_org_workspace_create.sql",
+    "019_fix_org_workspace_membership_rls_context.sql",
 }
 actual_supabase_sources = {path.name for path in SUPABASE_INFRA.glob("*.sql")}
 missing_supabase_sources = required_supabase_sources - actual_supabase_sources
@@ -113,9 +115,22 @@ assert "coalesce(w.owner_user_id,org_owner.user_id)" in org_alert_recipient
 assert "grant create on schema public to rivexis_alert_dispatcher" in org_alert_recipient
 assert "revoke create on schema public from rivexis_alert_dispatcher" in org_alert_recipient
 
+org_workspace = (SUPABASE_INFRA / "019_fix_org_workspace_membership_rls_context.sql").read_text().lower()
+assert "rivexis_edge_create_organization_workspace" in org_workspace
+assert "v_member_role not in ('owner','admin','analyst')" in org_workspace
+assert "'access_role',v_member_role" in org_workspace
+assert "grant execute on function public.rivexis_edge_create_organization_workspace(text,jsonb) to service_role" in org_workspace
+assert "revoke all on function public.rivexis_edge_create_organization_workspace(text,jsonb) from authenticated" in org_workspace
+user_context_index = org_workspace.index("perform set_config('rivexis.user_id',p_actor_user_id,true)")
+membership_lookup_index = org_workspace.index("select om.role into v_member_role")
+assert user_context_index < membership_lookup_index, (
+    "Organization workspace membership lookup must run after the actor RLS context is established"
+)
+
 print(
     "Alembic/schema parity: PASS "
     "(53/53 blueprint tables + 2 runtime-control tables + auth security state; clean downgrade); "
-    "Supabase infrastructure sources: PASS (001-017 present; credential-free bootstrap; "
-    "delivered alerts cannot be manually requeued; organization alerts resolve to an OWNER recipient)"
+    "Supabase infrastructure sources: PASS (001-019 present; credential-free bootstrap; "
+    "delivered alerts cannot be manually requeued; organization alerts resolve to an OWNER recipient; "
+    "organization workspace creation is membership-bound and service-role-only)"
 )
