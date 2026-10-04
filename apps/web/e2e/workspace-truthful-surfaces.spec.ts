@@ -95,7 +95,7 @@ test.describe("truthful workspace foundations",()=>{
     await expect(page.locator("pre.result")).toHaveCount(0);
 
     await page.getByLabel("Organization name").fill("New Research Org");
-    await page.getByRole("button",{name:"Create organization"}).click();
+    await page.getByRole("button",{name:"Create organization",exact:true}).click();
     await expect(page.getByText("Created New Research Org. Your membership role is OWNER.",{exact:true})).toBeVisible();
     expect(organizationPosts).toBe(1);
   });
