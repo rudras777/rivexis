@@ -23,8 +23,8 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - name: Install stable Vinext toolchain in the working tree
-        run: npm install --workspace @rivexis/web --save-exact vinext@1.0.0 @vinext/cloudflare@latest
+      - name: Install matching stable Vinext toolchain in the working tree
+        run: npm install --workspace @rivexis/web --save-exact vinext@1.0.1 @vinext/cloudflare@1.0.1
       - name: Report resolved toolchain
         run: npm ls vinext @vinext/cloudflare vite-plugin-dynamic-import vite-plugin-commonjs fast-glob braces || true
       - name: Require no high or critical npm advisory
