@@ -12,30 +12,33 @@ async function baseMocks(page:import("@playwright/test").Page){
   await page.route("**/api/v1/auth/web/csrf",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({csrf_token:"protocol-operations-csrf"})}));
 }
 
+const verifiedComparison={
+  event_count:0,change_count:1,materiality_counts:{HIGH:1,MEDIUM:0,LOW:0},
+  changes:[{path:"reserve.borrow_cap",from:"1000000",to:"1250000",materiality:"HIGH"}],
+  deployment_identity:{verified:true},missing_data:[],warnings:[],
+};
+
 test.describe("protocol evidence operations",()=>{
-  test("validates, persists and approves a configuration review",async({page})=>{
+  test("validates, persists and approves a verified configuration review",async({page})=>{
     await baseMocks(page);
     let compareBody:Record<string,unknown>|null=null;
     const unsafeHeaders:string[]=[];
     await page.route("**/api/v1/protocol-config/compare",route=>{
       compareBody=route.request().postDataJSON() as Record<string,unknown>;
       unsafeHeaders.push(route.request().headers()["x-rivexis-csrf"]??"");
-      return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({
-        event_count:0,change_count:1,materiality_counts:{HIGH:1,MEDIUM:0,LOW:0},
-        changes:[{path:"reserve.borrow_cap",from:"1000000",to:"1250000",materiality:"HIGH"}],
-      })});
+      return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify(verifiedComparison)});
     });
     await page.route("**/api/v1/protocol-config/reviews",route=>{
       unsafeHeaders.push(route.request().headers()["x-rivexis-csrf"]??"");
-      return route.fulfill({status:201,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({id:"review-1",status:"draft"})});
+      return route.fulfill({status:201,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({id:"review-1",status:"draft",payload:verifiedComparison})});
     });
     await page.route("**/api/v1/protocol-config/reviews/review-1/approve",route=>{
       unsafeHeaders.push(route.request().headers()["x-rivexis-csrf"]??"");
-      return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({id:"review-1",status:"approved",approved_at:"2026-09-28T12:00:00Z"})});
+      return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({id:"review-1",status:"approved",approved_at:"2026-09-28T12:00:00Z",payload:verifiedComparison})});
     });
 
     await page.goto("/workspace/protocol-history");
-    const compare=page.getByRole("button",{name:"Compare configuration"});
+    const compare=page.getByRole("button",{name:"Request configuration comparison"});
     await expect(compare).toBeDisabled();
     await page.getByLabel("From block").fill("21000100");
     await page.getByLabel("To block").fill("21000000");
@@ -46,6 +49,7 @@ test.describe("protocol evidence operations",()=>{
     await compare.click();
 
     const result=page.getByTestId("protocol-history-result");
+    await expect(result).toContainText("VERIFIED CONFIGURATION COMPARISON");
     await expect(result).toContainText("reserve.borrow_cap");
     await expect(result).toContainText("High materiality");
     await page.getByRole("button",{name:"Save review artifact"}).click();
@@ -57,6 +61,37 @@ test.describe("protocol evidence operations",()=>{
 
     expect(compareBody).toMatchObject({workspace_id:"w-alpha",input:{protocol_adapter:"aave_v3",chain:"ethereum",from_block:"21000100",to_block:"21000200",hydrate_timestamps:true}});
     expect(unsafeHeaders).toEqual(["protocol-operations-csrf","protocol-operations-csrf","protocol-operations-csrf"]);
+  });
+
+  test("unavailable archive evidence cannot become an approved review",async({page})=>{
+    await baseMocks(page);
+    let approvalRequests=0;
+    const unavailable={
+      event_count:0,change_count:0,materiality_counts:{HIGH:0,MEDIUM:0,LOW:0},changes:[],
+      deployment_identity:{verified:false,reason:"NO_VERIFIED_PROVIDER_EVIDENCE"},
+      warnings:["No archive-capable RPC provider is configured."],
+      missing_data:["verified protocol configuration at both requested blocks"],
+    };
+    await page.route("**/api/v1/protocol-config/compare",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify(unavailable)}));
+    await page.route("**/api/v1/protocol-config/reviews",route=>route.fulfill({status:201,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({id:"review-gap",status:"draft",payload:unavailable})}));
+    await page.route("**/api/v1/protocol-config/reviews/review-gap/approve",route=>{approvalRequests+=1;return route.fulfill({status:409,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({detail:"protocol review cannot be approved without verified provider evidence"})})});
+
+    await page.goto("/workspace/protocol-history");
+    await page.getByLabel("From block").fill("21000100");
+    await page.getByLabel("To block").fill("21000200");
+    await page.getByRole("button",{name:"Request configuration comparison"}).click();
+
+    const result=page.getByTestId("protocol-history-result");
+    await expect(result).toContainText("PROVIDER EVIDENCE UNAVAILABLE");
+    await expect(result).toContainText("No configuration-change conclusion is available");
+    await expect(result).toContainText("verified protocol configuration at both requested blocks");
+    await expect(result).not.toContainText("No configuration changes were detected");
+    await page.getByRole("button",{name:"Save review artifact"}).click();
+
+    const review=page.getByTestId("protocol-review");
+    await expect(review).toContainText("APPROVAL BLOCKED · EVIDENCE MISSING");
+    await expect(review.getByRole("button",{name:"Approve review"})).toHaveCount(0);
+    expect(approvalRequests).toBe(0);
   });
 
   test("creates, links and closes an investigation with an explicit disposition",async({page})=>{
