@@ -15,19 +15,13 @@ def _postgres() -> bool:
 def upgrade() -> None:
     if not _postgres():
         return
-    # PostgreSQL grants EXECUTE on newly created functions to PUBLIC unless the
-    # creator has an explicit default ACL. Rivexis functions are always exposed
-    # deliberately, so make future migrations fail closed by default.
-    op.execute(
-        "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
-        "REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC"
-    )
+    # PostgreSQL's built-in function default grants EXECUTE to PUBLIC globally.
+    # A schema-scoped REVOKE cannot subtract that global default, so this must be
+    # a global default-privilege change for the migration role.
+    op.execute("ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC")
 
 
 def downgrade() -> None:
     if not _postgres():
         return
-    op.execute(
-        "ALTER DEFAULT PRIVILEGES IN SCHEMA public "
-        "GRANT EXECUTE ON FUNCTIONS TO PUBLIC"
-    )
+    op.execute("ALTER DEFAULT PRIVILEGES GRANT EXECUTE ON FUNCTIONS TO PUBLIC")
