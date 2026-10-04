@@ -13,7 +13,7 @@ from sqlalchemy import text
 
 from rivexis_api.services.db import engine
 
-EXPECTED_ALEMBIC_HEAD = "0018_protocol_review_evidence_gate"
+EXPECTED_ALEMBIC_HEAD = "0019_investigation_review_evidence_links"
 EXPECTED_APPLICATION_TABLES = 56
 
 
@@ -269,6 +269,77 @@ def main() -> int:
                 ),
                 0,
             )
+            _assert_equal(
+                "legacy invalid approved protocol reviews",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM public.reports
+                    WHERE report_type='protocol_configuration_review'
+                      AND status='approved'
+                      AND (
+                        coalesce(payload->'deployment_identity'->>'verified','false') <> 'true'
+                        OR coalesce(jsonb_typeof(payload->'missing_data'),'null') <> 'array'
+                        OR jsonb_array_length(coalesce(payload->'missing_data','[]'::jsonb)) <> 0
+                      )
+                    """,
+                ),
+                0,
+            )
+            _assert_equal(
+                "investigation review-link evidence trigger",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_trigger t
+                    JOIN pg_class c ON c.oid=t.tgrelid
+                    JOIN pg_namespace n ON n.oid=c.relnamespace
+                    WHERE n.nspname='public'
+                      AND c.relname='reports'
+                      AND t.tgname='rivexis_investigation_review_evidence_gate'
+                      AND NOT t.tgisinternal
+                      AND t.tgenabled <> 'D'
+                    """,
+                ),
+                1,
+            )
+            _assert_equal(
+                "investigation review-link guard definition",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_proc p
+                    JOIN pg_namespace n ON n.oid=p.pronamespace
+                    WHERE n.nspname='public'
+                      AND p.proname='rivexis_guard_investigation_review_links'
+                      AND position('protocol_configuration_review' in pg_get_functiondef(p.oid)) > 0
+                      AND position('approved' in pg_get_functiondef(p.oid)) > 0
+                      AND position('deployment_identity' in pg_get_functiondef(p.oid)) > 0
+                      AND position('missing_data' in pg_get_functiondef(p.oid)) > 0
+                    """,
+                ),
+                1,
+            )
+            _assert_equal(
+                "PUBLIC execute grant on investigation review-link guard",
+                _scalar(
+                    connection,
+                    """
+                    SELECT count(*)
+                    FROM pg_proc p
+                    JOIN pg_namespace n ON n.oid=p.pronamespace
+                    CROSS JOIN LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+                    WHERE n.nspname='public'
+                      AND p.proname='rivexis_guard_investigation_review_links'
+                      AND a.grantee=0
+                      AND a.privilege_type='EXECUTE'
+                    """,
+                ),
+                0,
+            )
 
         print(
             "PostgreSQL migrated-schema verification: PASS "
@@ -276,7 +347,7 @@ def main() -> int:
             "FK indexes covered; dual-mode authenticated organization bootstrap certified; "
             "auth-state FORCE RLS/service policy certified; redundant indexes absent; "
             "RLS lookup rewrite present; future functions fail closed by default; "
-            "protocol-review approval requires verified evidence)"
+            "protocol-review approval and investigation review links require verified evidence)"
         )
         return 0
     except Exception as exc:  # noqa: BLE001 - certification converts every failure into an explicit gate
