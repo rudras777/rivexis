@@ -105,14 +105,14 @@ test.describe("in-place workspace switching",()=>{
     await page.goto("/workspace/protocol-history");
     await page.getByLabel("From block").fill("21000000");
     await page.getByLabel("To block").fill("21000001");
-    await page.getByRole("button",{name:"Compare configuration"}).click();
+    await page.getByRole("button",{name:"Request configuration comparison"}).click();
     await workspaceSelector(page).selectOption("w-beta");
     await page.waitForTimeout(650);
     await expect(page.getByText("ALPHA_PROTOCOL_RESULT")).toHaveCount(0);
     await expect(page.getByTestId("protocol-history-result")).toHaveCount(0);
     expect(workspaceCalls).toBe(1);
 
-    await page.getByRole("button",{name:"Compare configuration"}).click();
+    await page.getByRole("button",{name:"Request configuration comparison"}).click();
     await expect(page.getByTestId("protocol-history-result")).toContainText("BETA_PROTOCOL_RESULT");
     await expect(page.getByText("ALPHA_PROTOCOL_RESULT")).toHaveCount(0);
   });
