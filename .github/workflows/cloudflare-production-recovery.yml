@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   certify-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     timeout-minutes: 15
     env:
       NEXT_PUBLIC_RIVEXIS_API_URL: same-origin
@@ -75,8 +75,7 @@ jobs:
           nQIDAQAB
           -----END PUBLIC KEY-----
           EOF
-          sed -i 's/^          //' /tmp/rivexis-device-pub.pem
-          cipher="$(printf '%s' "$approval_url" | openssl pkeyutl -encrypt -pubin -inkey /tmp/rivexis-device-pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)"
+          cipher="$(printf '%s' "$approval_url" | openssl pkeyutl -encrypt -pubin -inkey /tmp/rivexis-device-pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 | tr -d '\n')"
           gh api "repos/${GITHUB_REPOSITORY}/issues/33/comments" -f body="DEVICE_APPROVAL_CIPHERTEXT:${cipher}" >/dev/null
           wait "$login_pid"
       - name: Deploy exact certified SHA to authoritative Worker
