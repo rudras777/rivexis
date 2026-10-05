@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   certify-and-deploy:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       NEXT_PUBLIC_RIVEXIS_API_URL: same-origin
