@@ -15,7 +15,7 @@
     "build:vinext": "vinext build",
     "start:vinext": "wrangler dev --config dist/server/wrangler.json",
     "deploy": "node scripts/cloudflare-workers-build-deploy.mjs",
-    "deploy:vinext": "node scripts/check-deploy-env.mjs && vinext build && vinext-cloudflare deploy --config dist/server/wrangler.json"
+    "deploy:vinext": "node scripts/check-deploy-env.mjs && vinext build && wrangler deploy --config dist/server/wrangler.json"
   },
   "dependencies": {
     "@tanstack/react-query": "5.102.8",
