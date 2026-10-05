@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   certify-and-deploy:
@@ -34,8 +35,50 @@ jobs:
           npm --workspace @rivexis/web run build:vinext
           node scripts/npm-audit-ci.mjs
           npx wrangler deploy --dry-run --config apps/web/dist/server/wrangler.json
-      - name: Authorize Cloudflare with short-lived device flow
-        run: npx wrangler login --device --browser=false
+      - name: Authorize Cloudflare with encrypted device handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          log="$(mktemp)"
+          clean="$(mktemp)"
+          npx wrangler login --device --browser=false >"$log" 2>&1 &
+          login_pid=$!
+          code=""
+          for attempt in $(seq 1 90); do
+            sed -E 's/\x1B\[[0-9;]*[mK]//g' "$log" > "$clean" || true
+            code="$(awk '/and enter the code:/{found=1; next} found && NF {gsub(/[[:space:]]/, "", $0); print; exit}' "$clean" || true)"
+            if [ -n "$code" ]; then
+              break
+            fi
+            if ! kill -0 "$login_pid" 2>/dev/null; then
+              cat "$clean"
+              wait "$login_pid"
+              exit $?
+            fi
+            sleep 1
+          done
+          if [ -z "$code" ]; then
+            echo "::error::Wrangler device authorization code was not emitted."
+            kill "$login_pid" 2>/dev/null || true
+            exit 1
+          fi
+          approval_url="https://dash.cloudflare.com/oauth2/device?user_code=${code}"
+          cat > /tmp/rivexis-device-pub.pem <<'EOF'
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArcU8T12XcElK9vje0I1X
+          VDMj73miTzI7fpqrsTkoMpfhe45lgKf7zbK/BN5PiuKrEpVGkOop/+/ryRqxUDMr
+          jaseqswAWn0hNu2h7bI00jurtZxbqRL0JFB9uq4p0pNCjKGqSm9CVepi4A9yoFu2
+          CmmjYAR9AYXUg+Alxqxd4XM7kvP18SnMaBk0SXXyL+CIB1nfbDVC3pp3ZPQcdm45
+          vbXonB1HeaB2NGEcCs2cMqhrp/QRKDe4HFzuuJW0zhHLtesw2uuqO41GZnKynWU1
+          XFBeDg5oj684j6bySWH8PkIGsb54rvXR+KpZpxeDsj530s4FkeSaCNKQtTiW6tjk
+          nQIDAQAB
+          -----END PUBLIC KEY-----
+          EOF
+          sed -i 's/^          //' /tmp/rivexis-device-pub.pem
+          cipher="$(printf '%s' "$approval_url" | openssl pkeyutl -encrypt -pubin -inkey /tmp/rivexis-device-pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)"
+          gh api "repos/${GITHUB_REPOSITORY}/issues/33/comments" -f body="DEVICE_APPROVAL_CIPHERTEXT:${cipher}" >/dev/null
+          wait "$login_pid"
       - name: Deploy exact certified SHA to authoritative Worker
         run: npx wrangler deploy --config apps/web/dist/server/wrangler.json
       - name: Verify authoritative production SHA
