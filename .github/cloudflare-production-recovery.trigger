@@ -1,3 +1,3 @@
 target=latest-main
 purpose=authoritative-production-recovery
-attempt=slim-runner
+attempt=encrypted-device-handoff-2026-10-06
