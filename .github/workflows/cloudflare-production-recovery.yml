@@ -1,0 +1,167 @@
+name: cloudflare-production-recovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/cloudflare-production-recovery.trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  certify-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_RIVEXIS_API_URL: same-origin
+      NEXT_PUBLIC_RIVEXIS_BUILD_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Certify exact source and Worker bundle
+        run: |
+          set -euo pipefail
+          npm run typecheck:api-edge
+          npm run test:api-edge
+          npm run lint:web
+          npm run typecheck:web
+          npm run build:web
+          npm --workspace @rivexis/web run build:vinext
+          node scripts/npm-audit-ci.mjs
+          npx wrangler deploy --dry-run --config apps/web/dist/server/wrangler.json
+      - name: Install browser certification runtime
+        run: npx playwright install --with-deps chromium
+      - name: Run full browser certification
+        run: npm run test:e2e
+      - name: Request short-lived Cloudflare device authorization
+        id: device_auth
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLIC_KEY_PEM: |
+            -----BEGIN PUBLIC KEY-----
+            MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoAUAde7ebuf99Lga1hXL
+            /lweIxTsomn+gtOACDl4uzdKmV7OO7Qac7UOT3kztOr2MnG0C78Lul+T3oZpJ/qb
+            xKaqnyyRGIDpjzgCwEhJ+0pwpt499jq30kM4+HcWi8bO+CcUsgJlXN1ZA7WkOxTy
+            mJS8OV6T4E+oojHHd4OzTJhlHA/d+eroRqsXFSPSb3l7XaMNkp6RMNV97ijQCyzl
+            pNX1Iw/xSStdoafeqkVI/rw9BK5KkCncKdLj3Hica2wPcl3JKAgya0savPwGeMEJ
+            prKZPQ8UnOVr+WKthMZ+0ViQaQpNPWrAIh3MNotCZKNw51IFZRPfIMrxkBgMY3XS
+            2QIDAQAB
+            -----END PUBLIC KEY-----
+        run: |
+          python - <<'PY'
+          import base64, json, os, re, subprocess, tempfile, urllib.request
+
+          repo=os.environ['GITHUB_REPOSITORY']
+          gh_token=os.environ['GH_TOKEN']
+          public_key=os.environ['PUBLIC_KEY_PEM']
+          output_path=os.environ['GITHUB_OUTPUT']
+
+          with tempfile.NamedTemporaryFile('w', delete=False) as key_file:
+              key_file.write(public_key)
+              key_path=key_file.name
+
+          proc=subprocess.Popen(
+              ['npx','wrangler','login','--device','--browser=false'],
+              stdout=subprocess.PIPE,
+              stderr=subprocess.STDOUT,
+              text=True,
+              bufsize=1,
+          )
+          buffer=''
+          issue_number=None
+          auth_url=None
+
+          def encrypt_url(value:str)->str:
+              encrypted=subprocess.run(
+                  ['openssl','pkeyutl','-encrypt','-pubin','-inkey',key_path,
+                   '-pkeyopt','rsa_padding_mode:oaep','-pkeyopt','rsa_oaep_md:sha256'],
+                  input=value.encode(),stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=True,
+              ).stdout
+              return base64.b64encode(encrypted).decode()
+
+          def create_issue(ciphertext:str)->int:
+              payload=json.dumps({
+                  'title':f'Rivexis Cloudflare device approval {os.environ["GITHUB_SHA"][:12]}',
+                  'body':'Temporary encrypted device-authorization URL. It expires within minutes and contains no Cloudflare credential.\n\n`'+ciphertext+'`'
+              }).encode()
+              req=urllib.request.Request(
+                  f'https://api.github.com/repos/{repo}/issues',
+                  data=payload,
+                  method='POST',
+                  headers={
+                      'Authorization':f'Bearer {gh_token}',
+                      'Accept':'application/vnd.github+json',
+                      'X-GitHub-Api-Version':'2022-11-28',
+                      'Content-Type':'application/json',
+                  },
+              )
+              with urllib.request.urlopen(req,timeout=20) as response:
+                  return int(json.load(response)['number'])
+
+          assert proc.stdout is not None
+          for line in proc.stdout:
+              buffer += line
+              if auth_url is None:
+                  full=re.search(r'https://dash\.cloudflare\.com/oauth2/device\?user_code=([A-Za-z0-9_-]+)',buffer)
+                  if full:
+                      auth_url=full.group(0)
+                  else:
+                      code_match=re.search(r'enter the code:\s*([A-Za-z0-9_-]{6,})',buffer,re.I)
+                      if code_match:
+                          code=code_match.group(1)
+                          auth_url=f'https://dash.cloudflare.com/oauth2/device?user_code={code}'
+                  if auth_url:
+                      issue_number=create_issue(encrypt_url(auth_url))
+                      print(f'Cloudflare device approval request published securely as GitHub issue #{issue_number}.')
+                      with open(output_path,'a',encoding='utf-8') as out:
+                          out.write(f'issue_number={issue_number}\n')
+
+          rc=proc.wait()
+          if auth_url is None:
+              safe=re.sub(r'(?i)(user_code=)[A-Za-z0-9_-]+',r'\1[REDACTED]',buffer)
+              safe=re.sub(r'(?i)(enter the code:\s*)[A-Za-z0-9_-]+',r'\1[REDACTED]',safe)
+              print(safe[-2000:])
+              raise SystemExit('Wrangler did not produce a device authorization URL.')
+          if rc != 0:
+              raise SystemExit(f'Cloudflare device authorization was not approved before Wrangler exited (code {rc}).')
+          print('Cloudflare device authorization approved.')
+          PY
+      - name: Deploy exact certified SHA to authoritative Worker
+        run: npx wrangler deploy --config apps/web/dist/server/wrangler.json
+      - name: Verify authoritative production SHA
+        run: |
+          set -euo pipefail
+          expected="$GITHUB_SHA"
+          url="https://rivexis-web.rudrasingh0718.workers.dev/?build=${expected}"
+          for attempt in $(seq 1 12); do
+            body="$(curl -fsS --max-time 25 -H 'Cache-Control: no-cache' "$url" || true)"
+            if printf '%s' "$body" | grep -Fq 'rivexis-build' && printf '%s' "$body" | grep -Fq "$expected"; then
+              printf '%s' "$body" | grep -Fq 'Evidence before'
+              echo "Verified production SHA ${expected}." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Authoritative Worker did not expose ${expected}."
+          exit 1
+      - name: Close temporary device-approval issue
+        if: always() && steps.device_auth.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.device_auth.outputs.issue_number }}
+        run: |
+          curl -fsS --request PATCH \
+            --url "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            --header 'Content-Type: application/json' \
+            --data '{"state":"closed","state_reason":"completed"}' >/dev/null || true
