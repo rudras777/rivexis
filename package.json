@@ -22,6 +22,11 @@
     "test:a11y": "npm --workspace @rivexis/web run test:a11y"
   },
   "overrides": {
-    "wrangler": "4.145.0"
+    "wrangler": "4.148.0",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2"
+  },
+  "devDependencies": {
+    "source-map-js": "1.2.2"
   }
 }
