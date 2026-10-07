@@ -1,1 +1,1 @@
-repair=cloudflare-toolchain-diagnostics-2026-10-08T0212
+repair=cloudflare-toolchain-patched-transitives-2026-10-08T0218
