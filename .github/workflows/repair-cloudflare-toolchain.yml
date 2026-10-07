@@ -30,6 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           npm pkg set overrides.wrangler=4.148.0 overrides.sharp=0.35.5 overrides.source-map-js=1.2.2
+          npm pkg set 'devDependencies.source-map-js=1.2.2'
           npm pkg set --workspace @rivexis/web 'devDependencies.wrangler=4.148.0' 'devDependencies.@cloudflare/vite-plugin=1.62.4'
           npm pkg set --workspace @rivexis/api-edge 'devDependencies.wrangler=4.148.0'
           rm -rf node_modules apps/web/node_modules apps/api/cloudflare/node_modules
