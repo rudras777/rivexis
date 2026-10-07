@@ -66,14 +66,14 @@ jobs:
           approval_url="https://dash.cloudflare.com/oauth2/device?user_code=${code}"
           cat > /tmp/rivexis-device-pub.pem <<'EOF'
           -----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkIbsNnY4VOtXntNEiFbS
-JpllW3u03EgjTUE0bbyYW2zqoHiIIvwll26E6BTnFtzt2qp47XHWARP7UVVnpz1M
-veyLqVGlD1cC6RCEa8/XUZmgDfzVQoT3rRgPYeUDaSyNbc4ewOqeuPjlrPhealqw
-S8fCTfNdIf9Wxp1ihY0Lwr7IKBsST5sZtplEWWAJR0g9V+lUez4I9oZ6WxE4R08U
-7CCopSssg6r4FgNw3hSLuVzDy3H4+UoZhDdFE5As9auX9kMwn6dwOU5icGYbOx6h
-93NTMXzQcqk00r0AV2RjEnX++/CP5FkhvyAKMgLTqoT9yUw9VLgR4YScSTqYKq72
-1wIDAQAB
------END PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkIbsNnY4VOtXntNEiFbS
+          JpllW3u03EgjTUE0bbyYW2zqoHiIIvwll26E6BTnFtzt2qp47XHWARP7UVVnpz1M
+          veyLqVGlD1cC6RCEa8/XUZmgDfzVQoT3rRgPYeUDaSyNbc4ewOqeuPjlrPhealqw
+          S8fCTfNdIf9Wxp1ihY0Lwr7IKBsST5sZtplEWWAJR0g9V+lUez4I9oZ6WxE4R08U
+          7CCopSssg6r4FgNw3hSLuVzDy3H4+UoZhDdFE5As9auX9kMwn6dwOU5icGYbOx6h
+          93NTMXzQcqk00r0AV2RjEnX++/CP5FkhvyAKMgLTqoT9yUw9VLgR4YScSTqYKq72
+          1wIDAQAB
+          -----END PUBLIC KEY-----
           EOF
           cipher="$(printf '%s' "$approval_url" | openssl pkeyutl -encrypt -pubin -inkey /tmp/rivexis-device-pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 | tr -d '\n')"
           gh api "repos/${GITHUB_REPOSITORY}/issues/33/comments" -f body="DEVICE_APPROVAL_CIPHERTEXT:${cipher}" >/dev/null
