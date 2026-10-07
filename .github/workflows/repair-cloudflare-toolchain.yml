@@ -35,6 +35,37 @@ jobs:
           rm -rf node_modules apps/web/node_modules apps/api/cloudflare/node_modules
           npm install --package-lock-only --ignore-scripts
           npm ci
+      - name: Diagnose severe audit findings
+        run: |
+          set -euo pipefail
+          npm audit --json > /tmp/audit.json || true
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const report=JSON.parse(fs.readFileSync("/tmp/audit.json","utf8"));
+          for (const [name,v] of Object.entries(report.vulnerabilities ?? {})) {
+            if (!["high","critical"].includes(v?.severity)) continue;
+            console.log("PACKAGE", name);
+            console.log("SEVERITY", v.severity);
+            console.log("RANGE", v.range ?? "");
+            console.log("NODES", JSON.stringify(v.nodes ?? []));
+            console.log("FIX", JSON.stringify(v.fixAvailable ?? null));
+            for (const via of v.via ?? []) {
+              if (typeof via === "string") {
+                console.log("VIA", via);
+              } else {
+                console.log("ADVISORY", JSON.stringify({
+                  source: via?.source,
+                  name: via?.name,
+                  severity: via?.severity,
+                  title: via?.title,
+                  url: via?.url,
+                  range: via?.range
+                }));
+              }
+            }
+          }
+          NODE
+          npm ls @cloudflare/vite-plugin wrangler miniflare sharp source-map-js --all || true
       - name: Enforce audit gate
         run: node scripts/npm-audit-ci.mjs
       - name: Certify API edge
