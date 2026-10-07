@@ -1,0 +1,64 @@
+name: repair-cloudflare-toolchain
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/cloudflare-toolchain-repair.trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_RIVEXIS_API_URL: same-origin
+      NEXT_PUBLIC_RIVEXIS_BUILD_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install current locked tree
+        run: npm ci
+      - name: Upgrade Cloudflare toolchain only
+        run: |
+          set -euo pipefail
+          npm pkg set overrides.wrangler=4.148.0
+          npm pkg set --workspace @rivexis/web 'devDependencies.wrangler=4.148.0' 'devDependencies.@cloudflare/vite-plugin=1.62.4'
+          npm pkg set --workspace @rivexis/api-edge 'devDependencies.wrangler=4.148.0'
+          rm -rf node_modules apps/web/node_modules apps/api/cloudflare/node_modules
+          npm install --package-lock-only --ignore-scripts
+          npm ci
+      - name: Enforce audit gate
+        run: node scripts/npm-audit-ci.mjs
+      - name: Certify API edge
+        run: |
+          set -euo pipefail
+          npm run typecheck:api-edge
+          npm run test:api-edge
+      - name: Certify web and Worker bundle
+        run: |
+          set -euo pipefail
+          npm run lint:web
+          npm run typecheck:web
+          npm run build:web
+          npm --workspace @rivexis/web run build:vinext
+          npx wrangler deploy --dry-run --config apps/web/dist/server/wrangler.json
+      - name: Commit only verified dependency repair
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json apps/web/package.json apps/api/cloudflare/package.json
+          if git diff --cached --quiet; then
+            echo "No dependency changes required."
+            exit 0
+          fi
+          git commit -m "Upgrade Cloudflare toolchain past security advisories"
+          git push origin HEAD:main
