@@ -1,6 +1,46 @@
 # Rivexis Current Build State
 
-Last updated: 2026-10-04
+Last updated: 2026-10-08 (IST)
+
+## Verified production recovery
+
+- Certified application SHA: `008f97af9a034f04e9ba686734192483e27e079f`.
+- Standard CI [37685301252](https://github.com/rudras777/rivexis/actions/runs/37685301252): all four jobs passed, including Playwright, PostgreSQL migration controls, API audits and invariants.
+- Real Cloudflare build `5d1c7ad5-c566-4153-bf56-f38e304d7407` deployed that exact SHA successfully to `rivexis-web`; Worker version `c3533144-641b-49e3-b908-dab5ee1bb3d5`.
+- Independently fetched public `rivexis-build` equals that exact SHA. `/health` is ready, runtime supabase-edge, environment production, organization_workspace_create true.
+- Landing, login and signed-out workspace were visually inspected on the real Worker. Royal Obsidian / Royal Graphite is visible; the old white/blue UI has been replaced.
+- This follow-up preserves the official logo assets and renders public/auth wordmarks in platinum to correct their low contrast on obsidian.
+- Authenticated workspace audit remains pending: Chrome's saved credentials were rejected; no protected workspace data was exposed. User sign-in is required for that audit.
+
+## Durable Cloudflare build configuration
+
+The actual provider failure was not a missing source build fix: dashboard Build command was None. The failed native build `8684fe6f-fe73-4d47-a12a-1653eb372117` ran Wrangler directly and failed because `apps/web/dist/server/index.js` did not exist.
+
+Corrected and verified settings:
+- Repository root: `/`; production branch: `main`.
+- Build command: `npm run build` (uses existing WORKERS_CI_COMMIT_SHA validation and same-origin API stamping).
+- Deploy command: `npx wrangler deploy --config apps/web/dist/server/wrangler.json`.
+- Existing provider-managed build token: Workers Builds - 2026-10-06 01:40.
+- No new credential, OAuth grant, token disclosure or security downgrade was needed.
+
+The existing GitHub token workflows were not repaired by this change. The old GitHub secret's 6003 failure remains unresolved; use the now-working native Cloudflare Builds path. Do not claim the GitHub token is valid. A future GitHub Actions token replacement must be performed securely, never pasted into chat.
+
+## Recovery artifact cleanup
+
+Obsolete device authorization, dependency repair, temporary preview and duplicate deploy-now workflows/triggers were removed after the exact production deployment was verified. Standard CI, Worker bundle certification and manual deploy-web remain. Issue #33 was already closed.
+
+## Verification after any subsequent commit
+
+Always read current main and CI, then independently inspect the public rivexis-build metadata and /health. The recovery SHA above is a historical verified checkpoint, not a hard-coded claim that every later commit is live. Cleanup and documentation commits trigger ordinary CI and native Cloudflare Builds and require their own verification.
+
+Keep authentication, CSRF, RLS, role validation, tenant isolation and fail-closed evidence rules intact. RIVEXIS = Risk, Value, Execution, Analysis. Cloudflare + Supabase only; no Vercel/Render.
+
+---
+
+## Historical audit (2026-10-04)
+
+The following records prior audit findings. Their source/deployment baseline and frontend blocker statements are superseded by the verified recovery above; unrelated Supabase, Brevo and governance findings have not been re-certified in this frontend recovery.
+
 
 This is the authoritative compact continuation point for normal-chat execution. Always verify current `main`, current CI, Supabase runtime state, Cloudflare deployment state, and the live Worker before making production claims. Never reset to an older handoff or ZIP snapshot.
 
