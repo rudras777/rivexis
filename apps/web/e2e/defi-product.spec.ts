@@ -25,6 +25,15 @@ test('invalid address and unavailable provider preserve honest no-result state',
   await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.locator('.defiWorkspace .error[role=alert]')).toHaveText('RPC evidence unavailable');await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toHaveCount(0);
 });
+
+test('portfolio shows exact oracle units and never hides a positive dust balance as zero',async({page})=>{
+  const fixture=sampleSnapshot();fixture.wallet='0x'+'1'.repeat(40);fixture.positions[0].reserves[0].collateralRaw='1';fixture.positions[0].reserves[1].priceRaw='99991234';
+  await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:{...fixture,sample:false}}));
+  await page.setViewportSize({width:375,height:900});await page.goto('/app');await page.getByLabel('Public Ethereum address').fill(fixture.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
+  await expect(page.getByRole('cell',{name:'$0.99991234',exact:true})).toBeVisible();
+  await expect(page.getByRole('cell',{name:'<0.00000001',exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
 test('responsive dark/light product surfaces have no page overflow or serious axe findings',async({page})=>{
   for(const width of [320,375,390,768,1024,1280,1440,1920]){
     await page.setViewportSize({width,height:1000});await page.goto('/');
