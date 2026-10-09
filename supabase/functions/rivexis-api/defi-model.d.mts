@@ -7,7 +7,7 @@ export interface Snapshot {model:string;status:string;blockTimestamp:number;bloc
 export interface Action {positionId:string;asset:string;kind:string;amountRaw:string;symbol?:string;decimals?:number;approvalRequired?:boolean}
 export interface Metrics {collateralRaw:string;debtRaw:string;adjustedRaw:string;healthFactorRaw:string|null;liquidatable:boolean;positionId?:string}
 export interface Alternative {actions:Action[];capitalRaw:string;totalBudgetRaw:string;feeReserveRaw:string;outcomes:Metrics[];minHealthFactorRaw:string|null;meetsTarget:boolean;uncovered:number;feasibility:string;execution:string}
-export interface Frontier {model:string;objective:string;budgetRaw:string;targetRaw:string;feeReserveRaw:string;gasConstraint:string;baseline:Metrics[];examined:number;meetsTarget:boolean;alternatives:Alternative[];method:string;warnings:string[]}
+export interface Frontier {model:string;optimizer:string;objective:string;budgetRaw:string;targetRaw:string;feeReserveRaw:string;gasConstraint:string;baseline:Metrics[];examined:number;meetsTarget:boolean;alternatives:Alternative[];method:string;warnings:string[]}
 export function integer(value:string,name?:string):bigint;
 export function decimal(value:string,decimals?:number):bigint;
 export function format(value:string|bigint,decimals?:number,places?:number):string;

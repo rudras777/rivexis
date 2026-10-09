@@ -1,6 +1,6 @@
 # RIVEXIS — DeFi risk platform release evidence
 
-Release state: implementation validated locally; final GitHub/Cloudflare identifiers are recorded in TRANSFORMATION_PROGRESS.md after production verification.
+Release state: the redesigned product is LIVE on the original Cloudflare URL. Initial exact-source release 1b448e5f21b8e74a26fe37fa86c308e431be1d46 was independently verified. The final no-action baseline correction and release evidence are recorded in TRANSFORMATION_PROGRESS.md.
 
 ## Architecture and feature inventory
 
@@ -22,7 +22,7 @@ SUPPORTED: Ethereum Aave V3 normal mode; current WETH direct and USDC/USDT cappe
 
 UNSUPPORTED: eMode, isolation, stable debt, WBTC composite and other unvalidated oracle wrappers, Morpho, Compound, other chains, swaps, bridges, new collateral enablement, arbitrary contract safety/MEV detection, multi-step transaction forks and automatic execution. Multi-position mathematics is validated, but live discovery currently covers one Aave account; no production multi-protocol claim is made.
 
-Defense Frontier enumerates 5% budget increments and at most two actions per alternative (maximum 12 eligible action types). It compares least capital found to meet a target or highest minimum health found. Leading candidates and action-type representatives are returned. There is no claim of global optimality. Outcomes remain MODELED_ONLY; approval, supply/borrow caps, liquidity and protocol execution constraints need the GasGuard preview. Native gas affordability is checked against the user-assumed fee reserve when a validated WETH price exists; otherwise it stays unknown. The fee reserve is not represented as a measured gas cost.
+Defense Frontier enumerates 5% budget increments and at most two actions per alternative (maximum 12 eligible action types), plus a zero-cost no-action baseline when the target is already met. It compares least capital found to meet a target or highest minimum health found. Leading candidates and action-type representatives are returned. There is no claim of global optimality. Outcomes remain MODELED_ONLY; approval, supply/borrow caps, liquidity and protocol execution constraints need the GasGuard preview. Native gas affordability is checked against the user-assumed fee reserve when a validated WETH price exists; otherwise it stays unknown. The fee reserve is not represented as a measured gas cost.
 
 ## Data, security and rollback
 
@@ -36,13 +36,14 @@ Rollback: redeploy baseline tag baseline/pre-defi-transformation-20261009 to riv
 
 ## Test evidence
 
-- PASS: 16 new model/API boundary tests.
+- PASS: 17 new model/API boundary tests.
 - PASS: 29 retained Edge/role/membership/report/email-template tests (fixtures, not proof of email delivery).
-- PASS: 25 selected browser tests before the bounded-monitor addition; final rerun records the expanded suite in the journal. Includes login/signup/verification/recovery UI, session/CSRF/logout, tenant scope, history/save operations, exports and browser headers.
+- PASS: 27 selected browser tests, including bounded monitoring and zero-cost current-state comparisons. Includes login/signup/verification/recovery UI, session/CSRF/logout, tenant scope, history/save operations, exports and browser headers.
 - PASS: 320, 375, 390, 768, 1024, 1280, 1440 and 1920px home/sample-frontier overflow checks.
 - PASS: axe serious/critical WCAG-tagged checks on public/app/auth/methodology dark surfaces and light app. This is automated coverage, not comprehensive accessibility certification.
 - PASS: web typecheck/AST lint, existing API-edge typecheck, Next production build and Cloudflare/Vinext bundle build.
-- UNVERIFIED: real signed-in account report creation, new verification-email/inbox delivery and recovery-email receipt. Brevo account, sender and template reads returned internal connector errors in three attempts. No delivery success is inferred from earlier reports or tests.
+- PASS: preserved production cookie session, real wallet lookup, canonical server-recomputed report save and owner-scoped report retrieval through the live browser.
+- UNVERIFIED: new verification-email/inbox delivery and recovery-email receipt. Brevo account, sender and template reads returned internal connector errors in three attempts. No delivery success is inferred from earlier reports or tests.
 - UNVERIFIED: paid-provider capacity, statistical financial forecasts, regulatory certification and independent protocol/security audit.
 
 ## Cost model and operational limits

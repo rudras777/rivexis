@@ -55,3 +55,9 @@ test('optional browser monitoring stops after five checks and never runs for a s
   await expect(page.getByText('Five checks complete. Monitoring stopped; restart explicitly if needed.')).toBeVisible();
   await page.clock.fastForward(240000);expect(requests).toBe(6);
 });
+test('an already-met target ranks a zero-cost current-state alternative first',async({page})=>{
+  await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();
+  await page.getByLabel('Target health factor',{exact:true}).fill('1.2');await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
+  const best=page.locator('.alternative').first();await expect(best).toContainText('Keep current position (no transaction)');await expect(best).toContainText('$0.00');
+  await expect(best.getByRole('button',{name:'No transaction required'})).toBeDisabled();
+});

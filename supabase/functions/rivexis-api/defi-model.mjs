@@ -111,6 +111,12 @@ export function frontier(snapshot, {budget, target = '1.50', gasReserve = '0', s
   for (const c of choices) for (let step=1;step<=20;step++) assess([[c,spendable*BigInt(step)/20n]]);
   for (let i=0;i<choices.length;i++) for (let j=i+1;j<choices.length;j++) for (let step=1;step<20;step++) assess([[choices[i],spendable*BigInt(step)/20n],[choices[j],spendable*BigInt(20-step)/20n]]);
   const base = scenario(snapshot, shocks, [], now);
+  // A zero-cost baseline must win a least-capital objective when the current
+  // position already meets the chosen scenario target. No transaction means no gas.
+  if(base.every(o=>o.healthFactorRaw===null||BigInt(o.healthFactorRaw)>=goal)){
+    const minimum=base.reduce((m,o)=>o.healthFactorRaw===null?m:m===null||BigInt(o.healthFactorRaw)<m?BigInt(o.healthFactorRaw):m,null);
+    candidates.push({actions:[],capitalRaw:'0',totalBudgetRaw:'0',feeReserveRaw:'0',outcomes:base,minHealthFactorRaw:minimum?.toString()??null,meetsTarget:true,uncovered:0,feasibility:'MODEL_BASELINE',execution:'NO_TRANSACTION',gasConstraint:'NOT_APPLICABLE'});
+  }
   const value = c => c.minHealthFactorRaw === null ? 2n**255n : BigInt(c.minHealthFactorRaw);
   candidates.sort((a,b) => {
     if (objective === 'target' && a.meetsTarget !== b.meetsTarget) return a.meetsTarget ? -1 : 1;
@@ -123,5 +129,5 @@ export function frontier(snapshot, {budget, target = '1.50', gasReserve = '0', s
     if(candidate)representative.push(candidate);
   }
   const alternatives=[...new Set([...candidates.slice(0,5),...representative])].slice(0,8);
-  return {model:MODEL,objective,budgetRaw:capital.toString(),targetRaw:goal.toString(),feeReserveRaw:fees.toString(),gasConstraint,baseline:base,examined,meetsTarget:candidates.some(c=>c.meetsTarget),alternatives,method:'Bounded enumeration: 5% budget increments; at most two actions per alternative; wallet balances shared by token. Leading ranked options plus repayment/supply/combination representatives. No swaps, bridging or global-optimum claim.',warnings:['Capital is valued at snapshot oracle prices; stress changes modeled position valuations only.','Fee reserve is a user assumption, not a gas estimate. Approvals may require additional fees.',gasConstraint==='INSUFFICIENT_NATIVE_GAS_RESERVE'?'Available native ETH cannot cover the assumed fee reserve; alternatives withheld.':gasConstraint==='UNKNOWN_ETH_PRICE'?'Native gas affordability is unknown because a validated ETH price is absent.':'Observed ETH covers only the user-assumed fee reserve, not a guaranteed execution cost.','Every alternative requires a fresh GasGuard preview; protocol caps, liquidity and execution may prevent the action.']};
+  return {model:MODEL,optimizer:'bounded-frontier-2',objective,budgetRaw:capital.toString(),targetRaw:goal.toString(),feeReserveRaw:fees.toString(),gasConstraint,baseline:base,examined,meetsTarget:candidates.some(c=>c.meetsTarget),alternatives,method:'Bounded enumeration: zero-cost current-state baseline; 5% budget increments; at most two actions per alternative; wallet balances shared by token. Leading ranked options plus repayment/supply/combination representatives. No swaps, bridging or global-optimum claim.',warnings:['Capital is valued at snapshot oracle prices; stress changes modeled position valuations only.','Fee reserve is a user assumption, not a gas estimate. Approvals may require additional fees.',gasConstraint==='INSUFFICIENT_NATIVE_GAS_RESERVE'?'Available native ETH cannot cover the assumed fee reserve; transaction alternatives withheld.':gasConstraint==='UNKNOWN_ETH_PRICE'?'Native gas affordability is unknown because a validated ETH price is absent.':'Observed ETH covers only the user-assumed fee reserve, not a guaranteed execution cost.','Every transaction alternative requires a fresh GasGuard preview; protocol caps, liquidity and execution may prevent the action.']};
 }
