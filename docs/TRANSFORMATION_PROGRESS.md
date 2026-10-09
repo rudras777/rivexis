@@ -121,3 +121,14 @@ Redeploy the baseline tag to the same Worker using the existing deployment autho
 - Branch CI 37968513165 and 37968520442 PASS; main CI 37968761645 PASS all four jobs; Worker bundle 37968761562 PASS; existing production deployment succeeds. Current browser gate: 30 PASS. Financial/API/oracle 39 and retained Edge 29 remain PASS; no financial/API/package source changed by this correction.
 - Production browser reload restored the existing owner session. Load saved reports retrieved all three receipts with no wallet inspection or snapshot, while new-save/export-comparison and monitor-start controls stayed disabled without evidence. Current browser error log is empty.
 - The implementation and production verification are complete for this explicitly bounded beta. Remaining operational limitations are Brevo inbox verification, Cloudflare billing visibility, occasional free-RPC unavailability and the documented unsupported protocol/transaction coverage. Preserve this scope and rollback; expand coverage only after independent validation.
+
+
+## Email request wording and follow-up audit — 2026-10-09
+- Branch `fix/email-request-status` starts from verified production `cc7b6dbd3c872b4679018ecdfa92e68eb3f706b5`.
+- Verification resend and password recovery screens previously claimed an email had been sent even though the API acknowledges only a request. Copy now distinguishes acknowledgement from delivery and provides inbox/spam guidance. No authentication behavior, secrets, sender configuration or user records changed; no email was sent during this audit.
+- Security advisor rechecked: no RLS-disabled public tables; 19 intentional service-only/no-policy INFO findings and two WARN findings remain. `pg_net` 0.20.4 is non-relocatable, owned by supabase_admin; all 12 extension functions live in `net`. Queue had 0 pending requests and 360 retained responses. Supabase documents that remediation drops the extension and deletes queue/responses; no destructive remediation was performed.
+- Supabase's leaked-password feature is Pro-or-above only. No paid upgrade was authorized or enabled. https://supabase.com/docs/guides/auth/password-security
+- GHSA-vfj7-8cjw-p6xm still lists no patched release (checked official GitHub advisory); narrow build-tool exception retained.
+- Last-24-hour Auth logs: 48 entries, 7 entries containing error, 0 containing SMTP. These aggregates do not establish email delivery or provider availability. Brevo connector remains unavailable; no repeated failing connector call was used as a substitute for evidence.
+- Cloudflare billing visibility and new inbox delivery remain unverified. Actual free-RPC failures must still return UNKNOWN without inferred financial output.
+- Follow-up release must pass existing checks and verify the original production build marker. Correct user-facing report links to absolute outputs paths.

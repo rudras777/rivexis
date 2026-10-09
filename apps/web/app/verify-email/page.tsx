@@ -27,7 +27,7 @@ export default function VerifyEmail(){
     try{
       setError("");
       await api<{status:string}>("/api/v1/auth/email-verification/request",{method:"POST",body:JSON.stringify(v)});
-      setNotice("If the account is eligible, a new verification code has been sent.");
+      setNotice("Verification request received. If your account is eligible, check your inbox for a new code. Delivery may take a few minutes; check your spam folder too.");
     }catch{
       setError("Verification email is temporarily unavailable. Try again shortly.");
     }
