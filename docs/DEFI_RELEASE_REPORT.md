@@ -1,6 +1,6 @@
 # RIVEXIS — DeFi risk platform release evidence
 
-Release state: the redesigned bounded beta is LIVE at https://rivexis-web.rudrasingh0718.workers.dev. Latest functional release is 011db41be30361f8a615598ad9f5a34702ea325b; Worker version 64b35fe9-7fcc-46e6-9033-4e7656fb7941; existing Supabase API v18 ACTIVE. Source CI 37964938302 and Worker bundle 37964938352 pass; the existing Cloudflare-connected build succeeds. Independent public verification and browser metadata match this source identity. Documentation-only successors can trigger the existing deployment integration; the Worker tag and public rivexis-build marker identify the precise current deployed commit. See TRANSFORMATION_PROGRESS.md and certification-reports/defi-live-verification.json.
+Release state: the redesigned bounded beta is LIVE at https://rivexis-web.rudrasingh0718.workers.dev. Latest functional release is cf289a60d856c59b6788cad28b871e521f74ec89; Worker version 6cb4ec06-264a-45b3-82f9-32122e0468f7; existing Supabase API v18 ACTIVE. Source CI 37966720748 and Worker bundle 37966720577 pass; the existing Cloudflare-connected build succeeds. Independent public verification and browser metadata match this source identity. Documentation-only successors can trigger the existing deployment integration; the Worker tag and public rivexis-build marker identify the precise current deployed commit. See TRANSFORMATION_PROGRESS.md and certification-reports/defi-live-verification.json.
 
 ## Architecture and feature inventory
 
@@ -79,3 +79,7 @@ Light: background #F3F3EF; surface #FAFAF7; elevated/inset #E9ECE8; primary text
 - Supabase pricing: https://supabase.com/pricing
 - Free public RPC: https://www.publicnode.com/
 - Dependency advisory: https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
+
+## Final operational checkpoint
+
+PR #39 preserves exact USD display cents above JavaScript safe precision and explicit positive native/fee dust bounds. Full CI passes 39 financial/API/oracle, 29 retained Edge and 29 browser tests. Final live checks pass seven Morpho/combined cases and eight Aave/WBTC/API/source cases. A preceding RPC interruption returned HTTP 503 UNKNOWN and withheld results; an independent contract read and subsequent public checks recovered. Free RPC availability is not guaranteed. New Brevo inbox delivery and current Cloudflare billing totals remain unverified. Three explicit QA receipts now exist; existing users, workspaces, 25 analyses and four legacy reports remain unchanged.
