@@ -32,10 +32,18 @@ Required: independent arithmetic/reference tests; malformed/stale data rejection
 Redeploy the baseline tag to the same Worker using the existing deployment authority; restore the captured API v11 source if necessary. Leave additive tables and historical user data intact. Do not reset main, force-push, rotate credentials or delete users. Verify public build marker after rollback.
 
 ## Validation update
-- 26 selected browser tests PASS, including five-check monitoring, auth/session/CSRF, tenant scope, history and accessibility.
-- 16 new financial/API boundary tests and 29 retained Edge tests PASS.
+- 27 selected browser tests PASS, including five-check monitoring, auth/session/CSRF, tenant scope, history and accessibility.
+- 17 new financial/API boundary tests and 29 retained Edge tests PASS.
 - Typechecks, AST lint, Next production build and Vinext Worker build PASS.
 - Database distributed wallet quota [true,true,true,true,false]; public report access denied.
 - Brevo read connector remains unavailable after three attempts; inbox delivery UNVERIFIED.
 - Cloudflare billing/subscription API returned 403 with existing OAuth scope. No billing changes requested or performed; account plan/total charges UNVERIFIED.
 - Actual EIP-1967 Aave implementation 0x728a138a4823392c2efa55e028d434f526fe03cf differs from address-book POOL_IMPL; runtime identity is checked and model agreement established from on-chain data.
+
+## Production evidence — 2026-10-09
+- Initial deployment: original URL, exact main SHA 1b448e5f21b8e74a26fe37fa86c308e431be1d46, Worker 19ac8b43-9887-4505-9f8d-f0feec8b5f29. GitHub CI 37943824615 and 37943823801 PASS; the merge tree matches the certified branch tree.
+- Authenticated browser retained the existing Production QA Workspace and Primary Workspace session. A real Aave comparison was saved and retrieved as report 346ce9fc-b4b3-42ca-bec9-3ae049bd29e2. No new identity or credential entry was required.
+- Legacy data counts unchanged: 4 users, 4 workspaces, 25 analyses, 4 legacy reports. One explicit new risk report was added to the new owner-scoped table.
+- Live UI testing identified the already-met-target edge case. Added a zero-cost, zero-gas no-transaction candidate, regression tests and optimizer identity bounded-frontier-2. Never rank a paid transaction ahead of an already-satisfying $0 baseline for the least-capital objective.
+- Financial validation is bounded normal-mode Aave WETH/USDC/USDT. Morpho, eMode, isolation, composite oracles and live multi-protocol discovery remain unsupported. Fresh Brevo inbox delivery remains UNVERIFIED.
+- Next safe action: promote the certified baseline correction, verify public SHA and account report behavior again, then preserve final release evidence. Do not enable paid plans or broader protocol coverage from this record alone.

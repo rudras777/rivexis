@@ -1,16 +1,16 @@
 {
-  "checkedAt": "2026-10-09T14:12:11.565Z",
+  "checkedAt": "2026-10-09T14:24:18.128Z",
   "base": "https://rivexis-web.rudrasingh0718.workers.dev",
   "results": [
     {
       "test": "real_aave_account_reference",
       "status": "PASS",
-      "latencyMs": 3727,
-      "blockNumber": "26155371",
-      "blockHash": "0x299d70e79da72cff2f3f0e39c0b181e173f981ae104e4f1638658b44922aa051",
+      "latencyMs": 2395,
+      "blockNumber": "26155431",
+      "blockHash": "0xe247fe5607e308cce7d53f9a1a2dc935123c79f847bce5d9f4e4f53c4d749caf",
       "poolImplementation": "0x728a138a4823392c2efa55e028d434f526fe03cf",
-      "observedHF": "1613058560006879917",
-      "modeledHF": "1613058560006879917"
+      "observedHF": "1621307917166810579",
+      "modeledHF": "1621307917166810579"
     },
     {
       "test": "real_state_defense_frontier",
@@ -22,10 +22,10 @@
     {
       "test": "real_withdraw_readonly_simulation",
       "status": "PASS",
-      "latencyMs": 3158,
-      "blockNumber": "26155371",
-      "gas": "262067",
-      "feeReserveWei": "144567667287466",
+      "latencyMs": 2058,
+      "blockNumber": "26155431",
+      "gas": "259544",
+      "feeReserveWei": "124555880487993",
       "blockers": []
     },
     {
@@ -41,8 +41,8 @@
     {
       "test": "public_build_marker",
       "status": "PASS",
-      "buildSha": "d863d00b8a4e46de59586462a6a40c5bba21ddf9",
-      "transformed": false
+      "buildSha": "1b448e5f21b8e74a26fe37fa86c308e431be1d46",
+      "transformed": true
     }
   ]
 }

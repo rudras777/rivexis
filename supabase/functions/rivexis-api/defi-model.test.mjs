@@ -76,3 +76,9 @@ test('insufficient native ETH withholds fee-constrained candidates',()=>{
   const s=state();s.nativeBalanceRaw='0';const result=frontier(s,{budget:'3000',gasReserve:'25'},now);
   assert.equal(result.gasConstraint,'INSUFFICIENT_NATIVE_GAS_RESERVE');assert.equal(result.alternatives.length,0);
 });
+test('zero-cost no-action baseline wins when the scenario target is already met',()=>{
+  const s=state();const result=frontier(s,{budget:'3000',gasReserve:'25',target:'1.2'},now);
+  assert.equal(result.alternatives[0].totalBudgetRaw,'0');assert.deepEqual(result.alternatives[0].actions,[]);assert.equal(result.alternatives[0].execution,'NO_TRANSACTION');
+  s.nativeBalanceRaw='0';const noGas=frontier(s,{budget:'3000',gasReserve:'25',target:'1.2'},now);
+  assert.equal(noGas.alternatives.length,1);assert.equal(noGas.alternatives[0].totalBudgetRaw,'0');
+});
