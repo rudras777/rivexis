@@ -1,9 +1,11 @@
+import {liveVerificationHeaders} from "./live-verification-auth.mjs";
+const authHeaders=liveVerificationHeaders();
 import assert from 'node:assert/strict';import {writeFile} from 'node:fs/promises';
 import {validateSnapshot,frontier,scenario} from '../supabase/functions/rivexis-api/defi-unified-model.mjs';
 const base='https://rivexis-web.rudrasingh0718.workers.dev',wallet='0x4D9bf9F734B817298A4c0bC250c30527379cbE34';
-const post=async(path,body)=>{const r=await fetch(base+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(45000)});return {status:r.status,body:await r.json()};};
+const post=async(path,body)=>{const r=await fetch(base+path,{method:'POST',headers:authHeaders,body:JSON.stringify(body),signal:AbortSignal.timeout(45000)});return {status:r.status,body:await r.json()};};
 const html=await(await fetch(base+'/app')).text(),sha=html.match(/name="rivexis-build" content="([0-9a-f]{40})"/)?.[1];
-assert.ok(sha);if(process.env.RIVEXIS_EXPECTED_BUILD_SHA)assert.equal(sha,process.env.RIVEXIS_EXPECTED_BUILD_SHA);assert.ok(html.includes('Protocol coverage'));
+assert.ok(sha);if(process.env.RIVEXIS_EXPECTED_BUILD_SHA)assert.equal(sha,process.env.RIVEXIS_EXPECTED_BUILD_SHA);assert.ok(html.includes('Your intelligence workspace'));
 const read=await post('/api/v1/defi/snapshot',{wallet,coverage:'combined'});assert.equal(read.status,200);validateSnapshot(read.body);assert.equal(read.body.positions.length,2);
 const constraints={budget:'0',gasReserve:'0',target:'1.00',shocks:{'0x2260fac5e5542a773aa44fbcfedf7c193bc2c599':-1000}};
 const result=frontier(read.body,constraints),outcomes=scenario(read.body,constraints.shocks);assert.equal(outcomes.length,2);assert.equal(result.alternatives[0]?.execution,'NO_TRANSACTION');
