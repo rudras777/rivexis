@@ -41,11 +41,11 @@ export function client(url='https://ethereum.publicnode.com') {
   return createPublicClient({chain:mainnet,transport:http(url,{timeout:12000,retryCount:0}),batch:{multicall:{batchSize:24000}}});
 }
 function good(value) {if(value.status!=='success')throw new Error('Protocol evidence read failed'); return value.result;}
-export async function snapshot(wallet, rpc=client()) {
+export async function snapshot(wallet, rpc=client(), pinnedBlock=null) {
   if (!isAddress(wallet, {strict:true}) || /^0x0{40}$/i.test(wallet)) throw new Error('Enter a valid Ethereum address; mixed-case addresses must have a valid checksum');
   wallet=getAddress(wallet);
   if (await rpc.getChainId() !== 1) throw new Error('RPC is not Ethereum mainnet');
-  const block = await rpc.getBlock({blockTag:'latest'});
+  const block = pinnedBlock??await rpc.getBlock({blockTag:'latest'});
   if (!block.number || !block.hash || Date.now()/1000-Number(block.timestamp)>180 || Number(block.timestamp)>Date.now()/1000+30) throw new Error('Latest Ethereum block is stale or has an invalid timestamp');
   const blockNumber=block.number, read=(address,abi,functionName,args=[])=>({address,abi,functionName,args});
   const implementationSlot=await rpc.getStorageAt({address:POOL,slot:'0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc',blockNumber});

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';import {writeFile} from 'node:fs/promises';
+import {validateSnapshot,frontier,scenario} from '../supabase/functions/rivexis-api/defi-unified-model.mjs';
+const base='https://rivexis-web.rudrasingh0718.workers.dev',wallet='0x4D9bf9F734B817298A4c0bC250c30527379cbE34';
+const post=async(path,body)=>{const r=await fetch(base+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(45000)});return {status:r.status,body:await r.json()};};
+const html=await(await fetch(base+'/app')).text(),sha=html.match(/name="rivexis-build" content="([0-9a-f]{40})"/)?.[1];
+assert.ok(sha);if(process.env.RIVEXIS_EXPECTED_BUILD_SHA)assert.equal(sha,process.env.RIVEXIS_EXPECTED_BUILD_SHA);assert.ok(html.includes('Protocol coverage'));
+const read=await post('/api/v1/defi/snapshot',{wallet,coverage:'combined'});assert.equal(read.status,200);validateSnapshot(read.body);assert.equal(read.body.positions.length,2);
+const constraints={budget:'0',gasReserve:'0',target:'1.00',shocks:{'0x2260fac5e5542a773aa44fbcfedf7c193bc2c599':-1000}};
+const result=frontier(read.body,constraints),outcomes=scenario(read.body,constraints.shocks);assert.equal(outcomes.length,2);assert.equal(result.alternatives[0]?.execution,'NO_TRANSACTION');
+const morpho=read.body.positions.find(p=>p.protocol==='Morpho Blue');
+const transaction=await post('/api/v1/defi/transaction',{wallet,coverage:'combined',positionId:morpho.id,asset:morpho.collateralToken,kind:'withdraw',amount:'0.00001'});
+assert.equal(transaction.status,200);assert.equal(transaction.body.simulation,'SUCCEEDED_AT_BLOCK');assert.equal(transaction.body.positionEffects.length,2);
+assert.equal((await post('/api/v1/defi/snapshot',{wallet,coverage:'all-markets'})).status,422);
+const report={classification:'LIVE_MULTIPROTOCOL_RELEASE_VERIFICATION',checkedAt:new Date().toISOString(),url:base,sourceSha:sha,walletOwnership:'PUBLIC_REFERENCE_NOT_USER_OWNED',checks:['EXACT_PUBLIC_SOURCE','DUAL_PROTOCOL_BLOCK_SNAPSHOT','INDEPENDENT_POSITION_STRESS','ZERO_COST_CURRENT_STATE','READ_ONLY_MORPHO_WITHDRAWAL','ALL_POSITION_EFFECTS','UNSUPPORTED_COVERAGE_REJECTION'],snapshot:read.body,constraints,result,transaction:transaction.body};
+await writeFile('certification-reports/morpho-live-verification.json',JSON.stringify(report,null,2));console.log(JSON.stringify({status:'PASS',sourceSha:sha,block:read.body.blockNumber,checks:report.checks,simulation:transaction.body.simulation},null,2));

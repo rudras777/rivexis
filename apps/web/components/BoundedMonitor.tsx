@@ -7,16 +7,16 @@ export function BoundedMonitor(){
   latest.current=c;
   useEffect(()=>{
     if(!active)return;
-    const wallet=c.snapshot?.wallet;if(!wallet||c.snapshot?.sample){setActive(false);return}
+    const wallet=c.snapshot?.wallet,coverage=c.snapshot?.coverage??"aave";if(!wallet||c.snapshot?.sample){setActive(false);return}
     let used=0,busy=false,cancelled=false;const controller=new AbortController();
     const stop=(message:string)=>{setStatus(message);setActive(false)};
     async function check(){
       if(cancelled||busy)return;
       if(document.visibilityState!=="visible"){stop("Checks stopped because the tab is hidden.");return}
-      if(latest.current.snapshot?.wallet!==wallet){stop("Checks stopped because the inspected wallet changed.");return}
+      if(latest.current.snapshot?.wallet!==wallet||latest.current.snapshot?.coverage!==coverage&&!(coverage==="aave"&&latest.current.snapshot?.coverage===undefined)){stop("Checks stopped because the inspected wallet changed.");return}
       busy=true;
       try{
-        const r=await fetch('/api/v1/defi/snapshot',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({wallet}),signal:controller.signal});
+        const r=await fetch('/api/v1/defi/snapshot',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({wallet,coverage}),signal:controller.signal});
         const body=await r.json();if(!r.ok)throw new Error(body.detail||'Evidence unavailable');
         if(cancelled)return;
         latest.current.setSnapshot(body as Snapshot);latest.current.setResult(null);used++;setChecks(used);

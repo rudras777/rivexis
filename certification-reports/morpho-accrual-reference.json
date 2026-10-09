@@ -1,0 +1,355 @@
+{
+  "classification": "STAGING_PROTOCOL_VALIDATION_NOT_PRODUCTION_SUPPORT",
+  "checkedAt": "2026-10-09T16:45:03.209Z",
+  "blockNumber": "26156130",
+  "blockHash": "0x3954e68f9aa6a6e52ca4321328529a1dc461245c4bb8962b73a74bf3c78b0dc6",
+  "blockTimestamp": "1791564287",
+  "core": "0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb",
+  "coreHash": "0xfa259fa317198f88f5fa3c119f06c066295dbcd47d715e0a30e1bcf94c02ef8c",
+  "irm": "0x870ac11d48b15db9a138cf899d20f13f79ba00bc",
+  "irmHash": "0x73b578a0cd95d0d6e77f85a3945a670a9b8679670f8fc190ca97e89a1f07f6cd",
+  "method": "Actual accrueInterest followed by market in one non-persistent Multicall3 eth_call",
+  "results": [
+    {
+      "id": "0x64d65c9a2d91c36d56fbc42d69e979335320169b3df63bf92789e2c8883fcc64",
+      "user": "0x0D4Fb0237CA4d1934186dbFbC429747D06756537",
+      "status": "ACCRUAL_REFERENCE_PASS",
+      "params": [
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",
+        "0xA6D6950c9F177F1De7f7757FB33539e3Ec60182a",
+        "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        "860000000000000000"
+      ],
+      "stored": {
+        "totalSupplyAssetsRaw": "340018911711982",
+        "totalSupplySharesRaw": "310439710969364607011",
+        "totalBorrowAssetsRaw": "303867025460663",
+        "totalBorrowSharesRaw": "274027268592075110545",
+        "lastUpdateRaw": "1791564167",
+        "feeRaw": "0"
+      },
+      "position": {
+        "supplySharesRaw": "0",
+        "borrowSharesRaw": "4366790066749292",
+        "collateralRaw": "13906314"
+      },
+      "rateRaw": "1476849582",
+      "oraclePriceRaw": "828106723010100000000000000000000000000",
+      "modeled": {
+        "totalSupplyAssetsRaw": "340018965563893",
+        "totalSupplySharesRaw": "310439710969364607011",
+        "totalBorrowAssetsRaw": "303867079312574",
+        "totalBorrowSharesRaw": "274027268592075110545",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0",
+        "interestRaw": "53851911",
+        "feeSharesRaw": "0",
+        "elapsedRaw": "120"
+      },
+      "reference": {
+        "totalSupplyAssetsRaw": "340018965563893",
+        "totalSupplySharesRaw": "310439710969364607011",
+        "totalBorrowAssetsRaw": "303867079312574",
+        "totalBorrowSharesRaw": "274027268592075110545",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0"
+      },
+      "boundary": null,
+      "risk": {
+        "borrowAssetsRaw": "4842305478",
+        "collateralInLoanRaw": "11515912115",
+        "maxBorrowAssetsRaw": "9903684418",
+        "healthFactorRaw": "2045241561689016596",
+        "healthy": true,
+        "liquidatable": false
+      },
+      "oracleFreshness": "NOT_VALIDATED_FOR_PRODUCTION"
+    },
+    {
+      "id": "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+      "user": "0x4D9bf9F734B817298A4c0bC250c30527379cbE34",
+      "status": "ACCRUAL_REFERENCE_PASS",
+      "params": [
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        "0xDddd770BADd886dF3864029e4B377B5F6a2B6b83",
+        "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        "860000000000000000"
+      ],
+      "stored": {
+        "totalSupplyAssetsRaw": "131003492443307",
+        "totalSupplySharesRaw": "114289391248582075628",
+        "totalBorrowAssetsRaw": "115967640242221",
+        "totalBorrowSharesRaw": "99246751795970971878",
+        "lastUpdateRaw": "1791563711",
+        "feeRaw": "0"
+      },
+      "position": {
+        "supplySharesRaw": "0",
+        "borrowSharesRaw": "2096777352711757",
+        "collateralRaw": "3923091"
+      },
+      "rateRaw": "1491370274",
+      "oraclePriceRaw": "827049808599911186616074508451190065539",
+      "modeled": {
+        "totalSupplyAssetsRaw": "131003592062948",
+        "totalSupplySharesRaw": "114289391248582075628",
+        "totalBorrowAssetsRaw": "115967739861862",
+        "totalBorrowSharesRaw": "99246751795970971878",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0",
+        "interestRaw": "99619641",
+        "feeSharesRaw": "0",
+        "elapsedRaw": "576"
+      },
+      "reference": {
+        "totalSupplyAssetsRaw": "131003592062948",
+        "totalSupplySharesRaw": "114289391248582075628",
+        "totalBorrowAssetsRaw": "115967739861862",
+        "totalBorrowSharesRaw": "99246751795970971878",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0"
+      },
+      "boundary": {
+        "maximumWithdrawRaw": "478456",
+        "healthyCall": "SUCCEEDED",
+        "nextUnitCall": "REVERTED_INSUFFICIENT_COLLATERAL",
+        "readOnly": true
+      },
+      "risk": {
+        "borrowAssetsRaw": "2450040190",
+        "collateralInLoanRaw": "3244591660",
+        "maxBorrowAssetsRaw": "2790348827",
+        "healthFactorRaw": "1138899205975882379",
+        "healthy": true,
+        "liquidatable": false
+      },
+      "oracleFreshness": "NOT_VALIDATED_FOR_PRODUCTION"
+    },
+    {
+      "id": "0x82053fe2fc3a3d6cb856458948e9c3589e76f20f3a2079606739b517587267ce",
+      "user": "0xdC7f593958ef44914F806A3196A869ED471cafc1",
+      "status": "ACCRUAL_REFERENCE_PASS",
+      "params": [
+        "0x5F7827FDeb7c20b443265Fc2F40845B715385Ff2",
+        "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",
+        "0xbA75FD248bF33D669D4c5Adf25d3e32779656E47",
+        "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        "860000000000000000"
+      ],
+      "stored": {
+        "totalSupplyAssetsRaw": "13293035281027948768592334",
+        "totalSupplySharesRaw": "12892949868320830175293597472362",
+        "totalBorrowAssetsRaw": "11984504963105582509233220",
+        "totalBorrowSharesRaw": "11580575037278357146705088142184",
+        "lastUpdateRaw": "1791563147",
+        "feeRaw": "0"
+      },
+      "position": {
+        "supplySharesRaw": "0",
+        "borrowSharesRaw": "77320640476217799572606550990",
+        "collateralRaw": "184507947"
+      },
+      "rateRaw": "635640840",
+      "oraclePriceRaw": "739420614506223547690054824365591013804310945229208",
+      "modeled": {
+        "totalSupplyAssetsRaw": "13293043965369609203629048",
+        "totalSupplySharesRaw": "12892949868320830175293597472362",
+        "totalBorrowAssetsRaw": "11984513647447242944269934",
+        "totalBorrowSharesRaw": "11580575037278357146705088142184",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0",
+        "interestRaw": "8684341660435036714",
+        "feeSharesRaw": "0",
+        "elapsedRaw": "1140"
+      },
+      "reference": {
+        "totalSupplyAssetsRaw": "13293043965369609203629048",
+        "totalSupplySharesRaw": "12892949868320830175293597472362",
+        "totalBorrowAssetsRaw": "11984513647447242944269934",
+        "totalBorrowSharesRaw": "11580575037278357146705088142184",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0"
+      },
+      "boundary": null,
+      "risk": {
+        "borrowAssetsRaw": "80017638850719225056482",
+        "collateralInLoanRaw": "136428979552021725507348",
+        "maxBorrowAssetsRaw": "117328922414738683936319",
+        "healthFactorRaw": "1466288234693194683",
+        "healthy": true,
+        "liquidatable": false
+      },
+      "oracleFreshness": "NOT_VALIDATED_FOR_PRODUCTION"
+    },
+    {
+      "id": "0x1590cb22d797e226df92ebc6e0153427e207299916e7e4e53461389ad68272fb",
+      "user": "0xf6cD9E8415162C8fb3C52676c7cA68812A34f76E",
+      "status": "ACCRUAL_REFERENCE_PASS",
+      "params": [
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "0xd3fD63209FA2D55B07A0f6db36C2f43900be3094",
+        "0x938D2eDb20425cF80F008E7ec314Eb456940Da15",
+        "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        "945000000000000000"
+      ],
+      "stored": {
+        "totalSupplyAssetsRaw": "11895124439646",
+        "totalSupplySharesRaw": "11539706041648103725",
+        "totalBorrowAssetsRaw": "10697467706457",
+        "totalBorrowSharesRaw": "10339884770844759288",
+        "lastUpdateRaw": "1791563567",
+        "feeRaw": "0"
+      },
+      "position": {
+        "supplySharesRaw": "0",
+        "borrowSharesRaw": "72312448430660536",
+        "collateralRaw": "100573197385764222135011"
+      },
+      "rateRaw": "1840277543",
+      "oraclePriceRaw": "1102087850000000000000000",
+      "modeled": {
+        "totalSupplyAssetsRaw": "11895138613798",
+        "totalSupplySharesRaw": "11539706041648103725",
+        "totalBorrowAssetsRaw": "10697481880609",
+        "totalBorrowSharesRaw": "10339884770844759288",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0",
+        "interestRaw": "14174152",
+        "feeSharesRaw": "0",
+        "elapsedRaw": "720"
+      },
+      "reference": {
+        "totalSupplyAssetsRaw": "11895138613798",
+        "totalSupplySharesRaw": "11539706041648103725",
+        "totalBorrowAssetsRaw": "10697481880609",
+        "totalBorrowSharesRaw": "10339884770844759288",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0"
+      },
+      "boundary": null,
+      "risk": {
+        "borrowAssetsRaw": "74813319875",
+        "collateralInLoanRaw": "110840498874",
+        "maxBorrowAssetsRaw": "104744271435",
+        "healthFactorRaw": "1400075168566364867",
+        "healthy": true,
+        "liquidatable": false
+      },
+      "oracleFreshness": "NOT_VALIDATED_FOR_PRODUCTION"
+    },
+    {
+      "id": "0x4c65e07315031031d8f4613aa7bafb7deef08474a4d998d7192796fb9171e795",
+      "user": "0x5F304564Bd957A28C4A4472DeD30C91ffeb05fB4",
+      "status": "ACCRUAL_REFERENCE_PASS",
+      "params": [
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "0x3B790d651e950497c7723D47B24E6f61534f7969",
+        "0xdCCf36f650e56e498025c324b57dB8293019564c",
+        "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        "770000000000000000"
+      ],
+      "stored": {
+        "totalSupplyAssetsRaw": "10002638632",
+        "totalSupplySharesRaw": "10002000000000000",
+        "totalBorrowAssetsRaw": "4604577881",
+        "totalBorrowSharesRaw": "4603830425025491",
+        "lastUpdateRaw": "1791562691",
+        "feeRaw": "0"
+      },
+      "position": {
+        "supplySharesRaw": "0",
+        "borrowSharesRaw": "4603830425025491",
+        "collateralRaw": "69049954625969799904500"
+      },
+      "rateRaw": "20091754",
+      "oraclePriceRaw": "102591898975120661000000",
+      "modeled": {
+        "totalSupplyAssetsRaw": "10002638779",
+        "totalSupplySharesRaw": "10002000000000000",
+        "totalBorrowAssetsRaw": "4604578028",
+        "totalBorrowSharesRaw": "4603830425025491",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0",
+        "interestRaw": "147",
+        "feeSharesRaw": "0",
+        "elapsedRaw": "1596"
+      },
+      "reference": {
+        "totalSupplyAssetsRaw": "10002638779",
+        "totalSupplySharesRaw": "10002000000000000",
+        "totalBorrowAssetsRaw": "4604578028",
+        "totalBorrowSharesRaw": "4603830425025491",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0"
+      },
+      "boundary": null,
+      "risk": {
+        "borrowAssetsRaw": "4604578028",
+        "collateralInLoanRaw": "7083965969",
+        "maxBorrowAssetsRaw": "5454653796",
+        "healthFactorRaw": "1184615346472743061",
+        "healthy": true,
+        "liquidatable": false
+      },
+      "oracleFreshness": "NOT_VALIDATED_FOR_PRODUCTION"
+    },
+    {
+      "id": "0x9666c9b61cc58e3187c6e344697ed31fe558dc01809740417beee07dc77d96b3",
+      "user": "0xE765c1f860D1d949aF634E0CAc67bbe161b8Eb58",
+      "status": "ACCRUAL_REFERENCE_PASS",
+      "params": [
+        "0x0DC4F92879B7670e5f4e4e6e3c801D229129D90D",
+        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        "0x84428a1CD010E3797E89b6D62f3a6BD2737F1B79",
+        "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+        "625000000000000000"
+      ],
+      "stored": {
+        "totalSupplyAssetsRaw": "18040618588226776653822896",
+        "totalSupplySharesRaw": "17550180459124313405246608189241",
+        "totalBorrowAssetsRaw": "16002062104417119871289",
+        "totalBorrowSharesRaw": "15518730029517032795590314462",
+        "lastUpdateRaw": "1791562031",
+        "feeRaw": "0"
+      },
+      "position": {
+        "supplySharesRaw": "0",
+        "borrowSharesRaw": "15516730209929807516117208845",
+        "collateralRaw": "10000000000000000"
+      },
+      "rateRaw": "173147181",
+      "oraclePriceRaw": "4010479677998720624000000000000000000000000",
+      "modeled": {
+        "totalSupplyAssetsRaw": "18040618594477504019338810",
+        "totalSupplySharesRaw": "17550180459124313405246608189241",
+        "totalBorrowAssetsRaw": "16002068355144485387203",
+        "totalBorrowSharesRaw": "15518730029517032795590314462",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0",
+        "interestRaw": "6250727365515914",
+        "feeSharesRaw": "0",
+        "elapsedRaw": "2256"
+      },
+      "reference": {
+        "totalSupplyAssetsRaw": "18040618594477504019338810",
+        "totalSupplySharesRaw": "17550180459124313405246608189241",
+        "totalBorrowAssetsRaw": "16002068355144485387203",
+        "totalBorrowSharesRaw": "15518730029517032795590314462",
+        "lastUpdateRaw": "1791564287",
+        "feeRaw": "0"
+      },
+      "boundary": null,
+      "risk": {
+        "borrowAssetsRaw": "16000006250212453672449",
+        "collateralInLoanRaw": "40104796779987206240000",
+        "maxBorrowAssetsRaw": "25065497987492003900000",
+        "healthFactorRaw": "1566593012247053057",
+        "healthy": true,
+        "liquidatable": false
+      },
+      "oracleFreshness": "NOT_VALIDATED_FOR_PRODUCTION"
+    }
+  ]
+}

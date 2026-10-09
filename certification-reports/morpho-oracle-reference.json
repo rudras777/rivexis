@@ -1,0 +1,72 @@
+{
+  "classification": "STAGING_ORACLE_VALIDATION_NOT_PRODUCTION_SUPPORT",
+  "status": "PINNED_ORACLE_REFERENCE_PASS",
+  "checkedAt": "2026-10-09T16:51:00.070Z",
+  "blockNumber": "26156160",
+  "blockHash": "0xf2ae039a3b617fda8bcca685ec6794189f9f9f0f13986945ce1b597cc9ceafa4",
+  "source": "https://github.com/morpho-org/morpho-blue-oracles/blob/6941f06e411ca17c692fc63824cc60eeeec0035e/src/ChainlinkOracle.sol",
+  "evidence": {
+    "marketId": "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+    "loanToken": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "collateralToken": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    "oracle": "0xDddd770BADd886dF3864029e4B377B5F6a2B6b83",
+    "irm": "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+    "lltvRaw": "860000000000000000",
+    "codeHash": "0x726b2513a5e9cc64d93af23e2fba053db6f6801132e56d4b6b7882a66b239dc9",
+    "vault": "0x0000000000000000000000000000000000000000",
+    "vaultConversionSample": "1",
+    "quoteFeed2": "0x0000000000000000000000000000000000000000",
+    "scaleFactor": "100000000000000000000000000",
+    "price": "827049808599911186616074508451190065539",
+    "loanDecimals": 6,
+    "collateralDecimals": 8,
+    "blockTimestamp": "1791564647",
+    "feeds": [
+      {
+        "kind": "WBTC_BTC",
+        "address": "0xfdFD9C85aD200c506Cf9e21F1FD8dd01932FBB23",
+        "decimals": 8,
+        "round": [
+          "36893488147419104056",
+          "99858897",
+          "1791494505",
+          "1791494519",
+          "36893488147419104056"
+        ],
+        "maxAgeSeconds": 90000
+      },
+      {
+        "kind": "BTC_USD",
+        "address": "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
+        "decimals": 8,
+        "round": [
+          "129127208515966886302",
+          "8281067230101",
+          "1791562859",
+          "1791562871",
+          "129127208515966886302"
+        ],
+        "maxAgeSeconds": 4200
+      },
+      {
+        "kind": "USDC_USD",
+        "address": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+        "decimals": 8,
+        "round": [
+          "73786976294838206491",
+          "99986510",
+          "1791556718",
+          "1791556739",
+          "73786976294838206491"
+        ],
+        "maxAgeSeconds": 90000
+      }
+    ]
+  },
+  "limitations": [
+    "One Ethereum WBTC/USDC 86% LLTV market only; other markets are unvalidated.",
+    "Feed freshness bounds are beta assumptions, not protocol guarantees.",
+    "Contract and oracle validation does not certify RPC independence, liquidity or execution.",
+    "Production discovery, shared-budget planning and transaction support remain disabled."
+  ]
+}
