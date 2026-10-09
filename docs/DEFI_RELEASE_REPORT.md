@@ -1,6 +1,6 @@
 # RIVEXIS — DeFi risk platform release evidence
 
-Release state: the redesigned product is LIVE on the original Cloudflare URL. Initial exact-source release 1b448e5f21b8e74a26fe37fa86c308e431be1d46 was independently verified. The final no-action baseline correction and release evidence are recorded in TRANSFORMATION_PROGRESS.md.
+Release state: the redesigned bounded beta is LIVE at https://rivexis-web.rudrasingh0718.workers.dev. Final deployed source is e42fd2a22721c26b73756c48c2ae906e1ed04674; Cloudflare Worker version 30481780-7781-4ff9-bdd9-1d45c76ece10; existing Supabase API v16 ACTIVE. Final main CI 37945178364 passed all four jobs. Independent public verification matched this source identity, exact on-chain health factor and read-only transaction simulation. Authenticated browser verification confirmed the existing session, saved receipt and zero-cost current-state baseline. See TRANSFORMATION_PROGRESS.md and certification-reports/defi-live-verification.json.
 
 ## Architecture and feature inventory
 
@@ -48,7 +48,7 @@ Rollback: redeploy baseline tag baseline/pre-defi-transformation-20261009 to riv
 
 ## Cost model and operational limits
 
-Supabase organization plan verified free. No new paid service, AI dependency, account or permanent project was created, and no paid plan was activated. Cloudflare account/Worker identity is unchanged; current subscription/usage evidence is recorded in the journal when available. Free allowances are shared with existing workloads, so zero total cost is not guaranteed.
+Supabase organization plan verified free. No new paid service, AI dependency, account or permanent project was created, and no paid plan was activated. Cloudflare account/Worker identity is unchanged; billing/subscription reads returned 403 with existing OAuth scopes, so current Cloudflare plan and total charges are UNVERIFIED. Free allowances are shared with existing workloads, so zero total cost is not guaranteed. Source CI passes, but the pre-existing Cloudflare-connected Workers Builds check fails; the release used the existing authenticated manual Wrangler path successfully.
 
 Distributed beta cap: 300 RPC-backed attempts/day globally, 4 per wallet/minute. Each snapshot uses approximately 9–12 RPC round trips with bounded multicalls (up to 80 reserves); a transaction preview adds call/estimate/fee/nonce/reorganization checks. That bounds accepted analysis to about 9,000 attempts/month and roughly 150,000 RPC method calls/month before provider failures, with no SLA. PublicNode publishes free Ethereum access; commercial reliability and abuse limits are not contractually guaranteed. Provider failure returns UNKNOWN.
 

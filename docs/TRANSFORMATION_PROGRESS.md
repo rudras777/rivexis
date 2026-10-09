@@ -23,7 +23,7 @@ Auth cookies, CSRF, workspace checks, existing API bridges, report and alert run
 
 ## Release gates / status
 
-IN PROGRESS: protocol adapter, financial model and new product UI. NOT DEPLOYED.
+LIVE: bounded Ethereum/Aave V3 beta on the original production URL. Release gates passed for the supported scope; unsupported protocol modes remain explicit. Email inbox delivery and Cloudflare billing visibility remain unverified.
 
 Required: independent arithmetic/reference tests; malformed/stale data rejection; quota and security checks; locked builds/typechecks; responsive/browser QA; real RPC agreement; auth regressions; exact production commit and public API verification. External tests are labeled PASS / FAIL / BLOCKED / UNVERIFIED, never inferred from mocks.
 
@@ -46,4 +46,9 @@ Redeploy the baseline tag to the same Worker using the existing deployment autho
 - Legacy data counts unchanged: 4 users, 4 workspaces, 25 analyses, 4 legacy reports. One explicit new risk report was added to the new owner-scoped table.
 - Live UI testing identified the already-met-target edge case. Added a zero-cost, zero-gas no-transaction candidate, regression tests and optimizer identity bounded-frontier-2. Never rank a paid transaction ahead of an already-satisfying $0 baseline for the least-capital objective.
 - Financial validation is bounded normal-mode Aave WETH/USDC/USDT. Morpho, eMode, isolation, composite oracles and live multi-protocol discovery remain unsupported. Fresh Brevo inbox delivery remains UNVERIFIED.
-- Next safe action: promote the certified baseline correction, verify public SHA and account report behavior again, then preserve final release evidence. Do not enable paid plans or broader protocol coverage from this record alone.
+- Final deployed source: e42fd2a22721c26b73756c48c2ae906e1ed04674 (PR #35 merged); same Worker version 30481780-7781-4ff9-bdd9-1d45c76ece10. Existing Supabase rivexis-api v16 is ACTIVE; other Edge Functions retained.
+- Final main CI 37945178364, worker-bundle 37945178128 and pages build 37945177668 PASS. Local model, browser, migration and build checks passed before promotion. Separate Cloudflare-connected Workers Builds checks remain a pre-existing pipeline defect; manual Wrangler deployment succeeded.
+- Independent live verification at 2026-10-09T14:38:19Z: public marker matches final SHA; block 26155500 observed and modeled health factor both 1621306618169667914; read-only withdrawal simulation succeeds (262067 gas); invalid wallet rejected 422; unauthenticated reports denied 401.
+- Final browser: existing account session remains authorized; saved report 346ce9fc-b4b3-42ca-bec9-3ae049bd29e2 remains retrievable. Current-state target 1.50 ranks a $0 no-transaction alternative first. Browser error log empty during this final check.
+- Next safe action: validate additional oracle adapters and protocol modes independently, then consider Morpho discovery. Resolve Brevo connector visibility and check actual email delivery without inferring success. Inspect Cloudflare billing and repair connected-build integration with existing authority; do not enable paid plans or broader financial coverage from this record alone.
+- Documentation/evidence commits after the release do not change the deployed source identity above. Rollback evidence and additive schema remain preserved.
