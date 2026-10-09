@@ -51,10 +51,14 @@ test('explicit Morpho coverage keeps protocol positions, scenario assets and tra
 
 test('portfolio shows exact oracle units and never hides a positive dust balance as zero',async({page})=>{
   const fixture=sampleSnapshot();fixture.wallet='0x'+'1'.repeat(40);fixture.positions[0].reserves[0].collateralRaw='1';fixture.positions[0].reserves[1].priceRaw='99991234';
+  fixture.observedDebtRaw='90071992547409939901000000'; // Renderer-only regression above JS safe precision.
+  fixture.nativeBalanceRaw='1';
   await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:{...fixture,sample:false}}));
   await page.setViewportSize({width:375,height:900});await page.goto('/app');await page.getByLabel('Public Ethereum address').fill(fixture.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.getByRole('cell',{name:'$0.99991234',exact:true})).toBeVisible();
   await expect(page.getByRole('cell',{name:'<0.00000001',exact:true})).toBeVisible();
+  await expect(page.getByText('$900,719,925,474,099,399.01',{exact:true})).toBeVisible();
+  await expect(page.locator('[aria-label="Observed portfolio metrics"]')).toContainText('<0.0001 ETH');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 test('responsive dark/light product surfaces have no page overflow or serious axe findings',async({page})=>{
