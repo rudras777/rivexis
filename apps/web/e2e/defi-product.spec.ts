@@ -27,6 +27,16 @@ test('invalid address and unavailable provider preserve honest no-result state',
   await expect(page.locator('.defiWorkspace .error[role=alert]')).toHaveText('RPC evidence unavailable');await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toHaveCount(0);
 });
 
+test('saved reports can load without a wallet snapshot while new calculations stay gated',async({page})=>{
+  let snapshotRequests=0,reportRequests=0;
+  await page.route('**/api/v1/defi/snapshot',r=>{snapshotRequests++;return r.fulfill({status:503,json:{detail:'Not needed'}})});
+  await page.route('**/api/v1/defi-reports',r=>{reportRequests++;return r.fulfill({status:200,json:{items:[{id:'TEST_OWNER_REPORT',created_at:'2026-10-09T00:00:00Z',receipt:{classification:'TEST_FIXTURE'}}]}})});
+  await page.goto('/app');await page.getByRole('button',{name:'05Monitoring & Reports',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Save comparison to account',exact:true})).toBeDisabled();
+  await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect(page.getByText('TEST_OWNER_REPORT',{exact:true})).toBeVisible();
+  expect(snapshotRequests).toBe(0);expect(reportRequests).toBe(1);
+});
+
 test('explicit Morpho coverage keeps protocol positions, scenario assets and transaction routing distinct',async({page})=>{
   // Browser-only fixture from recorded RPC evidence. Shift test timestamps so
   // UI freshness can be exercised deterministically; no production data changes.
