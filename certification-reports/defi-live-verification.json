@@ -1,38 +1,38 @@
 {
-  "checkedAt": "2026-10-09T15:24:34.289Z",
+  "checkedAt": "2026-10-09T17:16:25.799Z",
   "base": "https://rivexis-web.rudrasingh0718.workers.dev",
   "results": [
     {
       "test": "real_aave_account_reference",
       "status": "PASS",
-      "latencyMs": 1938,
-      "blockNumber": "26155731",
-      "blockHash": "0xbd21f10ba159447af979359b1e6e2ecf27aa2449a011689e4c339d1fc6da0962",
+      "latencyMs": 1906,
+      "blockNumber": "26156287",
+      "blockHash": "0x34e55c0b003cbf953208f866e7f954c27a0720a471b3325c05958a1e44eee489",
       "poolImplementation": "0x728a138a4823392c2efa55e028d434f526fe03cf",
-      "observedHF": "1618602763646810016",
-      "modeledHF": "1618602763646810016"
+      "observedHF": "1623388261385455812",
+      "modeledHF": "1623388261385455812"
     },
     {
       "test": "real_wbtc_composite_reference",
       "status": "PASS",
-      "latencyMs": 1756,
-      "blockNumber": "26155731",
-      "blockHash": "0xbd21f10ba159447af979359b1e6e2ecf27aa2449a011689e4c339d1fc6da0962",
-      "observedHF": "1069027915435393095",
-      "modeledHF": "1069027915435393095",
+      "latencyMs": 2191,
+      "blockNumber": "26156287",
+      "blockHash": "0x34e55c0b003cbf953208f866e7f954c27a0720a471b3325c05958a1e44eee489",
+      "observedHF": "1070106357018982685",
+      "modeledHF": "1070106357018982685",
       "source": "0xDaa4B74C6bAc4e25188e64ebc68DB5050b690cAc",
       "codeHash": "0x585d9bff94e70a45a18e9f7b03dcb249051e32a6cba0f14c6ab81e194595364e",
-      "priceRaw": "8272737632125",
+      "priceRaw": "8281015000247",
       "components": [
         {
           "kind": "BTC_USD",
           "feed": "0xb41e773f507f7a7ea890b1afb7d2b660c30c8b0a",
           "maxAgeSeconds": 4200,
-          "roundId": "36893488147419121565",
-          "answerRaw": "8284427207448",
-          "startedAt": "1791559042",
-          "updatedAt": "1791559055",
-          "answeredInRound": "36893488147419121565"
+          "roundId": "36893488147419121566",
+          "answerRaw": "8292716271688",
+          "startedAt": "1791562644",
+          "updatedAt": "1791562667",
+          "answeredInRound": "36893488147419121566"
         },
         {
           "kind": "WBTC_BTC",
@@ -56,20 +56,20 @@
     {
       "test": "real_withdraw_readonly_simulation",
       "status": "PASS",
-      "latencyMs": 1694,
-      "blockNumber": "26155731",
-      "gas": "259544",
-      "feeReserveWei": "165215488830556",
+      "latencyMs": 1855,
+      "blockNumber": "26156287",
+      "gas": "253803",
+      "feeReserveWei": "244598167819843",
       "blockers": []
     },
     {
       "test": "real_wbtc_withdraw_readonly_simulation",
       "status": "PASS",
-      "latencyMs": 2218,
-      "blockNumber": "26155731",
-      "gas": "375532",
-      "beforeHF": "1069027915435393095",
-      "afterHF": "1069021183635346134",
+      "latencyMs": 1789,
+      "blockNumber": "26156287",
+      "gas": "377710",
+      "beforeHF": "1070106357018982685",
+      "afterHF": "1070099618549495913",
       "blockers": []
     },
     {
@@ -85,8 +85,8 @@
     {
       "test": "public_build_marker",
       "status": "PASS",
-      "buildSha": "fc384ac764f7b70495e12d57596c006256d004bb",
-      "expectedBuild": "fc384ac764f7b70495e12d57596c006256d004bb",
+      "buildSha": "011db41be30361f8a615598ad9f5a34702ea325b",
+      "expectedBuild": "011db41be30361f8a615598ad9f5a34702ea325b",
       "transformed": true
     }
   ]
