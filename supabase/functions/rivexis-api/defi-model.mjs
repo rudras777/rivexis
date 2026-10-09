@@ -72,8 +72,9 @@ export function scenario(snapshot, shocks = {}, actions = [], now = Date.now()) 
   }
   return snapshot.positions.map(p => ({positionId:p.id, ...metrics(p, shocks, actions)}));
 }
-export function frontier(snapshot, {budget, target = '1.50', gasReserve = '0', shocks = {}, objective = 'target'}, now = Date.now()) {
-  validateSnapshot(snapshot, now);
+export function frontier(snapshot, {budget, target = '1.50', gasReserve = '0', shocks = {}, objective = 'target'}, now = Date.now(), adapters = null) {
+  (adapters?.validate??validateSnapshot)(snapshot, now);
+  const evaluate=adapters?.scenario??scenario;
   const capital = decimal(budget), fees = decimal(gasReserve), goal = decimal(target, 18);
   if (goal < WAD || goal > 10n * WAD || fees > capital) throw new Error('Invalid target or fee reserve');
   if (!['target','max-min'].includes(objective)) throw new Error('Unsupported objective');
@@ -95,14 +96,20 @@ export function frontier(snapshot, {budget, target = '1.50', gasReserve = '0', s
       const key = c.r.asset.toLowerCase(), available = integer(c.r.walletRaw) - (balances.get(key) ?? 0n);
       if (amount > available) amount = available;
       if (c.kind === 'repay' && amount > integer(c.r.debtRaw)) amount = integer(c.r.debtRaw);
+      let sharesRaw;
+      if(adapters?.prepareRepayment&&c.kind==='repay'){
+        const prepared=adapters.prepareRepayment(snapshot.positions.find(p=>p.id===c.positionId),amount);
+        if(prepared){amount=integer(prepared.amountRaw);sharesRaw=prepared.sharesRaw;}
+        else if(snapshot.positions.find(p=>p.id===c.positionId)?.protocol==='Morpho Blue')continue;
+      }
       if (amount === 0n) continue;
       balances.set(key, (balances.get(key) ?? 0n) + amount);
       spent += amount * integer(c.r.priceRaw) / 10n ** BigInt(c.r.decimals);
-      actions.push({positionId:c.positionId, asset:c.r.asset, symbol:c.r.symbol, kind:c.kind, amountRaw:amount.toString(), decimals:c.r.decimals, approvalRequired:integer(c.r.allowanceRaw)<amount});
+      actions.push({positionId:c.positionId, asset:c.r.asset, symbol:c.r.symbol, kind:c.kind, amountRaw:amount.toString(), ...(sharesRaw?{sharesRaw}:{}), decimals:c.r.decimals, approvalRequired:integer(c.r.allowanceRaw)<amount});
     }
     if (!actions.length || spent + fees > capital || gasConstraint === 'INSUFFICIENT_NATIVE_GAS_RESERVE') return;
     const key = JSON.stringify(actions); if (seen.has(key)) return; seen.add(key);
-    const outcomes = scenario(snapshot, shocks, actions, now);
+    const outcomes = evaluate(snapshot, shocks, actions, now);
     const minHf = outcomes.reduce((m,o) => o.healthFactorRaw === null ? m : m === null || BigInt(o.healthFactorRaw) < m ? BigInt(o.healthFactorRaw) : m, null);
     const meetsTarget = outcomes.every(o => o.healthFactorRaw === null || BigInt(o.healthFactorRaw) >= goal);
     const uncovered = outcomes.filter(o => o.healthFactorRaw !== null && BigInt(o.healthFactorRaw) < goal).length;
@@ -110,7 +117,7 @@ export function frontier(snapshot, {budget, target = '1.50', gasReserve = '0', s
   }
   for (const c of choices) for (let step=1;step<=20;step++) assess([[c,spendable*BigInt(step)/20n]]);
   for (let i=0;i<choices.length;i++) for (let j=i+1;j<choices.length;j++) for (let step=1;step<20;step++) assess([[choices[i],spendable*BigInt(step)/20n],[choices[j],spendable*BigInt(20-step)/20n]]);
-  const base = scenario(snapshot, shocks, [], now);
+  const base = evaluate(snapshot, shocks, [], now);
   // A zero-cost baseline must win a least-capital objective when the current
   // position already meets the chosen scenario target. No transaction means no gas.
   if(base.every(o=>o.healthFactorRaw===null||BigInt(o.healthFactorRaw)>=goal)){
@@ -129,5 +136,5 @@ export function frontier(snapshot, {budget, target = '1.50', gasReserve = '0', s
     if(candidate)representative.push(candidate);
   }
   const alternatives=[...new Set([...candidates.slice(0,5),...representative])].slice(0,8);
-  return {model:MODEL,optimizer:'bounded-frontier-2',objective,budgetRaw:capital.toString(),targetRaw:goal.toString(),feeReserveRaw:fees.toString(),gasConstraint,baseline:base,examined,meetsTarget:candidates.some(c=>c.meetsTarget),alternatives,method:'Bounded enumeration: zero-cost current-state baseline; 5% budget increments; at most two actions per alternative; wallet balances shared by token. Leading ranked options plus repayment/supply/combination representatives. No swaps, bridging or global-optimum claim.',warnings:['Capital is valued at snapshot oracle prices; stress changes modeled position valuations only.','Fee reserve is a user assumption, not a gas estimate. Approvals may require additional fees.',gasConstraint==='INSUFFICIENT_NATIVE_GAS_RESERVE'?'Available native ETH cannot cover the assumed fee reserve; transaction alternatives withheld.':gasConstraint==='UNKNOWN_ETH_PRICE'?'Native gas affordability is unknown because a validated ETH price is absent.':'Observed ETH covers only the user-assumed fee reserve, not a guaranteed execution cost.','Every transaction alternative requires a fresh GasGuard preview; protocol caps, liquidity and execution may prevent the action.']};
+  return {model:snapshot.model,optimizer:adapters?'bounded-frontier-3':'bounded-frontier-2',objective,budgetRaw:capital.toString(),targetRaw:goal.toString(),feeReserveRaw:fees.toString(),gasConstraint,baseline:base,examined,meetsTarget:candidates.some(c=>c.meetsTarget),alternatives,method:'Bounded enumeration: zero-cost current-state baseline; 5% budget increments; at most two actions per alternative; wallet balances shared by token. Leading ranked options plus repayment/supply/combination representatives. No swaps, bridging or global-optimum claim.',warnings:['Capital is valued at snapshot oracle prices; stress changes modeled position valuations only.','Fee reserve is a user assumption, not a gas estimate. Approvals may require additional fees.',gasConstraint==='INSUFFICIENT_NATIVE_GAS_RESERVE'?'Available native ETH cannot cover the assumed fee reserve; transaction alternatives withheld.':gasConstraint==='UNKNOWN_ETH_PRICE'?'Native gas affordability is unknown because a validated ETH price is absent.':'Observed ETH covers only the user-assumed fee reserve, not a guaranteed execution cost.','Every transaction alternative requires a fresh GasGuard preview; protocol caps, liquidity and execution may prevent the action.']};
 }

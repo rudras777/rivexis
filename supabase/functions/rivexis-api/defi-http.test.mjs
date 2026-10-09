@@ -4,6 +4,7 @@ const request=(data,method='POST')=>new Request('https://example.com'+endpoint,{
 test('public input validation happens before quota/RPC',async()=>{
   const db={rpc(){throw new Error('must not reach database')}};
   assert.equal((await handleDefi(request({wallet:'bad'}),endpoint,db)).status,422);
+  assert.equal((await handleDefi(request({wallet:'0x'+'1'.repeat(40),coverage:'all-protocols'}),endpoint,db)).status,422);
   assert.equal((await handleDefi(request({},'GET'),endpoint,db)).status,405);
   assert.equal((await handleDefi(request({wallet:'0x'+'1'.repeat(40),padding:'x'.repeat(5000)}),endpoint,db)).status,413);
 });

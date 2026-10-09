@@ -1,4 +1,4 @@
-// Staging-only, pinned Ethereum WBTC/USDC market. No generic oracle fallback.
+// Pinned Ethereum WBTC/USDC market. No generic oracle fallback.
 // V1 ChainlinkOracle source: morpho-blue-oracles@6941f06e411ca17c692fc63824cc60eeeec0035e.
 export const MORPHO_WBTC = Object.freeze({
   marketId:'0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49',

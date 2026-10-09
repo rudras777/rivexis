@@ -1,11 +1,11 @@
-// Morpho-specific validation kernel. Not wired into production discovery yet.
+// Morpho-specific fixed-point kernel for the bounded validated market adapter.
 // Mathematical semantics: Morpho core, SharesMathLib and MorphoBalancesLib.
 // Loan quantities stay in native units; health uses the market's 1e36 oracle.
-import {integer,WAD} from './defi-model.mjs';
+const WAD=10n**18n;
 export const MORPHO_MODEL='morpho-blue-1';
 export const VIRTUAL_SHARES=1000000n,ORACLE_SCALE=10n**36n;
 const limit128=2n**128n;
-function uint(v){return integer(typeof v==='bigint'?v.toString():v)}
+function uint(v){if(typeof v==='bigint')v=v.toString();if(typeof v!=='string'||!/^\d{1,78}$/.test(v)||BigInt(v)>=2n**256n)throw new Error('Invalid Morpho uint256');return BigInt(v)}
 function u128(v){const n=uint(v);if(n>=limit128)throw new Error('Morpho uint128 overflow');return n}
 function mulDiv(a,b,d,up=false){a=uint(a);b=uint(b);d=uint(d);if(!d)throw new Error('Zero denominator');const product=uint(a*b),adjusted=up?uint(product+d-1n):product;return adjusted/d}
 export function compoundedRate(rateRaw,elapsedRaw){
@@ -53,4 +53,31 @@ export function morphoRepaymentForBudget(market,position,budgetAssetsRaw){
 export function shockMorphoOracle(priceRaw,collateralShockBps=0,loanShockBps=0){
   for(const s of [collateralShockBps,loanShockBps])if(!Number.isInteger(s)||s< -9500||s>10000)throw new Error('Invalid Morpho price shock');
   return mulDiv(uint(priceRaw),BigInt(10000+collateralShockBps),BigInt(10000+loanShockBps)).toString();
+}
+// Adapter into the shared USD display/budget model. Health remains protocol-native.
+export function morphoPositionMetrics(p,shocks={},actions=[]){
+  const collateral=p.reserves.find(r=>r.asset.toLowerCase()===p.collateralToken.toLowerCase()),loan=p.reserves.find(r=>r.asset.toLowerCase()===p.loanToken.toLowerCase());
+  if(!collateral||!loan)throw new Error('Missing Morpho reserve');
+  let market={...p.market},position={...p.morphoPosition};
+  for(const a of actions.filter(a=>a.positionId===p.id)){
+    const amount=uint(a.amountRaw),isLoan=a.asset.toLowerCase()===p.loanToken.toLowerCase(),isCollateral=a.asset.toLowerCase()===p.collateralToken.toLowerCase();
+    if(!amount)throw new Error('Zero Morpho action');
+    if(a.kind==='repay'&&isLoan){
+      const prepared=a.sharesRaw?morphoRepayShares(market,position,a.sharesRaw):morphoRepaymentForBudget(market,position,a.amountRaw);
+      if(!prepared||uint(prepared.assetsRaw)!==amount)throw new Error('Morpho repayment amount/share mismatch');
+      market=prepared.market;position=prepared.position;
+    }else if(a.kind==='borrow'&&isLoan){
+      const shares=mulDiv(amount,u128(market.totalBorrowSharesRaw)+VIRTUAL_SHARES,u128(market.totalBorrowAssetsRaw)+1n,true);
+      market.totalBorrowSharesRaw=u128(u128(market.totalBorrowSharesRaw)+shares).toString();market.totalBorrowAssetsRaw=u128(u128(market.totalBorrowAssetsRaw)+amount).toString();
+      position.borrowSharesRaw=u128(u128(position.borrowSharesRaw)+shares).toString();
+    }else if(a.kind==='supply'&&isCollateral){position.collateralRaw=u128(u128(position.collateralRaw)+amount).toString();}
+    else if(a.kind==='withdraw'&&isCollateral){const owned=u128(position.collateralRaw);if(amount>owned)throw new Error('Withdrawal exceeds Morpho collateral');position.collateralRaw=(owned-amount).toString();}
+    else throw new Error('Unsupported Morpho action asset');
+  }
+  const cShock=shocks[collateral.asset.toLowerCase()]??0,lShock=shocks[loan.asset.toLowerCase()]??0;
+  const price=shockMorphoOracle(p.oraclePriceRaw,cShock,lShock),risk=morphoRisk(market,position,price,p.lltvRaw);
+  const cUnit=10n**BigInt(collateral.decimals),lUnit=10n**BigInt(loan.decimals),usd=10n**8n;
+  const cPrice=uint(collateral.priceRaw)*BigInt(10000+cShock)/10000n,lPrice=uint(loan.priceRaw)*BigInt(10000+lShock)/10000n;
+  const debt=uint(risk.borrowAssetsRaw)*lPrice;
+  return {collateralRaw:(uint(position.collateralRaw)*cPrice/cUnit).toString(),debtRaw:((debt+lUnit-1n)/lUnit).toString(),adjustedRaw:(uint(risk.maxBorrowAssetsRaw)*lPrice/lUnit).toString(),healthFactorRaw:risk.healthFactorRaw,liquidatable:risk.liquidatable,borrowAssetsRaw:risk.borrowAssetsRaw,oraclePriceRaw:price,healthBasis:'MORPHO_NATIVE_LOAN_UNITS',valuationUnit:usd.toString()};
 }

@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
+import {readFileSync} from 'node:fs';
 test.beforeEach(async({page})=>{await page.route('**/health',r=>r.fulfill({status:200,json:{status:'ready'}}))});
 test('anonymous sample connects scenarios, constrained frontier, and export',async({page})=>{
   await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
@@ -24,6 +25,28 @@ test('invalid address and unavailable provider preserve honest no-result state',
   await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:503,json:{detail:'RPC evidence unavailable'}}));
   await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.locator('.defiWorkspace .error[role=alert]')).toHaveText('RPC evidence unavailable');await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toHaveCount(0);
+});
+
+test('explicit Morpho coverage keeps protocol positions, scenario assets and transaction routing distinct',async({page})=>{
+  // Browser-only fixture from recorded RPC evidence. Shift test timestamps so
+  // UI freshness can be exercised deterministically; no production data changes.
+  const reference=JSON.parse(readFileSync(new URL('../../../certification-reports/morpho-portfolio-reference.json',import.meta.url),'utf8'));
+  const fixture=reference.snapshot,delta=Math.floor(Date.now()/1000)-fixture.blockTimestamp;
+  fixture.blockTimestamp+=delta;
+  for(const p of fixture.positions)if(p.oracleEvidence){p.market.lastUpdateRaw=String(fixture.blockTimestamp);p.oracleEvidence.blockTimestamp=String(fixture.blockTimestamp);for(const f of p.oracleEvidence.feeds)for(const i of [2,3])f.round[i]=String(Number(f.round[i])+delta);}
+  const requests:{coverage?:string;positionId?:string;asset?:string}[]=[];
+  await page.route('**/api/v1/defi/snapshot',r=>{requests.push(r.request().postDataJSON());return r.fulfill({status:200,json:fixture})});
+  await page.route('**/api/v1/defi/transaction',r=>{requests.push(r.request().postDataJSON());return r.fulfill({status:200,json:reference.transaction})});
+  await page.setViewportSize({width:375,height:900});await page.goto('/app');
+  await page.getByLabel('Protocol coverage').selectOption('combined');await page.getByLabel('Public Ethereum address').fill(fixture.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
+  await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();expect(requests[0].coverage).toBe('combined');
+  await expect(page.getByRole('cell').filter({hasText:'Morpho Blue'})).toHaveCount(2);
+  await page.getByRole('button',{name:'02Risk Scenario Lab',exact:true}).click();await expect(page.getByLabel('WBTC price shock')).toHaveCount(1);
+  await expect(page.locator('.scenarioResult')).toHaveCount(2);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.getByRole('button',{name:'04Transaction Intelligence',exact:true}).click();
+  const morpho=fixture.positions.find((p:{protocol:string})=>p.protocol==='Morpho Blue');await page.getByLabel('Transaction position').selectOption(morpho.id);
+  await page.getByLabel('Action',{exact:true}).selectOption('withdraw');await page.getByLabel('Asset',{exact:true}).selectOption(morpho.collateralToken);await page.getByLabel('Token amount').fill('0.00001');
+  await page.getByRole('button',{name:'Preview transaction ↗'}).click();await expect(page.getByRole('heading',{name:'SUCCEEDED AT BLOCK'})).toBeVisible();expect(requests[1].positionId).toBe(morpho.id);expect(requests[1].coverage).toBe('combined');
 });
 
 test('portfolio shows exact oracle units and never hides a positive dust balance as zero',async({page})=>{

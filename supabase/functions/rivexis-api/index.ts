@@ -4,8 +4,9 @@ import {analysisResult} from "./analysis.mjs";
 import {createMembershipClaimToken,hashMembershipClaimToken} from "./membership.mjs";
 import {parseRole,roleOrDefault} from "./role.mjs";
 import {handleDefi} from "./defi-http.mjs";
-import {snapshot,client} from "./defi-rpc.mjs";
-import {frontier} from "./defi-model.mjs";
+import {client} from "./defi-rpc.mjs";
+import {snapshot,COVERAGE} from "./defi-portfolio-rpc.mjs";
+import {frontier} from "./defi-unified-model.mjs";
 import {sampleSnapshot} from "./defi-sample.mjs";
 
 type Json=Record<string,unknown>;
@@ -289,13 +290,14 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
     if(!input||typeof input!=="object"||Array.isArray(input))return error(req,422,"Invalid report request",auth.cookie);
     if(typeof input.budget!=="string"||typeof input.target!=="string"||typeof input.gasReserve!=="string"||typeof input.objective!=="string"||!input.shocks||typeof input.shocks!=="object"||Array.isArray(input.shocks))return error(req,422,"Invalid report constraints",auth.cookie);
     if(input.sample!==true){
+      if(input.coverage!==undefined&&(typeof input.coverage!=="string"||!COVERAGE.includes(input.coverage)))return error(req,422,"Unsupported coverage",auth.cookie);
       if(typeof input.wallet!=="string"||!/^0x[0-9a-fA-F]{40}$/.test(input.wallet))return error(req,422,"Invalid wallet",auth.cookie);
       const quota=await admin.rpc("rivexis_defi_quota",{p_wallet:input.wallet.toLowerCase()});
       if(quota.error)return error(req,503,"Quota service unavailable",auth.cookie);
       if(quota.data!==true)return error(req,429,"Free beta quota reached",auth.cookie);
     }
     try{
-      const state=input.sample===true?sampleSnapshot():await snapshot(input.wallet,client(Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com"));
+      const state=input.sample===true?sampleSnapshot():await snapshot(input.wallet,client(Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com"),typeof input.coverage==='string'?input.coverage:'aave');
       const constraints={budget:input.budget,target:input.target,gasReserve:input.gasReserve,shocks:input.shocks,objective:input.objective};
       const result=frontier(state,constraints);
       const receipt={model:result.model,sample:input.sample===true,snapshot:state,constraints,result,createdAt:now(),classification:"MODEL_COMPARISON_NOT_EXECUTION"};
