@@ -28,6 +28,11 @@ test('public session status exposes two booleans, never identity or session toke
   assert.equal(guest.status,200);assert.deepEqual(await guest.json(),{authenticated:false,email_verified:false});
   const member=await h.handler(h.request('/api/v1/auth/session-status',{method:'GET',authenticated:true}));
   assert.deepEqual(await member.json(),{authenticated:true,email_verified:true});assert.equal(h.quota(),0);
+  assert.equal(member.headers.get('set-cookie'),null,'A valid unrefreshed session must keep its existing cookie');
+  const forged=await h.handler(h.request('/api/v1/auth/session-status',{method:'GET',authenticated:true,access:'forged-access'}));
+  assert.deepEqual(await forged.json(),{authenticated:false,email_verified:false});assert.match(forged.headers.get('set-cookie'),/Max-Age=0/);
+  const refreshed=harness({refresh:true});const refreshedStatus=await refreshed.handler(refreshed.request('/api/v1/auth/session-status',{method:'GET',authenticated:true,access:'expired-access'}));
+  assert.deepEqual(await refreshedStatus.json(),{authenticated:true,email_verified:true});assert.match(refreshedStatus.headers.get('set-cookie'),/HttpOnly; Secure; SameSite=Lax/);assert.ok(!refreshedStatus.headers.get('set-cookie').includes('Max-Age=0'));
 });
 test('guest and forged sessions cannot reach live DeFi quota or RPC',async()=>{
   for(const path of ['/api/v1/defi/snapshot','/api/v1/defi/transaction']){
