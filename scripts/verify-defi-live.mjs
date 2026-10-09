@@ -9,6 +9,11 @@ if(snapshot.http!==200||snapshot.body.status!=='READY')throw new Error('Live sup
 const s=snapshot.body,m=metrics(s.positions[0]);
 if(m.healthFactorRaw!==s.observedHealthFactorRaw)throw new Error('On-chain health factor disagreement');
 results.push({test:'real_aave_account_reference',status:'PASS',latencyMs:snapshot.latencyMs,blockNumber:s.blockNumber,blockHash:s.blockHash,poolImplementation:s.poolImplementation,observedHF:s.observedHealthFactorRaw,modeledHF:m.healthFactorRaw});
+const wbtc=await post('/api/v1/defi/snapshot',{wallet:'0x1FbcadCc4c250cF1f6da6b360263A6EBC3967aA9'}); // Public Borrow-event fixture, not an owned account.
+if(wbtc.http!==200||wbtc.body.status!=='READY')throw new Error('Live WBTC-supported snapshot failed: '+JSON.stringify(wbtc));
+const wm=metrics(wbtc.body.positions[0]),wr=wbtc.body.positions[0].reserves.find(r=>r.symbol==='WBTC');
+if(wm.healthFactorRaw!==wbtc.body.observedHealthFactorRaw||wr?.oracleAdapter!=='WBTC_BTC_USD'||wr?.oracleComponents?.length!==2)throw new Error('WBTC model or composite provenance failed');
+results.push({test:'real_wbtc_composite_reference',status:'PASS',latencyMs:wbtc.latencyMs,blockNumber:wbtc.body.blockNumber,blockHash:wbtc.body.blockHash,observedHF:wbtc.body.observedHealthFactorRaw,modeledHF:wm.healthFactorRaw,source:wr.oracleSource,codeHash:wr.oracleCodeHash,priceRaw:wr.priceRaw,components:wr.oracleComponents});
 const alternatives=frontier(s,{budget:'3000',gasReserve:'25',target:'1.75',shocks:{[s.positions[0].reserves[0].asset.toLowerCase()]:-2000}});
 results.push({test:'real_state_defense_frontier',status:alternatives.alternatives.length?'PASS':'FAIL',examined:alternatives.examined,alternatives:alternatives.alternatives.length,meetsTarget:alternatives.meetsTarget});
 const tx=await post('/api/v1/defi/transaction',{wallet,asset:'0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',kind:'withdraw',amount:'0.001'});
