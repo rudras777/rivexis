@@ -59,7 +59,7 @@ test('explicit Morpho coverage keeps protocol positions, scenario assets and tra
   await expect(page.locator('.scenarioResult')).toHaveCount(2);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.getByRole('button',{name:'04Transaction Intelligence',exact:true}).click();
   const morpho=fixture.positions.find((p:{protocol:string})=>p.protocol==='Morpho Blue');await page.getByLabel('Transaction position').selectOption(morpho.id);
-  await page.getByLabel('Action',{exact:true}).selectOption('withdraw');await page.getByLabel('Asset',{exact:true}).selectOption(morpho.collateralToken);await page.getByLabel('Token amount').fill('0.00001');
+  await page.getByLabel('Action',{exact:true}).selectOption('withdraw');await expect(page.getByLabel('Asset',{exact:true})).toHaveValue(morpho.collateralToken);await expect(page.getByLabel('Asset',{exact:true}).locator('option')).toHaveCount(1);await page.getByLabel('Token amount').fill('0.00001');
   await page.getByRole('button',{name:'Preview transaction ↗'}).click();await expect(page.getByRole('heading',{name:'SUCCEEDED AT BLOCK'})).toBeVisible();expect(requests[1].positionId).toBe(morpho.id);expect(requests[1].coverage).toBe('combined');
 });
 
@@ -100,8 +100,8 @@ test('optional browser monitoring stops after five checks and never runs for a s
   await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await page.getByRole('button',{name:'05Monitoring & Reports',exact:true}).click();
   await expect(page.getByRole('button',{name:'Start five bounded checks'})).toBeDisabled();
   await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
-  await expect.poll(()=>requests).toBe(1);await page.getByRole('button',{name:'Start five bounded checks'}).click();await expect.poll(()=>requests).toBe(2);
-  for(let n=3;n<=6;n++){await page.clock.fastForward(120000);await expect.poll(()=>requests).toBe(n)}
+  await expect.poll(()=>requests).toBe(1);await page.getByRole('button',{name:'Start five bounded checks'}).click();await expect.poll(()=>requests).toBe(2);await expect(page.getByText('Check 1 of 5 complete. Latest block: 1002.',{exact:true})).toBeVisible();
+  for(let n=3;n<=6;n++){await page.clock.fastForward(120000);await expect.poll(()=>requests).toBe(n);await expect(page.getByText(n===6?'Five checks complete. Monitoring stopped; restart explicitly if needed.':`Check ${n-1} of 5 complete. Latest block: ${1000+n}.`,{exact:true})).toBeVisible()}
   await expect(page.getByText('Five checks complete. Monitoring stopped; restart explicitly if needed.')).toBeVisible();
   await page.clock.fastForward(240000);expect(requests).toBe(6);
 });

@@ -39,8 +39,10 @@ test('guest and forged sessions cannot reach live DeFi quota or RPC',async()=>{
 });
 test('user-editable metadata cannot bypass required email verification',async()=>{
   const h=harness({verified:false});
-  const response=await h.handler(h.request('/api/v1/defi/snapshot',{authenticated:true}));
-  assert.equal(response.status,403);assert.match((await response.json()).detail,/verification/);assert.equal(h.quota(),0);
+  for(const [path,method] of [['/api/v1/defi/snapshot','POST'],['/api/v1/defi-reports','GET'],['/api/v1/defi-reports','POST']]){
+    const response=await h.handler(h.request(path,{authenticated:true,method}));
+    assert.equal(response.status,403);assert.match((await response.json()).detail,/verification/);assert.equal(h.quota(),0);
+  }
 });
 test('verified sessions still require the matching server CSRF token',async()=>{
   const h=harness();
