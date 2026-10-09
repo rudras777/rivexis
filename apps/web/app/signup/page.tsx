@@ -39,12 +39,12 @@ export default function Signup(){
   return <main className="formPage">
     <section className="formCard">
       <Brand variant="lockup"/>
-      <h1>Create workspace</h1>
-      <p>Choose the role that controls terminology, defaults and reporting depth.</p>
+      <h1>Create an account</h1>
+      <p>Save your risk comparisons and retain your decision evidence.</p>
       <form className="form" method="post" onSubmit={handleSubmit(submit)}>
         <label className="field">Email<input type="email" autoComplete="email" required {...register("email")}/></label>
         <label className="field">Password<input type="password" autoComplete="new-password" required minLength={8} {...register("password")}/></label>
-        <label className="field">Who are you?<select {...register("role")}><option>Individual</option><option>Fund</option><option>Treasury</option><option>Analyst</option></select></label>
+        <input type="hidden" value="Individual" {...register("role")}/>
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Creating account…":"Continue"}</button>
       </form>

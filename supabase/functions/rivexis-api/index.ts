@@ -1,8 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient, type SupabaseClient, type User} from "npm:@supabase/supabase-js@2";
+import {createClient, type SupabaseClient, type User} from "npm:@supabase/supabase-js@2.117.3";
 import {analysisResult} from "./analysis.mjs";
 import {createMembershipClaimToken,hashMembershipClaimToken} from "./membership.mjs";
 import {parseRole,roleOrDefault} from "./role.mjs";
+import {handleDefi} from "./defi-http.mjs";
+import {snapshot,client} from "./defi-rpc.mjs";
+import {frontier} from "./defi-model.mjs";
+import {sampleSnapshot} from "./defi-sample.mjs";
 
 type Json=Record<string,unknown>;
 type SessionCookie={access_token:string;refresh_token:string;csrf:string};
@@ -73,7 +77,7 @@ function empty(req:Request,status=204,cookie?:string){
 function binary(req:Request,body:Uint8Array,contentType:string,filename:string,cookie?:string){
   const headers=new Headers({...cors(req),"content-type":contentType,"cache-control":"no-store","content-disposition":`inline; filename="${filename}"`});
   if(cookie)headers.set("set-cookie",cookie);
-  return new Response(body,{status:200,headers});
+  return new Response(new Uint8Array(body).buffer,{status:200,headers});
 }
 
 function error(req:Request,status:number,detail:string,cookie?:string){return json(req,{detail},status,cookie)}
@@ -146,7 +150,7 @@ async function organizationWorkspaces(userId:string){
 async function allWorkspaces(userId:string){return (await bridge("list_workspaces",userId))?.items??[]}
 async function workspaceAccess(userId:string,workspaceId:string,write=false){
   const rows=await allWorkspaces(userId);
-  const row=rows.find(item=>item.id===workspaceId)??null;
+  const row=rows.find((item:Json)=>item.id===workspaceId)??null;
   if(!row)return null;
   if(write&&!new Set(["OWNER","ADMIN","ANALYST"]).has(row.access_role))return null;
   return row;
@@ -272,6 +276,34 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   const method=req.method.toUpperCase();
   const write=["POST","PUT","PATCH","DELETE"].includes(method);
   if(write&&!requireCsrf(req,auth))return error(req,403,"CSRF validation failed",auth.cookie);
+
+  if(path==="/api/v1/defi-reports"&&method==="GET"){
+    const result=await admin.from("rivexis_defi_reports").select("id,created_at,receipt").eq("owner_id",auth.user.id).order("created_at",{ascending:false}).limit(20);
+    if(result.error)return error(req,503,"Reports are temporarily unavailable",auth.cookie);
+    return json(req,{items:result.data},200,auth.cookie);
+  }
+  if(path==="/api/v1/defi-reports"&&method==="POST"){
+    if(Number(req.headers.get("content-length")||0)>8192)return error(req,413,"Report request too large",auth.cookie);
+    const raw=await req.text();if(raw.length>8192)return error(req,413,"Report request too large",auth.cookie);
+    let input:Json;try{input=JSON.parse(raw)}catch{return error(req,422,"Invalid report request",auth.cookie)};
+    if(!input||typeof input!=="object"||Array.isArray(input))return error(req,422,"Invalid report request",auth.cookie);
+    if(typeof input.budget!=="string"||typeof input.target!=="string"||typeof input.gasReserve!=="string"||typeof input.objective!=="string"||!input.shocks||typeof input.shocks!=="object"||Array.isArray(input.shocks))return error(req,422,"Invalid report constraints",auth.cookie);
+    if(input.sample!==true){
+      if(typeof input.wallet!=="string"||!/^0x[0-9a-fA-F]{40}$/.test(input.wallet))return error(req,422,"Invalid wallet",auth.cookie);
+      const quota=await admin.rpc("rivexis_defi_quota",{p_wallet:input.wallet.toLowerCase()});
+      if(quota.error)return error(req,503,"Quota service unavailable",auth.cookie);
+      if(quota.data!==true)return error(req,429,"Free beta quota reached",auth.cookie);
+    }
+    try{
+      const state=input.sample===true?sampleSnapshot():await snapshot(input.wallet,client(Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com"));
+      const constraints={budget:input.budget,target:input.target,gasReserve:input.gasReserve,shocks:input.shocks,objective:input.objective};
+      const result=frontier(state,constraints);
+      const receipt={model:result.model,sample:input.sample===true,snapshot:state,constraints,result,createdAt:now(),classification:"MODEL_COMPARISON_NOT_EXECUTION"};
+      const saved=await admin.rpc("rivexis_defi_save_report",{p_owner:auth.user.id,p_receipt:receipt});
+      if(saved.error)return error(req,409,"Report could not be saved. Accounts are limited to 20 reports.",auth.cookie);
+      return json(req,{id:saved.data,receipt},201,auth.cookie);
+    }catch{return error(req,422,"Report requires valid constraints and fresh supported protocol evidence",auth.cookie);}
+  }
 
   if(path==="/api/v1/auth/web/csrf")return json(req,{csrf_token:auth.session.csrf},200,auth.cookie);
   if(path==="/api/v1/auth/logout"&&method==="POST"){
@@ -493,6 +525,7 @@ Deno.serve(async(req:Request)=>{
   const path=position>=0?url.pathname.slice(position+marker.length)||"/":url.pathname;
   try{
     if(path==="/health")return json(req,{status:"ready",service:"rivexis-api",runtime:"supabase-edge",api_version:"v1",environment:"production",capabilities:{organization_workspace_create:true}});
+    if(path.startsWith("/api/v1/defi/"))return await handleDefi(req,path,admin,Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com");
     if(path.startsWith("/api/v1/auth/web/login")||path.startsWith("/api/v1/auth/web/signup")||path.startsWith("/api/v1/auth/email-verification/")||path.startsWith("/api/v1/auth/password-reset/"))return await handleAuth(req,path);
     const auth=await authenticate(req);
     if(!auth)return error(req,401,"Authentication required",clearCookie());

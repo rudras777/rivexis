@@ -5,6 +5,7 @@ import {usePathname,useRouter} from "next/navigation";
 import {useQuery,useQueryClient} from "@tanstack/react-query";
 import {useEffect,useState} from "react";
 import {Brand} from "./Brand";
+import {ThemeToggle} from "./ThemeToggle";
 import {WorkspaceContextProvider,type WorkspaceSummary} from "./WorkspaceContext";
 import {
   ApiError,
@@ -16,10 +17,8 @@ import {
 } from "@/lib/api";
 
 const navGroups=[
-  {label:"Command",items:[["Overview","/workspace","01"],["Decision Desk","/workspace/decisions","02"]]},
-  {label:"Operations",items:[["Protocol History","/workspace/protocol-history","03"],["Investigations","/workspace/investigations","04"],["Monitors","/workspace/monitors","05"],["Alerts","/workspace/alerts","06"]]},
-  {label:"Evidence",items:[["History","/workspace/history","07"],["Saved","/workspace/saved","08"]]},
-  {label:"Infrastructure",items:[["Providers","/workspace/providers","09"],["Workspaces","/workspace/settings","10"]]},
+  {label:"Intelligence",items:[["Portfolio Intelligence","/workspace","01"],["Risk Scenario Lab","/workspace/scenarios","02"],["Defense Frontier","/workspace/frontier","03"],["Transaction Intelligence","/workspace/transactions","04"],["Monitoring & Reports","/workspace/reports","05"]]},
+  {label:"Account",items:[["Historical records","/workspace/history","06"],["Workspaces & settings","/workspace/settings","07"]]},
 ];
 
 type ShellStateProps={title:string;message:string;kind:"loading"|"empty"|"session"|"unavailable";action?:React.ReactNode};
@@ -29,7 +28,7 @@ function ShellState({title,message,kind,action}:ShellStateProps){
   return <div className="appShell">
     <div className="workspaceAmbient" aria-hidden="true"/>
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
-    <aside className="sidebar shellStateSidebar"><Brand variant="rail"/><div className="environment">MVP / WORKSPACE-SCOPED</div><div className="sideFoot"><div className="decisionLegend"><b>Decision states</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
+    <aside className="sidebar shellStateSidebar"><Brand variant="rail"/><ThemeToggle/><div className="environment">PRIVATE ACCOUNT WORKSPACE</div><div className="sideFoot"><div className="decisionLegend"><b>Decision states</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
     <main className="workspaceMain shellState" id="workspace-main"><section className="shellStateCard" role={live} aria-live="polite" data-testid={`workspace-shell-${kind}`}><div className="shellStateKicker">Workspace access</div><h1>{title}</h1><p>{message}</p>{action?<div className="shellStateActions">{action}</div>:null}</section></main>
   </div>;
 }
@@ -94,7 +93,7 @@ export function AppShell({children}:{children:React.ReactNode}){
   return <div className="appShell">
     <div className="workspaceAmbient" aria-hidden="true"/>
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
-    <aside className="sidebar"><Brand variant="rail"/><div className="environment"><span className="statusDot"/>PRODUCTION WORKSPACE</div><label className="workspaceSelector">ACTIVE WORKSPACE<select value={selected} onChange={e=>change(e.target.value)}>{q.data.items.map(w=><option key={w.id} value={w.id}>{w.name} · {w.access_role}</option>)}</select></label><nav aria-label="Workspace">{navGroups.map(group=><div className="navGroup" key={group.label}><span className="navGroupLabel">{group.label}</span>{group.items.map(([n,h,number])=>{const current=p===h;return <Link key={h} href={h} className={current?"active":""} aria-current={current?"page":undefined}><span className="navIndex">{number}</span><span>{n}</span></Link>})}</div>)}</nav><div className="sideFoot"><button type="button" className="sidebarLogout" aria-label={loggingOut?"Logging out…":"Log out"} onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out securely"}<span aria-hidden="true">↗</span></button>{logoutError?<div className="sidebarError" role="alert">{logoutError}</div>:null}<div className="decisionLegend"><b>Decision policy</b><span>PROCEED · MODIFY · WAIT · AVOID · UNKNOWN</span></div></div></aside>
+    <aside className="sidebar"><Brand variant="rail"/><ThemeToggle/><div className="environment"><span className="statusDot"/>PRODUCTION WORKSPACE</div><label className="workspaceSelector">ACTIVE WORKSPACE<select value={selected} onChange={e=>change(e.target.value)}>{q.data.items.map(w=><option key={w.id} value={w.id}>{w.name} · {w.access_role}</option>)}</select></label><nav aria-label="Workspace">{navGroups.map(group=><div className="navGroup" key={group.label}><span className="navGroupLabel">{group.label}</span>{group.items.map(([n,h,number])=>{const current=p===h;return <Link key={h} href={h} className={current?"active":""} aria-current={current?"page":undefined}><span className="navIndex">{number}</span><span>{n}</span></Link>})}</div>)}</nav><div className="sideFoot"><button type="button" className="sidebarLogout" aria-label={loggingOut?"Logging out…":"Log out"} onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out securely"}<span aria-hidden="true">↗</span></button>{logoutError?<div className="sidebarError" role="alert">{logoutError}</div>:null}<div className="decisionLegend"><b>Evidence boundary</b><span>Read-only · Model assumptions remain explicit</span></div></div></aside>
     <main className="workspaceMain" id="workspace-main"><WorkspaceContextProvider value={contextValue}>{children}</WorkspaceContextProvider></main>
   </div>;
 }

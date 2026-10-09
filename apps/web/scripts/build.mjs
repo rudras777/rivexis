@@ -18,6 +18,7 @@ const env={
 const result=spawnSync(npmCommand,["run",script],{
   stdio:"inherit",
   env,
+  shell:process.platform==="win32",
 });
 
 if(result.error)throw result.error;

@@ -13,7 +13,7 @@ const ALLOWED_CHAIN=new Set([
 const SEVERE=new Set(["high","critical"]);
 
 const command=process.platform==="win32"?"npm.cmd":"npm";
-const audit=spawnSync(command,["audit","--json"],{encoding:"utf8",maxBuffer:16*1024*1024});
+const audit=spawnSync(command,["audit","--json"],{encoding:"utf8",maxBuffer:16*1024*1024,shell:process.platform==="win32"});
 if(audit.error){
   console.error(`npm audit could not run: ${audit.error.message}`);
   process.exit(1);
