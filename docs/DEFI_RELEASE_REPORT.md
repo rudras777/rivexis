@@ -1,6 +1,6 @@
 # RIVEXIS — DeFi risk platform release evidence
 
-Release state: the redesigned bounded beta is LIVE at https://rivexis-web.rudrasingh0718.workers.dev. Latest functional release is cf289a60d856c59b6788cad28b871e521f74ec89; Worker version 6cb4ec06-264a-45b3-82f9-32122e0468f7; existing Supabase API v18 ACTIVE. Source CI 37966720748 and Worker bundle 37966720577 pass; the existing Cloudflare-connected build succeeds. Independent public verification and browser metadata match this source identity. Documentation-only successors can trigger the existing deployment integration; the Worker tag and public rivexis-build marker identify the precise current deployed commit. See TRANSFORMATION_PROGRESS.md and certification-reports/defi-live-verification.json.
+Release state: the redesigned bounded beta is LIVE at https://rivexis-web.rudrasingh0718.workers.dev. Latest functional release is e7b2c33464c63fe71e5ebbede49e79f1292fbd87; Worker version f9bd7026-1fdb-4458-b782-cdafd55479a1; existing Supabase API v18 ACTIVE. Source CI 37968761645 and Worker bundle 37968761562 pass; the existing Cloudflare-connected build succeeds. Independent public verification and browser metadata match this source identity. Documentation-only successors can trigger the existing deployment integration; the Worker tag and public rivexis-build marker identify the precise current deployed commit. See TRANSFORMATION_PROGRESS.md and certification-reports/defi-live-verification.json.
 
 ## Architecture and feature inventory
 
@@ -44,7 +44,7 @@ Rollback: redeploy baseline tag baseline/pre-defi-transformation-20261009 to riv
 
 - PASS: 39 model/API/oracle boundary and captured-reference tests.
 - PASS: 29 retained Edge/role/membership/report/email-template tests (fixtures, not proof of email delivery).
-- PASS: 29 selected browser tests, including bounded monitoring and zero-cost current-state comparisons. Includes login/signup/verification/recovery UI, session/CSRF/logout, tenant scope, history/save operations, exports and browser headers.
+- PASS: 30 selected browser tests, including bounded monitoring and zero-cost current-state comparisons. Includes login/signup/verification/recovery UI, session/CSRF/logout, tenant scope, history/save operations, exports and browser headers.
 - PASS: 320, 375, 390, 768, 1024, 1280, 1440 and 1920px home/sample-frontier overflow checks.
 - PASS: axe serious/critical WCAG-tagged checks on public/app/auth/methodology dark surfaces and light app. This is automated coverage, not comprehensive accessibility certification.
 - PASS: web typecheck/AST lint, existing API-edge typecheck, Next production build and Cloudflare/Vinext bundle build.
@@ -82,4 +82,6 @@ Light: background #F3F3EF; surface #FAFAF7; elevated/inset #E9ECE8; primary text
 
 ## Final operational checkpoint
 
-PR #39 preserves exact USD display cents above JavaScript safe precision and explicit positive native/fee dust bounds. Full CI passes 39 financial/API/oracle, 29 retained Edge and 29 browser tests. Final live checks pass seven Morpho/combined cases and eight Aave/WBTC/API/source cases. A preceding RPC interruption returned HTTP 503 UNKNOWN and withheld results; an independent contract read and subsequent public checks recovered. Free RPC availability is not guaranteed. New Brevo inbox delivery and current Cloudflare billing totals remain unverified. Three explicit QA receipts now exist; existing users, workspaces, 25 analyses and four legacy reports remain unchanged.
+PR #39 preserves exact USD display cents above JavaScript safe precision and explicit positive native/fee dust bounds. Full CI passes 39 financial/API/oracle, 29 retained Edge and 30 browser tests. Final live checks pass seven Morpho/combined cases and eight Aave/WBTC/API/source cases. A preceding RPC interruption returned HTTP 503 UNKNOWN and withheld results; an independent contract read and subsequent public checks recovered. Free RPC availability is not guaranteed. New Brevo inbox delivery and current Cloudflare billing totals remain unverified. Three explicit QA receipts now exist; existing users, workspaces, 25 analyses and four legacy reports remain unchanged.
+
+Saved account reports now load directly after reload without inspecting a wallet. The real owner session retrieved all three receipts on production while new calculations/saves stayed disabled without fresh evidence. PR #40, source e7b2c33464c63fe71e5ebbede49e79f1292fbd87, has full main CI and Worker bundle PASS, exact public/browser source identity and no browser errors. Financial API v18 and data are unchanged.

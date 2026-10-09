@@ -21,7 +21,7 @@ The initial core is free to users. Supported financial coverage is deliberately 
 
 [Release report](docs/DEFI_RELEASE_REPORT.md), [resumable transformation journal](docs/TRANSFORMATION_PROGRESS.md), and [independent live checks](certification-reports/defi-live-verification.json).
 
-Deployed source: `cf289a60d856c59b6788cad28b871e521f74ec89`. Later documentation-only commits may be deployed automatically by the retained Cloudflare integration; inspect the public build marker for current identity. Recovery tag: `baseline/pre-defi-transformation-20261009`. Existing users and historical data remain intact; quota and receipt tables are additive.
+Deployed source: `e7b2c33464c63fe71e5ebbede49e79f1292fbd87`. Later documentation-only commits may be deployed automatically by the retained Cloudflare integration; inspect the public build marker for current identity. Recovery tag: `baseline/pre-defi-transformation-20261009`. Existing users and historical data remain intact; quota and receipt tables are additive.
 
 New inbox delivery through Brevo and current Cloudflare billing totals remain unverified. See the release report for security findings, operational quotas and exact test coverage.
 
