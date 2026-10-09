@@ -7,6 +7,7 @@ import {useRouter} from "next/navigation";
 import {useQuery} from "@tanstack/react-query";
 import {Brand} from "@/components/Brand";
 import {ApiError,api,setActiveWorkspaceId} from "@/lib/api";
+import {intendedDestination} from "@/lib/auth-destination";
 import {authErrorMessage} from "@/lib/auth";
 
 type Form={name:string;role:string};
@@ -28,7 +29,8 @@ export default function Onboarding(){
     const existing=workspaces.data?.items[0];
     if(!existing)return;
     setActiveWorkspaceId(existing.id);
-    window.location.replace("/workspace");
+    const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
+      window.location.replace(destination);
   },[router,workspaces.data]);
 
   async function reconcileCreatedWorkspace(v:Form){
@@ -37,7 +39,8 @@ export default function Onboarding(){
       const existing=current.items.find(w=>w.name===v.name&&w.role===v.role);
       if(!existing)return false;
       setActiveWorkspaceId(existing.id);
-      window.location.replace("/workspace");
+      const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
+      window.location.replace(destination);
       return true;
     }catch{
       return false;
@@ -58,7 +61,8 @@ export default function Onboarding(){
           body:JSON.stringify(v),
         });
         setActiveWorkspaceId(created.id);
-        window.location.replace("/workspace");
+        const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
+      window.location.replace(destination);
       }catch(createError){
         if(await reconcileCreatedWorkspace(v))return;
         throw createError;
@@ -93,7 +97,7 @@ export default function Onboarding(){
     <section className="formCard">
       <Brand variant="lockup"/>
       <h1>Configure workspace</h1>
-      <p>Your role changes defaults and information density, not the underlying ten-engine architecture.</p>
+      <p>Set up your private workspace for portfolio intelligence, scenario analysis and decision evidence.</p>
       <form className="form" onSubmit={handleSubmit(submit)}>
         <label className="field">Workspace name<input autoComplete="organization" {...register("name")} required/></label>
         <label className="field">Role<select {...register("role")}><option>Individual</option><option>Fund</option><option>Treasury</option><option>Analyst</option></select></label>

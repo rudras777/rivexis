@@ -3,8 +3,9 @@
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useForm} from "react-hook-form";
+import {authHref,intendedDestination} from "@/lib/auth-destination";
 import {useRouter} from "next/navigation";
-import {Brand} from "@/components/Brand";
+import {AuthFrame} from "@/components/AuthFrame";
 import {api} from "@/lib/api";
 
 type EmailForm={email:string};
@@ -39,15 +40,13 @@ export default function VerifyEmail(){
       const email=emailForm.getValues("email")||sessionStorage.getItem("rivexis_pending_verification_email")||"";
       await api<{status:string}>("/api/v1/auth/email-verification/confirm",{method:"POST",body:JSON.stringify({...v,email})});
       sessionStorage.removeItem("rivexis_pending_verification_email");
-      router.replace("/login?verified=1");
+      router.replace(authHref("/login",intendedDestination(),{verified:"1"}));
     }catch{
       setError("This verification code is invalid or expired. Request a new one.");
     }
   }
 
-  return <main className="formPage">
-    <section className="formCard">
-      <Brand variant="lockup"/>
+  return <AuthFrame mode="verification">
       <h1>Verify your email</h1>
       <p>Enter the one-time code from Rivexis. Never share this code with another person.</p>
       {notice&&<div className="success" role="status">{notice}</div>}
@@ -61,6 +60,5 @@ export default function VerifyEmail(){
       </form>
       {error&&<div className="error authFlowError" role="alert">{error}</div>}
       <p className="authNote"><Link href="/login">Return to login</Link>.</p>
-    </section>
-  </main>;
+  </AuthFrame>;
 }

@@ -1,3 +1,4 @@
+import {brandedPdf as minimalPdf} from "./report-pdf.mjs";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient, type SupabaseClient, type User} from "npm:@supabase/supabase-js@2.117.3";
 import {analysisResult} from "./analysis.mjs";
@@ -252,22 +253,6 @@ function unavailableComparison(value:unknown){
   };
 }
 
-function minimalPdf(title:string,lines:string[]){
-  const clean=(value:string)=>value.replaceAll("\\","\\\\").replaceAll("(","\\(").replaceAll(")","\\)").replaceAll(/[^\x20-\x7E]/g,"?");
-  const content=["BT","/F1 16 Tf","72 760 Td",`(${clean(title)}) Tj`,"/F1 10 Tf",...lines.slice(0,24).flatMap(line=>["0 -18 Td",`(${clean(line)}) Tj`]),"ET"].join("\n");
-  const objects=[
-    "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
-    "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
-    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
-    "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
-    `5 0 obj << /Length ${new TextEncoder().encode(content).length} >> stream\n${content}\nendstream endobj`,
-  ];
-  let pdf="%PDF-1.4\n";const offsets=[0];
-  for(const object of objects){offsets.push(new TextEncoder().encode(pdf).length);pdf+=object+"\n"}
-  const xref=new TextEncoder().encode(pdf).length;
-  pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n${offsets.slice(1).map(offset=>`${String(offset).padStart(10,"0")} 00000 n `).join("\n")}\ntrailer << /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  return new TextEncoder().encode(pdf);
-}
 
 async function persistAnalysis(auth:AuthContext,workspaceId:string,result:Json){
   await bridge("create_analysis",auth.user.id,{workspace_id:workspaceId,analysis_id:result.analysis_id,engine_id:result.engine_id,demo:result.demo,status:result.status,result});
@@ -277,6 +262,12 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   const method=req.method.toUpperCase();
   const write=["POST","PUT","PATCH","DELETE"].includes(method);
   if(write&&!requireCsrf(req,auth))return error(req,403,"CSRF validation failed",auth.cookie);
+  if(path.startsWith("/api/v1/defi/")){
+    if(!auth.user.email_confirmed_at)return error(req,403,"Email verification is required before analysis",auth.cookie);
+    const result=await handleDefi(req,path,admin,Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com");
+    if(auth.cookie)result.headers.set("set-cookie",auth.cookie);
+    return result;
+  }
 
   if(path==="/api/v1/defi-reports"&&method==="GET"){
     const result=await admin.from("rivexis_defi_reports").select("id,created_at,receipt").eq("owner_id",auth.user.id).order("created_at",{ascending:false}).limit(20);
@@ -527,7 +518,11 @@ Deno.serve(async(req:Request)=>{
   const path=position>=0?url.pathname.slice(position+marker.length)||"/":url.pathname;
   try{
     if(path==="/health")return json(req,{status:"ready",service:"rivexis-api",runtime:"supabase-edge",api_version:"v1",environment:"production",capabilities:{organization_workspace_create:true}});
-    if(path.startsWith("/api/v1/defi/"))return await handleDefi(req,path,admin,Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com");
+    if(path==="/api/v1/auth/session-status"){
+      if(req.method!=="GET")return error(req,405,"GET required");
+      const session=await authenticate(req);
+      return json(req,{authenticated:Boolean(session),email_verified:Boolean(session?.user.email_confirmed_at)},200,session?.cookie??(cookieValue(req,COOKIE)?clearCookie():undefined));
+    }
     if(path.startsWith("/api/v1/auth/web/login")||path.startsWith("/api/v1/auth/web/signup")||path.startsWith("/api/v1/auth/email-verification/")||path.startsWith("/api/v1/auth/password-reset/"))return await handleAuth(req,path);
     const auth=await authenticate(req);
     if(!auth)return error(req,401,"Authentication required",clearCookie());

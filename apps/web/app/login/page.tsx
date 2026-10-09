@@ -1,10 +1,13 @@
 "use client";
 
+import {useQueryClient} from "@tanstack/react-query";
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useForm} from "react-hook-form";
+import {authHref,intendedDestination} from "@/lib/auth-destination";
 import {useRouter} from "next/navigation";
-import {Brand} from "@/components/Brand";
+import {usePublicSession} from "@/components/AuthActions";
+import {AuthFrame} from "@/components/AuthFrame";
 import {api,setCsrfToken} from "@/lib/api";
 import {authErrorMessage} from "@/lib/auth";
 
@@ -14,7 +17,13 @@ export default function Login(){
   const {register,handleSubmit,formState:{isSubmitting}}=useForm<Form>();
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
+  const [showPassword,setShowPassword]=useState(false);
   const router=useRouter();
+  const queryClient=useQueryClient();
+  const session=usePublicSession();
+  const [destination,setDestination]=useState("/workspace");
+  useEffect(()=>setDestination(intendedDestination()),[]);
+  useEffect(()=>{if(session.data?.authenticated&&session.data.email_verified)router.replace(intendedDestination())},[session.data,router]);
 
   useEffect(()=>{
     if(new URLSearchParams(window.location.search).get("verified")==="1"){
@@ -30,25 +39,24 @@ export default function Login(){
         body:JSON.stringify(v),
       });
       setCsrfToken(r.csrf_token);
-      router.replace("/workspace");
+      await queryClient.invalidateQueries({queryKey:["public-session"]});
+      const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
+      router.replace(destination);
     }catch(e){
       setError(authErrorMessage(e,"login"));
     }
   }
 
-  return <main className="formPage">
-    <section className="formCard">
-      <Brand variant="lockup"/>
+  return <AuthFrame mode="login">
       <h1>Log in</h1>
       <p>Access your Rivexis workspace.</p>
       {notice&&<div className="success" role="status">{notice}</div>}
       <form className="form" method="post" onSubmit={handleSubmit(submit)}>
         <label className="field">Email<input type="email" autoComplete="email" required {...register("email")}/></label>
-        <label className="field">Password<input type="password" autoComplete="current-password" required minLength={8} {...register("password")}/></label>
+        <div className="passwordField"><label className="field">Password<input type={showPassword?"text":"password"} autoComplete="current-password" required minLength={8} {...register("password")}/></label><button className="passwordReveal" type="button" aria-label={showPassword?"Hide password":"Show password"} aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword?"Hide":"Show"}</button></div>
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Logging in…":"Log in"}</button>
       </form>
-      <p className="authNote"><Link href="/forgot-password">Forgot your password?</Link> <Link href="/verify-email">Verify an existing account</Link>. Need an account? <Link href="/signup">Create one</Link>.</p>
-    </section>
-  </main>;
+      <p className="authNote"><Link href="/forgot-password">Forgot your password?</Link> <Link href="/verify-email">Verify an existing account</Link>. Need an account? <Link href={authHref("/signup",destination)}>Create one</Link>.</p>
+  </AuthFrame>;
 }

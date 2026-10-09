@@ -1,5 +1,6 @@
+import {brandedPdf} from "../rivexis-api/report-pdf.mjs";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient,type User} from "npm:@supabase/supabase-js@2";
+import {createClient,type User} from "npm:@supabase/supabase-js@2.117.3";
 import {analyzeCanonicalDecision,decisionReportHtml,decisionReportLines} from "../rivexis-api/decision-report.mjs";
 
 type Json=Record<string,unknown>;
@@ -44,7 +45,7 @@ function text(req:Request,value:string,contentType:string,cookie?:string,extra:R
 function binary(req:Request,value:Uint8Array,filename:string,cookie?:string,extra:Record<string,string>={}){
   const headers=new Headers({...cors(req),"content-type":"application/pdf","cache-control":"no-store","content-disposition":`inline; filename="${filename}"`,...extra});
   if(cookie)headers.set("set-cookie",cookie);
-  return new Response(value,{status:200,headers});
+  return new Response(new Uint8Array(value).buffer,{status:200,headers});
 }
 function fail(req:Request,status:number,detail:string,cookie?:string){return json(req,{detail},status,cookie)}
 
@@ -82,14 +83,6 @@ function bridgeFailure(req:Request,cause:unknown,cookie?:string){
   return fail(req,500,"Rivexis could not complete the decision/report request safely",cookie);
 }
 
-function minimalPdf(title:string,lines:string[]){
-  const clean=(value:string)=>value.replaceAll("\\","\\\\").replaceAll("(","\\(").replaceAll(")","\\)").replaceAll(/[^\x20-\x7E]/g,"?");
-  const content=["BT","/F1 16 Tf","72 760 Td",`(${clean(title)}) Tj`,"/F1 10 Tf",...lines.slice(0,28).flatMap(line=>["0 -18 Td",`(${clean(line)}) Tj`]),"ET"].join("\n");
-  const objects=["1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj","2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj","3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj","4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",`5 0 obj << /Length ${new TextEncoder().encode(content).length} >> stream\n${content}\nendstream endobj`];
-  let pdf="%PDF-1.4\n";const offsets=[0];for(const object of objects){offsets.push(new TextEncoder().encode(pdf).length);pdf+=object+"\n"}
-  const xref=new TextEncoder().encode(pdf).length;pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n${offsets.slice(1).map(offset=>`${String(offset).padStart(10,"0")} 00000 n `).join("\n")}\ntrailer << /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  return new TextEncoder().encode(pdf);
-}
 
 async function handle(req:Request,path:string,url:URL,auth:AuthContext){
   const method=req.method.toUpperCase();
@@ -127,7 +120,7 @@ async function handle(req:Request,path:string,url:URL,auth:AuthContext){
       const headers={"x-rivexis-report-id":String(report.id)};
       if(format==="json")return json(req,{report_id:report.id,report:decision},200,auth.cookie,headers);
       if(format==="html")return text(req,decisionReportHtml(decision),"text/html; charset=utf-8",auth.cookie,headers);
-      return binary(req,minimalPdf("RIVEXIS Decision Report",decisionReportLines(decision)),`rivexis-${report.id}.pdf`,auth.cookie,headers);
+      return binary(req,brandedPdf("RIVEXIS Decision Report",decisionReportLines(decision),28),`rivexis-${report.id}.pdf`,auth.cookie,headers);
     }catch(cause){return bridgeFailure(req,cause,auth.cookie)}
   }
 

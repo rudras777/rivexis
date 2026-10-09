@@ -1,16 +1,16 @@
 import Link from "next/link";
+import {brandGeometry as g} from "./brand-geometry";
 
-type BrandVariant="wordmark"|"lockup"|"rail";
-
-const assets={
-  wordmark:{src:"/brand/rivexis-wordmark.png",width:900,height:184},
-  lockup:{src:"/brand/rivexis-lockup.png",width:1000,height:268},
-  rail:{src:"/brand/rivexis-wordmark.png",width:900,height:184},
-} as const;
-
-export function Brand({variant="wordmark"}:{variant?:BrandVariant}){
-  const asset=assets[variant];
+export function Brand({variant="wordmark"}:{variant?:"wordmark"|"lockup"|"rail"|"compact"}){
+  const compact=variant==="compact",lockup=variant==="lockup";
   return <Link href="/" className={`brand brand-${variant}`} aria-label="Rivexis home">
-    <img src={asset.src} width={asset.width} height={asset.height} alt="Rivexis"/>
+    <svg viewBox={compact?"0 0 160 160":`0 0 ${g.width} ${lockup?203:146}`} aria-hidden="true" focusable="false">
+      {!compact&&<path fill="currentColor" d={g.wordmark}/>}
+      <g transform={compact?"translate(20 17)":`translate(${g.markX} 4)`}>
+        {g.ribbons.map((d,i)=><path key={i} fill="var(--soft)" d={d}/>)}
+        <path fill="currentColor" d={g.bridge}/>
+      </g>
+      {lockup&&<path fill="currentColor" opacity=".82" d={g.tagline}/>}
+    </svg>
   </Link>;
 }
