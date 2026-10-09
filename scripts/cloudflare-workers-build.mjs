@@ -17,6 +17,7 @@ const env={
 const result=spawnSync(npmCommand,["--workspace","@rivexis/web","run","build:vinext"],{
   stdio:"inherit",
   env,
+  shell:process.platform==="win32",
 });
 if(result.error)throw result.error;
 process.exit(result.status??1);

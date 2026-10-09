@@ -1,11 +1,10 @@
 import Link from "next/link";
 import {Brand} from "@/components/Brand";
+import {ThemeToggle} from "./ThemeToggle";
 
 const navItems=[
   ["Platform","/platform"],
-  ["Blockchain","/blockchain-intelligence"],
-  ["Crypto Finance","/crypto-finance"],
-  ["DeFi Risk","/defi-risk"],
+  ["Defense Frontier","/defense-frontier"],
   ["Methodology","/methodology"],
   ["Security","/security"],
   ["Docs","/docs"],
@@ -17,7 +16,7 @@ export function PublicNav(){
     <nav className="desktopPublicNav" aria-label="Primary navigation">
       {navItems.map(([label,href])=><Link key={href} href={href}>{label}</Link>)}
     </nav>
-    <div className="publicActions"><Link className="ghost" href="/login">Log in</Link><Link className="button" href="/signup">Start workspace</Link></div>
+    <div className="publicActions"><ThemeToggle/><Link className="ghost" href="/login">Log in</Link><Link className="button" href="/app">Open app</Link></div>
     <details className="mobileNav">
       <summary aria-label="Open navigation">Menu</summary>
       <nav aria-label="Mobile navigation">

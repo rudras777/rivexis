@@ -200,5 +200,5 @@ jobs:
             echo "::error::The public Worker did not expose the expected build SHA ${DEPLOY_SHA}."
             exit 1
           fi
-          printf '%s' "$body" | grep -Fq 'Evidence before'
+          printf '%s' "$body" | grep -Fq 'Understand the risk'
           echo "Verified ${DEPLOY_SHA} on the authoritative public Worker." >> "$GITHUB_STEP_SUMMARY"
