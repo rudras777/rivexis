@@ -84,3 +84,10 @@ jobs:
         env:
           DATABASE_URL: postgresql+psycopg://rivexis_migrator:ci_only@127.0.0.1:5432/rivexis_ci
         run: python scripts/verify_postgres_migrated_schema.py
+      - name: Certify private legacy table RLS without widening client grants
+        env:
+          PGPASSWORD: ci_only
+        run: |
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; GRANT USAGE ON SCHEMA public TO anon, authenticated"
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -f supabase/migrations/20261009145634_legacy_private_table_rls.sql
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -f supabase/tests/legacy_private_table_rls.sql

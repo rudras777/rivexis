@@ -1,6 +1,7 @@
-import {createPublicClient, http, parseAbi, encodeFunctionData, isAddress, getAddress} from 'viem';
+import {createPublicClient, http, parseAbi, encodeFunctionData, isAddress, getAddress, keccak256} from 'viem';
 import {mainnet} from 'viem/chains';
 import {MODEL, WAD, metrics, integer, decimal, validateSnapshot} from './defi-model.mjs';
+import {WBTC_ORACLE,validateWbtcOracle} from './defi-oracles.mjs';
 
 export const POOL = '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
 export const ORACLE = '0x54586bE62E3c3580375aE3723C145253060Ca0C2';
@@ -25,6 +26,7 @@ const oracleAbi = parseAbi(['function getAssetPrice(address asset) view returns 
 const tokenAbi = parseAbi(['function symbol() view returns (string)','function balanceOf(address user) view returns (uint256)','function allowance(address owner,address spender) view returns (uint256)']);
 const sourceAbi = parseAbi(['function latestRoundData() view returns (uint80,int256,uint256,uint256,uint80)']);
 const capAbi = parseAbi(['function ASSET_TO_USD_AGGREGATOR() view returns (address)','function getPriceCap() view returns (int256)','function decimals() view returns (uint8)']);
+const compositeAbi=parseAbi(['function PEG_TO_BASE() view returns(address)','function ASSET_TO_PEG() view returns(address)','function DENOMINATOR() view returns(int256)','function decimals() view returns(uint8)']);
 const STABLE_SOURCES={
   '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48':'0x3f73f03aa83b2a48ed27e964ed0fdb590332095b',
   '0xdac17f958d2ee523a2206206994597c13d831ec7':'0x260326c220e469358846b187ee53328303efe19c',
@@ -70,16 +72,30 @@ export async function snapshot(wallet, rpc=client()) {
       oracleEvidence[i]={source:sources[i],feed:feeds[j],round,cap,valid:good(adapters[j*3+2])===8&&round&&cap>0n&&(round[1]>cap?cap:round[1])===good(details[i*6+1])};
     });
   }
+  const wbtcIndex=active.findIndex((a,i)=>a.asset.toLowerCase()===WBTC_ORACLE.asset&&sources[i].toLowerCase()===WBTC_ORACLE.source);
+  if(wbtcIndex>=0){
+    const source=sources[wbtcIndex];
+    const adapter=await rpc.multicall({blockNumber,contracts:['PEG_TO_BASE','ASSET_TO_PEG','DENOMINATOR','decimals'].map(name=>read(source,compositeAbi,name))});
+    const feedResults=await rpc.multicall({blockNumber,contracts:[WBTC_ORACLE.baseFeed,WBTC_ORACLE.ratioFeed].flatMap(feed=>[read(feed,sourceAbi,'latestRoundData'),read(feed,compositeAbi,'decimals')])});
+    const code=await rpc.getCode({address:source,blockNumber}),codeHash=code?keccak256(code):null;
+    const value=r=>r.status==='success'?r.result:null;
+    const baseRound=value(feedResults[0]),ratioRound=value(feedResults[2]);
+    const valid=validateWbtcOracle({source,codeHash,baseFeed:value(adapter[0]),ratioFeed:value(adapter[1]),denominator:value(adapter[2]),decimals:value(adapter[3]),baseRound,ratioRound,baseDecimals:value(feedResults[1]),ratioDecimals:value(feedResults[3]),price:good(details[wbtcIndex*6+1]),blockTimestamp:block.timestamp});
+    const components=[{kind:'BTC_USD',feed:WBTC_ORACLE.baseFeed,round:baseRound,maxAge:WBTC_ORACLE.baseMaxAge},{kind:'WBTC_BTC',feed:WBTC_ORACLE.ratioFeed,round:ratioRound,maxAge:WBTC_ORACLE.ratioMaxAge}];
+    oracleEvidence[wbtcIndex]={source,feed:null,round:null,cap:null,valid,composite:true,codeHash,components};
+  }
   const warnings = [], reserves=active.map(({asset,user},i)=>{
     const cfg=good(details[i*6]), price=good(details[i*6+1]), decimals=Number((cfg>>48n)&255n), debtCeiling=cfg>>212n&((1n<<40n)-1n), paused=(cfg>>60n&1n)===1n;
-    const {round,feed,cap,valid}=oracleEvidence[i],age=FRESHNESS[asset.toLowerCase()];
+    const {round,feed,cap,valid,composite,codeHash,components}=oracleEvidence[i],age=FRESHNESS[asset.toLowerCase()];
     const directSource=asset.toLowerCase()==='0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'&&sources[i].toLowerCase()==='0x5424384b256154046e9667ddfaaa5e550145215e'&&round&&round[1]===price;
     const stableSource=STABLE_SOURCES[asset.toLowerCase()]===sources[i].toLowerCase();
-    const fresh=Boolean((directSource||stableSource)&&valid&&age&&round&&round[0]>0n&&round[4]>=round[0]&&round[1]>0n&&round[3]>0n&&round[3]<=block.timestamp&&block.timestamp-round[3]<=BigInt(age));
+    const fresh=Boolean(composite?valid:(directSource||stableSource)&&valid&&age&&round&&round[0]>0n&&round[4]>=round[0]&&round[1]>0n&&round[3]>0n&&round[3]<=block.timestamp&&block.timestamp-round[3]<=BigInt(age));
     if(!fresh)warnings.push(`${good(details[i*6+3])}: oracle timestamp/heartbeat adapter is unvalidated or stale`);
     if(debtCeiling>0n)warnings.push('Isolation collateral requires a separately validated adapter');
     if(user[1]>0n)warnings.push('Stable debt is unsupported in this model');
-    return {asset,symbol:good(details[i*6+3]),decimals,collateralRaw:user[0].toString(),debtRaw:(user[1]+user[2]).toString(),walletRaw:good(details[i*6+4]).toString(),allowanceRaw:good(details[i*6+5]).toString(),priceRaw:price.toString(),ltBps:((cfg>>16n)&65535n).toString(),ltvBps:(cfg&65535n).toString(),collateralEnabled:user[8],supplyAllowed:(cfg>>56n&1n)===1n&&(cfg>>57n&1n)===0n&&!paused,borrowAllowed:(cfg>>58n&1n)===1n&&!paused,oracleState:fresh?'FRESH':'UNVALIDATED',oracleSource:sources[i],underlyingFeed:feed,priceCapRaw:cap?.toString()??null,oracleUpdatedAt:round?round[3].toString():null,isolation:debtCeiling>0n,configurationRaw:cfg.toString(),stableDebtRaw:user[1].toString(),scaledVariableDebtRaw:user[4].toString(),liquidityRateRay:user[6].toString()};
+    const componentEvidence=components?.map(c=>({kind:c.kind,feed:c.feed,maxAgeSeconds:c.maxAge,roundId:c.round?.[0].toString()??null,answerRaw:c.round?.[1].toString()??null,startedAt:c.round?.[2].toString()??null,updatedAt:c.round?.[3].toString()??null,answeredInRound:c.round?.[4].toString()??null}));
+    const updatedAt=composite&&components.every(c=>c.round)?components.reduce((old,c)=>c.round[3]<old?c.round[3]:old,block.timestamp):round?.[3];
+    return {asset,symbol:good(details[i*6+3]),decimals,collateralRaw:user[0].toString(),debtRaw:(user[1]+user[2]).toString(),walletRaw:good(details[i*6+4]).toString(),allowanceRaw:good(details[i*6+5]).toString(),priceRaw:price.toString(),ltBps:((cfg>>16n)&65535n).toString(),ltvBps:(cfg&65535n).toString(),collateralEnabled:user[8],supplyAllowed:(cfg>>56n&1n)===1n&&(cfg>>57n&1n)===0n&&!paused,borrowAllowed:(cfg>>58n&1n)===1n&&!paused,oracleState:fresh?'FRESH':'UNVALIDATED',oracleSource:sources[i],underlyingFeed:feed,oracleAdapter:composite?'WBTC_BTC_USD':'DIRECT_OR_STABLE_CAP',oracleCodeHash:codeHash??null,oracleComponents:componentEvidence??null,priceCapRaw:cap?.toString()??null,oracleUpdatedAt:updatedAt?.toString()??null,isolation:debtCeiling>0n,configurationRaw:cfg.toString(),stableDebtRaw:user[1].toString(),scaledVariableDebtRaw:user[4].toString(),liquidityRateRay:user[6].toString()};
   });
   if(eMode!==0)warnings.push('eMode is observable but unsupported for scenario and action modeling');
   if(poolImplementation!==VALIDATED_POOL_IMPLEMENTATION)warnings.push('Pool implementation changed; financial modeling requires revalidation');
@@ -90,7 +106,7 @@ export async function snapshot(wallet, rpc=client()) {
   const native=await rpc.getBalance({address:wallet,blockNumber});
   const end=await rpc.getBlock({blockNumber});
   if(end.hash!==block.hash)throw new Error('Block changed during snapshot; refresh after chain reorganization');
-  return {model:MODEL,status:warnings.length?'UNSUPPORTED':'READY',wallet,chainId:1,protocol:'Aave V3',pool:POOL,poolImplementation,oracle:ORACLE,dataProvider,blockNumber:blockNumber.toString(),blockHash:block.hash,blockTimestamp:Number(block.timestamp),fetchedAt:new Date().toISOString(),source:'Ethereum RPC / Aave V3 contracts',rpcHost:new URL(rpc.transport.url||'https://ethereum.publicnode.com').host,nativeBalanceRaw:native.toString(),observedCollateralRaw:account[0].toString(),observedDebtRaw:account[1].toString(),observedHealthFactorRaw:observed,positions:active.length?[position]:[],warnings,limitations:['Single Ethereum Aave V3 account; other protocols and chains are not discovered.','Balances include debt interest accrued by the protocol at the snapshot block. Future interest and governance changes are not forecast.','Oracle timestamp support is restricted to validated WETH, USDC and USDT sources; WBTC composite and other sources require separate validation. An RPC response alone does not independently certify the provider.']};
+  return {model:MODEL,oracleValidation:'ethereum-aave-oracles-2',status:warnings.length?'UNSUPPORTED':'READY',wallet,chainId:1,protocol:'Aave V3',pool:POOL,poolImplementation,oracle:ORACLE,dataProvider,blockNumber:blockNumber.toString(),blockHash:block.hash,blockTimestamp:Number(block.timestamp),fetchedAt:new Date().toISOString(),source:'Ethereum RPC / Aave V3 contracts',rpcHost:new URL(rpc.transport.url||'https://ethereum.publicnode.com').host,nativeBalanceRaw:native.toString(),observedCollateralRaw:account[0].toString(),observedDebtRaw:account[1].toString(),observedHealthFactorRaw:observed,positions:active.length?[position]:[],warnings,limitations:['Single Ethereum Aave V3 account; other protocols and chains are not discovered.','Balances include debt interest accrued by the protocol at the snapshot block. Future interest and governance changes are not forecast.','Oracle timestamp support is restricted to validated WETH, USDC, USDT and WBTC sources. WBTC requires pinned adapter bytecode and two timestamped component feeds; other sources require separate validation. An RPC response alone does not independently certify the provider.']};
 }
 function abs(n){return n<0n?-n:n;}
 export async function gasguard(input,rpc=client()) {

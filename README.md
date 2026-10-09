@@ -15,7 +15,7 @@ Live website: https://rivexis-web.rudrasingh0718.workers.dev
 - Monitoring & Reports: five bounded browser checks, owner-scoped account receipts, JSON exports and retained historical records.
 - Responsive institutional UI, shared dark/light themes, existing authentication and tenant security.
 
-The initial core is free to users. Supported financial coverage is deliberately bounded: normal-mode Aave V3 with validated WETH/USDC/USDT oracle adapters. Morpho, eMode, isolation and other unvalidated modes remain unsupported. The model does not guarantee safety, global optimality or execution. No custody, signing, automatic execution or paid AI dependency.
+The initial core is free to users. Supported financial coverage is deliberately bounded: normal-mode Aave V3 with validated WETH/USDC/USDT/WBTC oracle adapters. Morpho, eMode, isolation and other unvalidated modes remain unsupported. The model does not guarantee safety, global optimality or execution. No custody, signing, automatic execution or paid AI dependency.
 
 ## Release and recovery evidence
 
