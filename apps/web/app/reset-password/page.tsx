@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {useEffect,useRef,useState} from "react";
 import {useForm} from "react-hook-form";
-import {Brand} from "@/components/Brand";
+import {AuthFrame} from "@/components/AuthFrame";
 import {api} from "@/lib/api";
 
 type Form={token:string;email:string;password:string;confirmPassword:string};
@@ -50,9 +50,7 @@ export default function ResetPassword(){
     }
   }
 
-  return <main className="formPage">
-    <section className="formCard">
-      <Brand variant="lockup"/>
+  return <AuthFrame mode="recovery">
       <h1>Choose a new password</h1>
       <p>Completing recovery revokes existing sessions for this account.</p>
       {complete?<div className="success" role="status">Password updated. <Link href="/login">Log in with your new password</Link>.</div>:<form className="form" method="post" onSubmit={handleSubmit(submit)}>
@@ -65,6 +63,5 @@ export default function ResetPassword(){
         <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Updating…":"Update password"}</button>
       </form>}
       <p className="authNote"><Link href="/forgot-password">Request a new recovery link</Link>.</p>
-    </section>
-  </main>;
+  </AuthFrame>;
 }

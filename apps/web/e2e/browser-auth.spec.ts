@@ -26,7 +26,7 @@ test.describe("browser authentication and onboarding",()=>{
 
     await page.goto("/login");
     await page.getByLabel("Email").fill("alice@example.com");
-    await page.getByLabel("Password").fill("wrong-password");
+    await page.getByLabel("Password",{exact:true}).fill("wrong-password");
     await page.getByRole("button",{name:"Log in"}).click();
 
     const alert=page.locator(".formCard .error[role='alert']");
@@ -52,7 +52,7 @@ test.describe("browser authentication and onboarding",()=>{
 
     await page.goto("/signup");
     await page.getByLabel("Email").fill("existing@example.com");
-    await page.getByLabel("Password").fill("correct-horse-battery");
+    await page.getByLabel("Password",{exact:true}).fill("correct-horse-battery");
     await page.getByRole("button",{name:"Continue"}).click();
 
     const pending=page.getByRole("button",{name:"Creating account…"});
@@ -77,7 +77,7 @@ test.describe("browser authentication and onboarding",()=>{
     await expect(page.getByRole("status")).toHaveText("Email verified. Log in to continue.");
     await expect(page.getByRole("link",{name:"Verify an existing account"})).toHaveAttribute("href","/verify-email");
     await page.getByLabel("Email").fill("pending@example.com");
-    await page.getByLabel("Password").fill("correct-horse-battery");
+    await page.getByLabel("Password",{exact:true}).fill("correct-horse-battery");
     await page.getByRole("button",{name:"Log in"}).click();
 
     const alert=page.locator(".formCard .error[role='alert']");
@@ -96,7 +96,7 @@ test.describe("browser authentication and onboarding",()=>{
 
     await page.goto("/signup");
     await page.getByLabel("Email").fill("new@example.com");
-    await page.getByLabel("Password").fill("correct-horse-battery");
+    await page.getByLabel("Password",{exact:true}).fill("correct-horse-battery");
     await page.getByRole("button",{name:"Continue"}).click();
 
     await expect(page).toHaveURL(/\/verify-email\?sent=1$/);

@@ -60,20 +60,21 @@ export function alertEmail(alert){
     truth,
     "Review the canonical record in your Rivexis workspace before acting."
   ].filter(Boolean).join("\n");
-  const html=`<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f5f4ef;color:#07192e;padding:28px">
-    <div style="max-width:640px;margin:auto;background:#fff;padding:28px;border-top:3px solid #0b5cff">
-      <div style="font-size:12px;letter-spacing:.14em;color:#5b6b7e">RIVEXIS · EVIDENCE ALERT</div>
+  const html=`<!doctype html><html><body style="font-family:Arial,sans-serif;background:#F3F2EC;color:#202B2D;padding:28px">
+    <div style="max-width:640px;margin:auto;background:#F3F2EC;padding:28px;border-top:3px solid #326C6A">
+      <img src="https://rivexis-web.rudrasingh0718.workers.dev/brand/rivexis-wordmark-light.png" alt="RIVEXIS" width="220" style="display:block;width:220px;max-width:100%;height:auto;margin-bottom:28px"/>
+      <div style="font-size:12px;letter-spacing:.14em;color:#596A69">RIVEXIS · EVIDENCE ALERT</div>
       <h1 style="font-size:24px;margin:14px 0">${escapeHtml(severity)} alert</h1>
-      <p style="color:#53647a">${escapeHtml(workspace)}</p>
+      <p style="color:#596A69">${escapeHtml(workspace)}</p>
       <table style="width:100%;border-collapse:collapse">
-        <tr><td style="padding:8px 0;color:#6b7787">State</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(status)}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b7787">Occurrences</td><td style="padding:8px 0;text-align:right;font-weight:700">${occurrence}</td></tr>
-        ${risk===null?"":`<tr><td style="padding:8px 0;color:#6b7787">Risk score</td><td style="padding:8px 0;text-align:right;font-weight:700">${risk}/100</td></tr>`}
-        <tr><td style="padding:8px 0;color:#6b7787">Evidence mode</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(mode)}</td></tr>
+        <tr><td style="padding:8px 0;color:#596A69">State</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(status)}</td></tr>
+        <tr><td style="padding:8px 0;color:#596A69">Occurrences</td><td style="padding:8px 0;text-align:right;font-weight:700">${occurrence}</td></tr>
+        ${risk===null?"":`<tr><td style="padding:8px 0;color:#596A69">Risk score</td><td style="padding:8px 0;text-align:right;font-weight:700">${risk}/100</td></tr>`}
+        <tr><td style="padding:8px 0;color:#596A69">Evidence mode</td><td style="padding:8px 0;text-align:right;font-weight:700">${escapeHtml(mode)}</td></tr>
       </table>
-      <p style="margin-top:22px;padding-top:18px;border-top:1px solid #dfe5ec">${escapeHtml(truth)}</p>
-      <p style="font-size:12px;color:#6b7787">Reference: ${escapeHtml(reference)}</p>
-      <p><a href="https://rivexis-web.rudrasingh0718.workers.dev/workspace/alerts" style="color:#0b5cff">Review canonical alert record</a></p>
+      <p style="margin-top:22px;padding-top:18px;border-top:1px solid #D9DFD7">${escapeHtml(truth)}</p>
+      <p style="font-size:12px;color:#596A69">Reference: ${escapeHtml(reference)}</p>
+      <p><a href="https://rivexis-web.rudrasingh0718.workers.dev/workspace/alerts" style="color:#326C6A">Review canonical alert record</a></p>
     </div>
   </body></html>`;
   return {subject,text,html,synthetic};

@@ -2,9 +2,13 @@ import {test,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 import {readFileSync} from 'node:fs';
-test.beforeEach(async({page})=>{await page.route('**/health',r=>r.fulfill({status:200,json:{status:'ready'}}))});
+test.beforeEach(async({page})=>{
+  await page.route('**/health',r=>r.fulfill({status:200,json:{status:'ready'}}));
+  await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:true,email_verified:true}}));
+  await page.route('**/api/v1/auth/web/csrf',r=>r.fulfill({status:200,json:{csrf_token:'TEST_CSRF'}}));
+});
 test('anonymous sample connects scenarios, constrained frontier, and export',async({page})=>{
-  await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
+  await page.goto('/demo');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
   await expect(page.getByText('HYPOTHETICAL SAMPLE · NOT LIVE')).toBeVisible();
   await expect(page.getByText('$30,000.00',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'02Risk Scenario Lab',exact:true}).click();
@@ -79,7 +83,7 @@ test('responsive dark/light product surfaces have no page overflow or serious ax
     await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`app overflow ${width}`).toBe(true);
   }
-  for(const path of ['/','/app','/login','/signup','/forgot-password','/verify-email','/methodology']){
+  for(const path of ['/','/app','/demo','/forgot-password','/verify-email','/methodology']){
     await page.goto(path);const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
     expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical'),path).toEqual([]);
   }

@@ -5,7 +5,7 @@ const external = Boolean(process.env.RIVEXIS_WEB_BASE_URL);
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: ['defi-product.spec.ts','browser-auth.spec.ts','session-lifecycle.spec.ts','security.spec.ts','history-provenance.spec.ts','organization-workspace-create.spec.ts','organization-scope-switching.spec.ts','saved-analysis-actions.spec.ts'],
+  testMatch: ['entry-experience.spec.ts','defi-product.spec.ts','browser-auth.spec.ts','session-lifecycle.spec.ts','security.spec.ts','history-provenance.spec.ts','organization-workspace-create.spec.ts','organization-scope-switching.spec.ts','saved-analysis-actions.spec.ts'],
   timeout: 30_000,
   expect: { timeout: 5_000 },
   fullyParallel: true,

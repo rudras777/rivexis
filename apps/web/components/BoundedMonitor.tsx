@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
+import {api} from "@/lib/api";
 import {useDeFi} from "./DeFiContext";
 import {format,type Snapshot} from "../../../supabase/functions/rivexis-api/defi-model.mjs";
 export function BoundedMonitor(){
@@ -16,8 +17,7 @@ export function BoundedMonitor(){
       if(latest.current.snapshot?.wallet!==wallet||latest.current.snapshot?.coverage!==coverage&&!(coverage==="aave"&&latest.current.snapshot?.coverage===undefined)){stop("Checks stopped because the inspected wallet changed.");return}
       busy=true;
       try{
-        const r=await fetch('/api/v1/defi/snapshot',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({wallet,coverage}),signal:controller.signal});
-        const body=await r.json();if(!r.ok)throw new Error(body.detail||'Evidence unavailable');
+        const body=await api<Snapshot>('/api/v1/defi/snapshot',{method:'POST',body:JSON.stringify({wallet,coverage}),signal:controller.signal});
         if(cancelled)return;
         latest.current.setSnapshot(body as Snapshot);latest.current.setResult(null);used++;setChecks(used);
         setStatus(`Check ${used} of 5 complete. Latest block: ${body.blockNumber}.`);

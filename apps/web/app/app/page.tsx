@@ -1,2 +1,3 @@
 import {DeFiWorkspace} from "@/components/DeFiWorkspace";
-export default function App(){return <DeFiWorkspace/>}
+import {FeatureGate} from "@/components/FeatureGate";
+export default function App(){return <FeatureGate><DeFiWorkspace/></FeatureGate>}

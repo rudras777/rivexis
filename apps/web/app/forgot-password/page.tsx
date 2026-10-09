@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {useState} from "react";
 import {useForm} from "react-hook-form";
-import {Brand} from "@/components/Brand";
+import {AuthFrame} from "@/components/AuthFrame";
 import {api} from "@/lib/api";
 
 type Form={email:string};
@@ -26,9 +26,7 @@ export default function ForgotPassword(){
     }
   }
 
-  return <main className="formPage">
-    <section className="formCard">
-      <Brand variant="lockup"/>
+  return <AuthFrame mode="recovery">
       <h1>Reset password</h1>
       <p>Request a one-time recovery link. The response is identical whether or not the address is registered.</p>
       {accepted?<div className="success" role="status">Recovery request received. If an eligible account exists, check your inbox for a reset link. Delivery may take a few minutes; check your spam folder too.</div>:<form className="form" method="post" onSubmit={handleSubmit(submit)}>
@@ -37,6 +35,5 @@ export default function ForgotPassword(){
         <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Requesting…":"Send reset link"}</button>
       </form>}
       <p className="authNote"><Link href="/login">Return to login</Link>.</p>
-    </section>
-  </main>;
+  </AuthFrame>;
 }

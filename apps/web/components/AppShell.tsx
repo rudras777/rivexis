@@ -4,6 +4,8 @@ import Link from "next/link";
 import {usePathname,useRouter} from "next/navigation";
 import {useQuery,useQueryClient} from "@tanstack/react-query";
 import {useEffect,useState} from "react";
+import {authHref,safeDestination} from "@/lib/auth-destination";
+import {useDeFi} from "./DeFiContext";
 import {Brand} from "./Brand";
 import {ThemeToggle} from "./ThemeToggle";
 import {WorkspaceContextProvider,type WorkspaceSummary} from "./WorkspaceContext";
@@ -37,6 +39,7 @@ function clearClientSessionState(){setCsrfToken(null);clearActiveWorkspaceId()}
 
 export function AppShell({children}:{children:React.ReactNode}){
   const p=usePathname();
+  const risk=useDeFi();
   const router=useRouter();
   const queryClient=useQueryClient();
   const [active,setActive]=useState("");
@@ -50,7 +53,7 @@ export function AppShell({children}:{children:React.ReactNode}){
     void queryClient.cancelQueries({queryKey:["workspace"]});queryClient.removeQueries({queryKey:["workspace"]});
   }
 
-  useEffect(()=>{if(apiStatus!==401)return;clearWorkspaceQueries();clearClientSessionState()},[apiStatus]);
+  useEffect(()=>{if(apiStatus!==401)return;clearWorkspaceQueries();clearClientSessionState();risk.reset()},[apiStatus,risk.reset]);
 
   useEffect(()=>{
     if(!q.data)return;
@@ -75,16 +78,16 @@ export function AppShell({children}:{children:React.ReactNode}){
     catch(error){
       if(!(error instanceof ApiError)||error.status!==401){setLogoutError("Rivexis could not confirm logout. Retry before leaving this device.");setLoggingOut(false);return}
     }
-    clearWorkspaceQueries();clearClientSessionState();router.replace("/login");router.refresh();
+    clearWorkspaceQueries();clearClientSessionState();risk.reset();queryClient.removeQueries({queryKey:["public-session"]});sessionStorage.removeItem("rivexis_pending_destination");router.replace("/login");router.refresh();
   }
 
   if(q.isPending)return <ShellState kind="loading" title="Loading workspace access" message="Rivexis is verifying your session and authorized workspaces before showing workspace navigation."/>;
   if(q.isError){
-    if(apiStatus===401)return <ShellState kind="session" title="Session ended" message="Your Rivexis session is missing, expired, or revoked. Workspace data has not been shown." action={<><Link className="button" href="/login">Log in again</Link><Link className="ghost" href="/">Public site</Link></>}/>;
+    if(apiStatus===401)return <ShellState kind="session" title="Session ended" message="Your Rivexis session is missing, expired, or revoked. Workspace data has not been shown." action={<><Link className="button" href={authHref("/login",safeDestination(p))}>Log in again</Link><Link className="ghost" href="/">Public site</Link></>}/>;
     if(apiStatus===403)return <ShellState kind="unavailable" title="Workspace access unavailable" message="Your account is authenticated, but Rivexis could not confirm authorization for this workspace area. No workspace data has been shown." action={<><button className="button" type="button" onClick={()=>void q.refetch()} disabled={q.isFetching}>{q.isFetching?"Retrying…":"Retry access check"}</button><Link className="ghost" href="/">Public site</Link></>}/>;
     return <ShellState kind="unavailable" title={apiStatus===503?"Application services unavailable":"Workspace could not load"} message={apiStatus===503?"The application API is currently unavailable, so Rivexis has withheld authenticated navigation and workspace content.":"Rivexis could not verify workspace access. No authenticated workspace data has been shown."} action={<><button className="button" type="button" onClick={()=>void q.refetch()} disabled={q.isFetching}>{q.isFetching?"Retrying…":"Retry"}</button><Link className="ghost" href="/">Public site</Link></>}/>;
   }
-  if(!q.data.items.length)return <ShellState kind="empty" title="No workspace configured" message="Your session is valid, but there is no authorized workspace to enter yet. Configure a workspace before using Rivexis analysis or monitoring tools." action={<><Link className="button" href="/onboarding">Configure workspace</Link><Link className="ghost" href="/">Public site</Link></>}/>;
+  if(!q.data.items.length)return <ShellState kind="empty" title="No workspace configured" message="Your session is valid, but there is no authorized workspace to enter yet. Configure a workspace before using Rivexis analysis or monitoring tools." action={<><Link className="button" href={authHref("/onboarding",safeDestination(p))}>Configure workspace</Link><Link className="ghost" href="/">Public site</Link></>}/>;
 
   const selected=active||q.data.items[0].id;
   const selectedWorkspace=q.data.items.find(w=>w.id===selected)??q.data.items[0];
