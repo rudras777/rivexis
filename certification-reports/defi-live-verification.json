@@ -1,16 +1,50 @@
 {
-  "checkedAt": "2026-10-09T14:38:19.708Z",
+  "checkedAt": "2026-10-09T15:24:34.289Z",
   "base": "https://rivexis-web.rudrasingh0718.workers.dev",
   "results": [
     {
       "test": "real_aave_account_reference",
       "status": "PASS",
-      "latencyMs": 3995,
-      "blockNumber": "26155500",
-      "blockHash": "0xede6ea8d9aa28d6d2df20dd0e0d4bf229099d645178c553ce94360c26e76d2c9",
+      "latencyMs": 1938,
+      "blockNumber": "26155731",
+      "blockHash": "0xbd21f10ba159447af979359b1e6e2ecf27aa2449a011689e4c339d1fc6da0962",
       "poolImplementation": "0x728a138a4823392c2efa55e028d434f526fe03cf",
-      "observedHF": "1621306618169667914",
-      "modeledHF": "1621306618169667914"
+      "observedHF": "1618602763646810016",
+      "modeledHF": "1618602763646810016"
+    },
+    {
+      "test": "real_wbtc_composite_reference",
+      "status": "PASS",
+      "latencyMs": 1756,
+      "blockNumber": "26155731",
+      "blockHash": "0xbd21f10ba159447af979359b1e6e2ecf27aa2449a011689e4c339d1fc6da0962",
+      "observedHF": "1069027915435393095",
+      "modeledHF": "1069027915435393095",
+      "source": "0xDaa4B74C6bAc4e25188e64ebc68DB5050b690cAc",
+      "codeHash": "0x585d9bff94e70a45a18e9f7b03dcb249051e32a6cba0f14c6ab81e194595364e",
+      "priceRaw": "8272737632125",
+      "components": [
+        {
+          "kind": "BTC_USD",
+          "feed": "0xb41e773f507f7a7ea890b1afb7d2b660c30c8b0a",
+          "maxAgeSeconds": 4200,
+          "roundId": "36893488147419121565",
+          "answerRaw": "8284427207448",
+          "startedAt": "1791559042",
+          "updatedAt": "1791559055",
+          "answeredInRound": "36893488147419121565"
+        },
+        {
+          "kind": "WBTC_BTC",
+          "feed": "0xfdfd9c85ad200c506cf9e21f1fd8dd01932fbb23",
+          "maxAgeSeconds": 90000,
+          "roundId": "36893488147419104056",
+          "answerRaw": "99858897",
+          "startedAt": "1791494505",
+          "updatedAt": "1791494519",
+          "answeredInRound": "36893488147419104056"
+        }
+      ]
     },
     {
       "test": "real_state_defense_frontier",
@@ -22,10 +56,20 @@
     {
       "test": "real_withdraw_readonly_simulation",
       "status": "PASS",
-      "latencyMs": 3318,
-      "blockNumber": "26155500",
-      "gas": "262067",
-      "feeReserveWei": "157074117869073",
+      "latencyMs": 1694,
+      "blockNumber": "26155731",
+      "gas": "259544",
+      "feeReserveWei": "165215488830556",
+      "blockers": []
+    },
+    {
+      "test": "real_wbtc_withdraw_readonly_simulation",
+      "status": "PASS",
+      "latencyMs": 2218,
+      "blockNumber": "26155731",
+      "gas": "375532",
+      "beforeHF": "1069027915435393095",
+      "afterHF": "1069021183635346134",
       "blockers": []
     },
     {
@@ -41,7 +85,8 @@
     {
       "test": "public_build_marker",
       "status": "PASS",
-      "buildSha": "e42fd2a22721c26b73756c48c2ae906e1ed04674",
+      "buildSha": "fc384ac764f7b70495e12d57596c006256d004bb",
+      "expectedBuild": "fc384ac764f7b70495e12d57596c006256d004bb",
       "transformed": true
     }
   ]

@@ -1,6 +1,6 @@
 # RIVEXIS — DeFi risk platform release evidence
 
-Release state: the redesigned bounded beta is LIVE at https://rivexis-web.rudrasingh0718.workers.dev. Final deployed source is e42fd2a22721c26b73756c48c2ae906e1ed04674; Cloudflare Worker version 30481780-7781-4ff9-bdd9-1d45c76ece10; existing Supabase API v16 ACTIVE. Final main CI 37945178364 passed all four jobs. Independent public verification matched this source identity, exact on-chain health factor and read-only transaction simulation. Authenticated browser verification confirmed the existing session, saved receipt and zero-cost current-state baseline. See TRANSFORMATION_PROGRESS.md and certification-reports/defi-live-verification.json.
+Release state: the redesigned bounded beta is LIVE at https://rivexis-web.rudrasingh0718.workers.dev. Latest functional release is fc384ac764f7b70495e12d57596c006256d004bb; Worker version 001d01c0-cab4-431e-9527-a4f42d28e705; existing Supabase API v17 ACTIVE. Source CI 37950312692 and Worker bundle 37950312685 pass; the existing Cloudflare-connected build succeeds. Independent public verification and browser metadata match this source identity. Documentation-only successors can trigger the existing deployment integration; the Worker tag and public rivexis-build marker identify the precise current deployed commit. See TRANSFORMATION_PROGRESS.md and certification-reports/defi-live-verification.json.
 
 ## Architecture and feature inventory
 
@@ -14,15 +14,17 @@ The same bigint/fixed-point module serves frontend scenarios, server-generated a
 
 ## Financial validation and limitations
 
-PASS: normal-mode Aave account with WETH collateral and USDT debt, exact health-factor agreement with Pool.getUserAccountData; empty Aave account; native balance; block consistency and reorganization check; source and oracle identity; feed timestamps; current capped USDC/USDT price formula; read-only WETH withdrawal call and gas estimate.
+PASS: normal-mode Aave account with WETH collateral and USDT debt, exact health-factor agreement with Pool.getUserAccountData; empty Aave account; native balance; block consistency and reorganization check; source and oracle identity; feed timestamps; current capped USDC/USDT price formula; read-only WETH and WBTC withdrawal calls and gas estimates. A real WETH/WBTC/USDC/USDT account independently agrees with Pool collateral, debt and health-factor totals; both WBTC component-feed rounds and adapter bytecode identity are retained.
 
 PASS: independent arithmetic cases for mixed liquidation thresholds, USD/token decimals, ceil debt valuation, weighted-numerator health factor, simultaneous collateral/debt shocks, no-debt state, repayment versus supply, budget and balance constraints, insufficient native ETH, stale data and invalid modes. Separate-position allocation is tested using explicitly hypothetical fixtures.
 
-SUPPORTED: Ethereum Aave V3 normal mode; current WETH direct and USDC/USDT capped oracle adapters. Repayment uses variable debt; supply modeling only adds an existing enabled collateral reserve. Withdraw/borrow previews are limited to discovered assets and checked by RPC. Oracle timestamps are checked against bounded freshness assumptions (WETH 70 minutes; stable feeds 25 hours). Governance upgrades or changed sources require revalidation. Stress scenarios override snapshot prices and do not forecast the future cap, interest or market state.
+SUPPORTED: Ethereum Aave V3 normal mode; current WETH direct, USDC/USDT capped and WBTC composite oracle adapters. Repayment uses variable debt; supply modeling only adds an existing enabled collateral reserve. Withdraw/borrow previews are limited to discovered assets and checked by RPC. Oracle timestamps are checked against bounded freshness assumptions (WETH and WBTC BTC/USD component 70 minutes; stable feeds and WBTC/BTC ratio component 25 hours). Governance upgrades or changed sources require revalidation. Stress scenarios override snapshot prices and do not forecast the future cap, interest or market state.
 
-UNSUPPORTED: eMode, isolation, stable debt, WBTC composite and other unvalidated oracle wrappers, Morpho, Compound, other chains, swaps, bridges, new collateral enablement, arbitrary contract safety/MEV detection, multi-step transaction forks and automatic execution. Multi-position mathematics is validated, but live discovery currently covers one Aave account; no production multi-protocol claim is made.
+UNSUPPORTED: eMode, isolation, stable debt, other unvalidated oracle wrappers, Morpho, Compound, other chains, swaps, bridges, new collateral enablement, arbitrary contract safety/MEV detection, multi-step transaction forks and automatic execution. Multi-position mathematics is validated, but live discovery currently covers one Aave account; no production multi-protocol claim is made.
 
 Defense Frontier enumerates 5% budget increments and at most two actions per alternative (maximum 12 eligible action types), plus a zero-cost no-action baseline when the target is already met. It compares least capital found to meet a target or highest minimum health found. Leading candidates and action-type representatives are returned. There is no claim of global optimality. Outcomes remain MODELED_ONLY; approval, supply/borrow caps, liquidity and protocol execution constraints need the GasGuard preview. Native gas affordability is checked against the user-assumed fee reserve when a validated WETH price exists; otherwise it stays unknown. The fee reserve is not represented as a measured gas cost.
+
+Live WBTC stress receipt aa27aad0-aa60-4cd7-b2da-27b3ff9be55c was saved and retrieved through the existing account after RLS hardening. It retains a -10% WBTC scenario, $25,000 budget, target HF 1.20, $2 assumed fee reserve, both oracle-feed rounds and five alternatives. The leading modeled repayment reaches HF 1.217 with approval still required; it is not execution evidence or a recommendation.
 
 ## Data, security and rollback
 
@@ -30,15 +32,15 @@ The new migration is additive. No existing users, tables, sessions, records, cre
 
 PASS: database quota returns [true,true,true,true,false] for five requests to the same wallet/minute; direct anon report read and authenticated save RPC are denied. Quota outage fails closed before RPC. Request sizes and decimal inputs are bounded; no RPC URL is supplied by clients.
 
-Outstanding findings: pg_net remains in public; leaked-password protection remains disabled; 19 legacy tables have no RLS but no anon/authenticated grants were found, and users SELECT is denied. The two new service-only tables intentionally have RLS with no client policies (advisor INFO). Existing build-tool GHSA-vfj7-8cjw-p6xm remains covered by the repository's narrow exception; no other high/critical advisory is accepted. No secrets found by the repository scanner. An independent security audit is not claimed.
+RLS hardening is applied to all 19 previously unprotected legacy tables. There are zero public tables without RLS, and no client grants were widened. Existing rivexis_app users/data_sources access is preserved through role-specific server policies; table ownership and data remain unchanged. Live counts remain 4 users, 4 workspaces, 25 analyses and 4 legacy reports. PostgreSQL CI exercises runtime reads and denied direct client reads; the production MCP cannot impersonate rivexis_app, so that direct production role-switch test is BLOCKED, not PASS. Production effective-grant/catalog checks, authenticated account access and retained history pass. Outstanding findings: pg_net remains in public and leaked-password protection remains disabled. Nineteen owner/service-only tables intentionally have RLS with no client policies (advisor INFO). Existing build-tool GHSA-vfj7-8cjw-p6xm remains covered by the repository's narrow exception; no other high/critical advisory is accepted. No secrets found by the repository scanner. An independent security audit is not claimed.
 
 Rollback: redeploy baseline tag baseline/pre-defi-transformation-20261009 to rivexis-web; restore captured API v11 files if necessary, retaining the additive schema. Git history and a full-history local bundle preserve recovery. Cloudflare's pre-release Worker version is a3fa1dea-608e-480e-95b0-0db01efc8573. No default-branch reset or force push.
 
 ## Test evidence
 
-- PASS: 17 new model/API boundary tests.
+- PASS: 22 model/API/oracle boundary and captured-reference tests.
 - PASS: 29 retained Edge/role/membership/report/email-template tests (fixtures, not proof of email delivery).
-- PASS: 27 selected browser tests, including bounded monitoring and zero-cost current-state comparisons. Includes login/signup/verification/recovery UI, session/CSRF/logout, tenant scope, history/save operations, exports and browser headers.
+- PASS: 28 selected browser tests, including bounded monitoring and zero-cost current-state comparisons. Includes login/signup/verification/recovery UI, session/CSRF/logout, tenant scope, history/save operations, exports and browser headers.
 - PASS: 320, 375, 390, 768, 1024, 1280, 1440 and 1920px home/sample-frontier overflow checks.
 - PASS: axe serious/critical WCAG-tagged checks on public/app/auth/methodology dark surfaces and light app. This is automated coverage, not comprehensive accessibility certification.
 - PASS: web typecheck/AST lint, existing API-edge typecheck, Next production build and Cloudflare/Vinext bundle build.
@@ -48,11 +50,13 @@ Rollback: redeploy baseline tag baseline/pre-defi-transformation-20261009 to riv
 
 ## Cost model and operational limits
 
-Supabase organization plan verified free. No new paid service, AI dependency, account or permanent project was created, and no paid plan was activated. Cloudflare account/Worker identity is unchanged; billing/subscription reads returned 403 with existing OAuth scopes, so current Cloudflare plan and total charges are UNVERIFIED. Free allowances are shared with existing workloads, so zero total cost is not guaranteed. Source CI passes, but the pre-existing Cloudflare-connected Workers Builds check fails; the release used the existing authenticated manual Wrangler path successfully.
+Supabase organization plan verified free. No new paid service, AI dependency, account or permanent project was created, and no paid plan was activated. Cloudflare account/Worker identity is unchanged; billing/subscription reads returned 403 with existing OAuth scopes, so current Cloudflare plan and total charges are UNVERIFIED. Free allowances are shared with existing workloads, so zero total cost is not guaranteed. The earlier Cloudflare-connected build failure has cleared: subsequent existing-integration builds and deployments for 313dba2, 4c59961 and fc384ac pass. No account or integration configuration was replaced.
 
-Distributed beta cap: 300 RPC-backed attempts/day globally, 4 per wallet/minute. Each snapshot uses approximately 9–12 RPC round trips with bounded multicalls (up to 80 reserves); a transaction preview adds call/estimate/fee/nonce/reorganization checks. That bounds accepted analysis to about 9,000 attempts/month and roughly 150,000 RPC method calls/month before provider failures, with no SLA. PublicNode publishes free Ethereum access; commercial reliability and abuse limits are not contractually guaranteed. Provider failure returns UNKNOWN.
+Distributed beta cap: 300 RPC-backed attempts/day globally, 4 per wallet/minute. Each snapshot uses typically 9–15 RPC round trips for supported four-asset snapshots with bounded multicalls (up to 80 reserves); a transaction preview adds call/estimate/fee/nonce/reorganization checks. That bounds accepted analysis to about 9,000 attempts/month and roughly 135,000 snapshot RPC method calls/month for that typical case before provider failures, with no SLA. Larger unvalidated reserve sets can require additional multicall chunks; total RPC method usage is not independently metered. PublicNode publishes free Ethereum access; commercial reliability and abuse limits are not contractually guaranteed. Provider failure returns UNKNOWN.
 
 Quota writes are roughly two upserts per accepted attempt and a bounded expiry cleanup. Only recent wallet-minute counts and daily counters persist. Account reports are <=100KB each, <=20/account; storage still grows with accounts and must be monitored. Optional browser monitoring stops after five checks, every two minutes, on view closure/hidden tab/provider failure/quota exhaustion. It is not a background service or an email liquidation-alert guarantee. Auth/email and other existing endpoints are outside the new RPC cap and retain their existing limits.
+
+Oracle prices display all eight USD decimals. Token balances retain up to eight decimals; positive smaller amounts show a less-than bound instead of zero. Full native-unit values remain in receipts.
 
 ## Design tokens
 
@@ -64,6 +68,8 @@ Light: background #F3F3EF; surface #FAFAF7; elevated/inset #E9ECE8; primary text
 
 - Aave Pool: https://aave.com/docs/aave-v3/smart-contracts/pool
 - Current GenericLogic: https://github.com/aave-dao/aave-v3-origin/blob/main/src/contracts/protocol/libraries/logic/GenericLogic.sol
+- WBTC composite adapter: https://github.com/aave-dao/aave-price-feeds/blob/main/src/contracts/CLSynchronicityPriceAdapterPegToBase.sol
+- RLS reference: https://supabase.com/docs/guides/database/postgres/row-level-security
 - Stable price-cap adapter: https://github.com/aave-dao/aave-price-feeds/blob/main/src/contracts/PriceCapAdapterStable.sol
 - Workers limits: https://developers.cloudflare.com/workers/platform/limits/
 - Supabase pricing: https://supabase.com/pricing
