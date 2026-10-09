@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient, type SupabaseClient, type User} from "npm:@supabase/supabase-js@2";
+import {createClient, type SupabaseClient, type User} from "npm:@supabase/supabase-js@2.117.3";
 import {analysisResult} from "./analysis.mjs";
 import {createMembershipClaimToken,hashMembershipClaimToken} from "./membership.mjs";
 import {parseRole,roleOrDefault} from "./role.mjs";
