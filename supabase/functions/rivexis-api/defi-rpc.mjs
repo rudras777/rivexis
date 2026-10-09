@@ -116,4 +116,3 @@ export async function gasguard(input,rpc=client()) {
   const nonce=await rpc.getTransactionCount({address:s.wallet,blockNumber});
   return {model:MODEL,blockNumber:s.blockNumber,blockHash:s.blockHash,wallet:s.wallet,to:POOL,data,nonceAtBlock:nonce,action,before,after,simulation,gasRaw:gas?.toString()??null,maxFeePerGasRaw:maxFee?.toString()??null,feeReserveWei:cost?.toString()??null,nativeBalanceRaw:s.nativeBalanceRaw,allowanceRaw:r.allowanceRaw,tokenBalanceRaw:r.walletRaw,blockers,status:blockers.length?'BLOCKED':'PREVIEW_ONLY',warnings:['eth_call and eth_estimateGas are independent read-only calls, not a state fork or signed transaction.','Fees are a current network estimate with a 20% gas reserve; inclusion costs and future execution may differ.','Nonce is observed at the snapshot block; pending transactions and replacement rules are not simulated.','No arbitrary contract traces, MEV guarantees, swaps, signing or automatic execution.']};
 }
-

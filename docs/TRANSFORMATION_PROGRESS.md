@@ -39,5 +39,3 @@ Redeploy the baseline tag to the same Worker using the existing deployment autho
 - Brevo read connector remains unavailable after three attempts; inbox delivery UNVERIFIED.
 - Cloudflare billing/subscription API returned 403 with existing OAuth scope. No billing changes requested or performed; account plan/total charges UNVERIFIED.
 - Actual EIP-1967 Aave implementation 0x728a138a4823392c2efa55e028d434f526fe03cf differs from address-book POOL_IMPL; runtime identity is checked and model agreement established from on-chain data.
-
-

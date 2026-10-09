@@ -70,5 +70,3 @@ export function DeFiWorkspace({initialView="portfolio",authenticated=false}:{ini
     <footer className="instrumentFooter"><span>RIVEXIS · Free access, bounded usage.</span><span>Financial modeling only. No guarantee of safety or execution.</span></footer>
   </div></>;
 }
-
-

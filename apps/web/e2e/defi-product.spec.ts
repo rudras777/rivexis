@@ -55,4 +55,3 @@ test('optional browser monitoring stops after five checks and never runs for a s
   await expect(page.getByText('Five checks complete. Monitoring stopped; restart explicitly if needed.')).toBeVisible();
   await page.clock.fastForward(240000);expect(requests).toBe(6);
 });
-
