@@ -33,3 +33,6 @@
 - Known dependency exception remains narrowly scoped to the unpatched braces build-tool advisory; no other high/critical advisory is permitted.
 
 - Final browser result: 39 full-suite tests passed plus the new late-response/logout regression passed separately (40 distinct tests). Production release remains pending exact-source CI and independent live verification.
+
+- Pre-release preservation audit: 4 Auth users, 4 workspaces, 25 analyses, 4 retained reports, 3 risk receipts; zero public tables without RLS. Advisor warnings remain pg_net in public and paid leaked-password protection. Brevo account read retried and returned connector -32603; no email sent. Report/alert Supabase SDK imports are exactly pinned to the already validated API SDK version 2.117.3.
+- Command-line live verification scripts now require explicitly provided operator session/CSRF environment headers. They never extract browser credentials or claim guest financial requests should succeed. Actual authenticated product UI remains the verification route for this release.

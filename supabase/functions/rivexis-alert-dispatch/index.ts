@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import {createClient} from "npm:@supabase/supabase-js@2";
+import {createClient} from "npm:@supabase/supabase-js@2.117.3";
 import {alertEmail,classifyBrevo,idempotencyUuid,validEmail} from "./delivery.mjs";
 
 type Json=Record<string,unknown>;
