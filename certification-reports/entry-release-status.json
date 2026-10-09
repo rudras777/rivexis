@@ -1,0 +1,120 @@
+{
+  "classification": "VERIFIED_PRODUCTION_UPDATE_WITH_PENDING_OPERATOR_RELOGIN",
+  "siteComplete": false,
+  "checkedAt": "2026-10-09 22:32:15 UTC",
+  "url": "https://rivexis-web.rudrasingh0718.workers.dev",
+  "sourceSha": "33702e2f8f2a9529862345263872894b976d5fbc",
+  "worker": {
+    "name": "rivexis-web",
+    "createdOn": "2026-10-09T22:26:04.660424Z",
+    "versions": [
+      {
+        "version_id": "0586b134-e4f5-4ee2-9bc4-df8523d5a270",
+        "percentage": 100
+      }
+    ]
+  },
+  "edgeFunctions": [
+    {
+      "name": "rivexis-api",
+      "version": 22,
+      "status": "ACTIVE",
+      "sha256": "7522c15d0804956ff380ba3615b5c8fe2f3c9ffbb15f6d5f4ffd881de795f932",
+      "sourceMatch": true,
+      "verifyJwt": false,
+      "authentication": "Existing custom authentication retained"
+    },
+    {
+      "name": "rivexis-decision-reports",
+      "version": 3,
+      "status": "ACTIVE",
+      "sha256": "778c072248824a4f8edf0c41514dff50a60906abe0f2798d785ce58907a61a4f",
+      "sourceMatch": true,
+      "verifyJwt": false,
+      "authentication": "Existing custom authentication retained"
+    },
+    {
+      "name": "rivexis-alert-dispatch",
+      "version": 3,
+      "status": "ACTIVE",
+      "sha256": "fd4e88f2a1e1adeac3b44a1c30f538ee84adc945abbe60552cd82dbfa98d27d0",
+      "sourceMatch": true,
+      "verifyJwt": false,
+      "authentication": "Existing custom authentication retained"
+    }
+  ],
+  "ci": {
+    "mainRun": 37999120378,
+    "conclusion": "success",
+    "jobs": [
+      "api",
+      "web",
+      "invariants",
+      "postgres-migrations"
+    ],
+    "bundleRun": 37999120329,
+    "cloudflareBuild": "edb4d70c-4497-481e-ab6a-53fa08cd9ea2",
+    "tests": {
+      "financialApiAuth": 50,
+      "retainedEdgeReports": 30,
+      "browser": 40
+    }
+  },
+  "dataPreserved": {
+    "authUsers": 4,
+    "workspaces": 4,
+    "analyses": 25,
+    "retainedReports": 4,
+    "riskReceipts": 3,
+    "publicTablesWithoutRls": 0
+  },
+  "liveFinancialChecks": {
+    "apiVersion": 20,
+    "frontendSource": "21b946115be4937d0e983ac2623cf69ca25942d3",
+    "publicReferenceWalletsNotUserOwned": true,
+    "aaveSnapshotBlock": "26157746",
+    "combinedSnapshotBlock": "26157758",
+    "wethWithdrawal": {
+      "amount": "0.001",
+      "gas": "262067",
+      "simulation": "SUCCEEDED_AT_BLOCK"
+    },
+    "morphoWithdrawal": {
+      "amount": "0.00001",
+      "gas": "171086",
+      "simulation": "SUCCEEDED_AT_BLOCK"
+    },
+    "frontier": {
+      "shock": "WETH -20%",
+      "allocationsExamined": 20,
+      "target": "1.50",
+      "targetReached": false,
+      "reason": "Observed eligible wallet balance constrained repayment"
+    },
+    "signingOrSubmission": false
+  },
+  "auth": {
+    "regression": "Valid session-status response previously cleared an unrefreshed cookie; corrected in API22",
+    "regressionFailedBeforeFix": true,
+    "handlerTestsPassAfterFix": true,
+    "liveFreshLoginAndReload": "PENDING_USER_SIGNIN",
+    "credentialsRequestedInChat": false
+  },
+  "costs": {
+    "newPaidServices": 0,
+    "paidPlanUpgrades": 0,
+    "supabasePlanPreviouslyVerified": "FREE",
+    "existingCloudflareBilling": "UNVERIFIED_SCOPE_LIMITATION",
+    "quota": "300 requests/day globally; 4/wallet/minute; five explicit browser monitor checks; 20 reports/owner"
+  },
+  "limitations": [
+    "Fresh production login/reload and protected re-entry pending user sign-in after cleared session",
+    "Brevo connector internal error; actual inbox delivery unverified",
+    "Cloudflare billing scope unavailable",
+    "pg_net public-schema and paid leaked-password-protection warnings retained",
+    "Unpatched braces build-tool advisory narrow exception",
+    "Authenticated free-RPC capacity and Lighthouse/Core Web Vitals not certified",
+    "Additional markets, Aave eMode/isolation, chains, broad simulations and server-side DeFi monitoring disabled until independently validated",
+    "Production export-event relay capture timed out; local download tests pass"
+  ]
+}
