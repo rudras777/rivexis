@@ -521,7 +521,7 @@ Deno.serve(async(req:Request)=>{
     if(path==="/api/v1/auth/session-status"){
       if(req.method!=="GET")return error(req,405,"GET required");
       const session=await authenticate(req);
-      return json(req,{authenticated:Boolean(session),email_verified:Boolean(session?.user.email_confirmed_at)},200,session?.cookie??(cookieValue(req,COOKIE)?clearCookie():undefined));
+      return json(req,{authenticated:Boolean(session),email_verified:Boolean(session?.user.email_confirmed_at)},200,session?session.cookie:(cookieValue(req,COOKIE)?clearCookie():undefined));
     }
     if(path.startsWith("/api/v1/auth/web/login")||path.startsWith("/api/v1/auth/web/signup")||path.startsWith("/api/v1/auth/email-verification/")||path.startsWith("/api/v1/auth/password-reset/"))return await handleAuth(req,path);
     const auth=await authenticate(req);
