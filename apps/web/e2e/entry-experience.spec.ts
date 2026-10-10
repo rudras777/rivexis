@@ -95,7 +95,7 @@ test('landing and entry pages are accessible as a guest at mobile/desktop sizes 
     await page.setViewportSize({width,height:1000});await page.goto('/');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`landing overflow ${width}`).toBe(true);
     await expect(page.locator('.folioNav').getByRole('link',{name:'Sign up',exact:false})).toBeVisible();
-    if(width===375){await page.getByLabel('Open navigation',{exact:true}).click();await expect(page.getByRole('navigation',{name:'Mobile navigation'})).toBeVisible();}
+    if(width===375){await page.getByLabel('Menu — open navigation',{exact:true}).click();await expect(page.getByRole('navigation',{name:'Mobile navigation'})).toBeVisible();}
   }
   for(const theme of ['dark','light'])for(const path of ['/','/login','/signup','/verify-email','/forgot-password','/reset-password','/demo','/app']){
     await page.setViewportSize({width:390,height:1000});await page.addInitScript(value=>localStorage.setItem('rivexis_theme',value),theme);await page.goto(path);
