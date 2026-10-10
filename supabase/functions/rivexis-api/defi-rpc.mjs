@@ -128,7 +128,7 @@ export async function gasguard(input,rpc=client()) {
   const maxFee=fees?.maxFeePerGas??fees?.gasPrice??null,cost=gas!==null&&maxFee!==null?gas*maxFee*120n/100n:null;
   if(cost!==null&&cost>BigInt(s.nativeBalanceRaw))blockers.push('Insufficient native ETH for gas reserve');
   if(after.liquidatable)blockers.push('Modeled health factor below liquidation threshold');
-  const end=await rpc.getBlock({blockNumber});if(end.hash!==s.blockHash)throw new Error('Block changed during transaction preview');
   const nonce=await rpc.getTransactionCount({address:s.wallet,blockNumber});
+  const end=await rpc.getBlock({blockNumber});if(end.hash!==s.blockHash)throw new Error('Block changed during transaction preview');
   return {model:MODEL,blockNumber:s.blockNumber,blockHash:s.blockHash,wallet:s.wallet,to:POOL,data,nonceAtBlock:nonce,action,before,after,simulation,gasRaw:gas?.toString()??null,maxFeePerGasRaw:maxFee?.toString()??null,feeReserveWei:cost?.toString()??null,nativeBalanceRaw:s.nativeBalanceRaw,allowanceRaw:r.allowanceRaw,tokenBalanceRaw:r.walletRaw,blockers,status:blockers.length?'BLOCKED':'PREVIEW_ONLY',warnings:['eth_call and eth_estimateGas are independent read-only calls, not a state fork or signed transaction.','Fees are a current network estimate with a 20% gas reserve; inclusion costs and future execution may differ.','Nonce is observed at the snapshot block; pending transactions and replacement rules are not simulated.','No arbitrary contract traces, MEV guarantees, swaps, signing or automatic execution.']};
 }

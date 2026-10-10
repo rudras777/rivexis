@@ -18,8 +18,9 @@ export async function snapshot(wallet,rpc=client(),coverage='aave'){
   const positions=[...(aave?.positions??[]),...(morpho?[morpho]:[])];
   const summaries=positions.map(p=>metrics(p));
   const minimum=summaries.reduce((m,o)=>o.healthFactorRaw===null?m:m===null||BigInt(o.healthFactorRaw)<m?BigInt(o.healthFactorRaw):m,null);
+  const nativeBalanceRaw=aave?.nativeBalanceRaw??(await rpc.getBalance({address:wallet,blockNumber:block.number})).toString();
   if((await rpc.getBlock({blockNumber:block.number})).hash!==block.hash)throw new Error('Block changed during portfolio read');
-  return {model:MODEL,status:aave?.status==='UNSUPPORTED'?'UNSUPPORTED':'READY',coverage,wallet,chainId:1,blockNumber:block.number.toString(),blockHash:block.hash,blockTimestamp:Number(block.timestamp),nativeBalanceRaw:aave?.nativeBalanceRaw??(await rpc.getBalance({address:wallet,blockNumber:block.number})).toString(),positions,
+  return {model:MODEL,status:aave?.status==='UNSUPPORTED'?'UNSUPPORTED':'READY',coverage,wallet,chainId:1,blockNumber:block.number.toString(),blockHash:block.hash,blockTimestamp:Number(block.timestamp),nativeBalanceRaw,positions,
     observedCollateralRaw:summaries.reduce((n,o)=>n+BigInt(o.collateralRaw),0n).toString(),observedDebtRaw:summaries.reduce((n,o)=>n+BigInt(o.debtRaw),0n).toString(),observedHealthFactorRaw:minimum?.toString()??null,
     source:'Ethereum / protocol contracts',rpcHost:new URL(rpc.transport.url||'https://ethereum.publicnode.com').host,fetchedAt:new Date().toISOString(),warnings:aave?.warnings??[],limitations:[
       coverage==='combined'?'Ethereum Aave V3 normal mode plus one Morpho WBTC/USDC 86% LLTV market.':'One Ethereum Morpho WBTC/USDC 86% LLTV market only.',
@@ -67,8 +68,9 @@ export async function gasguard(input,rpc=client()){
   try{await rpc.call(call);gas=await rpc.estimateGas(call);fees=await rpc.estimateFeesPerGas();simulation='SUCCEEDED_AT_BLOCK';}catch{simulation='REVERTED_OR_RPC_UNAVAILABLE';blockers.push('RPC call or gas estimate failed; execution remains unverified');}
   const maxFee=fees?.maxFeePerGas??fees?.gasPrice??null,cost=gas!==null&&maxFee!==null?gas*maxFee*120n/100n:null;
   if(cost!==null&&cost>integer(s.nativeBalanceRaw))blockers.push('Insufficient native ETH for gas reserve');
+  const nonceAtBlock=await rpc.getTransactionCount({address:s.wallet,blockNumber});
   if((await rpc.getBlock({blockNumber})).hash!==s.blockHash)throw new Error('Block changed during preview');
-  return {model:s.model,coverage:s.coverage,blockNumber:s.blockNumber,blockHash:s.blockHash,wallet:s.wallet,to,data,nonceAtBlock:await rpc.getTransactionCount({address:s.wallet,blockNumber}),action,before,after,positionEffects:effects,simulation,gasRaw:gas?.toString()??null,maxFeePerGasRaw:maxFee?.toString()??null,feeReserveWei:cost?.toString()??null,nativeBalanceRaw:s.nativeBalanceRaw,allowanceRaw:r.allowanceRaw,tokenBalanceRaw:r.walletRaw,blockers,status:blockers.length?'BLOCKED':'PREVIEW_ONLY',warnings:[
+  return {model:s.model,coverage:s.coverage,blockNumber:s.blockNumber,blockHash:s.blockHash,wallet:s.wallet,to,data,nonceAtBlock,action,before,after,positionEffects:effects,simulation,gasRaw:gas?.toString()??null,maxFeePerGasRaw:maxFee?.toString()??null,feeReserveWei:cost?.toString()??null,nativeBalanceRaw:s.nativeBalanceRaw,allowanceRaw:r.allowanceRaw,tokenBalanceRaw:r.walletRaw,blockers,status:blockers.length?'BLOCKED':'PREVIEW_ONLY',warnings:[
     'Read-only eth_call and eth_estimateGas; no signing or submission. Multi-action sequences are not simulated as a state fork.',
     'Morpho repayment is specified in shares; displayed token cost is recomputed from current accrued state. Future interest can change the cost.',
     'Network fee estimate includes a 20% gas reserve; future inclusion cost and approvals can differ.',
