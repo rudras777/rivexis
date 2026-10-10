@@ -1,6 +1,18 @@
 # Rivexis Current Build State
 
-Last updated: 2026-10-08 (IST)
+Last updated: 2026-10-10 (IST)
+
+## Current production checkpoint
+
+The existing production site serves `d957fb95855af9140e0669d0f54afe2cc07428da`, merged through PR48. Worker `rivexis-web` version `c9a6dccc-fe56-48da-8a3a-a24e809a051d` has 100% traffic. Existing Supabase project and API24, users, data and Brevo integration are preserved. The unified portfolio, scenarios, Defense Frontier, transaction intelligence and private reports are deployed; verified free-account gates cover all interactive features.
+
+The resumable authoritative release record is [INSTITUTIONAL_COMPLETION_PROGRESS.md](INSTITUTIONAL_COMPLETION_PROGRESS.md). Its actual authenticated Aave/Morpho observations supersede the earlier pending-authentication note below. PR/main CI and 45 browser checks passed; seven actual production browser checks passed. Latest read-only audit independently reconfirmed the public build SHA and five simultaneous guest requests, including 401 for protected APIs. Mobile Lighthouse at 2026-10-10T08:38:28.348Z: performance94, accessibility/best-practices/SEO100, LCP1.5s, TBT0ms, CLS0.017. This is one lab measurement, not field or authenticated-load certification.
+
+Fresh owner-side verification/recovery inbox completion and actual Cloudflare billing visibility remain unverified. Existing security exceptions, explicit unsupported protocol modes and nonproduction branch-build failure remain documented. Do not claim complete broader production certification, zero actual billing, or fresh email delivery from readiness/aggregate logs. No additional provider, subscription, schema, credential or financial transaction changes were made for this follow-up.
+
+## Historical checkpoints
+
+The sections below record earlier recovery and audits, not the current deployment identity or outstanding work. Preserve them as rollback history; use the current checkpoint above for release status.
 
 ## Verified production recovery
 
