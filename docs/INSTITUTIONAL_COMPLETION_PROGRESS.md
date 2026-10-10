@@ -1,7 +1,7 @@
 # Institutional completion — resumable record
 
 ## Release state
-Development branch: `feat/institutional-completion`. Baseline production commit: `d6fe8843b1c316d2ad3ac2deddf2f813e8fb647b`; Worker `rivexis-web`, version `149ed437-1a0a-49e6-a6df-2ee030c1b081`; existing Supabase `ivszvufdonfgwjpfgwii`, API v23. This checkpoint is IMPLEMENTED LOCALLY, NOT YET DEPLOYED.
+Development branch: `feat/institutional-completion`. Baseline production commit: `d6fe8843b1c316d2ad3ac2deddf2f813e8fb647b`; Worker `rivexis-web`, version `149ed437-1a0a-49e6-a6df-2ee030c1b081`; existing Supabase `ivszvufdonfgwjpfgwii`, API v23. Frontend release is pending the final PR CI; the API update is deployed and verified below.
 Rollback tag: `baseline/pre-institutional-completion-20261010`. Git bundle and API23 source backup retained outside the checkout in the task work directory. No database migration, user deletion, provider subscription, auth configuration change or new hosting project.
 
 ## Implemented
@@ -18,6 +18,12 @@ Rollback tag: `baseline/pre-institutional-completion-20261010`. Git bundle and A
 ## Scope boundaries / unfinished certification
 Initial supported coverage remains Ethereum Aave V3 normal mode and one validated Morpho WBTC/USDC market. Same-token collateral/debt conditional boundary is explicitly unavailable pending validation. Historical results are not current safety claims. No signing, custody or submission; no probability, VaR, MEV score or guaranteed safety.
 Fresh actual Brevo verification/reset inbox delivery is not yet certified (connector read previously failed). Existing integration is preserved. Cloudflare billing OAuth remains unreadable; no new paid services or plan upgrades. Supabase security warnings (nonrelocatable pg_net in public; optional paid leaked-password setting) remain recorded, with no unprotected public tables in the last audit. Vinext build-tool braces advisory has no patched version and a narrow documented exception.
+
+## API release checkpoint
+Existing `rivexis-api` v24 ACTIVE, SHA256 `38218793fa038ac0ccabc48c24fbfb36c2d24321393185b2ced4320558094874`. All 18 returned runtime source/config files match the local upload after newline normalization. Supabase does not return the submitted deno.lock as a source file. Custom HttpOnly-cookie/getUser/CSRF auth and the established verify_jwt:false setting are preserved.
+Actual production /health returned ready; guest session-status returned exactly two false booleans; guest workspace and private-report access returned 401. Read-only DB counts remain 4 auth users, 5 workspaces, 25 analyses, 4 retained reports, 3 risk receipts, zero public tables without RLS.
+Local mobile Lighthouse: performance 97, accessibility/best-practices/SEO 100, FCP 0.9s, LCP 2.7s, TBT 50ms, CLS 0 (localhost lab run, not deployed performance). An additional audit found a mobile Menu accessible-name mismatch; fixed and all 10 focused entry tests passed from a clean server. CI for the original implementation passed every job; final updated commit remains gated before merge.
+PR: https://github.com/rudras777/rivexis/pull/47. Rollback tag is pushed. Brevo account read again returned connector Internal error; actual fresh inbox delivery remains unverified.
 
 ## Next actions
 Inspect complete local gate results; visually inspect new landing desktop/mobile; measure performance; commit/push/attach PR and obtain normal CI. Merge normally, deploy the updated API including defi-liquidation.mjs, wait for the same Worker main build, verify public commit identity, authenticated real protocol journeys and data preservation. Update this record with release IDs and actual observations; never promote test fixtures as live evidence.

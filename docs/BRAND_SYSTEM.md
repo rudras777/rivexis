@@ -1,26 +1,23 @@
-# Rivexis brand system
+# RIVEXIS brand system
 
-The production interface uses the official September 2026 asset package. Its identity expansion is **Risk · Value · Execution · Analysis**.
+RIVEXIS means **Risk · Value · Execution · Analysis**. No version suffix appears in the public identity.
 
-## Production assets
+The active brand is the approved royal obsidian/graphite palette, with ivory text, restrained teal and bronze accents. Earlier navy/cobalt PNG treatments are archived assets, not the current interface system.
 
-| File | Role |
-| --- | --- |
-| `rivexis-wordmark.png` | Public navigation, light-surface footer and white-treated workspace rail |
-| `rivexis-lockup.png` | Authentication, verification, recovery and onboarding |
-| `rivexis-icon.png` | Favicon, application icon, Open Graph and social metadata |
+## Vector master and placements
+`apps/web/components/brand-geometry.ts` contains the outlined wordmark, woven X ribbons, bridge and outlined identity expansion. `Brand.tsx` renders those same paths inline, with theme tokens; there is no raster upscaling or runtime font substitution. Navigation, workspace rail, auth lockup, footer, compact icon and report identity share this geometry. The public SVG variants under `apps/web/public/brand` are retained for download/social/report uses. PNG variants remain only for consumers requiring raster icons or metadata.
 
-The deployed files are losslessly resized and transparent-padding-trimmed derivatives of the supplied official PNGs. The supplied favicon and app-icon files were byte-identical, so only one production payload is retained. Standalone X-mark artwork is not used in the interface, backgrounds, workspace rail or metadata. Dark surfaces use a crisp white treatment of the full Rivexis wordmark; light surfaces retain the official navy-and-blue wordmark. Large background-baked logo exports are intentionally not shipped to the application bundle.
+The paths were created in the preceding identity release; this completion preserves and verifies that master rather than inventing another logo. Desktop and mobile visual review found crisp, coherent placements. Vector paths remain resolution-independent; a separate device-matrix/high-DPI screenshot certification has not been claimed.
 
-## Core tokens
+## Active dark tokens
+- Canvas / royal obsidian: `#141B1D`
+- Graphite surface: `#1C272A`
+- Elevated charcoal: `#223034`
+- Interactive teal: `#326C6A`
+- Soft accent: `#80AAA1`
+- Ivory text: `#E9EBE7`
+- Secondary text: `#B8C3BE`
+- Muted text: `#A4B0AB`
+- Restrained bronze: `#B5A383`
 
-- Brand ink / deep navy: `#081838`
-- Structural navy-blue: `#103878`
-- Interactive cobalt: `#0b4fcb`
-- Interactive cobalt hover: `#073b9a`
-- Ice-blue tint: `#eaf2fb`
-- Institutional canvas: `#f4f7fa`
-- Pearl paper: `#f7f6f2`
-- Border: `#d8e2ec`
-
-Semantic decision colors remain independent of the logo palette so `PROCEED`, `MODIFY`, `WAIT`, `AVOID` and `UNKNOWN` retain their meaning.
+Light mode uses pearl `#F3F3EF` with near-white surfaces and graphite text. Actual tokens live in `apps/web/app/product.css`. Risk semantics use text labels plus separate danger/warning/positive tokens and never depend on color alone.
