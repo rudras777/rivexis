@@ -14,6 +14,12 @@ The post-release window (2026-10-10T05:41:28Z–06:12:33Z) contained one `/token
 
 ## Controlled release certification still required
 
+### Browser audit — 2026-10-10
+
+The existing authenticated Brevo dashboard provided a working read-only path despite the connector's sender read returning Internal error -32603. Transactional usage explicitly showed **Free plan**, **300 emails left until 10/10/2026**, **0 paused emails** and **0 prepaid credits**. No provider settings, subscriptions or credentials were changed.
+
+The visible log window03/10/2026–10/10/2026 contained10 event rows: a confirmation message Sent/Delivered/Opened/Clicked on09/10/2026 (16:38, with later clicks16:40), and a reset message Sent/Delivered on05/10/2026 (14:25). These are dashboard-displayed timestamps; their timezone was not independently established. No October10 email events were present. The summary showed two messages in the last seven days,100% delivered and no hard bounces/blocks. This establishes prior provider delivery evidence, not fresh inbox completion after the current release. Sender/recipient identities, email previews, codes and clicked URLs were not exported; no message was sent or resent. Sanitized observations and cropped delivery/plan screenshots are saved in task outputs/BREVO_BROWSER_AUDIT.json and brevo-*.jpg.
+
 The owner should complete signup/verification or recovery on the existing production site using their own inbox, entering passwords and codes privately. Record the request time, whether the message arrived, and whether the final flow completed; never record codes, reset links or passwords. Correlate that bounded time window with sanitized Auth status/error counts and, when accessible, Brevo acceptance/delivery events. An API `accepted` response, readiness badge, old delivery receipt or absence of SMTP errors is insufficient evidence of fresh inbox delivery. Do not reset another user's password or create an admin session to complete this check.
 
 ## Historical implementation record — 2026-09-29

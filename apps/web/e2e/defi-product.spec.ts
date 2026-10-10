@@ -76,6 +76,8 @@ test('portfolio shows exact oracle units and never hides a positive dust balance
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 test('responsive dark/light product surfaces have no page overflow or serious axe findings',async({page})=>{
+  // Eight viewport workflows plus seven axe scans need a suite-sized budget.
+  test.setTimeout(90_000);
   for(const width of [320,375,390,768,1024,1280,1440,1920]){
     await page.setViewportSize({width,height:1000});await page.goto('/');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`home overflow ${width}`).toBe(true);

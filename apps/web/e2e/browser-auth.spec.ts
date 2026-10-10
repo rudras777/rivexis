@@ -74,7 +74,7 @@ test.describe("browser authentication and onboarding",()=>{
     }));
 
     await page.goto("/login?verified=1");
-    await expect(page.getByRole("status")).toHaveText("Email verified. Log in to continue.");
+    await expect(page.getByRole("status")).toHaveText("Log in to continue after verifying your email.");
     await expect(page.getByRole("link",{name:"Verify an existing account"})).toHaveAttribute("href","/verify-email");
     await page.getByLabel("Email").fill("pending@example.com");
     await page.getByLabel("Password",{exact:true}).fill("correct-horse-battery");
@@ -102,6 +102,29 @@ test.describe("browser authentication and onboarding",()=>{
     await expect(page).toHaveURL(/\/verify-email\?sent=1$/);
     await expect(page.getByLabel("Email")).toHaveValue("new@example.com");
     expect(await page.evaluate(()=>sessionStorage.getItem("rivexis_pending_verification_email"))).toBe("new@example.com");
+  });
+
+  test("confirmation fragments are discarded without trusting them as a workspace session",async({page})=>{
+    await mockHealthyService(page);
+    await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:false,email_verified:false}}));
+    let authPosts=0;page.on('request',req=>{if(req.method()==='POST'&&req.url().includes('/api/v1/auth/'))authPosts++});
+    await page.goto('/login?verified=1&next=%2Fworkspace%2Freports#access_token=FAKE_CONFIRM_ACCESS&refresh_token=FAKE_CONFIRM_REFRESH&type=signup');
+    await expect(page).toHaveURL(/\/login\?verified=1&next=%2Fworkspace%2Freports$/);
+    await expect(page.getByRole('status')).toHaveText('Log in to continue after verifying your email.');
+    await expect(page.getByRole('button',{name:'Log in',exact:true})).toBeVisible();
+    await expect(page.getByRole('link',{name:'Create one',exact:true})).toHaveAttribute('href','/signup?next=%2Fworkspace%2Freports');
+    const storage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
+    expect(storage).not.toContain('FAKE_CONFIRM_ACCESS');expect(storage).not.toContain('FAKE_CONFIRM_REFRESH');expect(authPosts).toBe(0);
+  });
+
+  test("expired email-link errors are actionable and never echo provider descriptions or query tokens",async({page})=>{
+    await mockHealthyService(page);
+    await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:false,email_verified:false}}));
+    await page.goto('/login?verified=1&access_token=FAKE_QUERY_ACCESS#error=access_denied&error_code=otp_expired&error_description=PRIVATE_PROVIDER_DETAIL');
+    await expect(page).toHaveURL(/\/login\?verified=1$/);
+    await expect(page.locator(".formCard .error[role='alert']")).toHaveText('This email verification link is invalid or expired. Request a new verification link.');
+    await expect(page.locator('body')).not.toContainText('PRIVATE_PROVIDER_DETAIL');
+    await expect(page.getByRole('status')).toHaveCount(0);
   });
 
   test("password reset request remains enumeration safe",async({page})=>{
