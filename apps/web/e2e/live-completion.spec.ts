@@ -37,3 +37,14 @@ test('deployed hashed recovery entry clears its synthetic URL credential without
  expect(await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).not.toContain('SYNTHETIC_READ_ONLY_PROBE');expect(confirms).toBe(0);
  await page.screenshot({path:path.join(output,'completion-live-recovery-handoff.png')});
 });
+
+test('deployed confirmation entry scrubs synthetic credentials and requires real login',async({page,request})=>{
+ expect((await request.get('/login')).headers()['referrer-policy']).toBe('no-referrer');
+ let authPosts=0;page.on('request',req=>{if(req.method()==='POST'&&req.url().includes('/api/v1/auth/'))authPosts++});
+ await page.goto('/login?verified=1#access_token=SYNTHETIC_CONFIRM_ACCESS&refresh_token=SYNTHETIC_CONFIRM_REFRESH&type=signup');
+ await expect(page).toHaveURL(/\/login\?verified=1$/);await expect(page.getByRole('status')).toHaveText('Log in to continue after verifying your email.');
+ await expect(page.getByRole('button',{name:'Log in',exact:true})).toBeVisible();
+ expect(await (await request.get('/api/v1/auth/session-status')).json()).toEqual({authenticated:false,email_verified:false});expect(authPosts).toBe(0);
+ expect(await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).not.toContain('SYNTHETIC_CONFIRM');
+ await page.screenshot({path:path.join(output,'completion-live-confirmation-entry.png')});
+});

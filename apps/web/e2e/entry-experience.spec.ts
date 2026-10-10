@@ -43,7 +43,7 @@ test('signup retains a feature destination through verification without granting
   await expect(page).toHaveURL(/\/verify-email\?sent=1&next=%2Fworkspace%2Ffrontier$/);
   await page.getByLabel('Verification code').fill('123456');await page.getByRole('button',{name:'Verify account'}).click();
   await expect(page).toHaveURL(/\/login\?verified=1&next=%2Fworkspace%2Ffrontier$/);
-  await expect(page.getByRole('status')).toContainText('Email verified');
+  await expect(page.getByRole('status')).toContainText('Log in to continue after verifying your email');
   expect(await page.evaluate(()=>sessionStorage.getItem('rivexis_pending_destination'))).toBe('/workspace/frontier');
 });
 test('external and malformed destination requests fall back to the workspace',async({page})=>{

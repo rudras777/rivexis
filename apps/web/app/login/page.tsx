@@ -26,9 +26,16 @@ export default function Login(){
   useEffect(()=>{if(session.data?.authenticated&&session.data.email_verified)router.replace(intendedDestination())},[session.data,router]);
 
   useEffect(()=>{
-    if(new URLSearchParams(window.location.search).get("verified")==="1"){
-      setNotice("Email verified. Log in to continue.");
+    const query=new URLSearchParams(window.location.search);
+    const fragment=new URLSearchParams(window.location.hash.replace(/^#/,""));
+    if(query.get("error")||fragment.get("error")||query.get("error_code")||fragment.get("error_code")){
+      setError("This email verification link is invalid or expired. Request a new verification link.");
+    }else if(query.get("verified")==="1"){
+      setNotice("Log in to continue after verifying your email.");
     }
+    for(const key of ["access_token","refresh_token","token_hash","token","code","error","error_code","error_description"])query.delete(key);
+    const remaining=query.toString();
+    if(window.location.hash||remaining!==window.location.search.replace(/^\?/,""))window.history.replaceState(null,"",`${window.location.pathname}${remaining?`?${remaining}`:""}`);
   },[]);
 
   async function submit(v:Form){

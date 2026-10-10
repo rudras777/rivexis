@@ -18,3 +18,8 @@ test('recovery responses prevent forwarding token-bearing URLs in referrers befo
   expect(response.status()).toBe(200);
   expect(response.headers()['referrer-policy']).toBe('no-referrer');
 });
+
+test('login responses protect confirmation query credentials before hydration',async({request})=>{
+  const response=await request.get('/login?access_token=SYNTHETIC_HEADER_PROBE');
+  expect(response.status()).toBe(200);expect(response.headers()['referrer-policy']).toBe('no-referrer');
+});
