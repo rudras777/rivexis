@@ -9,6 +9,33 @@ async function setup(page:Page){
  await page.route('**/api/v1/auth/web/csrf',r=>r.fulfill({status:200,json:{csrf_token:'TEST_CSRF'}}));
  await page.route('**/api/v1/workspaces',r=>r.fulfill({status:200,json:{items:[{id:'COMPLETION_WORKSPACE',name:'Test workspace',role:'Individual',access_role:'OWNER'}]}}));
 }
+test('liquidation illustration matches independent example arithmetic and aligns labels to their health-factor markers',async({page})=>{
+ await setup(page);
+ for(const width of [320,390,1440]){
+  await page.setViewportSize({width,height:1000});await page.goto('/');
+  const figure=page.locator('.thresholdPlate');
+  // Independent reference: 10*3000*.8/18000; after shock, 10*2400*.8/18000.
+  await expect(figure.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);
+  await expect(figure).toContainText('NOT LIVE DATA');
+  await expect(figure).toContainText('Hypothetical inputs; no live oracle or execution evidence');
+  await expect(figure.locator('.healthAxisRange span')).toHaveText(['0.800','1.500']);
+  const positions=await figure.locator('.healthAxisTrack').evaluate(track=>{
+   const box=track.getBoundingClientRect();
+   return ['Boundary','Baseline','Scenario'].map(name=>{
+    const mark=track.querySelector('.healthAxis'+name)!,label=mark.querySelector('span')!;
+    const m=mark.getBoundingClientRect(),l=label.getBoundingClientRect();
+    return {name,fraction:(m.x-box.x)/box.width,labelCenterError:Math.abs((l.x+l.width/2)-(m.x+m.width/2)),labelLeft:l.x,labelRight:l.right};
+   });
+  });
+  for(const [index,expected] of [2/7,16/21,8/21].entries()){
+   expect(positions[index].fraction).toBeCloseTo(expected,3);
+   expect(positions[index].labelCenterError).toBeLessThan(1);
+   expect(positions[index].labelLeft).toBeGreaterThanOrEqual(0);expect(positions[index].labelRight).toBeLessThanOrEqual(width);
+  }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ }
+});
+
 test('planner selection, supported preview and route return retain the original plan',async({page})=>{
  await setup(page);const snapshot=fixture();
  await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:snapshot}));

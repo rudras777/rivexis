@@ -5,6 +5,7 @@ const output=path.resolve('../../../../outputs');
 test('the existing production URL serves the intended exact build and continuous visual',async({page})=>{
  await page.goto('/');await expect(page.locator('meta[name="rivexis-build"]')).toHaveAttribute('content',process.env.RIVEXIS_EXPECTED_BUILD_SHA!);await expect(page.locator('.signatureRiskField')).toBeVisible();await expect(page.locator('.heroFolioWrap')).toHaveCount(0);await expect(page.getByRole('slider')).toHaveCount(0);
  await page.setViewportSize({width:1440,height:900});await page.screenshot({path:path.join(output,'completion-live-guest-desktop.png')});
+ const illustration=page.locator('.thresholdPlate');await expect(illustration.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);await expect(illustration.locator('.healthAxis')).toHaveAttribute('aria-label',/threshold 1.000, baseline 1.333, scenario 1.066/);await expect(illustration).toContainText('Hypothetical inputs; no live oracle or execution evidence');await illustration.screenshot({path:path.join(output,'completion-live-liquidation-illustration.png')});
 });
 test('real guest sessions cannot open any financial workspace or educational workflow',async({page,request})=>{
  const status=await request.get('/api/v1/auth/session-status');expect(await status.json()).toEqual({authenticated:false,email_verified:false});
