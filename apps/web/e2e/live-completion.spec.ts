@@ -19,7 +19,12 @@ test('deployed mobile themes retain accessible navigation, native motion fallbac
  for(const theme of ['dark','light']){await page.addInitScript(t=>localStorage.setItem('rivexis_theme',t),theme);await page.goto('/');await expect(page.getByRole('link',{name:'Sign up',exact:false}).first()).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);expect(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');await page.screenshot({path:path.join(output,`completion-live-guest-mobile-${theme}.png`)});await page.getByLabel('Menu — open navigation',{exact:true}).click();await expect(page.getByRole('navigation',{name:'Mobile navigation'})).toBeVisible()}
 });
 test('deployed depth responds to bounded pointer input and resets on reduced motion',async({page})=>{
- await page.setViewportSize({width:1440,height:900});await page.goto('/');const art=page.locator('.signatureRiskField'),box=(await art.boundingBox())!;await page.mouse.move(box.x+box.width*.8,box.y+box.height*.4);await expect.poll(()=>art.evaluate(e=>e.style.getPropertyValue('--field-x'))).not.toBe('');const angle=await art.evaluate(e=>parseFloat(e.style.getPropertyValue('--field-x')));expect(Math.abs(angle)).toBeLessThanOrEqual(2.5);await page.emulateMedia({reducedMotion:'reduce'});await expect.poll(()=>art.evaluate(e=>e.style.getPropertyValue('--field-x'))).toBe('');await expect(page.locator('.precisionPointer')).toBeHidden();
+ await page.setViewportSize({width:1440,height:900});
+ // Wait for the real client session request before a one-shot pointer event.
+ // Server-rendered art can be visible before its client effect is mounted.
+ const session=page.waitForResponse(r=>r.url().endsWith('/api/v1/auth/session-status')&&r.status()===200);
+ await page.goto('/');await session;
+ const art=page.locator('.signatureRiskField');await art.scrollIntoViewIfNeeded();const box=(await art.boundingBox())!;await page.mouse.move(box.x+box.width*.8,box.y+box.height*.4);await expect.poll(()=>art.evaluate(e=>e.style.getPropertyValue('--field-x'))).not.toBe('');const angle=await art.evaluate(e=>parseFloat(e.style.getPropertyValue('--field-x')));expect(Math.abs(angle)).toBeLessThanOrEqual(2.5);await page.emulateMedia({reducedMotion:'reduce'});await expect.poll(()=>art.evaluate(e=>e.style.getPropertyValue('--field-x'))).toBe('');await expect(page.locator('.precisionPointer')).toBeHidden();
 });
 
 test('real guest auth pages render secure forms without submitting any credentials',async({page})=>{
