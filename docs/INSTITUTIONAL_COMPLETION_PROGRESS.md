@@ -1,7 +1,7 @@
 # Institutional completion — resumable record
 
 ## Release state
-Development branch: `feat/institutional-completion`. Baseline production commit: `d6fe8843b1c316d2ad3ac2deddf2f813e8fb647b`; Worker `rivexis-web`, version `149ed437-1a0a-49e6-a6df-2ee030c1b081`; existing Supabase `ivszvufdonfgwjpfgwii`, API v23. Frontend release is pending the final PR CI; the API update is deployed and verified below.
+Production is deployed at `53a71e9c1e7e1b81db309c74a19d6c5af246c36c`, Worker `rivexis-web` version `dff1145b-a35c-4ae6-ac95-1e78a7554881`, existing Supabase `ivszvufdonfgwjpfgwii` API v24. Implementation branch `feat/institutional-completion` merged through PR47. The documentation/evidence branch `docs/institutional-release-evidence` records post-release certification and does not change production runtime. Baseline rollback commit: `d6fe8843b1c316d2ad3ac2deddf2f813e8fb647b`, Worker version `149ed437-1a0a-49e6-a6df-2ee030c1b081`, API v23.
 Rollback tag: `baseline/pre-institutional-completion-20261010`. Git bundle and API23 source backup retained outside the checkout in the task work directory. No database migration, user deletion, provider subscription, auth configuration change or new hosting project.
 
 ## Implemented
@@ -26,7 +26,7 @@ Local mobile Lighthouse: performance 97, accessibility/best-practices/SEO 100, F
 PR: https://github.com/rudras777/rivexis/pull/47. Rollback tag is pushed. Brevo account read again returned connector Internal error; actual fresh inbox delivery remains unverified.
 
 ## Next actions
-Inspect complete local gate results; visually inspect new landing desktop/mobile; measure performance; commit/push/attach PR and obtain normal CI. Merge normally, deploy the updated API including defi-liquidation.mjs, wait for the same Worker main build, verify public commit identity, authenticated real protocol journeys and data preservation. Update this record with release IDs and actual observations; never promote test fixtures as live evidence.
+Runtime implementation, normal merge, same-Worker deployment and live financial/browser certification are complete for the bounded core; see the final production evidence checkpoint below. Remaining external certification: owner-side fresh email verification/recovery completion and actual Cloudflare billing visibility. Retain the documented security exceptions, unsupported protocol modes and broader load/device limitations. Never promote fixtures, readiness or old email receipts as current live evidence.
 
 
 ## Final production evidence checkpoint — 2026-10-10
@@ -37,3 +37,7 @@ Actual private report080d98b3-7fc2-4f9b-a54e-529380dc573d saved from fresh serve
 Actual combined wallet block26160024: minimum health1.135, Morpho proportionalUSD boundary72613.6500/distance11.96%; exact native minimum healthy oracle726234469452786081179355768194008245030 versus previous liquidatable unit726234469452786081179355768194008245029. Successful Morpho0.00001WBTC withdrawal at26160026/nonce273/gas171086. No signing/submission.
 Production mobile Lighthouse93/100/100/100, LCP2.0s/TBT0/CLS0, label-content-name checkPASS. Single lab run, not field metrics. Final users/workspaces/analyses/retained reports unchanged4/5/25/4; private risk receipts3→4 from the one authorized test save; zero public tables withoutRLS.
 Release report, JSON status/receipt/financial validation, Lighthouse and actual screenshots are saved in task outputs/. Fresh real inbox completion and actual CF billing remain unverified; user-side email test requested, no secrets requested. Security warnings and explicitly unsupported coverage above remain. Full broader production-readiness certification is withheld; validated bounded core is deployed.
+
+## Continuation audit — 2026-10-10T06:12:33Z
+Read-only Auth logs audited for an explicit 24-hour window: 155 rows, zero error/fatal-level rows, zero audited SMTP/Brevo/mail-send matches. Post-release logs contain `/token` 200 (1), `/user` 200 (17), `/user` 403 bad_jwt (1), no signup/recovery/verification requests. No identity attribution or inbox-delivery conclusion follows from these aggregates. Corrected TRANSACTIONAL_EMAIL.md to distinguish active Supabase Auth SMTP from archived FastAPI Brevo API code and retained alert dispatch.
+Re-ran the npm security gate successfully with the same narrow braces exception. The official GitHub advisory still lists no patched version. No dependency downgrade, provider replacement, credential/account setting, schema or production data change was made. Fresh email certification remains dependent on an owner-side inbox test, while billing requires existing account access with billing visibility.

@@ -1,6 +1,24 @@
 # Transactional Email (Brevo)
 
-Last updated: 2026-09-29
+Last reviewed: 2026-10-10
+
+## Current production authentication path
+
+The deployed `supabase/functions/rivexis-api/index.ts` delegates signup, resend, verification and recovery to **Supabase Auth** (`signUp`, `resend`, `verifyOtp`, `resetPasswordForEmail`, `updateUser`). Authentication email uses the existing Supabase SMTP integration with Brevo. The archived FastAPI implementation and Brevo API template IDs described below are not the deployed authentication send boundary. Do not replace SMTP settings or credentials to follow the legacy environment contract.
+
+The retained `rivexis-alert-dispatch` Edge Function separately sends through the Brevo transactional API. Its readiness and API acceptance are distinct from email inbox delivery. These legacy scheduled alerts do not certify continuous monitoring of the new DeFi positions.
+
+Read-only Supabase log audit on 2026-10-10 covered 2026-10-09T06:12:33Z through 2026-10-10T06:12:33Z. It returned 155 auth log rows, zero error/fatal-level rows and zero rows matching the audited SMTP/Brevo/mail-send terms. Logs also contained unsuccessful authentication requests; absence of error-level or mail-related log entries does **not** certify that every request succeeded or that any email was delivered.
+
+The post-release window (2026-10-10T05:41:28Z–06:12:33Z) contained one `/token` 200, seventeen `/user` 200 and one `/user` 403 `bad_jwt`, with no signup, resend, verify or recovery rows. These are aggregate observations, not an attribution to a particular user or test. Fresh verification/recovery inbox completion remains unverified. The Brevo connector's account/template reads failed with an internal connector error; no provider configuration was changed. Credentials, tokens, recipient identities and raw logs were not exported.
+
+## Controlled release certification still required
+
+The owner should complete signup/verification or recovery on the existing production site using their own inbox, entering passwords and codes privately. Record the request time, whether the message arrived, and whether the final flow completed; never record codes, reset links or passwords. Correlate that bounded time window with sanitized Auth status/error counts and, when accessible, Brevo acceptance/delivery events. An API `accepted` response, readiness badge, old delivery receipt or absence of SMTP errors is insufficient evidence of fresh inbox delivery. Do not reset another user's password or create an admin session to complete this check.
+
+## Historical implementation record — 2026-09-29
+
+The remainder records the former FastAPI/Brevo API implementation and prior activation evidence. It is retained for rollback and integration context; its account/sender/template statements have not been freshly re-certified through the failing connector.
 
 ## Status
 
@@ -36,7 +54,7 @@ Set `RIVEXIS_EMAIL_PROVIDER=brevo` only in an environment where the Brevo API ke
 
 ## Delivery semantics
 
-`apps/api/rivexis_api/services/transactional_email.py` is the single low-level Brevo send boundary for auth email. It:
+In the archived FastAPI runtime, `apps/api/rivexis_api/services/transactional_email.py` was the low-level Brevo API send boundary for auth email. It:
 
 - sends through `POST https://api.brevo.com/v3/smtp/email`;
 - uses Brevo template IDs and request parameters;
