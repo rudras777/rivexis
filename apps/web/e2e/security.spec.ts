@@ -12,3 +12,9 @@ test('public responses carry the baseline browser security headers', async ({ re
   expect(headers['permissions-policy']).toContain('geolocation=()');
   expect(headers['x-powered-by']).toBeUndefined();
 });
+
+test('recovery responses prevent forwarding token-bearing URLs in referrers before hydration',async({request})=>{
+  const response=await request.get('/reset-password?token_hash=SYNTHETIC_HEADER_PROBE');
+  expect(response.status()).toBe(200);
+  expect(response.headers()['referrer-policy']).toBe('no-referrer');
+});

@@ -8,6 +8,6 @@ const nextConfig: NextConfig = {
     {key:"Cross-Origin-Opener-Policy",value:"same-origin"},
     {key:"Strict-Transport-Security",value:"max-age=31536000; includeSubDomains"},
     {key:"Content-Security-Policy",value:"object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"}
-  ]}]}
+  ]},{source:"/reset-password",headers:[{key:"Referrer-Policy",value:"no-referrer"}]}]}
 };
 export default nextConfig;

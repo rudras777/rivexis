@@ -143,6 +143,62 @@ test.describe("browser authentication and onboarding",()=>{
     await expect(alert).not.toContainText("digest");
   });
 
+  test("hashed recovery links use the token-hash contract without requiring an email or exposing URL credentials",async({page})=>{
+    await mockHealthyService(page);
+    let input:Record<string,unknown>|undefined;
+    await page.route("**/api/v1/auth/password-reset/confirm",route=>{
+      input=route.request().postDataJSON();
+      return route.fulfill({status:200,json:{status:"updated",sessions_revoked:true}});
+    });
+    await page.goto("/reset-password?token_hash=FAKE_RECOVERY_HASH&type=recovery");
+    await expect(page).toHaveURL(/\/reset-password\?type=recovery$/);
+    await expect(page.getByLabel("Recovery token")).toHaveCount(0);
+    await expect(page.getByLabel("Email",{exact:true})).toHaveCount(0);
+    await page.getByLabel("New password",{exact:true}).fill("fake-recovery-password");
+    await page.getByLabel("Confirm new password").fill("fake-recovery-password");
+    await page.getByRole("button",{name:"Update password"}).click();
+    await expect(page.getByRole("status")).toContainText("Password updated");
+    expect(input).toEqual({token_hash:"FAKE_RECOVERY_HASH",password:"fake-recovery-password"});
+    expect(await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).not.toContain("FAKE_RECOVERY_HASH");
+  });
+
+  test("implicit recovery credentials survive URL cleanup only in memory and use the session contract",async({page})=>{
+    await mockHealthyService(page);
+    let input:Record<string,unknown>|undefined;
+    await page.route("**/api/v1/auth/password-reset/confirm",route=>{
+      input=route.request().postDataJSON();
+      return route.fulfill({status:200,json:{status:"updated",sessions_revoked:true}});
+    });
+    await page.goto("/reset-password#access_token=FAKE_ACCESS&refresh_token=FAKE_REFRESH&type=recovery");
+    await expect(page).toHaveURL(/\/reset-password$/);
+    await expect(page.getByLabel("Recovery token")).toHaveCount(0);
+    await page.getByLabel("New password",{exact:true}).fill("fake-recovery-password");
+    await page.getByLabel("Confirm new password").fill("fake-recovery-password");
+    await page.getByRole("button",{name:"Update password"}).click();
+    await expect(page.getByRole("status")).toContainText("Password updated");
+    expect(input).toEqual({password:"fake-recovery-password",access_token:"FAKE_ACCESS",refresh_token:"FAKE_REFRESH"});
+    const storage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
+    expect(storage).not.toContain("FAKE_ACCESS");expect(storage).not.toContain("FAKE_REFRESH");
+  });
+
+  test("one-time recovery codes retain their email contract after sensitive query parameters are removed",async({page})=>{
+    await mockHealthyService(page);
+    let input:Record<string,unknown>|undefined;
+    await page.route("**/api/v1/auth/password-reset/confirm",route=>{
+      input=route.request().postDataJSON();
+      return route.fulfill({status:200,json:{status:"updated",sessions_revoked:true}});
+    });
+    await page.goto("/reset-password?token=123456&email=qa%40example.invalid");
+    await expect(page).toHaveURL(/\/reset-password$/);
+    await expect(page.getByLabel("Recovery token")).toHaveValue("123456");
+    await expect(page.getByLabel("Email",{exact:true})).toHaveValue("qa@example.invalid");
+    await page.getByLabel("New password",{exact:true}).fill("fake-recovery-password");
+    await page.getByLabel("Confirm new password").fill("fake-recovery-password");
+    await page.getByRole("button",{name:"Update password"}).click();
+    await expect(page.getByRole("status")).toContainText("Password updated");
+    expect(input).toEqual({token:"123456",email:"qa@example.invalid",password:"fake-recovery-password"});
+  });
+
   test("onboarding resumes an existing workspace instead of creating a duplicate",async({page})=>{
     await mockHealthyService(page);
     const workspace={id:"w-existing",name:"Primary Workspace",role:"Individual",access_role:"OWNER"};
