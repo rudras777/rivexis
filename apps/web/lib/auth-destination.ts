@@ -1,4 +1,4 @@
-const destinations=new Set(["/workspace","/workspace/scenarios","/workspace/frontier","/workspace/transactions","/workspace/reports","/workspace/history","/workspace/settings","/app"]);
+const destinations=new Set(["/workspace","/workspace/scenarios","/workspace/frontier","/workspace/transactions","/workspace/reports","/workspace/history","/workspace/settings","/app","/demo"]);
 export function safeDestination(value:unknown){return typeof value==="string"&&destinations.has(value)?value:"/workspace";}
 export function intendedDestination(){
   if(typeof window==="undefined")return "/workspace";

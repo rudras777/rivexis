@@ -1,5 +1,6 @@
 import {snapshot,gasguard,COVERAGE} from './defi-portfolio-rpc.mjs';
 import {client} from './defi-rpc.mjs';
+import {liquidationAnalysis} from './defi-liquidation.mjs';
 import {isAddress} from 'viem';
 import {decimal,integer} from './defi-model.mjs';
 
@@ -46,7 +47,11 @@ export async function handleDefi(req,path,admin,rpcUrl) {
   const {data,error}=await admin.rpc('rivexis_defi_quota',{p_wallet:input.wallet.toLowerCase()});
   if(error)return respond({detail:'Analysis quota service is unavailable; no RPC request was made'},503);
   if(data!==true)return respond({detail:'Free beta quota reached. Limit: 300 requests per day globally and 4 per wallet per minute. Try later.'},429);
-  try {return respond(path.endsWith('/snapshot')?await snapshot(input.wallet,client(rpcUrl),input.coverage??'aave'):await gasguard(input,client(rpcUrl)));}
+  try {
+    if(path.endsWith('/transaction'))return respond(await gasguard(input,client(rpcUrl)));
+    const state=await snapshot(input.wallet,client(rpcUrl),input.coverage??'aave');
+    return respond({...state,liquidation:state.status==='READY'?liquidationAnalysis(state):null});
+  }
   catch(cause){
     const reason=cause?.shortMessage??cause?.message??'Protocol evidence unavailable';
     const validation=/valid|Unsupported|Amount|decimal|exceeds|stale|Snapshot|Reserve|Insufficient|greater than/.test(reason);
