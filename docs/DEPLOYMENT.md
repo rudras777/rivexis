@@ -138,3 +138,12 @@ Production direct creation of a new organization member from an email string is 
 P35 adds two production fail-closed boundaries. First, a non-loopback OTLP collector must use HTTPS; OTLP endpoint userinfo, query strings and fragments are rejected. Loopback HTTP remains valid for a local collector sidecar. Second, production authentication uses both the existing per-account Redis budget and `RIVEXIS_AUTH_GLOBAL_ATTEMPTS_PER_MINUTE` (default `300`) as a global pre-scrypt budget so rotating account identifiers cannot force unbounded password-verification work. The global budget must remain between 10 and 10000 in production.
 
 Production tenant API callers may read shallow provider status but cannot trigger `deep=true` provider diagnostics. Deep provider probing is release/operator work and is performed directly by controlled certification runners so a tenant cannot consume the GLOBAL provider probe budget.
+
+
+## Existing Worker preview-build repair — 2026-10-10
+
+The existing Worker `rivexis-web` had separate nonproduction build settings with no build command and `npx wrangler preview` against absent compiled output. Production retains `npm run build`, then `npx wrangler deploy --config apps/web/dist/server/wrangler.json`, root `/`, main branch and its existing provider-managed token.
+
+Repaired only the existing Previews Base build command to `npm run build` and preview command to `npx wrangler versions upload --config apps/web/dist/server/wrangler.json`. Existing preview token is retained. Preview URLs remain disabled both in the dashboard and `apps/web/wrangler.jsonc`. Uploads create an inactive version of the same Worker; they do not promote production traffic or create a separate project/Worker. This follows [Cloudflare's version-upload build configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/).
+
+A fresh dashboard load confirms the saved command values. Retrying an old failed build reused its captured old command snapshot, so a fresh branch push is required for validation. Original settings for reversible rollback: empty build command; `npx wrangler preview`; token `Workers Builds - 2026-10-02 13:06`; root `/`; preview URLs disabled. Do not change runtime secrets, enabled routes, plans or token grants as part of this repair.
