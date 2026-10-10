@@ -6,7 +6,7 @@ import {usePublicSession} from "./AuthActions";
 import {Brand} from "./Brand";
 import {ApiError} from "@/lib/api";
 import {authHref} from "@/lib/auth-destination";
-export function FeatureGate({children}:{children:React.ReactNode}){
+export function FeatureGate({children,destination="/app"}:{children:React.ReactNode;destination?:string}){
   const q=usePublicSession(),guest=(!q.isPending&&!q.isError&&q.data?.authenticated===false)||(q.error instanceof ApiError&&q.error.status===401);
   const risk=useDeFi();
   useEffect(()=>{if(guest||q.data?.authenticated===false)risk.reset()},[guest,q.data?.authenticated,risk.reset]);
@@ -14,6 +14,6 @@ export function FeatureGate({children}:{children:React.ReactNode}){
   return <main className="formPage"><section className="formCard" aria-live="polite"><Brand variant="lockup"/>
     <h1>{q.isPending?"Verifying workspace access":guest?"Your intelligence workspace":"Workspace access unavailable"}</h1>
     <p>{q.isPending?"Checking your existing secure session.":guest?"Live analysis, transaction previews and private reports require a free verified account.":"Rivexis could not confirm a verified session. No financial workflow has been opened."}</p>
-    {!q.isPending&&<div className="gateActions">{guest?<><Link className="button" href={authHref("/signup","/app")}>Create free account</Link><Link className="ghost" href={authHref("/login","/app")}>Log in</Link></>:<button className="button" type="button" onClick={()=>void q.refetch()}>Retry access check</button>}<Link href="/demo" className="textButton">Explore the educational demo →</Link></div>}
+    {!q.isPending&&<div className="gateActions">{guest?<><Link className="button" href={authHref("/signup",destination)}>Create free account</Link><Link className="ghost" href={authHref("/login",destination)}>Log in</Link></>:q.data?.authenticated&&!q.data.email_verified?<Link className="button" href={authHref("/verify-email",destination)}>Verify your email</Link>:<button className="button" type="button" onClick={()=>void q.refetch()}>Retry access check</button>}<Link href="/methodology" className="textButton">Read the public methodology →</Link></div>}
   </section></main>;
 }

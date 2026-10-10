@@ -7,7 +7,7 @@ test.beforeEach(async({page})=>{
   await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:true,email_verified:true}}));
   await page.route('**/api/v1/auth/web/csrf',r=>r.fulfill({status:200,json:{csrf_token:'TEST_CSRF'}}));
 });
-test('anonymous sample connects scenarios, constrained frontier, and export',async({page})=>{
+test('verified educational sample connects scenarios, constrained frontier, and export',async({page})=>{
   await page.goto('/demo');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
   await expect(page.getByText('HYPOTHETICAL SAMPLE · NOT LIVE')).toBeVisible();
   await expect(page.getByText('$30,000.00',{exact:true})).toBeVisible();
@@ -54,7 +54,7 @@ test('explicit Morpho coverage keeps protocol positions, scenario assets and tra
   await page.setViewportSize({width:375,height:900});await page.goto('/app');
   await page.getByLabel('Protocol coverage').selectOption('combined');await page.getByLabel('Public Ethereum address').fill(fixture.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();expect(requests[0].coverage).toBe('combined');
-  await expect(page.getByRole('cell').filter({hasText:'Morpho Blue'})).toHaveCount(2);
+  await expect(page.locator('.instrumentPanel').filter({has:page.getByRole('heading',{name:'Lending exposure',exact:true})}).getByRole('cell').filter({hasText:'Morpho Blue'})).toHaveCount(2);
   await page.getByRole('button',{name:'02Risk Scenario Lab',exact:true}).click();await expect(page.getByLabel('WBTC price shock')).toHaveCount(1);
   await expect(page.locator('.scenarioResult')).toHaveCount(2);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.getByRole('button',{name:'04Transaction Intelligence',exact:true}).click();

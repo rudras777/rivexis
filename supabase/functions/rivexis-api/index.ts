@@ -8,6 +8,7 @@ import {handleDefi,validWallet,readRequestText} from "./defi-http.mjs";
 import {client} from "./defi-rpc.mjs";
 import {snapshot,COVERAGE} from "./defi-portfolio-rpc.mjs";
 import {frontier} from "./defi-unified-model.mjs";
+import {liquidationAnalysis} from "./defi-liquidation.mjs";
 import {sampleSnapshot} from "./defi-sample.mjs";
 
 type Json=Record<string,unknown>;
@@ -178,7 +179,7 @@ async function handleAuth(req:Request,path:string){
     if(!email||password.length<8||!userRole)return error(req,422,"Check your email, password, and role, then try again");
     const {data,error:signUpError}=await authClient.auth.signUp({email,password,options:{data:{role:userRole},emailRedirectTo:`${LIVE_ORIGIN}/login?verified=1`}});
     if(signUpError)return error(req,signUpError.status===429?429:409,"Unable to create account with those details");
-    if(data.user&&data.session){
+    if(data.user?.email_confirmed_at&&data.session){
       const appUser=await ensureAppUser(data.user);
       const session={access_token:data.session.access_token,refresh_token:data.session.refresh_token,csrf:crypto.randomUUID()};
       return json(req,{csrf_token:session.csrf,verification_required:false,user:{id:data.user.id,email:data.user.email,role:appUser.role}},200,sessionCookie(session));
@@ -194,9 +195,14 @@ async function handleAuth(req:Request,path:string){
     const email=typeof input.email==="string"?input.email.trim().toLowerCase():"";
     const token=typeof input.token==="string"?input.token.trim():"";
     if(!email||!token)return error(req,422,"Email and verification code are required");
-    const {error:verifyError}=await authClient.auth.verifyOtp({email,token,type:"signup"});
-    if(verifyError)return error(req,400,"This verification code is invalid or expired");
-    return json(req,{status:"verified"});
+    const {data,error:verifyError}=await authClient.auth.verifyOtp({email,token,type:"signup"});
+    if(verifyError||!data.user?.email_confirmed_at)return error(req,400,"This verification code is invalid or expired");
+    if(data.session){
+      await ensureAppUser(data.user);
+      const session={access_token:data.session.access_token,refresh_token:data.session.refresh_token,csrf:crypto.randomUUID()};
+      return json(req,{status:"verified",authenticated:true,csrf_token:session.csrf},200,sessionCookie(session));
+    }
+    return json(req,{status:"verified",authenticated:false});
   }
   if(path==="/api/v1/auth/password-reset/request"){
     const email=typeof input.email==="string"?input.email.trim().toLowerCase():"";
@@ -262,7 +268,7 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   const method=req.method.toUpperCase();
   const write=["POST","PUT","PATCH","DELETE"].includes(method);
   if(write&&!requireCsrf(req,auth))return error(req,403,"CSRF validation failed",auth.cookie);
-  if((path.startsWith("/api/v1/defi/")||path==="/api/v1/defi-reports")&&!auth.user.email_confirmed_at)return error(req,403,"Email verification is required before analysis or reports",auth.cookie);
+  if(!path.startsWith("/api/v1/auth/")&&!auth.user.email_confirmed_at)return error(req,403,"Email verification is required before analysis or reports",auth.cookie);
   if(path.startsWith("/api/v1/defi/")){
     const result=await handleDefi(req,path,admin,Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com");
     if(auth.cookie)result.headers.set("set-cookie",auth.cookie);
@@ -291,7 +297,7 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
       const state=input.sample===true?sampleSnapshot():await snapshot(input.wallet,client(Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com"),typeof input.coverage==='string'?input.coverage:'aave');
       const constraints={budget:input.budget,target:input.target,gasReserve:input.gasReserve,shocks:input.shocks,objective:input.objective};
       const result=frontier(state,constraints);
-      const receipt={model:result.model,sample:input.sample===true,snapshot:state,constraints,result,createdAt:now(),classification:"MODEL_COMPARISON_NOT_EXECUTION"};
+      const receipt={model:result.model,sample:input.sample===true,snapshot:state,constraints,result,liquidation:liquidationAnalysis(state,input.shocks),createdAt:now(),classification:"MODEL_COMPARISON_NOT_EXECUTION"};
       const saved=await admin.rpc("rivexis_defi_save_report",{p_owner:auth.user.id,p_receipt:receipt});
       if(saved.error)return error(req,409,"Report could not be saved. Accounts are limited to 20 reports.",auth.cookie);
       return json(req,{id:saved.data,receipt},201,auth.cookie);

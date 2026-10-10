@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import {useQueryClient} from "@tanstack/react-query";
 import {useEffect,useState} from "react";
 import {useForm} from "react-hook-form";
 import {authHref,intendedDestination} from "@/lib/auth-destination";
 import {useRouter} from "next/navigation";
 import {AuthFrame} from "@/components/AuthFrame";
-import {api} from "@/lib/api";
+import {api,setCsrfToken} from "@/lib/api";
 
 type EmailForm={email:string};
 type CodeForm={token:string};
@@ -17,6 +18,7 @@ export default function VerifyEmail(){
   const [notice,setNotice]=useState("");
   const [error,setError]=useState("");
   const router=useRouter();
+  const queryClient=useQueryClient();
 
   useEffect(()=>{
     const pending=sessionStorage.getItem("rivexis_pending_verification_email");
@@ -38,9 +40,15 @@ export default function VerifyEmail(){
     try{
       setError("");
       const email=emailForm.getValues("email")||sessionStorage.getItem("rivexis_pending_verification_email")||"";
-      await api<{status:string}>("/api/v1/auth/email-verification/confirm",{method:"POST",body:JSON.stringify({...v,email})});
+      const result=await api<{status:string;authenticated?:boolean;csrf_token?:string}>("/api/v1/auth/email-verification/confirm",{method:"POST",body:JSON.stringify({...v,email})});
       sessionStorage.removeItem("rivexis_pending_verification_email");
-      router.replace(authHref("/login",intendedDestination(),{verified:"1"}));
+      const destination=intendedDestination();
+      if(result.authenticated&&result.csrf_token){
+        setCsrfToken(result.csrf_token);
+        await queryClient.invalidateQueries({queryKey:["public-session"]});
+        sessionStorage.removeItem("rivexis_pending_destination");
+        router.replace(destination);
+      }else router.replace(authHref("/login",destination,{verified:"1"}));
     }catch{
       setError("This verification code is invalid or expired. Request a new one.");
     }

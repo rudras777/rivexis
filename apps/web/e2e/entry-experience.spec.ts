@@ -20,12 +20,13 @@ test('guest feature entries preserve their destination and direct protected URLs
   await page.goto('/workspace/frontier');await expect(page.getByRole('heading',{name:'Session ended'})).toBeVisible();
   await expect(page.getByRole('link',{name:'Log in again'})).toHaveAttribute('href','/login?next=%2Fworkspace%2Ffrontier');
 });
-test('a guest demo performs only hypothetical modeling and cannot inspect live wallets',async({page})=>{
-  await setup(page);let liveReads=0;await page.route('**/api/v1/defi/**',r=>{liveReads++;return r.fulfill({status:401,json:{detail:'Authentication required'}})});
-  await page.goto('/demo');await page.getByRole('button',{name:'Explore a hypothetical sample',exact:true}).click();
-  await expect(page.getByText('HYPOTHETICAL SAMPLE · NOT LIVE')).toBeVisible();
-  await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toHaveCount(0);
-  expect(liveReads).toBe(0);
+test('interactive educational analysis also requires a verified free account',async({page})=>{
+  await setup(page);await page.goto('/demo');
+  await expect(page.getByRole('heading',{name:'Your intelligence workspace'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('link',{name:'Log in',exact:true})).toHaveAttribute('href','/login?next=%2Fdemo');
+  await page.goto('/');await expect(page.getByRole('slider')).toHaveCount(0);
+  await expect(page.locator('.signatureRiskField')).toContainText('Conceptual risk field');
 });
 test('returning-user login opens the allowlisted feature without exposing credentials',async({page})=>{
   await setup(page);await page.route('**/api/v1/auth/web/login',async r=>{await setup(page,true);return r.fulfill({status:200,json:{csrf_token:'ENTRY_TEST_CSRF'}})});
@@ -62,9 +63,9 @@ test('demo context is isolated and confirmed logout clears financial memory befo
   await page.route('**/api/v1/auth/web/login',async r=>{await setup(page,true);return r.fulfill({status:200,json:{csrf_token:'ENTRY_TEST_CSRF'}})});
   await page.goto('/app');await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.getByText('$30,000.00',{exact:true})).toBeVisible();
-  await page.getByRole('link',{name:'Rivexis home'}).click();await page.getByRole('link',{name:'Explore an educational demo',exact:false}).click();
+  await page.locator('.folioNav').getByRole('link',{name:'Rivexis home'}).click();await page.getByRole('link',{name:'Explore an educational demo',exact:false}).click();await expect(page).toHaveURL(/\/demo$/);await expect(page.getByRole('button',{name:'Explore a hypothetical sample'})).toBeVisible();
   await expect(page.getByText('$30,000.00',{exact:true})).toHaveCount(0);
-  await page.getByRole('link',{name:'Rivexis home'}).click();await page.locator('.folioNav').getByRole('link',{name:'Open dashboard',exact:false}).click();
+  await page.locator('.folioNav').getByRole('link',{name:'Rivexis home'}).click();await page.locator('.folioNav').getByRole('link',{name:'Open dashboard',exact:false}).click();
   await expect(page.getByText('$30,000.00',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Log out',exact:true}).click();await expect(page).toHaveURL(/\/login$/);
   await page.getByLabel('Email',{exact:true}).fill('qa@example.invalid');await page.getByLabel('Password',{exact:true}).fill('test-password-only');await page.getByRole('button',{name:'Log in',exact:true}).click();
@@ -90,11 +91,11 @@ test('a late wallet response cannot repopulate financial memory after logout',as
 test('landing and entry pages are accessible as a guest at mobile/desktop sizes and reduced motion',async({page})=>{
   test.setTimeout(90_000);
   await setup(page);await page.emulateMedia({reducedMotion:'reduce'});
-  for(const width of [320,375,390,768,1024,1440,1920]){
+  for(const width of [320,375,390,768,1024,1280,1440,1920,2560]){
     await page.setViewportSize({width,height:1000});await page.goto('/');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`landing overflow ${width}`).toBe(true);
     await expect(page.locator('.folioNav').getByRole('link',{name:'Sign up',exact:false})).toBeVisible();
-    if(width===375){await page.getByLabel('Open navigation',{exact:true}).click();await expect(page.getByRole('navigation',{name:'Mobile navigation'})).toBeVisible();}
+    if(width===375){await page.getByLabel('Menu — open navigation',{exact:true}).click();await expect(page.getByRole('navigation',{name:'Mobile navigation'})).toBeVisible();}
   }
   for(const theme of ['dark','light'])for(const path of ['/','/login','/signup','/verify-email','/forgot-password','/reset-password','/demo','/app']){
     await page.setViewportSize({width:390,height:1000});await page.addInitScript(value=>localStorage.setItem('rivexis_theme',value),theme);await page.goto(path);

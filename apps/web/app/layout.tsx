@@ -2,6 +2,8 @@ import type {Metadata} from "next";
 import "./globals.css";
 import "./product.css";
 import "./entry.css";
+import "./completion.css";
+import {PrecisionInteractions} from "@/components/PrecisionInteractions";
 import {GeistSans} from "geist/font/sans";
 import {Providers} from "@/components/Providers";
 import {ServiceAvailability} from "@/components/ServiceAvailability";
@@ -26,5 +28,5 @@ export const metadata:Metadata={
 
 export default function RootLayout({children}:{children:React.ReactNode}){
   const buildSha=process.env.NEXT_PUBLIC_RIVEXIS_BUILD_SHA||"local";
-  return <html lang="en" data-theme="dark" className={GeistSans.variable}><head><meta name="rivexis-build" content={buildSha}/></head><body><Providers><ServiceAvailability/>{children}</Providers></body></html>;
+  return <html lang="en" data-theme="dark" className={GeistSans.variable}><head><meta name="rivexis-build" content={buildSha}/></head><body><Providers><ServiceAvailability/><PrecisionInteractions/>{children}</Providers></body></html>;
 }

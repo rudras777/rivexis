@@ -1,0 +1,4 @@
+import type {Snapshot} from './defi-model.mjs';
+export interface Boundary {positionId:string;protocol:string;asset:string;symbol:string;healthFactorRaw:string|null;liquidatable:boolean;state:string;currentPriceRaw?:string;minimumHealthyPriceRaw?:string;firstLiquidatablePriceRaw?:string|null;oracleBoundaryRaw?:string;firstLiquidatableOracleRaw?:string;distanceBps?:string;basis?:string;reason?:string}
+export interface LiquidationAnalysis {model:string;blockNumber:string;blockHash:string;shocks:Record<string,number>;rows:Boundary[];closest:Boundary|null;exposures:{asset:string;symbol:string;collateralRaw:string;debtRaw:string;collateralBps:string|null;debtBps:string|null}[];limitations:string[]}
+export function liquidationAnalysis(snapshot:Snapshot,shocks?:Record<string,number>,now?:number):LiquidationAnalysis;
