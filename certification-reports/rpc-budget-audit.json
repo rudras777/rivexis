@@ -1,0 +1,627 @@
+{
+  "checkedAt": "2026-10-10T04:20:51.705Z",
+  "sourceSha": "93884756578fb4bb10a6798a6ce3b3f8447f8d59",
+  "protocolReaderHashes": {
+    "defi-rpc.mjs": "8d5b3f8ef8e6b19e5efd428cfc8b658a9967c8ff2d5f51903ecb4e00fc3add9b",
+    "defi-portfolio-rpc.mjs": "11aa8b93dc40732311fdaa26caebd1c068b8110663caf7dd4911e8d04ce61061"
+  },
+  "endpoint": "https://ethereum.publicnode.com",
+  "classification": "DIRECT_PUBLIC_RPC_READ_AUDIT_NOT_AUTHENTICATED_CAPACITY_CERTIFICATION",
+  "retryCount": 0,
+  "transportTimeoutMs": 12000,
+  "results": [
+    {
+      "operation": "snapshot",
+      "coverage": "aave",
+      "wallet": "0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18",
+      "publicReferenceWalletNotUserOwned": true,
+      "requests": [
+        {
+          "methods": [
+            "eth_chainId"
+          ],
+          "status": 200,
+          "elapsedMs": 322
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 261
+        },
+        {
+          "methods": [
+            "eth_getStorageAt"
+          ],
+          "status": 200,
+          "elapsedMs": 163
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 168
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 190
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 253
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 200
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 167
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 192
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 206
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 186
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 171
+        }
+      ],
+      "status": "READY",
+      "blockNumber": "26159604",
+      "blockHash": "0x456a0e4c0e74dc379243c7c550d7628b7ef6a03d7b58e1c0e8ca62e58f5169b6",
+      "positions": [
+        {
+          "protocol": "Aave V3",
+          "healthFactorRaw": "1621597809374246759"
+        }
+      ],
+      "observedHealthFactorRaw": "1621597809374246759",
+      "elapsedMs": 2630,
+      "httpRequests": 12,
+      "rpcCalls": 12
+    },
+    {
+      "operation": "snapshot",
+      "coverage": "combined",
+      "wallet": "0x4D9bf9F734B817298A4c0bC250c30527379cbE34",
+      "publicReferenceWalletNotUserOwned": true,
+      "requests": [
+        {
+          "methods": [
+            "eth_chainId"
+          ],
+          "status": 200,
+          "elapsedMs": 158
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 186
+        },
+        {
+          "methods": [
+            "eth_chainId"
+          ],
+          "status": 200,
+          "elapsedMs": 157
+        },
+        {
+          "methods": [
+            "eth_getStorageAt"
+          ],
+          "status": 200,
+          "elapsedMs": 178
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 199
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 368
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 244
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 199
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 198
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 209
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 192
+        },
+        {
+          "methods": [
+            "eth_getCode"
+          ],
+          "status": 200,
+          "elapsedMs": 175
+        },
+        {
+          "methods": [
+            "eth_getCode"
+          ],
+          "status": 200,
+          "elapsedMs": 187
+        },
+        {
+          "methods": [
+            "eth_getCode"
+          ],
+          "status": 200,
+          "elapsedMs": 280
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 205
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 184
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 180
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 210
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 183
+        }
+      ],
+      "status": "READY",
+      "blockNumber": "26159604",
+      "blockHash": "0x456a0e4c0e74dc379243c7c550d7628b7ef6a03d7b58e1c0e8ca62e58f5169b6",
+      "positions": [
+        {
+          "protocol": "Aave V3",
+          "healthFactorRaw": null
+        },
+        {
+          "protocol": "Morpho Blue",
+          "healthFactorRaw": "1134356636158299371"
+        }
+      ],
+      "observedHealthFactorRaw": "1134356636158299371",
+      "elapsedMs": 3673,
+      "httpRequests": 19,
+      "rpcCalls": 19
+    },
+    {
+      "operation": "transaction",
+      "coverage": "aave",
+      "wallet": "0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18",
+      "kind": "withdraw",
+      "asset": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+      "amount": "0.001",
+      "publicReferenceWalletNotUserOwned": true,
+      "requests": [
+        {
+          "methods": [
+            "eth_chainId"
+          ],
+          "status": 200,
+          "elapsedMs": 166
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 197
+        },
+        {
+          "methods": [
+            "eth_getStorageAt"
+          ],
+          "status": 200,
+          "elapsedMs": 167
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 175
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 185
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 215
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 196
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 185
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 166
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 176
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 208
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 172
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 180
+        },
+        {
+          "methods": [
+            "eth_estimateGas"
+          ],
+          "status": 200,
+          "elapsedMs": 190
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 198
+        },
+        {
+          "methods": [
+            "eth_maxPriorityFeePerGas"
+          ],
+          "status": 200,
+          "elapsedMs": 183
+        },
+        {
+          "methods": [
+            "eth_getTransactionCount"
+          ],
+          "status": 200,
+          "elapsedMs": 190
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 216
+        }
+      ],
+      "status": "PREVIEW_ONLY",
+      "blockNumber": "26159604",
+      "blockHash": "0x456a0e4c0e74dc379243c7c550d7628b7ef6a03d7b58e1c0e8ca62e58f5169b6",
+      "simulation": "SUCCEEDED_AT_BLOCK",
+      "nonceAtBlock": 73,
+      "gasRaw": "262067",
+      "beforeHealthFactorRaw": "1621597809374246759",
+      "afterHealthFactorRaw": "1621459921547676760",
+      "elapsedMs": 3460,
+      "httpRequests": 18,
+      "rpcCalls": 18
+    },
+    {
+      "operation": "transaction",
+      "coverage": "combined",
+      "wallet": "0x4D9bf9F734B817298A4c0bC250c30527379cbE34",
+      "kind": "withdraw",
+      "asset": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+      "amount": "0.00001",
+      "publicReferenceWalletNotUserOwned": true,
+      "requests": [
+        {
+          "methods": [
+            "eth_chainId"
+          ],
+          "status": 200,
+          "elapsedMs": 156
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 185
+        },
+        {
+          "methods": [
+            "eth_chainId"
+          ],
+          "status": 200,
+          "elapsedMs": 165
+        },
+        {
+          "methods": [
+            "eth_getStorageAt"
+          ],
+          "status": 200,
+          "elapsedMs": 195
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 195
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 197
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 221
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 184
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 185
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 190
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 178
+        },
+        {
+          "methods": [
+            "eth_getCode"
+          ],
+          "status": 200,
+          "elapsedMs": 175
+        },
+        {
+          "methods": [
+            "eth_getCode"
+          ],
+          "status": 200,
+          "elapsedMs": 174
+        },
+        {
+          "methods": [
+            "eth_getCode"
+          ],
+          "status": 200,
+          "elapsedMs": 267
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 178
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 190
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 183
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 185
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 177
+        },
+        {
+          "methods": [
+            "eth_call"
+          ],
+          "status": 200,
+          "elapsedMs": 197
+        },
+        {
+          "methods": [
+            "eth_estimateGas"
+          ],
+          "status": 200,
+          "elapsedMs": 199
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 227
+        },
+        {
+          "methods": [
+            "eth_maxPriorityFeePerGas"
+          ],
+          "status": 200,
+          "elapsedMs": 173
+        },
+        {
+          "methods": [
+            "eth_getTransactionCount"
+          ],
+          "status": 200,
+          "elapsedMs": 186
+        },
+        {
+          "methods": [
+            "eth_getBlockByNumber"
+          ],
+          "status": 200,
+          "elapsedMs": 170
+        }
+      ],
+      "status": "PREVIEW_ONLY",
+      "blockNumber": "26159605",
+      "blockHash": "0xa3f24949f9e445a2ad644acc50eb32c262c3c985b5137e2fba4467b7c23efb19",
+      "simulation": "SUCCEEDED_AT_BLOCK",
+      "nonceAtBlock": 273,
+      "gasRaw": "171086",
+      "beforeHealthFactorRaw": "1134356615787789437",
+      "afterHealthFactorRaw": "1134067467201602257",
+      "elapsedMs": 4551,
+      "httpRequests": 25,
+      "rpcCalls": 25
+    }
+  ],
+  "limitations": [
+    "Two sequential public-wallet samples do not certify concurrent capacity, provider allowance or infrastructure billing.",
+    "RPC/contract failures are recorded without retry or substituting fabricated evidence.",
+    "Requests bypass the application only to audit its unchanged protocol readers; this does not prove production authentication."
+  ]
+}
