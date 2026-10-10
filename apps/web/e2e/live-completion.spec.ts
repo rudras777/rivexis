@@ -24,3 +24,14 @@ test('deployed depth responds to bounded pointer input and resets on reduced mot
 test('real guest auth pages render secure forms without submitting any credentials',async({page})=>{
  for(const [route,name] of [['/login','login'],['/signup','signup'],['/verify-email','verification']]){await page.goto(route);await expect(page.locator('form.form').first()).toHaveAttribute('method','post');await page.screenshot({path:path.join(output,`completion-live-auth-${name}.png`)})}
 });
+
+test('deployed hashed recovery entry clears its synthetic URL credential without requesting or changing a password',async({page})=>{
+ let confirms=0;page.on('request',req=>{if(req.url().includes('/api/v1/auth/password-reset/confirm'))confirms++});
+ await page.goto('/reset-password?token_hash=SYNTHETIC_READ_ONLY_PROBE&type=recovery');
+ await expect(page).toHaveURL(/\/reset-password\?type=recovery$/);
+ await expect(page.getByRole('heading',{name:'Choose a new password',exact:true})).toBeVisible();
+ await expect(page.getByLabel('Recovery token')).toHaveCount(0);await expect(page.getByLabel('Email',{exact:true})).toHaveCount(0);
+ await expect(page.getByLabel('New password',{exact:true})).toHaveValue('');await expect(page.getByRole('button',{name:'Update password'})).toBeEnabled();
+ expect(await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).not.toContain('SYNTHETIC_READ_ONLY_PROBE');expect(confirms).toBe(0);
+ await page.screenshot({path:path.join(output,'completion-live-recovery-handoff.png')});
+});

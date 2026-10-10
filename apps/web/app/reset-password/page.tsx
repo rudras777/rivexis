@@ -14,11 +14,13 @@ export default function ResetPassword(){
   const [complete,setComplete]=useState(false);
   const [hasRecoverySession,setHasRecoverySession]=useState(false);
   const recoverySession=useRef<{access_token:string;refresh_token:string}|null>(null);
+  const recoveryHash=useRef<string|null>(null);
 
   useEffect(()=>{
     const query=new URLSearchParams(window.location.search);
     const fragment=new URLSearchParams(window.location.hash.replace(/^#/,""));
-    const token=query.get("token_hash")??query.get("token");
+    const tokenHash=query.get("token_hash");
+    const token=query.get("token");
     if(token)setValue("token",token);
     const email=query.get("email");
     if(email)setValue("email",email);
@@ -27,8 +29,13 @@ export default function ResetPassword(){
     if(accessToken&&refreshToken){
       recoverySession.current={access_token:accessToken,refresh_token:refreshToken};
       setHasRecoverySession(true);
-      window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}`);
+    }else if(tokenHash){
+      recoveryHash.current=tokenHash;
+      setHasRecoverySession(true);
     }
+    for(const key of ["token_hash","token","email"])query.delete(key);
+    const remainingQuery=query.toString();
+    window.history.replaceState(null,"",`${window.location.pathname}${remainingQuery?`?${remainingQuery}`:""}`);
   },[setValue]);
 
   async function submit(v:Form){
@@ -41,9 +48,10 @@ export default function ResetPassword(){
       const session=recoverySession.current;
       await api<{status:string;sessions_revoked:boolean}>("/api/v1/auth/password-reset/confirm",{
         method:"POST",
-        body:JSON.stringify({token:v.token,email:v.email,password:v.password,access_token:session?.access_token,refresh_token:session?.refresh_token}),
+        body:JSON.stringify({token:session||recoveryHash.current?undefined:v.token,email:session||recoveryHash.current?undefined:v.email,token_hash:recoveryHash.current??undefined,password:v.password,access_token:session?.access_token,refresh_token:session?.refresh_token}),
       });
       recoverySession.current=null;
+      recoveryHash.current=null;
       setComplete(true);
     }catch{
       setError("This recovery link is invalid or expired. Request a new one.");
