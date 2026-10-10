@@ -25,7 +25,8 @@ test('real guest auth pages render secure forms without submitting any credentia
  for(const [route,name] of [['/login','login'],['/signup','signup'],['/verify-email','verification']]){await page.goto(route);await expect(page.locator('form.form').first()).toHaveAttribute('method','post');await page.screenshot({path:path.join(output,`completion-live-auth-${name}.png`)})}
 });
 
-test('deployed hashed recovery entry clears its synthetic URL credential without requesting or changing a password',async({page})=>{
+test('deployed hashed recovery entry clears its synthetic URL credential without requesting or changing a password',async({page,request})=>{
+ expect((await request.get('/reset-password?token_hash=SYNTHETIC_HEADER_PROBE')).headers()['referrer-policy']).toBe('no-referrer');
  let confirms=0;page.on('request',req=>{if(req.url().includes('/api/v1/auth/password-reset/confirm'))confirms++});
  await page.goto('/reset-password?token_hash=SYNTHETIC_READ_ONLY_PROBE&type=recovery');
  await expect(page).toHaveURL(/\/reset-password\?type=recovery$/);
