@@ -1,7 +1,7 @@
 {
-  "classification": "VERIFIED_PRODUCTION_UPDATE_WITH_PENDING_OPERATOR_RELOGIN",
+  "classification": "VERIFIED_BOUNDED_BETA_WITH_OPEN_OPERATIONAL_CHECKS",
   "siteComplete": false,
-  "checkedAt": "2026-10-10T04:28:34.347440+00:00",
+  "checkedAt": "2026-10-10T04:33:47.741906+00:00",
   "url": "https://rivexis-web.rudrasingh0718.workers.dev",
   "sourceSha": "d6fe8843b1c316d2ad3ac2deddf2f813e8fb647b",
   "worker": {
@@ -98,8 +98,10 @@
     "regression": "Valid session-status response previously cleared an unrefreshed cookie; corrected in API22",
     "regressionFailedBeforeFix": true,
     "handlerTestsPassAfterFix": true,
-    "liveFreshLoginAndReload": "PENDING_USER_SIGNIN",
-    "credentialsRequestedInChat": false
+    "liveFreshLoginAndReload": "PASS_TWO_RELOADS_AND_PROTECTED_REENTRY",
+    "credentialsRequestedInChat": false,
+    "credentialsEnteredByAgent": false,
+    "credentialEntryObserved": false
   },
   "costs": {
     "newPaidServices": 0,
@@ -110,7 +112,6 @@
     "rpcUsageSample": "12/19 requests per Aave/combined snapshot; 18/25 per withdrawal preview. Largest observed sample \u00d7300 admissions =7500 RPC calls/day, not a worst-case bound or certified allowance."
   },
   "limitations": [
-    "Fresh production login/reload and protected re-entry pending user sign-in after cleared session",
     "Brevo connector internal error; actual inbox delivery unverified",
     "Cloudflare billing scope unavailable",
     "pg_net public-schema and paid leaked-password-protection warnings retained",
@@ -751,5 +752,56 @@
     "reorganizationRegressionTests": 6,
     "nonceTestsFailedBeforeFix": true,
     "deployedApiVersion": 23
-  }
+  },
+  "authenticatedProductionChecks": {
+    "checkedAt": "2026-10-10T04:33:47.741906+00:00",
+    "url": "https://rivexis-web.rudrasingh0718.workers.dev",
+    "sourceSha": "d6fe8843b1c316d2ad3ac2deddf2f813e8fb647b",
+    "apiVersion": 23,
+    "classification": "ACTUAL_AUTHENTICATED_PRODUCTION_REENTRY_AND_FINANCIAL_UI_CHECK",
+    "freshAuthenticatedSessionObserved": true,
+    "passwordEntryObserved": false,
+    "credentialsOrCookiesExtracted": false,
+    "workspaceReloads": 2,
+    "privateReportsLoaded": 3,
+    "publicEntryRecognizesVerifiedSession": true,
+    "protectedReentryAfterPublicStatus": true,
+    "publicReferenceWalletsNotUserOwned": true,
+    "aave": {
+      "snapshotBlock": "26159647",
+      "collateralUsdDisplayed": "29299.29",
+      "debtUsdDisplayed": "14986.92",
+      "healthFactorDisplayed": "1.622",
+      "withdrawalAmount": "0.001",
+      "gasUnits": "262067",
+      "simulation": "SUCCEEDED_AT_BLOCK"
+    },
+    "frontier": {
+      "scenario": "WETH -20%",
+      "budgetUsd": "3000",
+      "assumedFeeReserveUsd": "25",
+      "target": "1.50",
+      "allocationsExamined": 20,
+      "targetReached": false,
+      "leadingRepayment": "2000 USDT",
+      "costWithAssumedFeesUsd": "2023.10",
+      "modeledHealthDisplayed": "1.497"
+    },
+    "morpho": {
+      "combinedSnapshotBlock": "26159656",
+      "withdrawalAssetAutomaticallySelected": "WBTC",
+      "withdrawalAmount": "0.00001",
+      "gasUnits": "171086",
+      "simulation": "SUCCEEDED_AT_BLOCK",
+      "healthFactorDisplayed": "1.135"
+    },
+    "signingOrSubmission": false,
+    "newReportsSaved": 0,
+    "limitations": [
+      "Credential entry itself was not observed; fresh authenticated session and subsequent secure workflows were observed.",
+      "Exact transaction-preview blocks were not captured through the browser download relay; snapshot blocks above refer to visible snapshot banners.",
+      "Brevo fresh inbox delivery, billing scope, authenticated concurrent capacity and Lighthouse remain unverified."
+    ]
+  },
+  "brevoLatestAccountRead": "CONNECTOR_INTERNAL_ERROR_-32603"
 }
