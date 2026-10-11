@@ -6,6 +6,8 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 import {webcrypto} from 'node:crypto';
+import {accountSettings} from './defi-account-settings.mjs';
+import {DEFAULT_PREFERENCES} from './account-preferences.mjs';
 import {handleDefi} from './defi-http.mjs';
 import {parseRole,roleOrDefault} from './role.mjs';
 const source=readFileSync(new URL('./index.ts',import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'');
@@ -14,9 +16,10 @@ const wallet='0x'+'1'.repeat(40),csrf='test-csrf';
 function harness({verified=true,refresh=false,otpError=false,otpSession=true}={}){
   let handler,quotaCalls=0;
   const user={id:'test-owner',email:'test@example.invalid',email_confirmed_at:verified?'2026-10-10T00:00:00Z':null,user_metadata:{role:'Individual',email_verified:true}};
-  const admin={rpc:async(name)=>{if(name==='rivexis_defi_quota'){quotaCalls++;return {data:false}}return {data:{role:'Individual'}}}};
-  const identity={auth:{verifyOtp:async()=>({data:{user,session:otpSession?{access_token:'test-access',refresh_token:'test-refresh'}:null},error:otpError?{message:'invalid'}:null}),signUp:async()=>({data:{user,session:{access_token:'test-access',refresh_token:'test-refresh'}},error:null}),getUser:async(token)=>({data:{user:token==='test-access'?user:null}}),refreshSession:async()=>({data:refresh?{user,session:{access_token:'test-access',refresh_token:'new-test-refresh'}}:{user:null,session:null},error:refresh?null:{message:'invalid'}})}};
-  const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient:()=>({...admin,...identity}),handleDefi,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
+  const reports={select:()=>reports,eq:()=>reports,order:()=>reports,limit:async()=>({data:[]})};
+  const admin={from:()=>reports,rpc:async(name)=>{if(name==='rivexis_defi_quota'){quotaCalls++;return {data:false}}return {data:{role:'Individual'}}}};
+  const identity={auth:{admin:{updateUserById:async(id,payload)=>({data:{user:{...user,id,user_metadata:payload.user_metadata}}}),signOut:async()=>({error:null})},verifyOtp:async()=>({data:{user,session:otpSession?{access_token:'test-access',refresh_token:'test-refresh'}:null},error:otpError?{message:'invalid'}:null}),signUp:async()=>({data:{user,session:{access_token:'test-access',refresh_token:'test-refresh'}},error:null}),getUser:async(token)=>({data:{user:token==='test-access'?user:null}}),refreshSession:async()=>({data:refresh?{user,session:{access_token:'test-access',refresh_token:'new-test-refresh'}}:{user:null,session:null},error:refresh?null:{message:'invalid'}})}};
+  const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient:()=>({...admin,...identity}),handleDefi,accountSettings,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
   new vm.Script(compiled).runInContext(context);
   const cookie=(access='test-access')=>'rvx_session='+Buffer.from(JSON.stringify({access_token:access,refresh_token:'test-refresh',csrf})).toString('base64url');
   const request=(path,{authenticated=false,token=csrf,access='test-access',method='POST'}={})=>new Request('https://example.com'+path,{method,headers:{...(authenticated?{cookie:cookie(access)}:{}),...(token?{'x-rivexis-csrf':token}:{})},...(method==='POST'?{body:JSON.stringify({wallet})}:{})});
@@ -76,4 +79,17 @@ test('verified signup OTP issues an HttpOnly session and CSRF without exposing b
  const result=await response.json();assert.equal(result.authenticated,true);assert.ok(result.csrf_token);assert.equal(result.status,'verified');assert.ok(!JSON.stringify(result).includes('test-access'));assert.match(response.headers.get('set-cookie'),/HttpOnly; Secure; SameSite=Lax/);
  for(const options of [{verified:false},{otpError:true}]){const invalid=await harness(options).handler(authPost('/api/v1/auth/email-verification/confirm'));assert.equal(invalid.status,400);assert.equal(invalid.headers.get('set-cookie'),null)}
  const fallback=await harness({otpSession:false}).handler(authPost('/api/v1/auth/email-verification/confirm'));assert.equal((await fallback.json()).authenticated,false);assert.equal(fallback.headers.get('set-cookie'),null);
+});
+
+
+test('actual Edge routing normalizes Supabase function prefixes for every account endpoint',async()=>{
+ const h=harness(),prefix='/functions/v1/rivexis-api/api/v1/account';
+ const headers=h.request('/api/v1/account/settings',{authenticated:true,method:'GET'}).headers;
+ const get=await h.handler(new Request('https://example.com'+prefix+'/settings',{headers}));assert.equal(get.status,200);assert.equal((await get.json()).profile.emailVerified,true);
+ const patch=await h.handler(new Request('https://example.com'+prefix+'/settings',{method:'PATCH',headers,body:JSON.stringify({displayName:'Prefixed owner',preferences:DEFAULT_PREFERENCES})}));assert.equal(patch.status,200);assert.equal((await patch.json()).profile.displayName,'Prefixed owner');
+ const exported=await h.handler(new Request('https://example.com'+prefix+'/export',{headers}));assert.equal(exported.status,200);assert.deepEqual((await exported.json()).reports,[]);
+ const others=await h.handler(new Request('https://example.com'+prefix+'/sessions/others',{method:'POST',headers,body:JSON.stringify({confirm:true})}));assert.equal(others.status,200);assert.equal((await others.json()).accessTokensMayRemainValidUntilExpiry,true);assert.equal(h.quota(),0);
+ for(const path of ['/settings','/export','/sessions/others'])assert.equal((await h.handler(new Request('https://example.com'+prefix+path))).status,401);
+ const unverified=harness({verified:false});assert.equal((await unverified.handler(new Request('https://example.com'+prefix+'/settings',{headers}))).status,403);
+ const noCsrf=new Headers(headers);noCsrf.delete('x-rivexis-csrf');assert.equal((await h.handler(new Request('https://example.com'+prefix+'/settings',{method:'PATCH',headers:noCsrf,body:'{}'}))).status,403);
 });

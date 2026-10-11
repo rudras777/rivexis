@@ -2,11 +2,11 @@ import {storedPreferences,validateAccountUpdate} from './account-preferences.mjs
 import {readRequestText} from './defi-http.mjs';
 export function accountView(user){return {profile:{displayName:typeof user.user_metadata?.display_name==='string'?user.user_metadata.display_name.slice(0,60):'',email:user.email??'',emailVerified:Boolean(user.email_confirmed_at),createdAt:user.created_at??null,lastSignInAt:user.last_sign_in_at??null},preferences:storedPreferences(user.user_metadata?.rivexis_preferences)};}
 // Services are injected so actor scoping, CSRF, validation and failures are tested.
-export async function accountSettings(req,auth,admin){
+export async function accountSettings(req,auth,admin,routePath){
  const reply=(body,status=200)=>({body,status});
  if(!auth?.user?.id)return reply({detail:'Authentication required'},401);
  if(!auth.user.email_confirmed_at)return reply({detail:'Email verification required'},403);
- const path=new URL(req.url).pathname,method=req.method.toUpperCase();
+ const path=routePath??new URL(req.url).pathname,method=req.method.toUpperCase();
  if(new URL(req.url).search)return reply({detail:'Account operations do not accept an actor selector'},422);
  if(method!=='GET'&&req.headers.get('x-rivexis-csrf')!==auth.session?.csrf)return reply({detail:'CSRF validation failed'},403);
  if(path==='/api/v1/account/settings'&&method==='GET')return reply(accountView(auth.user));
