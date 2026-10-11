@@ -173,3 +173,12 @@ Real fresh isolated QA signup, delivered provider confirmation and verified logi
 ## Risk Atlas development checkpoint
 
 Branch feat/living-risk-atlas, rollback baseline/pre-risk-atlas-20261011 at336bbbc. Native WebGL original terrain is lazy loaded with24fps ceiling,1.5DPR cap,5 reusable buffers/draw calls, explicit pause, lifecycle cleanup, static SVG fallback and conceptual-only disclosures. No dependencies, financial APIs, infrastructure or model changes. First Chromium/Edge run13/14 passed; Edge exposed selected-view reset on incidental scroll. Corrected explicit user scroll intent and resource disposal to allow motion preference restoration. Added actual fallback paths and low CPU/save-data/forced-colors checks. Atlas is not deployed; final build, cross-browser, performance and regression gates remain pending.
+
+
+## Risk Atlas released and independently verified — October11
+
+PR58 merged normally to9b99a4889be6a41d4213d4f8efa2e2db833611dc. Same Worker native buildc89acd59-088a-4e8d-8d37-61826a0d3297 Ready, dashboard versionaf321d34,100%traffic. Exact public HTML and rendered host browser agree. Main CI38152880432, Worker38152880400 and native linked deployment38152879983 SUCCESS. Final80 full browser,16 Chromium/Edge graphics/device,81 financial/API/auth,30 retained backend,11 actual deployed no-mock browser checks and2 deployed CPU-throttle checks passed. Initial timeout/selection failures preserved; no assertion weakened.
+
+Actual supported Aave block26170246 HF1.643; WETH-20%HF1.314. Planner3000/1.50/25,20allocations; exact1935.821328USDT repaymentHF1.509,cost1958.74. GasGuard26170256/nonce73 correctlyBLOCKED for allowance; reverted/RPC-unavailable call with unknown gas/fee, modeled current-health1.887. No signing/submission. Four existing reports and persisted financial preferences loaded on new production. API27/models unchanged. Independent displayed-input Decimal reconciliation passes.
+
+Deployed4xCPU LCP1704msdesktop/2156msmobile,CLSnearzero/zero; mobile0graphicsdraws. Lighthouse could not launch on Windows; no score claimed. Safari/Firefox unavailable; two Chromium browsers tested. Zero additional recurring service cost, no data/schema/SMTP/billing change. Supported-coverage, bounded search/independent simulation, optional unsupported account capabilities and known security advisories remain explicit. Bounded beta is deployed and usable; broader certification is not claimed. Full report docs/RISK_ATLAS_RELEASE_REPORT.md and sanitized external outputs preserve evidence/limitations.
