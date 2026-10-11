@@ -67,7 +67,7 @@ test('demo context is isolated and confirmed logout clears financial memory befo
   await expect(page.getByText('$30,000.00',{exact:true})).toHaveCount(0);
   await page.locator('.folioNav').getByRole('link',{name:'Rivexis home'}).click();await page.locator('.folioNav').getByRole('link',{name:'Open dashboard',exact:false}).click();
   await expect(page.getByText('$30,000.00',{exact:true})).toBeVisible();
-  await page.getByRole('button',{name:'Log out',exact:true}).click();await expect(page).toHaveURL(/\/login$/);
+  await page.getByLabel('Account menu',{exact:true}).click();await page.getByRole('button',{name:'Log out',exact:true}).click();await expect(page).toHaveURL(/\/login$/);
   await page.getByLabel('Email',{exact:true}).fill('qa@example.invalid');await page.getByLabel('Password',{exact:true}).fill('test-password-only');await page.getByRole('button',{name:'Log in',exact:true}).click();
   await expect(page).toHaveURL(/\/workspace$/);await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toBeVisible();await expect(page.getByText('$30,000.00',{exact:true})).toHaveCount(0);
 });
@@ -83,7 +83,7 @@ test('a late wallet response cannot repopulate financial memory after logout',as
   await page.route('**/api/v1/auth/logout',async r=>{await setup(page);return r.fulfill({status:200,json:{status:'revoked'}})});
   await page.route('**/api/v1/auth/web/login',async r=>{await setup(page,true);return r.fulfill({status:200,json:{csrf_token:'ENTRY_TEST_CSRF'}})});
   await page.goto('/workspace');await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect.poll(()=>requested).toBe(true);
-  await page.getByRole('button',{name:'Log out',exact:true}).click();await expect(page).toHaveURL(/\/login$/);
+  await page.getByLabel('Account menu',{exact:true}).click();await page.getByRole('button',{name:'Log out',exact:true}).click();await expect(page).toHaveURL(/\/login$/);
   const settled=page.waitForResponse('**/api/v1/defi/snapshot');release();await settled;
   await page.getByLabel('Email',{exact:true}).fill('qa@example.invalid');await page.getByLabel('Password',{exact:true}).fill('test-password-only');await page.getByRole('button',{name:'Log in',exact:true}).click();
   await expect(page).toHaveURL(/\/workspace$/);await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toBeVisible();await expect(page.getByText('$30,000.00',{exact:true})).toHaveCount(0);

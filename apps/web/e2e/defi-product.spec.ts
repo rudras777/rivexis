@@ -89,7 +89,7 @@ test('responsive dark/light product surfaces have no page overflow or serious ax
     await page.goto(path);const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
     expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical'),path).toEqual([]);
   }
-  await page.goto('/app');await page.getByRole('button',{name:'Switch to light mode'}).click();await expect(page.locator('html')).toHaveAttribute('data-theme','light');
+  await page.addInitScript(()=>localStorage.setItem('rivexis_theme','light'));await page.goto('/app');await expect(page.locator('html')).toHaveAttribute('data-theme','light');
   const light=await new AxeBuilder({page}).withTags(['wcag2aa','wcag22aa']).analyze();expect(light.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);
 });
 test('obsolete public tools redirect to the unified product',async({page})=>{

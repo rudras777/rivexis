@@ -1,5 +1,6 @@
 "use client";
 
+import {useDeFi} from "@/components/DeFiContext";
 import {useQueryClient} from "@tanstack/react-query";
 import Link from "next/link";
 import {useEffect,useState} from "react";
@@ -19,7 +20,7 @@ export default function Login(){
   const [notice,setNotice]=useState("");
   const [showPassword,setShowPassword]=useState(false);
   const router=useRouter();
-  const queryClient=useQueryClient();
+  const queryClient=useQueryClient();const risk=useDeFi();
   const session=usePublicSession();
   const [destination,setDestination]=useState("/workspace");
   useEffect(()=>setDestination(intendedDestination()),[]);
@@ -46,6 +47,8 @@ export default function Login(){
         body:JSON.stringify(v),
       });
       setCsrfToken(r.csrf_token);
+      risk.reset();
+      await queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});
       await queryClient.invalidateQueries({queryKey:["public-session"]});
       const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
       router.replace(destination);

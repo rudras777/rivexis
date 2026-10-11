@@ -3,15 +3,15 @@ import AxeBuilder from '@axe-core/playwright';
 import path from 'node:path';
 const output=path.resolve('../../../../outputs');
 test('the existing production URL serves the intended exact build and continuous visual',async({page})=>{
- await page.goto('/');await expect(page.locator('meta[name="rivexis-build"]')).toHaveAttribute('content',process.env.RIVEXIS_EXPECTED_BUILD_SHA!);await expect(page.locator('.signatureRiskField')).toBeVisible();await expect(page.locator('.heroFolioWrap')).toHaveCount(0);await expect(page.getByRole('slider')).toHaveCount(0);
+ await page.goto('/');await expect(page.locator('meta[name="rivexis-build"]')).toHaveAttribute('content',process.env.RIVEXIS_EXPECTED_BUILD_SHA!);await expect(page.locator('.signatureRiskField')).toBeVisible();await expect(page.locator('.heroFolioWrap')).toHaveCount(0);await expect(page.getByRole('slider')).toHaveCount(0);await expect(page.getByRole('button',{name:/Switch to .* mode/})).toHaveCount(0);
  await page.setViewportSize({width:1440,height:900});await page.screenshot({path:path.join(output,'completion-live-guest-desktop.png')});
  const illustration=page.locator('.thresholdPlate');await expect(illustration.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);await expect(illustration.locator('.healthAxis')).toHaveAttribute('aria-label',/threshold 1.000, baseline 1.333, scenario 1.066/);await expect(illustration).toContainText('Hypothetical inputs; no live oracle or execution evidence');await illustration.screenshot({path:path.join(output,'completion-live-liquidation-illustration.png')});
 });
 test('real guest sessions cannot open any financial workspace or educational workflow',async({page,request})=>{
  const status=await request.get('/api/v1/auth/session-status');expect(await status.json()).toEqual({authenticated:false,email_verified:false});
- for(const route of ['/workspace','/workspace/scenarios','/workspace/frontier','/workspace/transactions','/workspace/reports']){await page.goto(route);await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toHaveCount(0)}
+ for(const route of ['/workspace','/workspace/scenarios','/workspace/frontier','/workspace/transactions','/workspace/reports','/workspace/settings','/workspace/settings/workspaces']){await page.goto(route);await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toHaveCount(0)}
  for(const route of ['/app','/demo']){await page.goto(route);await expect(page.getByRole('heading',{name:'Your intelligence workspace',exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'Log in',exact:true})).toHaveAttribute('href','/login?next='+encodeURIComponent(route));await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0)}
- for(const route of ['/api/v1/workspaces','/api/v1/defi-reports'])expect((await request.get(route)).status()).toBe(401);
+ for(const route of ['/api/v1/workspaces','/api/v1/defi-reports','/api/v1/account/settings','/api/v1/account/export'])expect((await request.get(route)).status()).toBe(401);
  await page.screenshot({path:path.join(output,'completion-live-guest-gate.png')});
 });
 test('deployed mobile themes retain accessible navigation, native motion fallback and no overflow',async({page})=>{

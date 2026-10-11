@@ -1,9 +1,11 @@
 "use client";
 import {useEffect,useRef,useState} from "react";
 import {api} from "@/lib/api";
+import {useAccountPreferences} from "./AccountPreferences";
 import {useDeFi} from "./DeFiContext";
 import {format,type Snapshot} from "../../../supabase/functions/rivexis-api/defi-model.mjs";
 export function BoundedMonitor(){
+ const {preferences}=useAccountPreferences();
   const c=useDeFi(),[active,setActive]=useState(false),[checks,setChecks]=useState(0),[status,setStatus]=useState(""),latest=useRef(c);
   latest.current=c;
   useEffect(()=>{
@@ -28,5 +30,5 @@ export function BoundedMonitor(){
     return()=>{cancelled=true;controller.abort();clearInterval(timer)};
   },[active]);
   const previous=c.previousSnapshot,current=c.snapshot;
-  return <section className="instrumentPanel"><div className="eyebrow">BOUNDED / IN-BROWSER MONITORING</div><h2>Check for changes, with limits.</h2><p>Run up to five on-chain checks, two minutes apart, while this view remains open and visible. Global beta quotas apply. Checks stop on provider failure or quota exhaustion.</p><button className="ghost" disabled={!current||!!current.sample} type="button" onClick={()=>{setChecks(0);setStatus("");setActive(!active)}}>{active?"Stop checks":"Start five bounded checks"}</button><p className="muted" role="status">{status||"No background monitoring is active."}</p>{previous&&current&&<div className="metricRibbon"><div><span>Previous block</span><strong>{previous.blockNumber}</strong></div><div><span>Current block</span><strong>{current.blockNumber}</strong></div><div><span>Previous observed health</span><strong>{previous.observedHealthFactorRaw?format(previous.observedHealthFactorRaw,18,3):"No debt"}</strong></div><div><span>Current observed health</span><strong>{current.observedHealthFactorRaw?format(current.observedHealthFactorRaw,18,3):"No debt"}</strong></div></div>}<p className="muted">This is a bounded browser check, not continuous surveillance or an email alert service. It cannot guarantee a warning before liquidation.</p></section>;
+  return <section className="instrumentPanel"><div className="eyebrow">BOUNDED / IN-BROWSER MONITORING</div><h2>Check for changes, with limits.</h2><p>Run up to five on-chain checks, two minutes apart, while this view remains open and visible. Global beta quotas apply. Checks stop on provider failure or quota exhaustion.</p><button className="ghost" disabled={!current||!!current.sample} type="button" onClick={()=>{setChecks(0);setStatus("");setActive(!active)}}>{active?"Stop checks":"Start five bounded checks"}</button><p className="muted" role="status">{status||"No background monitoring is active."}</p>{previous&&current&&<div className="metricRibbon"><div><span>Previous block</span><strong>{previous.blockNumber}</strong></div><div><span>Current block</span><strong>{current.blockNumber}</strong></div><div><span>Previous observed health</span><strong>{previous.observedHealthFactorRaw?format(previous.observedHealthFactorRaw,18,preferences.healthPrecision):"No debt"}</strong></div><div><span>Current observed health</span><strong>{current.observedHealthFactorRaw?format(current.observedHealthFactorRaw,18,preferences.healthPrecision):"No debt"}</strong></div></div>}<p className="muted">This is a bounded browser check, not continuous surveillance or an email alert service. It cannot guarantee a warning before liquidation.</p></section>;
 }

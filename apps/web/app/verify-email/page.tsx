@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import {useDeFi} from "@/components/DeFiContext";
 import {useQueryClient} from "@tanstack/react-query";
 import {useEffect,useState} from "react";
 import {useForm} from "react-hook-form";
@@ -18,7 +19,7 @@ export default function VerifyEmail(){
   const [notice,setNotice]=useState("");
   const [error,setError]=useState("");
   const router=useRouter();
-  const queryClient=useQueryClient();
+  const queryClient=useQueryClient();const risk=useDeFi();
 
   useEffect(()=>{
     const pending=sessionStorage.getItem("rivexis_pending_verification_email");
@@ -45,7 +46,9 @@ export default function VerifyEmail(){
       const destination=intendedDestination();
       if(result.authenticated&&result.csrf_token){
         setCsrfToken(result.csrf_token);
-        await queryClient.invalidateQueries({queryKey:["public-session"]});
+        risk.reset();
+      await queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});
+      await queryClient.invalidateQueries({queryKey:["public-session"]});
         sessionStorage.removeItem("rivexis_pending_destination");
         router.replace(destination);
       }else router.replace(authHref("/login",destination,{verified:"1"}));

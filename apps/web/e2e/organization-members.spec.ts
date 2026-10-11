@@ -56,7 +56,7 @@ test("organization settings administer existing members and preserve claim-only 
     return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({organization_id:"org-target",claim_token:"claim_abcdefghijklmnopqrstuvwxyz1234567890",expires_in_seconds:900,expires_at:"2026-09-28T14:15:00Z"})});
   });
 
-  await page.goto("/workspace/settings");
+  await page.goto("/workspace/settings/workspaces");
   await expect(page.getByTestId("organization-member-admin")).toContainText("Risk Council members");
   await expect(page.getByTestId("organization-member-row")).toHaveCount(2);
   await expect(page.getByText("org-1",{exact:true}).first()).toBeVisible();

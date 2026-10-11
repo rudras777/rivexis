@@ -1,5 +1,6 @@
 "use client";
 
+import {useDeFi} from "@/components/DeFiContext";
 import {useQueryClient} from "@tanstack/react-query";
 import Link from "next/link";
 import {useEffect,useState} from "react";
@@ -19,7 +20,7 @@ export default function Signup(){
   const [error,setError]=useState("");
   const [showPassword,setShowPassword]=useState(false);
   const router=useRouter();
-  const queryClient=useQueryClient();
+  const queryClient=useQueryClient();const risk=useDeFi();
   const session=usePublicSession();
   const [destination,setDestination]=useState("/workspace");
   useEffect(()=>setDestination(intendedDestination()),[]);
@@ -40,6 +41,8 @@ export default function Signup(){
       }
       if(!r.csrf_token)throw new Error("Missing authenticated signup session");
       setCsrfToken(r.csrf_token);
+      risk.reset();
+      await queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});
       await queryClient.invalidateQueries({queryKey:["public-session"]});
       router.replace(authHref("/onboarding",destination));
     }catch(e){

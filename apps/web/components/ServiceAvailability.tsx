@@ -52,7 +52,7 @@ export function ServiceAvailability() {
         setAvailability({
           kind: "degraded",
           message: freeTierPreview
-            ? "Free preview: authenticated workspace actions and live analyses are unavailable until the FastAPI runtime is deployed."
+            ? "Application preview: authenticated workspace actions and live analyses are unavailable until the FastAPI runtime is deployed."
             : "Application services are degraded. Public product pages remain available, but authenticated workspace actions may be unavailable.",
         });
       })

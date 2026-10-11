@@ -86,7 +86,7 @@ test.describe("truthful workspace foundations",()=>{
       return route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[{id:"org-1",name:"Existing Org",member_role:"ANALYST",created_at:"2026-09-22T00:00:00Z"}]})});
     });
 
-    await page.goto("/workspace/settings");
+    await page.goto("/workspace/settings/workspaces");
     const organizationRow=page.getByRole("row",{name:/Existing Org org-1 ANALYST/});
     await expect(organizationRow).toBeVisible();
     await expect(organizationRow.getByRole("cell",{name:"ANALYST"})).toBeVisible();

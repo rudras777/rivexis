@@ -90,7 +90,7 @@ test.describe("browser session lifecycle",()=>{
     expect(storageBefore.rivexis_workspace_id).toBe("w-session");
     expect(storageBefore).not.toHaveProperty("rivexis_token");
 
-    await page.getByRole("button",{name:"Log out"}).click();
+    await page.getByLabel("Account menu",{exact:true}).click();await page.getByRole("button",{name:"Log out"}).click();
     await expect(page.getByRole("button",{name:"Logging out…"})).toBeDisabled();
     await expect(page).toHaveURL(/\/login$/);
 
@@ -133,7 +133,7 @@ test.describe("browser session lifecycle",()=>{
     await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
     await page.evaluate(()=>localStorage.setItem("rivexis_workspace_id","w-stale"));
 
-    await page.getByRole("button",{name:"Log out"}).click();
+    await page.getByLabel("Account menu",{exact:true}).click();await page.getByRole("button",{name:"Log out"}).click();
     await expect(page).toHaveURL(/\/login$/);
     expect(logoutCalls).toBe(0);
     expect(await page.evaluate(()=>localStorage.getItem("rivexis_workspace_id"))).toBeNull();
@@ -169,9 +169,9 @@ test.describe("browser session lifecycle",()=>{
 
     await page.goto("/workspace");
     await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
-    await page.getByRole("button",{name:"Log out"}).click();
+    await page.getByLabel("Account menu",{exact:true}).click();await page.getByRole("button",{name:"Log out"}).click();
 
-    const alert=page.locator(".sideFoot [role='alert']");
+    const alert=page.locator(".shellLogoutError");
     await expect(alert).toHaveText("Rivexis could not confirm logout. Retry before leaving this device.");
     await expect(alert).not.toContainText("redis://");
     await expect(page).toHaveURL(/\/workspace$/);
