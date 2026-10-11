@@ -31,6 +31,7 @@ function vertexAt(x:number,z:number,layer:number,color:number[]){const dx=.26*Ma
 export function createRiskAtlas(canvas:HTMLCanvasElement,onReady?:()=>void):AtlasRenderer|null{
  const context=canvas.getContext('webgl',{alpha:true,antialias:true,depth:true,powerPreference:'low-power',preserveDrawingBuffer:false});if(!context)return null;const gl:WebGLRenderingContext=context;
  const shaders:WebGLShader[]=[],buffers:WebGLBuffer[]=[];let program:WebGLProgram|null=null,disposed=false,frame=0,visible=true,moving=true,last=0,elapsed=0,chapter=0,targetChapter=0,stage=0,targetStage=0,px=0,py=0,targetX=0,targetY=0;
+ let slowFrames=0,economy=false;
  const cleanup=()=>{cancelAnimationFrame(frame);for(const buffer of buffers)gl.deleteBuffer(buffer);for(const shader of shaders)gl.deleteShader(shader);if(program)gl.deleteProgram(program)};
  try{
   for(const [kind,source] of [[gl.VERTEX_SHADER,vertex],[gl.FRAGMENT_SHADER,fragment]] as const){const shader=gl.createShader(kind);if(!shader)throw Error('shader unavailable');shaders.push(shader);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('shader compile failed')}
@@ -52,15 +53,15 @@ export function createRiskAtlas(canvas:HTMLCanvasElement,onReady?:()=>void):Atla
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearColor(0,0,0,0);
   function draw(now:number){
    if(disposed||!visible||gl.isContextLost())return;frame=0;
-   const dt=Math.min(100,now-last||42);if(moving&&now-last<1000/24){frame=requestAnimationFrame(draw);return}last=now;if(moving)elapsed+=dt/1000;
+   const dt=Math.min(100,now-last||42);if(moving&&now-last<1000/(economy?12:24)){frame=requestAnimationFrame(draw);return}last=now;if(moving)elapsed+=dt/1000;const started=performance.now();
    chapter+=moving?(targetChapter-chapter)*.09:targetChapter-chapter;stage+=moving?(targetStage-stage)*.09:targetStage-stage;px+=moving?(targetX-px)*.12:targetX-px;py+=moving?(targetY-py)*.12:targetY-py;
-   const dpr=Math.min(devicePixelRatio||1,1.5),w=Math.min(2304,Math.round(canvas.clientWidth*dpr)),h=Math.min(1440,Math.round(canvas.clientHeight*dpr));if(!w||!h)return;
+   const dpr=Math.min(devicePixelRatio||1,economy?.75:1.5),w=Math.min(2304,Math.round(canvas.clientWidth*dpr)),h=Math.min(1440,Math.round(canvas.clientHeight*dpr));if(!w||!h)return;
    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}gl.viewport(0,0,w,h);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);
    gl.uniform1f(uniforms.aspect,w/h);gl.uniform1f(uniforms.time,elapsed);gl.uniform1f(uniforms.chapter,chapter);gl.uniform1f(uniforms.stage,stage);gl.uniform1f(uniforms.dpr,dpr);gl.uniform2f(uniforms.pointer,px,py);
    for(let i=0;i<objects.length;i++){const object=objects[i];gl.bindBuffer(gl.ARRAY_BUFFER,object.buffer);for(const [location,offset] of [[position,0],[normal,12],[color,24]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,3,gl.FLOAT,false,36,offset)}
     const environment=1-stage*.74;const emphasis=i===3?Math.max(0,1-Math.abs(chapter-4)):1;
     gl.uniform1f(uniforms.alpha,object.alpha*environment*emphasis);gl.uniform1f(uniforms.kind,object.kind);gl.depthMask(i===0);gl.drawArrays(object.mode,0,object.count);
-   }gl.depthMask(true);if(canvas.dataset.renderer!=='webgl'){canvas.dataset.renderer='webgl';onReady?.()}canvas.dataset.motion=moving?'running':'paused';if(moving)frame=requestAnimationFrame(draw);
+   }gl.depthMask(true);slowFrames=performance.now()-started>40||dt>85?slowFrames+1:0;if(slowFrames>=8)economy=true;canvas.dataset.quality=economy?'economy':'balanced';if(canvas.dataset.renderer!=='webgl'){canvas.dataset.renderer='webgl';onReady?.()}canvas.dataset.motion=moving?'running':'paused';if(moving)frame=requestAnimationFrame(draw);
   }
   const request=()=>{if(!disposed&&visible&&!frame)frame=requestAnimationFrame(draw)};
   const resize=new ResizeObserver(request);resize.observe(canvas);request();
