@@ -4,6 +4,7 @@ import "./product.css";
 import "./entry.css";
 import "./completion.css";
 import "./institutional-controls.css";
+import "./risk-atlas.css";
 import {APPEARANCE_BOOTSTRAP} from "@/lib/appearance-bootstrap";
 import {PrecisionInteractions} from "@/components/PrecisionInteractions";
 import {GeistSans} from "geist/font/sans";
