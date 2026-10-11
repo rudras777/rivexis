@@ -49,7 +49,7 @@ test('planner selection, supported preview and route return retain the original 
  await page.locator('.alternative').nth(1).getByRole('button',{name:'Preview action →'}).click();await expect(page).toHaveURL(/\/workspace\/transactions$/);
  await expect(page.getByLabel('Token amount',{exact:true})).not.toHaveValue('');await page.getByRole('button',{name:'Preview transaction ↗'}).click();
  await expect(page.getByText('Simulation block 19002 · Observed nonce 7')).toBeVisible();await expect(page.getByText('Block 18001',{exact:false})).toBeVisible();
- await page.getByRole('link',{name:/^(03 )?Defense Frontier$/,exact:true}).click();await expect(page.getByRole('heading',{name:'Inspect alternative 2'})).toBeVisible();
+ if(await page.getByLabel('Open workspace navigation').isVisible())await page.getByLabel('Open workspace navigation').click();await page.getByRole('link',{name:'Defense Planner',exact:true}).click();await expect(page.getByRole('heading',{name:'Inspect alternative 2'})).toBeVisible();
  await page.getByLabel('Capital budget / USD',{exact:true}).fill('100');await expect(page.getByRole('region',{name:'Selected defense plan comparison'})).toHaveCount(0);
 });
 test('private saved comparison reopens as historical and requires refresh for new work',async({page})=>{
@@ -113,7 +113,7 @@ for(const width of [375,1440])test(`multi-position planner hands each action to 
   expect(requests).toHaveLength(index); // Selecting an action never calls RPC or executes a transaction.
   await page.getByRole('button',{name:'Preview transaction ↗'}).click();await expect(page.getByText('Simulation block 19002 · Observed nonce 7')).toBeVisible();
   expect(requests[index]).toEqual({wallet:snapshot.wallet,coverage:'combined',positionId:action.positionId,asset:action.asset,kind:action.kind,amount,...(action.sharesRaw?{sharesRaw:action.sharesRaw}:{})});
-  await page.getByRole('link',{name:/^(03 )?Defense Frontier$/,exact:true}).click();await expect(page.getByRole('heading',{name:'Inspect alternative 1'})).toBeVisible();await expect(page.getByLabel('Capital budget / USD',{exact:true})).toHaveValue(multiConstraints.budget);await expect(page.locator('.alternative')).toHaveCount(result.alternatives.length);
+  if(await page.getByLabel('Open workspace navigation').isVisible())await page.getByLabel('Open workspace navigation').click();await page.getByRole('link',{name:'Defense Planner',exact:true}).click();await expect(page.getByRole('heading',{name:'Inspect alternative 1'})).toBeVisible();await expect(page.getByLabel('Capital budget / USD',{exact:true})).toHaveValue(multiConstraints.budget);await expect(page.locator('.alternative')).toHaveCount(result.alternatives.length);
  }
 });
 

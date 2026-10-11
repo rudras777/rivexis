@@ -1,0 +1,4 @@
+import {format} from "../../../supabase/functions/rivexis-api/defi-model.mjs";
+export function displayedMoney(value:unknown,grouping=true){if(typeof value!=='string')return '—';if(BigInt(value)>0n&&BigInt(value)<1000000n)return '<$0.01';const [whole,fraction]=format(value,8,2).split('.');return `$${grouping?whole.replace(/\B(?=(\d{3})+(?!\d))/g,','):whole}.${fraction}`;}
+export function displayedHealth(value:unknown,precision=3){return typeof value==='string'?format(value,18,precision):value===null?'No debt':'Unavailable';}
+export function displayedDate(value:string|number|null,timezone='system'){if(value===null)return 'Not available';const date=new Date(value);if(!Number.isFinite(date.getTime()))return 'Not available';return new Intl.DateTimeFormat('en',{dateStyle:'medium',timeStyle:'short',...(timezone==='system'?{}:{timeZone:timezone})}).format(date);}

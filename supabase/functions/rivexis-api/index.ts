@@ -9,6 +9,7 @@ import {client} from "./defi-rpc.mjs";
 import {snapshot,COVERAGE} from "./defi-portfolio-rpc.mjs";
 import {frontier} from "./defi-unified-model.mjs";
 import {liquidationAnalysis} from "./defi-liquidation.mjs";
+import {accountSettings} from "./defi-account-settings.mjs";
 import {sampleSnapshot} from "./defi-sample.mjs";
 
 type Json=Record<string,unknown>;
@@ -269,6 +270,7 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   const write=["POST","PUT","PATCH","DELETE"].includes(method);
   if(write&&!requireCsrf(req,auth))return error(req,403,"CSRF validation failed",auth.cookie);
   if(!path.startsWith("/api/v1/auth/")&&!auth.user.email_confirmed_at)return error(req,403,"Email verification is required before analysis or reports",auth.cookie);
+  if(["/api/v1/account/settings","/api/v1/account/export","/api/v1/account/sessions/others"].includes(path)){const result=await accountSettings(req,auth,admin);return json(req,result.body,result.status,auth.cookie)}
   if(path.startsWith("/api/v1/defi/")){
     const result=await handleDefi(req,path,admin,Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com");
     if(auth.cookie)result.headers.set("set-cookie",auth.cookie);

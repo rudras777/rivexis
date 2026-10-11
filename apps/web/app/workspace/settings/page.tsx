@@ -1,221 +1,46 @@
 "use client";
-
-import {useEffect,useMemo,useState} from "react";
-import {useMutation,useQuery,useQueryClient} from "@tanstack/react-query";
-import {ApiError,api} from "@/lib/api";
-import {useWorkspace} from "@/components/WorkspaceContext";
-
-type Workspace={id:string;name:string;role:string;organization_id?:string|null;access_role:string;created_at?:string};
-type Org={id:string;name:string;member_role:string;created_at:string};
-type OrgMember={user_id:string;email:string;role:string;created_at:string};
-type MembersResponse={items:OrgMember[];member_role:string};
-type MembershipClaim={organization_id:string;claim_token:string;expires_in_seconds:number;expires_at?:string};
-
-const ORG_ROLES=["OWNER","ADMIN","ANALYST","VIEWER"] as const;
-
-function listError(error:unknown,kind:"workspaces"|"organizations"){
-  if(error instanceof ApiError){
-    if(error.status===401)return "Your session ended before Rivexis could load these settings.";
-    if(error.status===403)return kind==="organizations"?"Organization access could not be confirmed for this account.":"Workspace access could not be confirmed for this account.";
-    if(error.status===503)return "Settings are temporarily unavailable because the application API is unavailable.";
-  }
-  return kind==="organizations"?"Rivexis could not load organizations for this account.":"Rivexis could not load your authorized workspaces.";
-}
-
-function membershipError(error:unknown){
-  if(error instanceof ApiError){
-    if(error.status===401)return "Your session ended before Rivexis could complete this membership action.";
-    if(error.status===403)return "Your current organization role does not permit this membership action.";
-    if(error.status===404)return "Rivexis could not confirm the requested organization, member, or account.";
-    if(error.status===409)return "The membership action conflicts with current organization state. The claim may be invalid or expired, or the last-owner safeguard may apply.";
-    if(error.status===422)return "Review the organization, role, and membership claim fields, then retry.";
-    if(error.status===503)return "Organization membership is temporarily unavailable because the application API is unavailable.";
-  }
-  return "Rivexis could not complete the membership action safely.";
-}
-
-function createdAt(value:string){
-  const date=new Date(value);
-  return Number.isNaN(date.getTime())?value:date.toLocaleString();
-}
-
-function expiryLabel(value?:string,seconds?:number){
-  if(value){const date=new Date(value);if(!Number.isNaN(date.getTime()))return date.toLocaleString()}
-  if(typeof seconds==="number")return `approximately ${Math.max(1,Math.round(seconds/60))} minutes from creation`;
-  return "15 minutes from creation";
-}
-
+import {ActionButton} from "@/components/ActionButton";
+import Link from "next/link";
+import {useEffect,useRef,useState} from "react";
+import {useQuery,useQueryClient} from "@tanstack/react-query";
+import {api} from "@/lib/api";
+import {displayedDate} from "@/lib/financial-display";
+import {APPEARANCE_CACHE,type AccountSettings} from "@/components/AccountPreferences";
+import {DEFAULT_PREFERENCES,validateAccountUpdate,type Preferences} from "../../../../../supabase/functions/rivexis-api/account-preferences.mjs";
+const sections=['Profile','Appearance','Security','Sessions','Connected Wallets','Notifications','Financial Preferences','Accessibility','Privacy','Account Management'] as const;
+type Section=typeof sections[number];
+function exportJson(value:unknown){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='rivexis-account-export.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 export default function Settings(){
-  const qc=useQueryClient();
-  const {workspaceId,switchWorkspace}=useWorkspace();
-  const [name,setName]=useState("Institutional Workspace");
-  const [role,setRole]=useState("Analyst");
-  const [orgName,setOrgName]=useState("Rivexis Organization");
-  const [orgWorkspaceName,setOrgWorkspaceName]=useState("Organization Workspace");
-  const [orgWorkspaceRole,setOrgWorkspaceRole]=useState("Analyst");
-  const [selectedOrgId,setSelectedOrgId]=useState("");
-  const [roleDrafts,setRoleDrafts]=useState<Record<string,string>>({});
-  const [claimToken,setClaimToken]=useState("");
-  const [claimRole,setClaimRole]=useState("ANALYST");
-  const [joinOrgId,setJoinOrgId]=useState("");
-  const [generatedClaim,setGeneratedClaim]=useState<MembershipClaim|null>(null);
-  const [pendingRemove,setPendingRemove]=useState("");
-
-  const ws=useQuery({queryKey:["workspace-settings"],queryFn:()=>api<{items:Workspace[]}>("/api/v1/workspaces"),retry:false});
-  const orgs=useQuery({queryKey:["organizations"],queryFn:()=>api<{items:Org[]}>("/api/v1/organizations"),retry:false});
-  const runtimeCapabilities=useQuery({queryKey:["runtime-capabilities"],queryFn:()=>api<{capabilities?:{organization_workspace_create?:boolean}}>("/health"),retry:false});
-
-  useEffect(()=>{
-    const items=orgs.data?.items??[];
-    if(!items.length){setSelectedOrgId("");return}
-    if(!items.some(org=>org.id===selectedOrgId))setSelectedOrgId(items[0].id);
-  },[orgs.data?.items,selectedOrgId]);
-
-  const selectedOrg=useMemo(()=>orgs.data?.items.find(org=>org.id===selectedOrgId)??null,[orgs.data?.items,selectedOrgId]);
-  const members=useQuery({
-    queryKey:["organization-members",selectedOrgId],
-    queryFn:()=>api<MembersResponse>(`/api/v1/organizations/${encodeURIComponent(selectedOrgId)}/members`),
-    enabled:Boolean(selectedOrgId),retry:false,
-  });
-
-  useEffect(()=>{
-    const next:Record<string,string>={};
-    for(const member of members.data?.items??[])next[member.user_id]=member.role;
-    setRoleDrafts(next);
-    setPendingRemove("");
-  },[members.data?.items,selectedOrgId]);
-
-  useEffect(()=>{
-    setClaimToken("");
-    setClaimRole("ANALYST");
-    setPendingRemove("");
-  },[selectedOrgId]);
-
-  const memberRole=members.data?.member_role??selectedOrg?.member_role??"";
-  const canAdmin=memberRole==="OWNER"||memberRole==="ADMIN";
-  const orgWorkspaceRuntimeReady=runtimeCapabilities.data?.capabilities?.organization_workspace_create===true;
-  const canCreateOrgWorkspace=orgWorkspaceRuntimeReady&&(memberRole==="OWNER"||memberRole==="ADMIN"||memberRole==="ANALYST");
-  const roleChoices=memberRole==="OWNER"?ORG_ROLES:ORG_ROLES.filter(value=>value!=="OWNER");
-
-  const makeWs=useMutation({
-    mutationFn:()=>api<Workspace>("/api/v1/workspaces",{method:"POST",body:JSON.stringify({name:name.trim(),role})}),
-    onSuccess:r=>{
-      qc.setQueryData<{items:Workspace[]}>(["workspace-settings"],old=>({items:[...(old?.items??[]).filter(w=>w.id!==r.id),r]}));
-      qc.setQueryData<{items:Workspace[]}>(["workspaces-shell"],old=>({items:[...(old?.items??[]).filter(w=>w.id!==r.id),r]}));
-      switchWorkspace(r.id);
-      void qc.invalidateQueries({queryKey:["workspace-settings"]});
-      void qc.invalidateQueries({queryKey:["workspaces-shell"]});
-    }
-  });
-
-  const makeOrgWs=useMutation({
-    mutationFn:()=>api<Workspace>("/api/v1/workspaces",{method:"POST",body:JSON.stringify({name:orgWorkspaceName.trim(),role:orgWorkspaceRole,organization_id:selectedOrgId})}),
-    onSuccess:r=>{
-      qc.setQueryData<{items:Workspace[]}>(["workspace-settings"],old=>({items:[...(old?.items??[]).filter(w=>w.id!==r.id),r]}));
-      qc.setQueryData<{items:Workspace[]}>(["workspaces-shell"],old=>({items:[...(old?.items??[]).filter(w=>w.id!==r.id),r]}));
-      switchWorkspace(r.id);
-      void qc.invalidateQueries({queryKey:["workspace-settings"]});
-      void qc.invalidateQueries({queryKey:["workspaces-shell"]});
-    }
-  });
-
-  const makeOrg=useMutation({
-    mutationFn:()=>api<Org>("/api/v1/organizations",{method:"POST",body:JSON.stringify({name:orgName.trim()})}),
-    onSuccess:r=>{
-      qc.setQueryData<{items:Org[]}>(["organizations"],old=>({items:[r,...(old?.items??[]).filter(org=>org.id!==r.id)]}));
-      setSelectedOrgId(r.id);
-      void qc.invalidateQueries({queryKey:["organizations"]});
-    }
-  });
-
-  const updateMember=useMutation({
-    mutationFn:({orgId,member,nextRole}:{orgId:string;member:OrgMember;nextRole:string})=>api<OrgMember>(`/api/v1/organizations/${encodeURIComponent(orgId)}/members`,{method:"POST",body:JSON.stringify({email:member.email,role:nextRole})}),
-    onSuccess:(r,{orgId})=>{
-      qc.setQueryData<MembersResponse>(["organization-members",orgId],old=>old?{...old,items:old.items.map(member=>member.user_id===r.user_id?{...member,...r}:member)}:old);
-      if(selectedOrgId===orgId)setRoleDrafts(current=>({...current,[r.user_id]:r.role}));
-    }
-  });
-
-  const acceptClaim=useMutation({
-    mutationFn:({orgId,token,nextRole}:{orgId:string;token:string;nextRole:string})=>api<OrgMember>(`/api/v1/organizations/${encodeURIComponent(orgId)}/members/claim`,{method:"POST",body:JSON.stringify({claim_token:token,role:nextRole})}),
-    onSuccess:(r,{orgId})=>{
-      qc.setQueryData<MembersResponse>(["organization-members",orgId],old=>old?{...old,items:[...old.items.filter(member=>member.user_id!==r.user_id),r]}:old);
-      if(selectedOrgId===orgId){
-        setRoleDrafts(current=>({...current,[r.user_id]:r.role}));
-        setClaimToken("");
-      }
-    }
-  });
-
-  const removeMember=useMutation({
-    mutationFn:({orgId,member}:{orgId:string;member:OrgMember})=>api<void>(`/api/v1/organizations/${encodeURIComponent(orgId)}/members/${encodeURIComponent(member.user_id)}`,{method:"DELETE"}),
-    onSuccess:(_, {orgId,member})=>{
-      qc.setQueryData<MembersResponse>(["organization-members",orgId],old=>old?{...old,items:old.items.filter(item=>item.user_id!==member.user_id)}:old);
-      if(selectedOrgId===orgId)setPendingRemove("");
-    }
-  });
-
-  const createClaim=useMutation({
-    mutationFn:(orgId:string)=>api<MembershipClaim>(`/api/v1/organizations/${encodeURIComponent(orgId)}/membership-claim`,{method:"POST",body:JSON.stringify({})}),
-    onMutate:()=>setGeneratedClaim(null),
-    onSuccess:r=>setGeneratedClaim(r),
-  });
-
-  const updateMemberCurrent=updateMember.variables?.orgId===selectedOrgId;
-  const acceptClaimCurrent=acceptClaim.variables?.orgId===selectedOrgId;
-  const removeMemberCurrent=removeMember.variables?.orgId===selectedOrgId;
-  const membershipMutationError=updateMemberCurrent&&updateMember.error?updateMember.error:acceptClaimCurrent&&acceptClaim.error?acceptClaim.error:removeMemberCurrent&&removeMember.error?removeMember.error:null;
-  const membershipBusy=updateMember.isPending||acceptClaim.isPending||removeMember.isPending;
-
-  return <>
-    <div className="workspaceHeader"><div><h1>Workspaces & Organizations</h1><p>Operate personal workspaces, organization membership, and access roles from one evidence-boundary-aware control surface.</p></div><span className="badge">ACTIVE {workspaceId}</span></div>
-
-    <section className="panel"><h2>Your workspaces</h2>
-      {ws.isPending?<p>Loading authorized workspaces…</p>:null}
-      {ws.isError?<p className="error" role="alert">{listError(ws.error,"workspaces")}</p>:null}
-      {!ws.isPending&&!ws.isError&&!ws.data?.items.length?<p>No workspaces are currently authorized for this account.</p>:null}
-      {!ws.isPending&&!ws.isError&&ws.data?.items.length?<div className="tableWrap"><table className="table"><thead><tr><th>Name</th><th>Context</th><th>Access</th><th>Organization</th><th>Action</th></tr></thead><tbody>{ws.data.items.map(w=><tr key={w.id}><td>{w.name}</td><td>{w.role}</td><td>{w.access_role}</td><td>{w.organization_id??"Personal"}</td><td><button className="button" type="button" disabled={w.id===workspaceId} onClick={()=>switchWorkspace(w.id)}>{w.id===workspaceId?"Active":"Use"}</button></td></tr>)}</tbody></table></div>:null}
-    </section>
-
-    <section className="panel"><h2>Create personal workspace</h2><p className="sectionLead">A personal workspace is owned by the current account. It does not create organization membership or grant access to other users.</p><div style={{display:"grid",gridTemplateColumns:"2fr 1fr auto",gap:12,alignItems:"end"}}><label className="field">Name<input value={name} onChange={e=>setName(e.target.value)}/></label><label className="field">Context<select value={role} onChange={e=>setRole(e.target.value)}><option>Individual</option><option>Fund</option><option>Treasury</option><option>Analyst</option></select></label><button className="button" type="button" disabled={makeWs.isPending||name.trim().length<2} onClick={()=>makeWs.mutate()}>{makeWs.isPending?"Creating…":"Create"}</button></div>{makeWs.isSuccess?<p role="status">Created <b>{makeWs.data.name}</b> and made it the active workspace.</p>:null}{makeWs.isError?<p className="error" role="alert">Rivexis could not create the workspace. Review the input and retry.</p>:null}</section>
-
-    <section className="panel"><div className="panelHeading"><div><span className="workspaceKicker">Organization control</span><h2>Organizations</h2><p className="sectionLead">Organization IDs are explicit because authenticated membership claims use them as the target boundary. Possessing an ID alone never grants access.</p></div>{selectedOrg?<span className="badge">{memberRole||selectedOrg.member_role}</span>:null}</div>
-      {orgs.isPending?<p>Loading organizations…</p>:null}
-      {orgs.isError?<p className="error" role="alert">{listError(orgs.error,"organizations")}</p>:null}
-      {!orgs.isPending&&!orgs.isError&&!orgs.data?.items.length?<p>No organizations are currently associated with this account.</p>:null}
-      {!orgs.isPending&&!orgs.isError&&orgs.data?.items.length?<div className="tableWrap"><table className="table"><thead><tr><th>Name</th><th>Organization ID</th><th>Your role</th><th>Created</th><th>Action</th></tr></thead><tbody>{orgs.data.items.map(org=><tr key={org.id}><td>{org.name}</td><td><code>{org.id}</code></td><td>{org.member_role}</td><td>{createdAt(org.created_at)}</td><td><button className={org.id===selectedOrgId?"button":"ghost"} type="button" disabled={membershipBusy} onClick={()=>setSelectedOrgId(org.id)}>{org.id===selectedOrgId?"Selected":"Manage"}</button></td></tr>)}</tbody></table></div>:null}
-      <div style={{display:"flex",gap:12,marginTop:16,alignItems:"end",flexWrap:"wrap"}}><label className="field" style={{flex:"1 1 260px"}}>Organization name<input value={orgName} onChange={e=>setOrgName(e.target.value)}/></label><button className="button" type="button" disabled={makeOrg.isPending||orgName.trim().length<2} onClick={()=>makeOrg.mutate()}>{makeOrg.isPending?"Creating…":"Create organization"}</button></div>
-      {makeOrg.isSuccess?<p role="status">Created <b>{makeOrg.data.name}</b>. Your membership role is {makeOrg.data.member_role}.</p>:null}{makeOrg.isError?<p className="error" role="alert">Rivexis could not create the organization. Review the input and retry.</p>:null}
-    </section>
-
-    {selectedOrg?<section className="panel" data-testid="organization-workspace-create"><div className="panelHeading"><div><span className="workspaceKicker">Organization workspace</span><h2>Create {selectedOrg.name} workspace</h2><p className="sectionLead">This workspace is governed by current organization membership. Creator lineage never overrides a later role downgrade or membership removal.</p></div><span className="badge">{memberRole||selectedOrg.member_role}</span></div>
-      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr auto",gap:12,alignItems:"end"}}><label className="field">Organization workspace name<input aria-label="Organization workspace name" value={orgWorkspaceName} onChange={e=>setOrgWorkspaceName(e.target.value)}/></label><label className="field">Context<select aria-label="Organization workspace context" value={orgWorkspaceRole} onChange={e=>setOrgWorkspaceRole(e.target.value)}><option>Individual</option><option>Fund</option><option>Treasury</option><option>Analyst</option></select></label><button className="button" type="button" disabled={!canCreateOrgWorkspace||makeOrgWs.isPending||orgWorkspaceName.trim().length<2} onClick={()=>makeOrgWs.mutate()}>{makeOrgWs.isPending?"Creating…":"Create organization workspace"}</button></div>
-      {!orgWorkspaceRuntimeReady?<p className="sectionLead" role="status">Organization workspace creation is locked until the production Edge runtime advertises the required capability. No fallback to a personal workspace is permitted.</p>:null}
-      {orgWorkspaceRuntimeReady&&!canCreateOrgWorkspace?<p className="sectionLead">VIEWER membership is read-only. Ask an organization owner or administrator to grant ANALYST or higher access before creating a workspace.</p>:null}
-      {makeOrgWs.isSuccess?<p role="status">Created <b>{makeOrgWs.data.name}</b> inside <b>{selectedOrg.name}</b> with {makeOrgWs.data.access_role} access and made it active.</p>:null}
-      {makeOrgWs.isError?<p className="error" role="alert">{makeOrgWs.error instanceof ApiError&&makeOrgWs.error.status===403?"Your current organization role does not permit workspace creation.":"Rivexis could not create the organization workspace safely. Review the input and retry."}</p>:null}
-    </section>:null}
-
-    {selectedOrg?<section className="panel" data-testid="organization-member-admin"><div className="panelHeading"><div><span className="workspaceKicker">Authenticated membership</span><h2>{selectedOrg.name} members</h2><p className="sectionLead">Existing members can have roles changed by authorized organization administrators. New members are accepted only from short-lived claims generated by the target authenticated account.</p></div><span className="stepLabel">{selectedOrg.id}</span></div>
-      {members.isPending?<p>Loading organization members…</p>:null}
-      {members.isError?<p className="error" role="alert">{membershipError(members.error)}</p>:null}
-      {!members.isPending&&!members.isError&&members.data?.items.length?<div className="tableWrap"><table className="table"><thead><tr><th>Member</th><th>Role</th><th>Joined</th><th>Controls</th></tr></thead><tbody>{members.data.items.map(member=>{
-        const draft=roleDrafts[member.user_id]??member.role;
-        const ownerRestricted=memberRole!=="OWNER"&&member.role==="OWNER";
-        return <tr key={member.user_id} data-testid="organization-member-row"><td><b>{member.email}</b><small style={{display:"block"}}>{member.user_id}</small></td><td><select aria-label={`Role for ${member.email}`} value={draft} disabled={!canAdmin||ownerRestricted||membershipBusy} onChange={e=>setRoleDrafts(current=>({...current,[member.user_id]:e.target.value}))}>{(memberRole==="OWNER"?ORG_ROLES:ORG_ROLES.filter(value=>value!=="OWNER")).map(value=><option key={value} value={value}>{value}</option>)}</select></td><td>{createdAt(member.created_at)}</td><td><div className="actions"><button className="button" type="button" aria-label={`Update ${member.email}`} disabled={!canAdmin||ownerRestricted||draft===member.role||membershipBusy} onClick={()=>updateMember.mutate({orgId:selectedOrgId,member,nextRole:draft})}>Update role</button><button className="ghost" type="button" aria-label={pendingRemove===member.user_id?`Confirm remove ${member.email}`:`Remove ${member.email}`} disabled={!canAdmin||ownerRestricted||membershipBusy} onClick={()=>pendingRemove===member.user_id?removeMember.mutate({orgId:selectedOrgId,member}):setPendingRemove(member.user_id)}>{pendingRemove===member.user_id?"Confirm remove":"Remove"}</button></div></td></tr>;
-      })}</tbody></table></div>:null}
-      {!members.isPending&&!members.isError&&!members.data?.items.length?<p>No members were returned for this organization.</p>:null}
-      {!canAdmin&&!members.isPending&&!members.isError?<p className="muted">Your {memberRole||"current"} role can inspect membership but cannot change roles or accept/remove members.</p>:null}
-      {membershipMutationError?<p className="error" role="alert">{membershipError(membershipMutationError)}</p>:null}
-      {updateMemberCurrent&&updateMember.isSuccess?<p role="status">Updated {updateMember.data.email} to {updateMember.data.role}.</p>:null}
-      {removeMemberCurrent&&removeMember.isSuccess?<p role="status">Organization member removed.</p>:null}
-
-      <div className="advancedOnly"><div className="panelHeading"><div><b>Accept authenticated membership claim</b><p>Do not add a new person by email alone. The intended member signs in, generates a short-lived opaque claim for this organization ID, and shares that claim with an OWNER or ADMIN.</p></div><span className="stepLabel">CLAIM REQUIRED</span></div><div style={{display:"grid",gridTemplateColumns:"minmax(0,2fr) minmax(140px,.6fr) auto",gap:12,alignItems:"end"}}><label className="field">Membership claim token<input aria-label="Membership claim token" value={claimToken} onChange={e=>setClaimToken(e.target.value)} placeholder="Paste the member's short-lived claim"/></label><label className="field">Claim role<select aria-label="Claim role" value={claimRole} disabled={!canAdmin||membershipBusy} onChange={e=>setClaimRole(e.target.value)}>{roleChoices.map(value=><option key={value} value={value}>{value}</option>)}</select></label><button className="button" type="button" disabled={!canAdmin||membershipBusy||claimToken.trim().length<32} onClick={()=>acceptClaim.mutate({orgId:selectedOrgId,token:claimToken.trim(),nextRole:claimRole})}>{acceptClaim.isPending?"Accepting…":"Accept claim"}</button></div>{acceptClaimCurrent&&acceptClaim.isSuccess?<p role="status">Accepted authenticated membership for <b>{acceptClaim.data.email}</b> as {acceptClaim.data.role}.</p>:null}{acceptClaimCurrent&&acceptClaim.isError?<p className="error" role="alert">{membershipError(acceptClaim.error)}</p>:null}</div>
-    </section>:null}
-
-    <section className="panel" data-testid="membership-claim-generator"><div className="panelHeading"><div><span className="workspaceKicker">Join boundary</span><h2>Generate my membership claim</h2><p className="sectionLead">Use the organization ID supplied by its administrator. Rivexis creates a one-time opaque token tied to your authenticated account; it does not add you to the organization by itself.</p></div><span className="stepLabel">15 MINUTES</span></div><div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto",gap:12,alignItems:"end"}}><label className="field">Organization ID<input aria-label="Organization ID for membership claim" value={joinOrgId} disabled={createClaim.isPending} onChange={e=>{setJoinOrgId(e.target.value);setGeneratedClaim(null)}} placeholder="Organization ID shared by the administrator"/></label><button className="button" type="button" disabled={createClaim.isPending||joinOrgId.trim().length<3} onClick={()=>createClaim.mutate(joinOrgId.trim())}>{createClaim.isPending?"Generating…":"Generate claim"}</button></div>
-      {generatedClaim?<div className="advancedOnly" data-testid="generated-membership-claim"><b>One-time membership claim</b><p>Share this token only with the intended organization OWNER or ADMIN. A new claim invalidates your previous unused claim for the same organization.</p><small>Target organization: <code>{generatedClaim.organization_id}</code></small><code style={{display:"block",overflowWrap:"anywhere",padding:"12px 0"}}>{generatedClaim.claim_token}</code><small>Expires {expiryLabel(generatedClaim.expires_at,generatedClaim.expires_in_seconds)}.</small></div>:null}
-      {createClaim.isError?<p className="error" role="alert">{membershipError(createClaim.error)}</p>:null}
-    </section>
-  </>;
+ const qc=useQueryClient(),alive=useRef(true);useEffect(()=>{alive.current=true;return()=>{alive.current=false}},[]);
+ const q=useQuery({queryKey:['account-settings'],queryFn:({signal})=>api<AccountSettings>('/api/v1/account/settings',{signal}),retry:false});
+ const [section,setSection]=useState<Section>('Profile'),[name,setName]=useState(''),[draft,setDraft]=useState<Preferences>({...DEFAULT_PREFERENCES,walletAddresses:[]}),[saving,setSaving]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[confirmSessions,setConfirmSessions]=useState(false),[walletInput,setWalletInput]=useState(''),[selectedWallet,setSelectedWallet]=useState(''),[walletBusy,setWalletBusy]=useState(false),[exporting,setExporting]=useState(false);
+ const loaded=useRef<AccountSettings|null>(null);
+ useEffect(()=>{if(q.data&&loaded.current!==q.data){const previous=loaded.current;loaded.current=q.data;if(!previous||(name===previous.profile.displayName&&JSON.stringify(draft)===JSON.stringify(previous.preferences))){setName(q.data.profile.displayName);setDraft(q.data.preferences)}}},[q.data,name,draft]);
+ const dirty=!!q.data&&(name!==q.data.profile.displayName||JSON.stringify(draft)!==JSON.stringify(q.data.preferences));
+ function update<K extends keyof Preferences>(key:K,value:Preferences[K]){setDraft(p=>({...p,[key]:value}));setError('');setNotice('')}
+ function selector<K extends keyof Preferences>(label:string,key:K,choices:readonly (readonly [string,string])[]){return <label className="field">{label}<select aria-label={label} value={String(draft[key])} onChange={e=>update(key,(key==='healthPrecision'?Number(e.target.value):e.target.value) as Preferences[K])}>{choices.map(([value,text])=><option key={value} value={value}>{text}</option>)}</select></label>}
+ async function save(){if(saving||!q.data)return;setError('');setNotice('');let input;try{input=validateAccountUpdate({displayName:name,preferences:draft})}catch(e){setError(e instanceof Error?e.message:'Check the settings');return}setSaving(true);try{const result=await api<AccountSettings>('/api/v1/account/settings',{method:'PATCH',body:JSON.stringify(input),signal:AbortSignal.timeout(15000)});if(alive.current){loaded.current=result;setName(result.profile.displayName);setDraft(result.preferences);qc.setQueryData(['account-settings'],result);setNotice('Account settings saved. Analysis defaults apply when starting a new empty workspace context.')}}catch{if(alive.current)setError('Settings could not be confirmed as saved. Your draft is retained; review and retry.')}finally{if(alive.current)setSaving(false)}}
+ async function endOtherSessions(){if(saving)return;setSaving(true);setError('');setNotice('');try{await api('/api/v1/account/sessions/others',{method:'POST',body:JSON.stringify({confirm:true}),signal:AbortSignal.timeout(15000)});if(alive.current){setConfirmSessions(false);setNotice('Other refresh sessions ended. Previously issued access tokens can remain valid until they expire.')}}catch{if(alive.current)setError('Other sessions could not be confirmed as ended. Retry later.')}finally{if(alive.current)setSaving(false)}}
+ async function exportAccount(){setExporting(true);setError('');try{const data=await api('/api/v1/account/export',{signal:AbortSignal.timeout(15000)});if(alive.current){exportJson(data);setNotice('Account export prepared. Keep downloaded financial information private.')}}catch{if(alive.current)setError('Account export is unavailable. Retry later.')}finally{if(alive.current)setExporting(false)}}
+ function addAddress(address:string){const value=address.trim().toLowerCase();if(!/^0x[\da-f]{40}$/.test(value)){setError('Enter a complete Ethereum address');return}if(draft.walletAddresses.includes(value)){setError('This address is already saved');return}if(draft.walletAddresses.length>=5){setError('Up to five analysis addresses can be saved');return}update('walletAddresses',[...draft.walletAddresses,value]);setWalletInput('')}
+ async function connectWallet(){setWalletBusy(true);setError('');try{const ethereum=(window as Window&{ethereum?:{request:(input:{method:string})=>Promise<unknown>}}).ethereum;if(!ethereum)throw new Error('No browser wallet is available. You can save a public address instead.');const accounts=await ethereum.request({method:'eth_requestAccounts'});const chain=await ethereum.request({method:'eth_chainId'});if(chain!=='0x1')throw new Error('Select Ethereum in your wallet before using supported lending analysis');if(!Array.isArray(accounts)||typeof accounts[0]!=='string'||!/^0x[\da-fA-F]{40}$/.test(accounts[0]))throw new Error('No supported address was returned');setSelectedWallet(accounts[0]);setNotice('Address selected from the browser wallet. No signature was requested.')}catch(e){setError(e instanceof Error?e.message:'Wallet access was unavailable')}finally{setWalletBusy(false)}}
+ async function copy(address:string){try{await navigator.clipboard.writeText(address);setNotice('Public address copied')}catch{setError('Clipboard access was unavailable. Select and copy the address manually.')}}
+ if(q.isPending)return <section className="settingsPage" role="status"><h1>Settings</h1><p>Loading your account preferences…</p></section>;
+ if(q.isError||!q.data)return <section className="settingsPage"><h1>Settings</h1><p className="error" role="alert">Account settings are unavailable. No preference changes have been saved.</p><button className="button" type="button" onClick={()=>void q.refetch()} disabled={q.isFetching}>Retry settings</button></section>;
+ const profile=q.data.profile;
+ return <div className="settingsPage"><header className="settingsIntro"><div className="eyebrow">YOUR ACCOUNT / YOUR WORKFLOW</div><h1>Settings</h1><p>Shape the experience. Keep the analysis precise.</p></header>
+  <div className="settingsTabs" role="tablist" aria-label="Account settings">{sections.map((s,i)=><button type="button" role="tab" id={`setting-tab-${i}`} aria-controls="setting-panel" aria-selected={section===s} tabIndex={section===s?0:-1} key={s} onClick={()=>{setSection(s);setConfirmSessions(false)}} onKeyDown={e=>{if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?sections.length-1:(i+(e.key==='ArrowRight'?1:-1)+sections.length)%sections.length;setSection(sections[next]);e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role=tab]')[next]?.focus()}}}>{s}</button>)}</div>
+  <form onSubmit={e=>{e.preventDefault();void save()}}><section className="settingsPanel accountSettingsPanel" id="setting-panel" role="tabpanel" aria-labelledby={`setting-tab-${sections.indexOf(section)}`}><h2>{section}</h2><fieldset disabled={saving}>
+   {section==='Profile'&&<><p>Your account identity is separate from wallet addresses and workspace access roles.</p><label className="field">Display name<input aria-label="Display name" maxLength={60} value={name} onChange={e=>{setName(e.target.value);setError('');setNotice('')}} autoComplete="nickname"/></label><dl className="settingsFacts"><dt>Email</dt><dd>{profile.email}</dd><dt>Email verification</dt><dd>{profile.emailVerified?'Verified':'Verification required'}</dd><dt>Account created</dt><dd>{displayedDate(profile.createdAt,draft.timezone)}</dd></dl><p className="muted">Changing your sign-in email is not offered by the current account workflow. Verification and security delivery remain on the existing email infrastructure.</p></>}
+   {section==='Appearance'&&<><p>The approved Obsidian and Graphite palette, or its warm Ivory counterpart. System follows your device.</p><div className="settingsFields">{selector('Theme','theme',[['dark','Dark'],['light','Light'],['system','System']])}{selector('Interface density','density',[['comfortable','Comfortable'],['compact','Compact']])}</div><p className="muted">Appearance is saved to your account and cached on this device to prevent a theme flash. Save changes to apply it across the website.</p></>}
+   {section==='Security'&&<><p>Email verification: <strong>{profile.emailVerified?'Verified':'Required'}</strong>. Password changes use the existing verified recovery workflow.</p><Link className="ghost" href="/forgot-password">Recover or change password</Link><p className="muted">RIVEXIS never requests private keys or seed phrases. Multifactor enrollment and email changes are not offered by the current interface.</p><Link className="textButton" href="/security">Security & privacy information →</Link></>}
+   {section==='Sessions'&&<><p>This request is checked against your authenticated account. The interface does not infer device names or a list of active sessions.</p><dl className="settingsFacts"><dt>Last account sign-in</dt><dd>{displayedDate(profile.lastSignInAt,draft.timezone)}</dd><dt>Current browser</dt><dd>Authenticated</dd></dl><div className="inlineActions"><button className="ghost" type="button" onClick={()=>window.dispatchEvent(new Event('rivexis-request-logout'))}>Log out of this browser</button><button className="criticalButton" type="button" onClick={()=>setConfirmSessions(true)}>End other sessions</button></div><p className="muted">Ending other sessions revokes their refresh access. Already issued access tokens can remain valid until expiry.</p>{confirmSessions&&<div className="settingsConfirmation" role="group" aria-label="Confirm other session logout"><p>Other devices will need to sign in again when their sessions refresh. This browser remains signed in.</p><button className="criticalButton" type="button" onClick={()=>void endOtherSessions()}>Confirm end other sessions</button><button className="ghost" type="button" onClick={()=>setConfirmSessions(false)}>Keep other sessions</button></div>}</>}
+   {section==='Connected Wallets'&&<><p>Ethereum is the supported network. Address access is separate from account authentication; RIVEXIS has no custody or signing permission.</p><div className="inlineActions"><button className="ghost" type="button" disabled={walletBusy} onClick={()=>void connectWallet()}>{walletBusy?'Selecting address…':'Select browser wallet address'}</button>{selectedWallet&&<button className="textButton" type="button" onClick={()=>{setSelectedWallet('');setNotice('Selected address forgotten. Wallet site permissions are managed in your wallet.')}}>Forget selected address</button>}</div>{selectedWallet&&<div className="selectedWallet"><code>{selectedWallet}</code><button className="textButton" type="button" onClick={()=>addAddress(selectedWallet)}>Add selected analysis address</button></div>}<h3>Saved analysis addresses</h3><p className="muted">Up to five public addresses. Saving an address does not verify ownership. The first address prefills a new inspection; no automatic RPC request is made.</p>{draft.walletAddresses.map((address,i)=><div className="savedWallet" key={address}><code>{address}</code><span>{i===0?'Default inspection address':''}</span><div className="inlineActions"><button className="textButton" type="button" aria-label={`Copy ${address}`} onClick={()=>void copy(address)}>Copy</button>{i>0&&<button className="textButton" type="button" onClick={()=>update('walletAddresses',[address,...draft.walletAddresses.filter(a=>a!==address)])}>Use as default</button>}<button className="criticalButton" type="button" aria-label={`Remove ${address}`} onClick={()=>update('walletAddresses',draft.walletAddresses.filter(a=>a!==address))}>Remove</button></div></div>)}<div className="settingsWalletAdd"><label className="field">Public analysis address<input aria-label="Public analysis address" value={walletInput} onChange={e=>setWalletInput(e.target.value)} maxLength={42} spellCheck={false} placeholder="0x…"/></label><button className="ghost" type="button" onClick={()=>addAddress(walletInput)}>Add address</button></div><p className="muted">Forgetting an address does not revoke permissions in your wallet or alter blockchain positions.</p></>}
+   {section==='Notifications'&&<><p>Account verification and recovery messages use your verified email and the existing delivery service. These essential messages cannot be disabled here.</p><p>Automated liquidation, portfolio and transaction emails are currently unavailable. No notification switch can promise that service.</p><Link className="ghost" href="/workspace/reports">Review monitoring & reports</Link><p className="muted">The reports workspace offers explicitly bounded checks while the browser remains open. It cannot guarantee a warning before liquidation.</p></>}
+   {section==='Financial Preferences'&&<><p>Financial values remain denominated in validated USD oracle units. No currency conversion or settlement change is implied.</p><div className="settingsFields"><label className="settingCheck"><input type="checkbox" checked={draft.numberGrouping} onChange={e=>update('numberGrouping',e.target.checked)}/>Group USD thousands</label>{selector('Health factor precision','healthPrecision',[['3','3 decimal places'],['4','4 decimal places'],['6','6 decimal places']])}{selector('Display timezone','timezone',[['system','Device timezone'],['UTC','UTC'],['Asia/Kolkata','Asia / Kolkata'],['Europe/London','Europe / London'],['America/New_York','America / New York']])}{selector('Default protocol coverage','defaultCoverage',[['aave','Aave V3 normal mode'],['morpho-wbtc','Validated Morpho WBTC/USDC'],['combined','Aave + validated Morpho']])}<label className="field">Default capital budget / USD<input aria-label="Default capital budget / USD" inputMode="decimal" value={draft.defaultBudget} onChange={e=>update('defaultBudget',e.target.value)}/></label><label className="field">Default target health factor<input aria-label="Default target health factor" inputMode="decimal" value={draft.defaultTarget} onChange={e=>update('defaultTarget',e.target.value)}/></label><label className="field">Default assumed fee reserve / USD<input aria-label="Default assumed fee reserve / USD" inputMode="decimal" value={draft.defaultFee} onChange={e=>update('defaultFee',e.target.value)}/></label>{selector('Default risk objective','defaultObjective',[['target','Least capital found to reach target'],['max-min','Highest minimum health factor found']])}</div><p className="muted">Defaults apply to a new empty analysis context. Existing scenarios stay intact. Display precision never changes raw financial values, thresholds, repayment shares or transaction amounts.</p></>}
+   {section==='Accessibility'&&<><p>Keyboard access, visible focus and readable controls remain available without changing these preferences.</p><div className="settingsFields">{selector('Motion','motion',[['system','Respect device preference'],['reduce','Reduce decorative motion']])}{selector('Contrast','contrast',[['standard','Standard'],['high','Higher contrast']])}{selector('Text size','textSize',[['standard','Standard'],['large','Larger interface text']])}</div><p className="muted">Device reduced-motion settings are always respected. Reducing decorative motion preserves forms, charts and navigation.</p></>}
+   {section==='Privacy'&&<><p>Financial analysis stays in memory unless you explicitly save a report. Account preferences and deliberately saved public addresses are stored with your account.</p><div className="inlineActions"><button className="ghost" type="button" disabled={exporting} onClick={()=>void exportAccount()}>{exporting?'Preparing export…':'Export profile & saved risk receipts'}</button><button className="textButton" type="button" onClick={()=>{try{localStorage.removeItem(APPEARANCE_CACHE);localStorage.removeItem('rivexis_theme');setNotice('Device appearance cache cleared. Account preferences remain saved and can rebuild it on a later account load.')}catch{setError('Device storage is unavailable')}}}>Clear cached appearance</button></div><p className="muted">Export includes your profile, preferences and up to 20 owner-saved risk receipts. Shared organization records and authentication secrets are excluded. Public RPC providers receive addresses you inspect.</p><Link className="textButton" href="/security">Review data & security disclosures →</Link></>}
+   {section==='Account Management'&&<><p>Manage your authorized workspaces and organization access through the retained secure controls.</p><Link className="ghost" href="/workspace/settings/workspaces">Manage workspaces & organizations</Link><p className="muted">Account deletion is not currently supported in the self-service interface. This page does not delete users, saved reports or production records.</p><div className="platformLinks"><Link href="/docs">Documentation</Link><Link href="/methodology">Methodology</Link><Link href="/security">Security & privacy</Link></div><p className="muted">RIVEXIS · Ethereum lending intelligence · Account access remains available without payment.</p></>}
+  </fieldset></section><div className="settingsFeedback" aria-live="polite">{error&&<p className="error" role="alert">{error}</p>}{notice&&<p className="success" role="status">{notice}</p>}</div><footer className="settingsSaveBar"><span>{dirty?'Unsaved account changes':'Account preferences are up to date'}</span><div className="inlineActions"><ActionButton variant="secondary" disabled={saving||!dirty} onClick={()=>{setName(profile.displayName);setDraft(q.data.preferences);setError('');setNotice('Draft changes discarded')}}>Discard changes</ActionButton><ActionButton type="submit" loading={saving} disabled={!dirty}>{saving?'Saving…':'Save changes'}</ActionButton></div></footer></form>
+ </div>;
 }

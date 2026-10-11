@@ -20,7 +20,7 @@ test("organization workspace creation is explicitly scoped to the selected writa
   await page.route("**/api/v1/organizations",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[{id:"org-1",name:"Risk Council",member_role:"ANALYST",created_at:"2026-10-04T14:00:00Z"}]})}));
   await page.route("**/api/v1/organizations/org-1/members",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({member_role:"ANALYST",items:[]})}));
 
-  await page.goto("/workspace/settings");
+  await page.goto("/workspace/settings/workspaces");
   await expect(page.getByRole("heading",{name:"Create Risk Council workspace"})).toBeVisible();
   await page.getByLabel("Organization workspace name").fill("Risk Operations");
   await page.getByLabel("Organization workspace context").selectOption("Fund");
@@ -37,7 +37,7 @@ test("viewer organization membership cannot create a workspace",async({page})=>{
   await page.route("**/api/v1/organizations",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({items:[{id:"org-view",name:"Read Only Council",member_role:"VIEWER",created_at:"2026-10-04T14:00:00Z"}]})}));
   await page.route("**/api/v1/organizations/org-view/members",route=>route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({member_role:"VIEWER",items:[]})}));
 
-  await page.goto("/workspace/settings");
+  await page.goto("/workspace/settings/workspaces");
   await expect(page.getByRole("button",{name:"Create organization workspace"})).toBeDisabled();
   await expect(page.getByText("VIEWER membership is read-only.",{exact:false})).toBeVisible();
 });
