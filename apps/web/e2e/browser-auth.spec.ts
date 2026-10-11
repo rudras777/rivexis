@@ -101,7 +101,21 @@ test.describe("browser authentication and onboarding",()=>{
 
     await expect(page).toHaveURL(/\/verify-email\?sent=1$/);
     await expect(page.getByLabel("Email")).toHaveValue("new@example.com");
+    await expect(page.getByRole('status')).toContainText('Open its confirmation link, then log in.');
+    await expect(page.getByText('Use this only if your email includes a code.',{exact:false})).toBeVisible();
+    await expect(page.getByRole('link',{name:'Continue to login',exact:true})).toHaveAttribute('href','/login');
     expect(await page.evaluate(()=>sessionStorage.getItem("rivexis_pending_verification_email"))).toBe("new@example.com");
+  });
+
+  test('link-based verification retains the requested workspace and resend instructions',async({page})=>{
+    await mockHealthyService(page);
+    await page.route('**/api/v1/auth/email-verification/request',r=>r.fulfill({status:202,json:{status:'accepted'}}));
+    await page.goto('/verify-email?next=%2Fworkspace%2Fsettings');
+    await expect(page.getByRole('link',{name:'Continue to login',exact:true})).toHaveAttribute('href','/login?next=%2Fworkspace%2Fsettings');
+    await page.getByLabel('Email',{exact:true}).fill('pending@example.invalid');
+    await page.getByRole('button',{name:'Send verification email',exact:true}).click();
+    await expect(page.getByRole('status')).toContainText('open the confirmation link in your email, then log in');
+    await expect(page.getByRole('status')).toContainText('spam folder');
   });
 
   test("confirmation fragments are discarded without trusting them as a workspace session",async({page})=>{
@@ -202,6 +216,18 @@ test.describe("browser authentication and onboarding",()=>{
     expect(input).toEqual({password:"fake-recovery-password",access_token:"FAKE_ACCESS",refresh_token:"FAKE_REFRESH"});
     const storage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
     expect(storage).not.toContain("FAKE_ACCESS");expect(storage).not.toContain("FAKE_REFRESH");
+  });
+
+  test('a changed password with unconfirmed revocation gives accurate session guidance',async({page})=>{
+    await mockHealthyService(page);
+    await page.route('**/api/v1/auth/password-reset/confirm',r=>r.fulfill({status:200,json:{status:'updated',sessions_revoked:false}}));
+    await page.goto('/reset-password?token_hash=TEST_RECOVERY_HASH');
+    await page.getByLabel('New password',{exact:true}).fill('test-new-password');
+    await page.getByLabel('Confirm new password').fill('test-new-password');
+    await page.getByRole('button',{name:'Update password',exact:true}).click();
+    await expect(page.getByRole('status')).toContainText('Password updated.');
+    await expect(page.getByRole('status')).toContainText('Session revocation could not be confirmed.');
+    await expect(page.getByRole('status')).not.toContainText('Refresh sessions ended.');
   });
 
   test("one-time recovery codes retain their email contract after sensitive query parameters are removed",async({page})=>{

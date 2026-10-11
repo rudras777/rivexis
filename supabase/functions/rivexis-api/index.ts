@@ -224,10 +224,12 @@ async function handleAuth(req:Request,path:string){
         ?await authClient.auth.verifyOtp({token_hash:tokenHash,type:"recovery"})
         :await authClient.auth.verifyOtp({email,token,type:"recovery"});
     if(verified.error||!verified.data.session)return error(req,400,"This recovery link is invalid or expired");
-    const updater=createClient(SUPABASE_URL,ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:`Bearer ${verified.data.session.access_token}`}}});
-    const {error:updateError}=await updater.auth.updateUser({password});
+    // verifyOtp/setSession established this client's in-memory Auth session.
+    // A new client with only an Authorization header has no updateUser session.
+    const {error:updateError}=await authClient.auth.updateUser({password});
     if(updateError)return error(req,400,"Unable to update password");
-    return json(req,{status:"updated",sessions_revoked:true});
+    const {error:revokeError}=await authClient.auth.signOut({scope:"global"});
+    return json(req,{status:"updated",sessions_revoked:!revokeError,access_tokens_may_remain_valid_until_expiry:true},200,clearCookie());
   }
   return error(req,404,"Not found");
 }
