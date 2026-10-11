@@ -10,7 +10,7 @@ async function setup(page:Page,member=false){
 }
 test('guest feature entries preserve their destination and direct protected URLs withhold analysis',async({page})=>{
   await setup(page);await page.goto('/');
-  await expect(page.getByRole('heading',{level:1})).toHaveText('See the riskbefore it becomesthe consequence.');
+  await expect(page.getByRole('heading',{level:1})).toHaveText('See beyond the position.Understand the risk.');
   await expect(page.locator('.folioNav').getByRole('link',{name:'Log in',exact:true})).toBeVisible();
   await expect(page.locator('.folioNav').getByRole('link',{name:'Sign up',exact:false})).toBeVisible();
   await page.getByRole('link',{name:'Open GasGuard',exact:false}).click();
