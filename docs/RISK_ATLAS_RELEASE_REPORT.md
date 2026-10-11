@@ -33,7 +33,7 @@ Earlier actual source-preserving model checks, exact saved-receipt reproductions
 
 ## Performance and evidence
 
-Actual deployed fourfold-CPU lab observations: desktopLCP1704ms,CLS0.0000188; mobileLCP2156ms,CLS0. Desktop observed65draw calls over one second; mobile0graphics draws. No page exceptions or overflow. Software-GPU/throttled desktop rendering still produces long tasks (3414ms cumulative in this capture); pause, reduced-motion and device fallbacks remain important. These are lab measurements, not field Core Web Vitals or universal hardware certification. The initial production renderer chunk was5782raw/2705gzip bytes; the adaptive final chunk differs slightly and is recorded separately below.
+Actual deployed fourfold-CPU lab observations: desktopLCP1704ms,CLS0.0000188; mobileLCP2156ms,CLS0. Desktop observed65draw calls over one second; mobile0graphics draws. No page exceptions or overflow. Software-GPU/throttled desktop rendering still produces long tasks (3414ms cumulative in this capture); pause, reduced-motion and device fallbacks remain important. These are lab measurements, not field Core Web Vitals or universal hardware certification. The actual deployed lazy renderer asset is5919raw bytes/2787computed gzip bytes (RISK_ATLAS_ASSET_SIZE_AUDIT.json).
 
 Lighthouse13.5 could not launch a debuggable browser on this Windows host: Edge timed out waiting for its port and the existing Playwright Chromium executable failed to spawn through chrome-launcher. No new Lighthouse score is claimed and the previous94 result is not reused.
 
