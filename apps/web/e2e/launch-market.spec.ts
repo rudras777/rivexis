@@ -143,3 +143,13 @@ test('market: mobile quote charts and refresh remain usable without horizontal o
  await page.setViewportSize({width:390,height:844});await open(page);await expect(panel(page)).toContainText('Fresh block observation');await expect(panel(page).getByRole('button',{name:'Refresh market context',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
 });
+
+for(const width of [1440,390])test(`market clarity: separated metrics, sticky context and readable chart controls at ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:900});await open(page);await expect(panel(page)).toContainText('Fresh block observation');await page.evaluate(()=>document.fonts.ready);
+ const metrics=page.getByRole('region',{name:'Current analysis overview'});await expect(metrics.locator('article')).toHaveCount(3);await expect(metrics).toContainText('Inspect a wallet to view this metric');
+ const grid=await metrics.evaluate(el=>getComputedStyle(el).display);expect(grid).toBe('grid');
+ const chart=panel(page).locator('figure').filter({hasText:'ETH / USD · observed oracle history'});const before=await chart.locator('.chartReadout').innerText();await chart.getByRole('img').focus();await page.keyboard.press('ArrowLeft');await expect(chart.locator('.chartReadout')).not.toHaveText(before);
+ await page.evaluate(()=>window.scrollTo(0,400));const header=await page.locator('.workspaceHeaderBar').boundingBox(),scope=await page.locator('.workspaceScope').boundingBox();expect(scope!.y).toBeGreaterThanOrEqual(header!.y+header!.height-1);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await page.evaluate(()=>window.scrollTo(0,0));
+ await page.screenshot({path:`../../../../outputs/workspace-clarity-fixture-${width}.png`,fullPage:true});
+});
