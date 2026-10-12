@@ -1,4 +1,7 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect as baseExpect,type Page} from '@playwright/test';
+// Initial canonical/history reads are bounded at25s; do not assert completion at5s.
+const expect=baseExpect.configure({timeout:30000});
+test.setTimeout(45000);
 import {DEFAULT_PREFERENCES} from '../../../supabase/functions/rivexis-api/account-preferences.mjs';
 
 const endpoint='https://ethereum.publicnode.com';

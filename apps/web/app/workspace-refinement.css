@@ -22,3 +22,6 @@
 @media(max-width:380px){.workspaceHeaderBar{gap:6px;padding-inline:12px}.workspaceHeaderBar .brand{width:86px}.walletHeaderControl{padding:8px 6px!important}.workspaceHeaderActions{gap:4px}.workspaceMobileNav summary{gap:4px;padding-inline:4px}.accountMenu summary{gap:4px;padding-inline:4px}}
 
 .publicMotionPreferences{max-width:300px;font-size:11px}.publicMotionPreferences summary{cursor:pointer;min-height:24px}.publicMotionPreferences p{font-size:11px;line-height:1.7}.publicMotionPreferences button{font-size:11px}
+
+/* Large text needs the existing compact navigation before desktop links overflow. */
+@media(max-width:1700px){[data-text-size=large] .workspaceDesktopNav{display:none}[data-text-size=large] .workspaceMobileNav{display:block}}
