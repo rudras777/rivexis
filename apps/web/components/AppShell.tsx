@@ -6,6 +6,8 @@ import {useQuery,useQueryClient} from "@tanstack/react-query";
 import {useEffect,useState,useRef} from "react";
 import {authHref,safeDestination} from "@/lib/auth-destination";
 import {useDeFi} from "./DeFiContext";
+import {WorkspaceNavigation} from "./WorkspaceNavigation";
+import {useWalletConnection} from "./WalletConnection";
 import {Brand} from "./Brand";
 import {useAccountPreferences} from "./AccountPreferences";
 import {WorkspaceContextProvider,type WorkspaceSummary} from "./WorkspaceContext";
@@ -18,14 +20,12 @@ import {
   setCsrfToken,
 } from "@/lib/api";
 
-const navigation=[["LiquidationGuard","/workspace"],["Scenarios","/workspace/scenarios"],["Defense Planner","/workspace/frontier"],["GasGuard","/workspace/transactions"],["Reports","/workspace/reports"]] as const;
 
 type ShellStateProps={title:string;message:string;kind:"loading"|"empty"|"session"|"unavailable";action?:React.ReactNode};
 
 function ShellState({title,message,kind,action}:ShellStateProps){
   const live=kind==="loading"||kind==="empty"?"status":"alert";
   return <div className="appShell">
-    <div className="workspaceAmbient" aria-hidden="true"/>
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
     <header className="workspaceHeaderBar shellAccessHeader"><Brand/><Link className="textButton" href="/methodology">Methodology</Link></header>
     <main className="workspaceMain shellState" id="workspace-main"><section className="shellStateCard" role={live} aria-live="polite" data-testid={`workspace-shell-${kind}`}><div className="shellStateKicker">Workspace access</div><h1>{title}</h1><p>{message}</p>{action?<div className="shellStateActions">{action}</div>:null}</section></main>
@@ -35,7 +35,7 @@ function ShellState({title,message,kind,action}:ShellStateProps){
 function clearClientSessionState(){setCsrfToken(null);clearActiveWorkspaceId()}
 
 export function AppShell({children}:{children:React.ReactNode}){
-  const p=usePathname();
+  const p=usePathname(),wallet=useWalletConnection();
   const {account}=useAccountPreferences();
   const accountMenu=useRef<HTMLDetailsElement>(null),mobileMenu=useRef<HTMLDetailsElement>(null);
   useEffect(()=>{if(accountMenu.current)accountMenu.current.open=false;if(mobileMenu.current)mobileMenu.current.open=false},[p]);
@@ -54,7 +54,7 @@ export function AppShell({children}:{children:React.ReactNode}){
     void queryClient.cancelQueries({queryKey:["workspace"]});queryClient.removeQueries({queryKey:["workspace"]});
   }
 
-  useEffect(()=>{if(apiStatus!==401)return;clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset()},[apiStatus,risk.reset]);
+  useEffect(()=>{if(apiStatus!==401)return;clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset();window.dispatchEvent(new Event("rivexis-wallet-forget"))},[apiStatus,risk.reset]);
 
   useEffect(()=>{
     if(!q.data)return;
@@ -79,7 +79,7 @@ export function AppShell({children}:{children:React.ReactNode}){
     catch(error){
       if(!(error instanceof ApiError)||error.status!==401){setLogoutError("Rivexis could not confirm logout. Retry before leaving this device.");setLoggingOut(false);return}
     }
-    clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset();queryClient.removeQueries({queryKey:["public-session"]});sessionStorage.removeItem("rivexis_pending_destination");router.replace("/login");router.refresh();
+    clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset();window.dispatchEvent(new Event("rivexis-wallet-forget"));queryClient.removeQueries({queryKey:["public-session"]});sessionStorage.removeItem("rivexis_pending_destination");router.replace("/login");router.refresh();
   }
 
   useEffect(()=>{const request=()=>{void logout()};window.addEventListener("rivexis-request-logout",request);return()=>window.removeEventListener("rivexis-request-logout",request)},[loggingOut]);
@@ -98,13 +98,12 @@ export function AppShell({children}:{children:React.ReactNode}){
   const contextValue={workspaceId:selected,workspace:selectedWorkspace,workspaces:q.data.items,switchWorkspace:change};
 
   return <div className="appShell">
-    <div className="workspaceAmbient" aria-hidden="true"/>
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
     <header className="workspaceHeaderBar">
       <Brand/>
-      <nav className="workspaceDesktopNav" aria-label="Workspace">{navigation.map(([name,href])=><Link key={href} href={href} aria-current={p===href?"page":undefined}>{name}</Link>)}</nav>
-      <div className="workspaceHeaderActions">
-        <details className="workspaceMobileNav" ref={mobileMenu}><summary aria-label="Open workspace navigation">Menu <span aria-hidden="true">⌄</span></summary><nav aria-label="Mobile workspace">{navigation.map(([name,href])=><Link key={href} href={href} aria-current={p===href?"page":undefined}>{name}</Link>)}</nav></details>
+      <WorkspaceNavigation/>
+      <div className="workspaceHeaderActions"><Link className="walletHeaderControl ghost" href="/workspace/wallets">{wallet.connection?`${wallet.connection.address.slice(0,6)}…${wallet.connection.address.slice(-4)}`:"Connect Wallet"}</Link>
+        <details className="workspaceMobileNav" ref={mobileMenu}><summary aria-label="Open workspace navigation">Menu <span aria-hidden="true">⌄</span></summary><WorkspaceNavigation mobile/></details>
         <details className="accountMenu" ref={accountMenu}><summary aria-label="Account menu"><span className="accountInitials" aria-hidden="true">{(account?.profile.displayName||"R").split(/\s+/).slice(0,2).map(n=>n[0]).join("").toUpperCase()}</span><span>Account</span><span aria-hidden="true">⌄</span></summary><nav aria-label="Account"><strong>{account?.profile.displayName||"Your account"}</strong><Link href="/workspace/settings">Settings</Link><Link href="/workspace/settings/workspaces">Workspaces & organizations</Link><Link href="/workspace/history">Historical records</Link><button type="button" className="criticalButton" aria-label={loggingOut?"Logging out…":"Log out"} onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out"}</button></nav></details>
       </div>
     </header>

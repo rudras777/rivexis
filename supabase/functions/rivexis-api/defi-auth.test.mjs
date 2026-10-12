@@ -9,6 +9,7 @@ import {webcrypto} from 'node:crypto';
 import {accountSettings} from './defi-account-settings.mjs';
 import {DEFAULT_PREFERENCES} from './account-preferences.mjs';
 import {handleDefi} from './defi-http.mjs';
+import {handleOnChain} from './onchain-http.mjs';
 import {parseRole,roleOrDefault} from './role.mjs';
 const source=readFileSync(new URL('./index.ts',import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'');
 const compiled=stripTypeScriptTypes(source);
@@ -28,10 +29,10 @@ function harness({verified=true,refresh=false,otpError=false,otpSession=true,upd
       signOut:async(input)=>{if(!established)return {error:{message:'Auth session missing'}};revocations.push(input.scope);return {error:revokeError?{message:'provider failed'}:null}},
     }};
   };
-  const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,handleDefi,accountSettings,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
+  const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,handleDefi,handleOnChain,accountSettings,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
   new vm.Script(compiled).runInContext(context);
   const cookie=(access='test-access')=>'rvx_session='+Buffer.from(JSON.stringify({access_token:access,refresh_token:'test-refresh',csrf})).toString('base64url');
-  const request=(path,{authenticated=false,token=csrf,access='test-access',method='POST'}={})=>new Request('https://example.com'+path,{method,headers:{...(authenticated?{cookie:cookie(access)}:{}),...(token?{'x-rivexis-csrf':token}:{})},...(method==='POST'?{body:JSON.stringify({wallet})}:{})});
+  const request=(path,{authenticated=false,token=csrf,access='test-access',method='POST',body={wallet}}={})=>new Request('https://example.com'+path,{method,headers:{...(authenticated?{cookie:cookie(access)}:{}),...(token?{'x-rivexis-csrf':token}:{})},...(method==='POST'?{body:JSON.stringify(body)}:{})});
   return {handler,request,quota:()=>quotaCalls,updates:()=>updates,revocations};
 }
 test('public session status exposes two booleans, never identity or session tokens',async()=>{
@@ -119,4 +120,9 @@ test('actual Edge routing normalizes Supabase function prefixes for every accoun
  for(const path of ['/settings','/export','/sessions/others'])assert.equal((await h.handler(new Request('https://example.com'+prefix+path))).status,401);
  const unverified=harness({verified:false});assert.equal((await unverified.handler(new Request('https://example.com'+prefix+'/settings',{headers}))).status,403);
  const noCsrf=new Headers(headers);noCsrf.delete('x-rivexis-csrf');assert.equal((await h.handler(new Request('https://example.com'+prefix+'/settings',{method:'PATCH',headers:noCsrf,body:'{}'}))).status,403);
+});
+
+test('on-chain routes require verified identity and matching CSRF before quota',async()=>{
+ for(const path of ['/api/v1/on-chain/contract','/api/v1/on-chain/read','/api/v1/on-chain/wallet','/api/v1/on-chain/network']){const h=harness();assert.equal((await h.handler(h.request(path))).status,401);assert.equal((await h.handler(h.request(path,{authenticated:true,token:'wrong'}))).status,403);const unverified=harness({verified:false});assert.equal((await unverified.handler(unverified.request(path,{authenticated:true}))).status,403);assert.equal(h.quota(),0);assert.equal(unverified.quota(),0)}
+ const h=harness();assert.equal((await h.handler(h.request('/api/v1/on-chain/contract',{authenticated:true,body:{chainId:1,address:wallet}}))).status,429);assert.equal(h.quota(),1);
 });

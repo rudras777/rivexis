@@ -10,6 +10,7 @@ export function DeFiProvider({children}:{children:ReactNode}){
   const [draftTransaction,setDraftTransaction]=useState<Action|null>(null),[selectedAlternative,setSelectedAlternative]=useState(0);
   const reset=useCallback(()=>{setSnapshotState(null);setPreviousSnapshot(null);setShocks({});setBudget(defaults.current.defaultBudget);setTarget(defaults.current.defaultTarget);setFee(defaults.current.defaultFee);setObjective(defaults.current.defaultObjective);setResult(null);setDraftTransaction(null);setSelectedAlternative(0)},[]);
   useEffect(()=>{if(!snapshot&&!result){setBudget(preferences.defaultBudget);setTarget(preferences.defaultTarget);setFee(preferences.defaultFee);setObjective(preferences.defaultObjective)}},[preferences.defaultBudget,preferences.defaultTarget,preferences.defaultFee,preferences.defaultObjective]);
+  useEffect(()=>{window.addEventListener("rivexis-wallet-context-change",reset);return()=>window.removeEventListener("rivexis-wallet-context-change",reset)},[reset]);
   function setSnapshot(next:Snapshot|null){setPreviousSnapshot(snapshot&&next&&snapshot.wallet===next.wallet&&!next.sample?snapshot:null);setSnapshotState(next)}
   return <Context.Provider value={{draftTransaction,setDraftTransaction,selectedAlternative,setSelectedAlternative,reset,snapshot,previousSnapshot,setSnapshot,shocks,setShocks,budget,setBudget,target,setTarget,fee,setFee,objective,setObjective,result,setResult}}>{children}</Context.Provider>;
 }
