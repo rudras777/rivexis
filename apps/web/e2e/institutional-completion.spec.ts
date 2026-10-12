@@ -67,9 +67,7 @@ test('unverified identities receive a usable verification route before workspace
 test('landing depth and cursor effects are bounded, optional and never replace the native pointer',async({page})=>{
  await setup(page);await page.setViewportSize({width:1440,height:1000});await page.goto('/');
  await expect(page.locator('.heroFolioWrap')).toHaveCount(0);await expect(page.getByRole('slider')).toHaveCount(0);
- const art=page.locator('.signatureRiskField');await expect(art).toBeVisible();const box=(await art.boundingBox())!;await page.mouse.move(box.x+box.width*.8,box.y+box.height*.5);
- await expect.poll(()=>art.evaluate(e=>e.style.getPropertyValue('--field-x'))).not.toBe('');
- await page.emulateMedia({reducedMotion:'reduce'});await page.mouse.move(box.x+box.width*.2,box.y+box.height*.5);await expect(page.locator('.precisionPointer')).toBeHidden();
+ await expect(page.locator('.signatureRiskField,.riskAtlas,canvas')).toHaveCount(0);await expect(page.locator('.blockchainBackground')).toHaveCount(1);await page.emulateMedia({reducedMotion:'reduce'});await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','false');await expect(page.locator('.precisionPointer')).toBeHidden();
  expect(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');expect(await page.evaluate(()=>getComputedStyle(document.body).cursor)).not.toBe('none');
 });
 
