@@ -1,5 +1,7 @@
 import os
+import runpy
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from backup_restore_guard import require_disposable_restore
@@ -45,6 +47,22 @@ class RestoreGuardTests(unittest.TestCase):
         for key in ('PGHOSTADDR', 'PGSERVICE', 'PGSERVICEFILE', 'PGOPTIONS'):
             with self.subTest(key=key), patch.dict(os.environ, {key: 'unsafe'}, clear=True), self.assertRaises(SystemExit):
                 require_disposable_restore(self.source, 'postgresql://qa:secret@localhost/rivexis_restore_dr')
+
+    def test_both_drills_deny_production_before_invoking_tools(self):
+        scripts = Path(__file__).resolve().parent
+        env = {
+            'RIVEXIS_BACKUP_SOURCE_DATABASE_URL': self.source,
+            'RIVEXIS_BACKUP_RESTORE_DATABASE_URL': self.source,
+            'RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY': 'true',
+        }
+        with patch.dict(os.environ, env, clear=True), patch('subprocess.run') as run:
+            with self.assertRaises(SystemExit):
+                runpy.run_path(str(scripts / 'certify_postgres_dr.py'))
+            run.assert_not_called()
+            legacy = runpy.run_path(str(scripts / 'certify_backup_restore.py'))
+            with self.assertRaises(SystemExit):
+                legacy['postgres_certification']()
+            run.assert_not_called()
 
 
 if __name__ == '__main__':
