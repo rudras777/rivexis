@@ -26,7 +26,7 @@ test('interactive educational analysis also requires a verified free account',as
   await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0);
   await expect(page.getByRole('link',{name:'Log in',exact:true})).toHaveAttribute('href','/login?next=%2Fdemo');
   await page.goto('/');await expect(page.getByRole('slider')).toHaveCount(0);
-  await expect(page.locator('.signatureRiskField')).toContainText('Conceptual risk field');
+  await expect(page.locator('.signatureRiskField,.riskAtlas,canvas')).toHaveCount(0);await expect(page.locator('.blockchainBackground')).toHaveCount(1);
 });
 test('returning-user login opens the allowlisted feature without exposing credentials',async({page})=>{
   await setup(page);await page.route('**/api/v1/auth/web/login',async r=>{await setup(page,true);return r.fulfill({status:200,json:{csrf_token:'ENTRY_TEST_CSRF'}})});

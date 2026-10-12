@@ -4,7 +4,7 @@ import "./product.css";
 import "./entry.css";
 import "./completion.css";
 import "./institutional-controls.css";
-import "./risk-atlas.css";
+import "./landing.css";
 import "./workspace-refinement.css";
 import {BlockchainBackground} from "@/components/BlockchainBackground";
 import {APPEARANCE_BOOTSTRAP} from "@/lib/appearance-bootstrap";
