@@ -51,7 +51,7 @@ test('CH05 unsupported oracle model never plots a plausible risk curve',async({p
 });
 test('CH06 educational sample is clearly hypothetical and has no observed-history series',async({page})=>{
  await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
- await expect(page.getByText('HYPOTHETICAL SAMPLE · NOT LIVE',{exact:true})).toBeVisible();await expect(sensitivity(page).locator('svg')).toBeVisible();await expect(sensitivity(page)).toContainText('40 modeled points');await expect(sensitivity(page)).not.toContainText('observed points');await expect(history(page)).toHaveCount(0);
+ await expect(page.getByText('HYPOTHETICAL SAMPLE · NOT LIVE',{exact:true})).toBeVisible();await expect(sensitivity(page).locator('svg')).toBeVisible();await expect(sensitivity(page)).toContainText('40 modeled points');await expect(sensitivity(page)).not.toContainText('observed points');await expect(sensitivity(page).locator('.chartReadout')).toContainText('WETH price shock 0%');await sensitivity(page).getByRole('img').focus();await page.keyboard.press('ArrowRight');await expect(sensitivity(page).locator('.chartReadout')).toContainText('WETH price shock 5%');await page.keyboard.press('ArrowLeft');await expect(sensitivity(page).locator('.chartReadout')).toContainText('WETH price shock 0%');await expect(history(page)).toHaveCount(0);
  await sensitivity(page).getByText('Aave V3 · health sensitivity to WETH — data table',{exact:true}).click();await expect(sensitivity(page).getByRole('cell',{name:'WETH price shock -95%',exact:true})).toBeVisible();
 });
 test('CH07 debt-price stress updates sensitivity data and reset restores it',async({page})=>{
