@@ -1,4 +1,5 @@
 "use client";
+import {LiveMarketContext} from "./MarketContext";
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {useEffect,useRef,useState} from 'react';
@@ -46,6 +47,7 @@ export function OnChainWorkspace({view}:{view:'wallets'|'contracts'|'networks'|'
   </>}
   {view==='networks'&&<><h2>Supported network<InfoButton label="network evidence">Checks the configured RPC chain and a fresh block. Availability is observed at request time, not continuous uptime.</InfoButton></h2><p>Ethereum mainnet · Chain ID 1</p><p className="muted">Other chains are not enabled. Contract inspection does not expand financial protocol coverage.</p><button className="button" type="button" disabled={busy} onClick={()=>void inspect('network')}>{busy?'Checking network…':'Check network evidence'}</button></>}
   {view==='networks'&&evidence&&<dl><dt>Status</dt><dd>Observed Ethereum mainnet response</dd><dt>Block</dt><dd>{evidence.blockNumber}</dd><dt>Block hash</dt><dd>{evidence.blockHash}</dd><dt>Observed at</dt><dd>{evidence.observedAt}</dd></dl>}
+  {(view==='overview'||view==='networks')&&<LiveMarketContext networkOnly={view==='networks'}/> }
   {remove&&<div role="group" aria-label="Confirm saved identity removal"><p>Remove this saved analysis identity? This does not affect the wallet, contract or on-chain assets.</p><button className="criticalButton" type="button" disabled={busy} onClick={()=>void persist(p=>({...p,...(view==='wallets'?{walletAddresses:p.walletAddresses.filter(a=>a!==remove)}:{contracts:(p.contracts??[]).filter(c=>c.address!==remove)})}))}>Confirm removal</button><button className="ghost" type="button" onClick={()=>setRemove(null)}>Cancel removal</button></div>}
  </section>;
 }

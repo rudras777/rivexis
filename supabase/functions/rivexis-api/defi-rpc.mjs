@@ -125,7 +125,11 @@ export async function gasguard(input,rpc=client()) {
   const blockNumber=BigInt(s.blockNumber),call={account:s.wallet,to:POOL,data,blockNumber};
   let simulation='NOT_RUN',gas=null,fees=null;
   try{await rpc.call(call);simulation='SUCCEEDED_AT_BLOCK';gas=await rpc.estimateGas(call);fees=await rpc.estimateFeesPerGas();}catch{simulation='REVERTED_OR_RPC_UNAVAILABLE';blockers.push('RPC call or gas estimate failed; execution remains unverified');}
-  const maxFee=fees?.maxFeePerGas??fees?.gasPrice??null,cost=gas!==null&&maxFee!==null?gas*maxFee*120n/100n:null;
+  if(typeof gas!=='bigint'||gas<=0n){gas=null;if(!blockers.some(b=>b.includes('gas estimate failed')))blockers.push('A valid gas estimate is unavailable; execution remains unverified');}
+  const suppliedFee=fees?.maxFeePerGas??fees?.gasPrice??null;
+  const maxFee=typeof suppliedFee==='bigint'&&suppliedFee>0n?suppliedFee:null;
+  if(maxFee===null)blockers.push('Network fee evidence is unavailable; native gas affordability is unknown');
+  const cost=gas!==null&&maxFee!==null?gas*maxFee*120n/100n:null;
   if(cost!==null&&cost>BigInt(s.nativeBalanceRaw))blockers.push('Insufficient native ETH for gas reserve');
   if(after.liquidatable)blockers.push('Modeled health factor below liquidation threshold');
   const nonce=await rpc.getTransactionCount({address:s.wallet,blockNumber});

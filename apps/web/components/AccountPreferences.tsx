@@ -19,7 +19,7 @@ export function AccountPreferencesProvider({children}:{children:ReactNode}){
   if(!account){try{const cached=JSON.parse(localStorage.getItem(APPEARANCE_CACHE)||'null');current=storedPreferences({theme:cached?.theme??(localStorage.getItem('rivexis_theme')==='light'?'light':'dark'),motion:cached?.motion??'system',contrast:cached?.contrast??'standard',density:cached?.density??'comfortable',textSize:cached?.textSize??'standard'});}catch{}}
   const update=()=>applyAppearance(current);update();const media=matchMedia('(prefers-color-scheme:light)');media.addEventListener('change',update);
   if(account){const {theme,motion,contrast,density,textSize}=preferences;try{localStorage.setItem(APPEARANCE_CACHE,JSON.stringify({theme,motion,contrast,density,textSize}));localStorage.setItem('rivexis_theme',document.documentElement.dataset.theme||'dark')}catch{}}
-  return()=>media.removeEventListener('change',update);
+  const motion=(event:Event)=>{const value=(event as CustomEvent).detail;if(value!=='reduce'&&value!=='system')return;current={...current,motion:value};update()};window.addEventListener('rivexis-public-motion',motion);return()=>{media.removeEventListener('change',update);window.removeEventListener('rivexis-public-motion',motion)};
  },[account,preferences]);
  return <Context.Provider value={{preferences,account}}>{children}</Context.Provider>;
 }

@@ -24,7 +24,7 @@ test('deployed shared background pauses and respects reduced motion',async({page
  // Server-rendered art can be visible before its client effect is mounted.
  const session=page.waitForResponse(r=>r.url().endsWith('/api/v1/auth/session-status')&&r.status()===200);
  await page.goto('/');await session;
- await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','true');await page.getByRole('button',{name:'Pause background motion',exact:true}).click();await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','false');await page.emulateMedia({reducedMotion:'reduce'});await expect(page.getByRole('button',{name:'Background motion disabled',exact:true})).toBeDisabled();await expect(page.locator('.precisionPointer')).toBeHidden();
+ await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','true');await page.getByText('Motion preferences',{exact:true}).click();await page.getByRole('button',{name:'Pause background motion',exact:true}).click();await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','false');await page.emulateMedia({reducedMotion:'reduce'});await expect(page.locator('.backgroundMotionButton')).toHaveCount(0);await expect(page.locator('.precisionPointer')).toBeHidden();
 });
 
 test('real guest auth pages render secure forms without submitting any credentials',async({page})=>{
