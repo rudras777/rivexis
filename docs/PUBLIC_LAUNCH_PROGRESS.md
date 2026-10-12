@@ -1,5 +1,11 @@
 # RIVEXIS public-launch engineering — resumable record
 
+## Current verified state — 2026-10-13 IST
+
+Production source b2ed4c94d0f53ddc05fa2c15f98468b50054c101 is live on the existing URL, Worker ce7d15b1-6c49-497f-b819-5717b37fb903 at100%. API29 exact21-file verification remains valid. Main CI38289868663 passed131 browser cases and release gates. Final actual-production13/13 passed; performance probes2/2 passed, LCP1968ms desktop /2064ms mobile at4xCPU, CLS0. Final scoped provider regressions38/38 passed. No layout/branding redesign, production data deletion or plan change.
+
+Read [PUBLIC_LAUNCH_RELEASE.md](PUBLIC_LAUNCH_RELEASE.md) for final evidence, supported coverage, rollback and next steps. Historical pending statements below are a chronological record, superseded by that report. Decision: NOT READY — CRITICAL BLOCKERS REMAIN for unrestricted public launch. Remaining gates: controlled PostgreSQL maintenance/extension/password-protection review, fresh email/native-wallet certification, existing deploy-automation credential repair. Do not repeat completed engineering or claim these gates resolved.
+
 Baseline main/live9d203a1951a00d1f1493d85ed385e9a78bbf7fe2. Safe branch feat/public-launch-functional-integrity. Existing API28, source history, project/data and rollback records preserved. No production migrations or account upgrades authorized/performed.
 
 ## Active engineering
