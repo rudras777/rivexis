@@ -1,0 +1,13 @@
+"use client";
+import {useEffect,useRef,useState} from 'react';
+import {usePathname} from 'next/navigation';
+const paths=['M-80 680C250 590 170 370 460 420S820 640 1240 200','M-60 715C290 630 210 410 490 455S860 665 1240 240','M-40 750C320 670 250 455 520 490S910 690 1240 280','M-20 785C340 715 290 505 550 525S950 720 1240 320'];
+export function BlockchainBackground(){
+ const path=usePathname(),ref=useRef<HTMLDivElement>(null),[paused,setPaused]=useState(false),[allowed,setAllowed]=useState(false),[visible,setVisible]=useState(true);
+ useEffect(()=>{const media=matchMedia('(prefers-reduced-motion:no-preference) and (forced-colors:none)');const update=()=>{setAllowed(media.matches&&document.documentElement.dataset.motion!=='reduce'&&!(navigator as Navigator&{connection?:{saveData?:boolean}}).connection?.saveData&&(navigator.hardwareConcurrency||4)>2);setVisible(!document.hidden)};media.addEventListener('change',update);document.addEventListener('visibilitychange',update);window.addEventListener('rivexis-appearance-change',update);update();return()=>{media.removeEventListener('change',update);document.removeEventListener('visibilitychange',update);window.removeEventListener('rivexis-appearance-change',update)}},[]);
+ const context=path.includes('/settings')?'settings':path.startsWith('/workspace')?'workspace':/\/(login|signup|verify-email|forgot-password|reset-password)/.test(path)?'auth':'public';
+ return <><div ref={ref} className="blockchainBackground" aria-hidden="true" data-context={context} data-moving={allowed&&!paused&&visible}>
+  <div className="blockchainDepth"><svg className="blockchainLines" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="var(--soft)" strokeWidth=".7">{paths.map((d,i)=><path key={d} d={d} opacity={.35+i*.12}/>)}</g><path d={paths[1]} className="blockchainSignal" fill="none" stroke="var(--bronze)" strokeWidth="1" strokeDasharray="8 1400"/><g fill="var(--soft)">{[[185,600],[465,445],[815,515],[1070,350]].map(([x,y])=><circle key={x} cx={x} cy={y} r="2.5" className="blockchainNode"/>)}</g></svg>
+  {[0,1,2].map(i=><div className={`blockchainCube cube${i}`} key={i}>{['front','back','left','right','top','bottom'].map(face=><span className={face} key={face}/>)}</div>)}</div>
+ </div><button className="backgroundMotionButton" type="button" aria-label={!allowed?'Background motion disabled':paused?'Resume background motion':'Pause background motion'} aria-pressed={paused} disabled={!allowed} onClick={()=>setPaused(!paused)} title={!allowed?'Your accessibility or device preferences use a static background':paused?'Resume background motion':'Pause background motion'}><span aria-hidden="true">{paused||!allowed?'▷':'Ⅱ'}</span></button></>;
+}
