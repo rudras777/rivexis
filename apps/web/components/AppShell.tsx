@@ -9,6 +9,7 @@ import {useDeFi} from "./DeFiContext";
 import {WorkspaceNavigation} from "./WorkspaceNavigation";
 import {useWalletConnection} from "./WalletConnection";
 import {Brand} from "./Brand";
+import {MarketContextProvider} from "./MarketContext";
 import {useAccountPreferences} from "./AccountPreferences";
 import {WorkspaceContextProvider,type WorkspaceSummary} from "./WorkspaceContext";
 import {
@@ -115,6 +116,6 @@ export function AppShell({children}:{children:React.ReactNode}){
     </header>
     <div className="workspaceScope"><label className="workspaceSelector">ACTIVE WORKSPACE<select value={selected} onChange={e=>change(e.target.value)}>{q.data.items.map(w=><option key={w.id} value={w.id}>{w.name} · {w.access_role}</option>)}</select></label><span>Risk · Value · Execution · Analysis</span></div>
     {logoutError?<div className="shellLogoutError error" role="alert">{logoutError}</div>:null}
-    <main className="workspaceMain" id="workspace-main"><WorkspaceContextProvider value={contextValue}>{children}</WorkspaceContextProvider></main>
+    <main className="workspaceMain" id="workspace-main"><WorkspaceContextProvider value={contextValue}><MarketContextProvider>{children}</MarketContextProvider></WorkspaceContextProvider></main>
   </div>;
 }
