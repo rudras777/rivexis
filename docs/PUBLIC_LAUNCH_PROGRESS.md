@@ -2,6 +2,8 @@
 
 ## Current verified state — 2026-10-13 IST
 
+Follow-up: genuine recovery email delivery verified in Gmail and Brevo at00:05 IST using retained QA identity, no credential change. Native Cloudflare build for b2ed4c9 confirmed Ready; GitHub manual deployment secret is separate optional maintenance. Supabase owner dashboard offers17.11.0.003 with up to1hour downtime/no downgrade; inspection cancelled before submission. Free plan and paid-only leaked-password protection verified. Full backup/restore certification and explicit maintenance approval remain required; see release report follow-up.
+
 Production source b2ed4c94d0f53ddc05fa2c15f98468b50054c101 is live on the existing URL, Worker ce7d15b1-6c49-497f-b819-5717b37fb903 at100%. API29 exact21-file verification remains valid. Main CI38289868663 passed131 browser cases and release gates. Final actual-production13/13 passed; performance probes2/2 passed, LCP1968ms desktop /2064ms mobile at4xCPU, CLS0. Final scoped provider regressions38/38 passed. No layout/branding redesign, production data deletion or plan change.
 
 Read [PUBLIC_LAUNCH_RELEASE.md](PUBLIC_LAUNCH_RELEASE.md) for final evidence, supported coverage, rollback and next steps. Historical pending statements below are a chronological record, superseded by that report. Decision: NOT READY — CRITICAL BLOCKERS REMAIN for unrestricted public launch. Remaining gates: controlled PostgreSQL maintenance/extension/password-protection review, fresh email/native-wallet certification, existing deploy-automation credential repair. Do not repeat completed engineering or claim these gates resolved.
