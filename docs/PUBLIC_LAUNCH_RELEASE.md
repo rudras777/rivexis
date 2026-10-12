@@ -40,7 +40,7 @@ Local evidence is in the task outputs directory: launch-final-production-results
 
 ## Genuine signed-in production observations
 
-Final b2ed4c9 Overview rendered real ETH/BTC oracle histories and fee observations at block26178195. Earlier this release session, automatic polling advanced block26177989 to26177995 and fee points4 to8 without manual refresh. An independent RPC probe matched prices.
+Final b2ed4c9 Overview rendered real ETH/BTC oracle histories and fee observations at block26178195. Without manual refresh it advanced to26178206, ETH changed2505.0706 to2510.2965, ETH history3 to4 points and fee history4 to12 points. Earlier this release session, automatic polling advanced block26177989 to26177995 and fee points4 to8 without manual refresh. An independent RPC probe matched prices.
 
 Live Aave inspection at block26177999 produced exact independently reconciled collateral2943284562483, debt1498915388721 and health-factor1629795921266375804 raw units. A20% WETH shock,3000USD budget,1.50 target and25USD assumed fee produced a bounded2000USDT repayment alternative costing2022.81216USD with modeled HF1.504340668969199755. All49 replay checks passed; approval/execution remained unverified.
 
