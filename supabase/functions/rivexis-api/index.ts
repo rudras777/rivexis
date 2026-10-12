@@ -313,9 +313,12 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
   if(path==="/api/v1/auth/web/csrf")return json(req,{csrf_token:auth.session.csrf},200,auth.cookie);
   if(path==="/api/v1/auth/logout"&&method==="POST"){
     const client=createClient(SUPABASE_URL,ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
-    await client.auth.setSession({access_token:auth.session.access_token,refresh_token:auth.session.refresh_token});
-    await client.auth.signOut({scope:"local"});
-    return json(req,{status:"revoked",scope:"current_session"},200,clearCookie());
+    let refreshSessionRevoked=false;
+    try{
+      const established=await client.auth.setSession({access_token:auth.session.access_token,refresh_token:auth.session.refresh_token});
+      if(!established.error&&established.data?.session){const result=await client.auth.signOut({scope:"local"});refreshSessionRevoked=!result.error;}
+    }catch{/* The browser cookie is cleared even when the identity provider fails. */}
+    return json(req,{status:refreshSessionRevoked?"revoked":"browser_session_cleared",scope:"current_session",refreshSessionRevoked,accessTokensMayRemainValidUntilExpiry:true},200,clearCookie());
   }
   if(path==="/api/v1/me"&&method==="GET")return json(req,{id:auth.user.id,email:auth.user.email,role:auth.appUser.role,email_verified:Boolean(auth.user.email_confirmed_at)},200,auth.cookie);
   if(path==="/api/v1/me/role"&&method==="PATCH"){

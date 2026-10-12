@@ -19,7 +19,7 @@ export function BoundedMonitor(){
       if(latest.current.snapshot?.wallet!==wallet||latest.current.snapshot?.coverage!==coverage&&!(coverage==="aave"&&latest.current.snapshot?.coverage===undefined)){stop("Checks stopped because the inspected wallet changed.");return}
       busy=true;
       try{
-        const body=await api<Snapshot>('/api/v1/defi/snapshot',{method:'POST',body:JSON.stringify({wallet,coverage}),signal:controller.signal});
+        const body=await api<Snapshot>('/api/v1/defi/snapshot',{method:'POST',body:JSON.stringify({wallet,coverage}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(35000)])});
         if(cancelled)return;
         latest.current.setSnapshot(body as Snapshot);latest.current.setResult(null);used++;setChecks(used);
         setStatus(`Check ${used} of 5 complete. Latest block: ${body.blockNumber}.`);

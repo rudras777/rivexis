@@ -46,7 +46,8 @@ export function AppShell({children}:{children:React.ReactNode}){
   const [active,setActive]=useState("");
   const [loggingOut,setLoggingOut]=useState(false);
   const [logoutError,setLogoutError]=useState("");
-  const q=useQuery({queryKey:["workspaces-shell"],queryFn:()=>api<{items:WorkspaceSummary[]}>("/api/v1/workspaces"),retry:false});
+  const [logoutWarning,setLogoutWarning]=useState(false);
+  const q=useQuery({queryKey:["workspaces-shell"],queryFn:()=>api<{items:WorkspaceSummary[]}>("/api/v1/workspaces"),retry:false,enabled:!loggingOut&&!logoutWarning});
   const apiStatus=q.error instanceof ApiError?q.error.status:null;
 
   function clearWorkspaceQueries(workspaceId?:string|null){
@@ -57,13 +58,13 @@ export function AppShell({children}:{children:React.ReactNode}){
   useEffect(()=>{if(apiStatus!==401)return;clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset();window.dispatchEvent(new Event("rivexis-wallet-forget"))},[apiStatus,risk.reset]);
 
   useEffect(()=>{
-    if(!q.data)return;
+    if(!q.data||loggingOut||logoutWarning)return;
     if(!q.data.items.length){clearWorkspaceQueries();clearActiveWorkspaceId();setActive("");return}
     const stored=activeWorkspaceId();
     const chosen=q.data.items.find(w=>w.id===stored)?.id??q.data.items[0].id;
     if(stored&&stored!==chosen){clearWorkspaceQueries(stored);window.dispatchEvent(new CustomEvent("rivexis-workspace-change",{detail:{workspaceId:chosen,previousWorkspaceId:stored}}))}
     setActive(chosen);setActiveWorkspaceId(chosen);
-  },[q.data]);
+  },[q.data,loggingOut,logoutWarning]);
 
   function change(id:string){
     const previous=active||activeWorkspaceId();
@@ -75,15 +76,20 @@ export function AppShell({children}:{children:React.ReactNode}){
 
   async function logout(){
     if(loggingOut)return;setLoggingOut(true);setLogoutError("");
-    try{await api("/api/v1/auth/logout",{method:"POST"})}
+    let providerRevocationUnconfirmed=false;
+    try{const result=await api<{status:string;refreshSessionRevoked?:boolean}>("/api/v1/auth/logout",{method:"POST"});providerRevocationUnconfirmed=result.refreshSessionRevoked===false}
     catch(error){
       if(!(error instanceof ApiError)||error.status!==401){setLogoutError("Rivexis could not confirm logout. Retry before leaving this device.");setLoggingOut(false);return}
     }
-    clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset();window.dispatchEvent(new Event("rivexis-wallet-forget"));queryClient.removeQueries({queryKey:["public-session"]});sessionStorage.removeItem("rivexis_pending_destination");router.replace("/login");router.refresh();
+    clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset();window.dispatchEvent(new Event("rivexis-wallet-forget"));queryClient.removeQueries({queryKey:["public-session"]});sessionStorage.removeItem("rivexis_pending_destination");
+    void queryClient.cancelQueries({queryKey:["workspaces-shell"]});queryClient.removeQueries({queryKey:["workspaces-shell"]});
+    if(providerRevocationUnconfirmed){setLogoutWarning(true);setLoggingOut(false);return}
+    router.replace("/login");router.refresh();
   }
 
   useEffect(()=>{const request=()=>{void logout()};window.addEventListener("rivexis-request-logout",request);return()=>window.removeEventListener("rivexis-request-logout",request)},[loggingOut]);
 
+  if(logoutWarning)return <ShellState kind="session" title="Browser signed out" message="Your browser session and workspace data have been cleared. The identity provider could not confirm revocation of this refresh session. Previously issued access tokens may remain valid until expiry." action={<><Link className="button" href="/login">Log in again</Link><Link className="ghost" href="/">Public site</Link></>}/>;
   if(q.isPending)return <ShellState kind="loading" title="Loading workspace access" message="Rivexis is verifying your session and authorized workspaces before showing workspace navigation."/>;
   if(q.isError){
     if(apiStatus===401)return <ShellState kind="session" title="Session ended" message="Your Rivexis session is missing, expired, or revoked. Workspace data has not been shown." action={<><Link className="button" href={authHref("/login",safeDestination(p))}>Log in again</Link><Link className="ghost" href="/">Public site</Link></>}/>;
