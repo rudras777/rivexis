@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from backup_restore_guard import require_disposable_restore
 
 SRC = os.getenv('RIVEXIS_BACKUP_SOURCE_DATABASE_URL', '').strip()
 DST = os.getenv('RIVEXIS_BACKUP_RESTORE_DATABASE_URL', '').strip()
@@ -22,10 +23,7 @@ if not SRC or not DST:
 if not ALLOW:
     print('SKIP PostgreSQL DR certification: destructive restore requires RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY=true')
     raise SystemExit(0)
-if SRC == DST:
-    raise SystemExit('PostgreSQL DR certification: FAIL - restore target must differ from source')
-if not SRC.startswith('postgresql') or not DST.startswith('postgresql'):
-    raise SystemExit('PostgreSQL DR certification: FAIL - PostgreSQL URLs required')
+require_disposable_restore(SRC, DST)
 for tool in ('pg_dump', 'pg_restore', 'psql'):
     if not shutil.which(tool):
         raise SystemExit(f'PostgreSQL DR certification: FAIL - {tool} is required')
