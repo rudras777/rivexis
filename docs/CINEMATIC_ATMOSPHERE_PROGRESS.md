@@ -17,3 +17,7 @@ Cube face classes now avoid the global `.top` navigation selector, preventing st
 First build pair and first 16 Chromium/Edge background checks passed. Visual review prompted cube-face collision and hero-position corrections; final builds and regression checks are in progress. Final CI and production gates must pass before claiming release complete. No production deployment of this branch yet.
 
 Existing limitations remain: bounded financial beta coverage, provider approval not tested with an installed real wallet, no Safari/Firefox certification, no Lighthouse/field performance certification. Final evidence and deployed SHA will be appended after release.
+
+## Live mobile correction
+
+PR61 deployed as a873386bcd5d2fa3e01b69d781d99a0d0b24abbc. Public commit, Cloudflare version f0b492d1 at100%, all90 CI browser and13 actual production tests passed. Visual inspection of the live390px screenshot nevertheless found a hard right edge: a global SVG max-width rule constrained the intentionally wider mobile scene. Follow-up branch fix/continuous-mobile-blockchain-background sets max-width:none on the decorative SVG and checks its right boundary at local and actual production mobile widths. This is a rendering-only correction; no financial/API changes. Releasing this correction is required before final completion.
