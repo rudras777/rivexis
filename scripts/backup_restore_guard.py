@@ -63,10 +63,11 @@ def run_postgres_tool(tool: str, arguments: list[str], connection: str):
     for key, value in parse_qsl(uri.query):
         if key == 'sslmode':
             env['PGSSLMODE'] = value
-    command = [tool, '--no-password', *arguments]
+    command = [tool, '--no-password']
     if tool == 'pg_restore':
         # pg_restore otherwise prints SQL rather than connecting to a database.
         command.extend(['--dbname', env['PGDATABASE']])
+    command.extend(arguments)
     try:
         return subprocess.run(command, env=env, check=True, text=True, capture_output=True, timeout=900)
     except (subprocess.SubprocessError, OSError, ValueError):

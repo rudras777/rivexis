@@ -93,7 +93,7 @@ class RestoreGuardTests(unittest.TestCase):
                         self.assertEqual((env['PGHOST'], env['PGPORT'], env['PGDATABASE'], env['PGPASSWORD']),
                                          ('127.0.0.1', '5433', 'rivexis_restore_dr', 'local-secret'))
                     if tool == 'pg_restore':
-                        self.assertEqual(argv[-2:], ['--dbname', 'rivexis_restore_dr'])
+                        self.assertEqual(argv[2:4], ['--dbname', 'rivexis_restore_dr'])
 
     def test_command_failures_do_not_include_sensitive_output(self):
         failures = [subprocess.CalledProcessError(1, ['pg_dump', self.source],
