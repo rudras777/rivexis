@@ -28,6 +28,7 @@ jobs:
       - run: npm run test:api-edge
       - run: npm run test:defi
       - run: node --test apps/web/lib/market-feed.test.mjs
+      - run: node --test apps/web/lib/api.test.mjs
       - run: npm run lint:web
       - run: npm run typecheck:web
       - run: npm run build:web
