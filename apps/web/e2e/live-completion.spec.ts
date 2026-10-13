@@ -7,12 +7,18 @@ test('the existing production URL serves the intended exact build and continuous
  await page.setViewportSize({width:1440,height:900});await page.screenshot({path:path.join(output,'completion-live-guest-desktop.png')});
  const illustration=page.locator('.thresholdPlate');await expect(illustration.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);await expect(illustration.locator('.healthAxis')).toHaveAttribute('aria-label',/threshold 1.000, baseline 1.333, scenario 1.066/);await expect(illustration).toContainText('Hypothetical inputs; no live oracle or execution evidence');await illustration.screenshot({path:path.join(output,'completion-live-liquidation-illustration.png')});
 });
-test('real guest sessions cannot open any financial workspace or educational workflow',async({page,request})=>{
+test('real guest session status is unauthenticated',async({request})=>{
  const status=await request.get('/api/v1/auth/session-status');expect(await status.json()).toEqual({authenticated:false,email_verified:false});
- for(const route of ['/workspace','/workspace/scenarios','/workspace/frontier','/workspace/transactions','/workspace/reports','/workspace/settings','/workspace/settings/workspaces']){await page.goto(route);await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toHaveCount(0)}
- for(const route of ['/app','/demo']){await page.goto(route);await expect(page.getByRole('heading',{name:'Your intelligence workspace',exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'Log in',exact:true})).toHaveAttribute('href','/login?next='+encodeURIComponent(route));await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0)}
- for(const route of ['/api/v1/workspaces','/api/v1/defi-reports','/api/v1/account/settings','/api/v1/account/export'])expect((await request.get(route)).status()).toBe(401);
- await page.screenshot({path:path.join(output,'completion-live-guest-gate.png')});
+});
+for(const route of ['/workspace','/workspace/scenarios','/workspace/frontier','/workspace/transactions','/workspace/reports','/workspace/settings','/workspace/settings/workspaces'])test(`real guest cannot open ${route}`,async({page})=>{
+ await page.goto(route);await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toHaveCount(0);
+ if(route==='/workspace')await page.screenshot({path:path.join(output,'completion-live-guest-gate.png')});
+});
+for(const route of ['/app','/demo'])test(`real guest cannot open educational workflow ${route}`,async({page})=>{
+ await page.goto(route);await expect(page.getByRole('heading',{name:'Your intelligence workspace',exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'Log in',exact:true})).toHaveAttribute('href','/login?next='+encodeURIComponent(route));await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0);
+});
+for(const route of ['/api/v1/workspaces','/api/v1/defi-reports','/api/v1/account/settings','/api/v1/account/export'])test(`real guest API access is rejected: ${route}`,async({request})=>{
+ expect((await request.get(route)).status()).toBe(401);
 });
 test('deployed mobile themes retain accessible navigation, native motion fallback and no overflow',async({page})=>{
  test.setTimeout(60000);await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:390,height:844});
