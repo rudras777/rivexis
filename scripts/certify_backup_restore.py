@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib, os, shutil, sqlite3, subprocess, sys, tempfile
 from contextlib import closing
 from pathlib import Path
+from backup_restore_guard import require_disposable_restore
 ROOT=Path(__file__).resolve().parents[1];API=ROOT/'apps'/'api'
 
 def sha256(path:Path)->str:
@@ -35,6 +36,7 @@ def postgres_certification():
     if os.getenv('RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY','false').lower() not in {'1','true','yes','on'}:
         print('SKIP PostgreSQL backup/restore certification: set RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY=true only for an approved disposable restore target')
         return
+    require_disposable_restore(src, dst)
     if not shutil.which('pg_dump') or not shutil.which('pg_restore'):
         raise SystemExit('PostgreSQL backup certification requires pg_dump and pg_restore')
     with tempfile.TemporaryDirectory(prefix='rivexis-pg-backup-') as tmp:
@@ -43,4 +45,5 @@ def postgres_certification():
         subprocess.run(['pg_restore','--clean','--if-exists','--no-owner','--dbname',dst,str(dump)],check=True)
         print(f'PostgreSQL backup/restore certification: PASS (sha256={sha256(dump)})')
 
-sqlite_certification();postgres_certification()
+if __name__ == '__main__':
+    sqlite_certification();postgres_certification()
