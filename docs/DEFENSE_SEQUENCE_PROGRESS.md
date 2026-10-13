@@ -37,3 +37,5 @@ CI, API deployment, Cloudflare deployment and actual authenticated production ve
 Ethereum method semantics: https://ethereum.github.io/execution-apis/api/methods/eth_simulateV1/ . Current Supabase changelog checked: CBC TLS 1.2 removal starts no earlier than 2026-11-10; modern existing browser/Node/Deno clients require no weakening or account change (https://supabase.com/changelog/cbc-tls-ciphers-deprecated).
 
 Final focused browser run: all ten passed, zero retries, 13.6 seconds. Full CI and deployed checks remain pending.
+
+Final engine hardening verifies observed starting token balances against the exact snapshot and successful aggregate token consumption against both proposed amounts. Captured source oracle inputs and provider provenance are retained. All 203 financial/API tests passed, including 13 sequence-engine cases. Final actual reconciled engine probe passed again at parent 26186189; USDT 2000000000 -> 1997000000 raw. Evidence: outputs/production-sequence-engine-reconciled-probe.json. CI must certify this final source revision before deployment.
