@@ -11,6 +11,7 @@ const POOL='0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
 const USDT='0xdAC17F958D2ee523a2206206994597C13D831ec7';
 const WETH='0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
 const poolAbi=parseAbi([
+ 'function getUserEMode(address user) view returns(uint256)',
  'function getUserAccountData(address user) view returns (uint256,uint256,uint256,uint256,uint256,uint256)',
  'function repay(address asset,uint256 amount,uint256 interestRateMode,address onBehalfOf) returns(uint256)',
  'function withdraw(address asset,uint256 amount,address to) returns(uint256)',
@@ -98,6 +99,8 @@ export async function certify(receipt,rpc=createRpc()){
  const snapshot=receipt.snapshot;assert.ok(/^\d+$/.test(snapshot?.blockNumber??'')&&/^0x[\da-f]{64}$/i.test(snapshot.blockHash),'Invalid parent identity');
  assert.equal(await rpc('eth_chainId',[]),'0x1','Ethereum mainnet parent state is required');
  const tag=quantity(snapshot.blockNumber),parent=await rpc('eth_getBlockByNumber',[tag,false]);assert.equal(lower(parent.hash),lower(snapshot.blockHash),'Captured parent no longer canonical');
+ const modeData=await rpc('eth_call',[{to:POOL,data:encodeFunctionData({abi:poolAbi,functionName:'getUserEMode',args:[snapshot.wallet]})},tag]);
+ assert.equal(decodeFunctionResult({abi:poolAbi,functionName:'getUserEMode',data:modeData}),0n,'Only Aave normal mode is certified');
  const fee=BigInt(parent.baseFeePerGas)*2n+1n,specs=buildCases(snapshot,fee),cases=[];
  for(const spec of specs){try{const payload={blockStateCalls:[{calls:spec.calls}],validation:true,traceTransfers:false,returnFullTransactions:false};assert.ok(!payload.blockStateCalls[0].stateOverrides&&!payload.blockStateCalls[0].blockOverrides);const result=await rpc('eth_simulateV1',[payload,tag]);cases.push(validateSimulation(result,spec,parent));}catch(error){error.certificationCase=spec.name;error.completedCases=cases;throw error;}}
  assert.equal(lower((await rpc('eth_getBlockByNumber',[tag,false])).hash),lower(parent.hash),'Parent identity changed during certification');

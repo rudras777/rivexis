@@ -33,6 +33,10 @@ test('wrong network or reorganized parent fails before any sequential simulation
  for(const chain of ['0x89','0x1']){const methods=[];await assert.rejects(certify({snapshot:reference.snapshot},async(method)=>{methods.push(method);return method==='eth_chainId'?chain:{...reference.parent,hash:'0x'+'f'.repeat(64)}}));assert.ok(!methods.includes('eth_simulateV1'));}
 });
 
+test('an actual nonzero eMode parent cannot be certified as normal mode',async()=>{
+ const methods=[];await assert.rejects(certify({snapshot:reference.snapshot},async method=>{methods.push(method);if(method==='eth_chainId')return '0x1';if(method==='eth_getBlockByNumber')return {...reference.parent,baseFeePerGas:'0x1'};return '0x'+'1'.padStart(64,'0')}),/normal mode/);assert.ok(!methods.includes('eth_simulateV1'));
+});
+
 test('samples, unsupported protocol coverage and unfunded wallets cannot be relabeled genuine',()=>{
  const sample=clone(reference.snapshot);sample.sample=true;assert.throws(()=>buildCases(sample,1n));
  const morpho=clone(reference.snapshot);morpho.positions[0].protocol='Morpho Blue';assert.throws(()=>buildCases(morpho,1n));

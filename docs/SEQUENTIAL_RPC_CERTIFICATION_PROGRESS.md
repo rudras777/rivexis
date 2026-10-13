@@ -29,7 +29,7 @@ All 12 actual cases passed twice before the final metadata update:
 
 Expected failures retain provider revert evidence; legacy USDT failures have empty revert data. They are not replaced with invented readable protocol reasons. Every result is checked for exact call count/status, parent identity, gas, timestamp and decoded before/after asset/debt/health effects.
 
-Nine unit tests cover mutation-method rejection, overlapping RPC response identities, provider/malformed failures, request/payload limits, chain/reorganization rejection, sample/unsupported/unfunded inputs, captured replay and corrupted/false-success evidence. They run in CI without public RPC calls. The captured replay fixture is explicitly historical; it is not a mocked live success claim.
+Ten unit tests cover mutation-method rejection, overlapping RPC response identities, provider/malformed failures, request/payload limits, chain/reorganization/eMode rejection, sample/unsupported/unfunded inputs, captured replay and corrupted/false-success evidence. They run in CI without public RPC calls. The captured replay fixture is explicitly historical; it is not a mocked live success claim.
 
 ## Security, access and costs
 
@@ -43,10 +43,12 @@ No signatures, transactions, account changes, credentials, state overrides, data
 
 Task outputs/aave-sequential-rpc-certification.json retains the complete actual call evidence; certification-reports/aave-sequential-rpc-reference.json contains a small labelled replay. Existing readiness matrix was rewritten because it still incorrectly described the retired ten-engine product and obsolete deployment blockers. Previous matrix remains in Git history.
 
-Final safety rerun: nine passed. A later historical-parent rerun failed explicitly because the provider no longer served that state. The earlier successful full evidence is retained as outputs/aave-sequential-rpc-certification-initial-success.json; the diagnosed failure is retained as outputs/aave-sequential-rpc-historical-unavailable.json. The harness now invalidates old success files before parsing/probing and writes FAILED on provider/input failures; no automatic retry or silent latest-block fallback. Real probes are paced and capped.
+Final safety rerun: ten passed. A later historical-parent rerun failed explicitly because the provider no longer served that state. The earlier successful full evidence is retained as outputs/aave-sequential-rpc-certification-initial-success.json; the diagnosed failure is retained as outputs/aave-sequential-rpc-historical-unavailable.json. The harness now invalidates old success files before parsing/probing and writes FAILED on provider/input failures; no automatic retry or silent latest-block fallback. Real probes are paced and capped.
 
 A fresh real snapshot was explicitly refreshed and exported through the existing authenticated website. All twelve cases then passed on parent block 26184896, hash 0xd40df8e2d8ce11ea6a93689ad379b1a9b37c88eb8f0c3c541ec425442f89bbc5. Run 2026-10-13T16:56:22.740Z -> 2026-10-13T16:56:31.951Z. Final complete evidence SHA256: b4bfc437c261fda06c87c35148b0254eca0b987cdf8df2068559ed0a3c0e7595. This records only that parent state; historical-state availability from the free provider is not guaranteed. Production multi-action integration requires further validation and cannot be represented as shipped by this certification script.
 
 Release CI, exact deployment commit and independent production checks are pending. Remaining launch access gates: full production backup/restore, email-domain DNS authentication and native-wallet approval testing. Production multi-action integration and broader sequence certification remain separate work.
 
 Official method semantics: https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-eth and https://ethereum.github.io/execution-apis/api/methods/eth_simulateV1/ . Password protection availability: https://supabase.com/docs/guides/auth/password-security . Advisor remediation: https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public .
+
+Final normal-mode check also reads Pool.getUserEMode at the exact parent and rejects nonzero modes before any sequence. The final actual rerun passed twelve cases at parent 26184896, 2026-10-13T17:14:13.890Z -> 2026-10-13T17:14:28.884Z. Evidence: outputs/aave-sequential-rpc-final-mode-check.json, SHA256 7c43f0da27f78375dcd134ea282422cb87427e0de2e939c5c3fbb17549eb60b5. Ten safety tests passed.
