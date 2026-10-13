@@ -7,7 +7,7 @@ import {parseRole,roleOrDefault} from "./role.mjs";
 import {handleDefi,validWallet,readRequestText} from "./defi-http.mjs";
 import {client} from "./defi-rpc.mjs";
 import {snapshot,COVERAGE} from "./defi-portfolio-rpc.mjs";
-import {frontier} from "./defi-unified-model.mjs";
+import {frontier,validateSnapshot} from "./defi-unified-model.mjs";
 import {liquidationAnalysis} from "./defi-liquidation.mjs";
 import {accountSettings} from "./defi-account-settings.mjs";
 import {handleOnChain} from "./onchain-http.mjs";
@@ -295,19 +295,29 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
     if(input.sample!==true){
       if(input.coverage!==undefined&&(typeof input.coverage!=="string"||!COVERAGE.includes(input.coverage)))return error(req,422,"Unsupported coverage",auth.cookie);
       if(typeof input.wallet!=="string"||!validWallet(input.wallet))return error(req,422,"Invalid wallet",auth.cookie);
-      const quota=await admin.rpc("rivexis_defi_quota",{p_wallet:input.wallet.toLowerCase()});
+      let quota;try{quota=await admin.rpc("rivexis_defi_quota",{p_wallet:input.wallet.toLowerCase()})}catch{return error(req,503,"Quota service unavailable; no report was saved",auth.cookie)}
       if(quota.error)return error(req,503,"Quota service unavailable",auth.cookie);
-      if(quota.data!==true)return error(req,429,"Free beta quota reached",auth.cookie);
+      if(quota.data===false)return error(req,429,"Beta quota reached; try later",auth.cookie);
+      if(quota.data!==true)return error(req,503,"Quota confirmation unavailable; no report was saved",auth.cookie);
     }
+    let state;
     try{
-      const state=input.sample===true?sampleSnapshot():await snapshot(input.wallet,client(Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com"),typeof input.coverage==='string'?input.coverage:'aave');
-      const constraints={budget:input.budget,target:input.target,gasReserve:input.gasReserve,shocks:input.shocks,objective:input.objective};
+      state=input.sample===true?sampleSnapshot():await snapshot(input.wallet,client(Deno.env.get("ETHEREUM_RPC_URL")||"https://ethereum.publicnode.com"),typeof input.coverage==='string'?input.coverage:'aave');
+      if(state.status==='UNSUPPORTED')return error(req,422,"This position uses unsupported protocol coverage; no report was saved",auth.cookie);
+      validateSnapshot(state);
+    }catch{return error(req,503,"Fresh protocol evidence could not be validated. Refresh the position and try again; no report was saved",auth.cookie)}
+    const constraints={budget:input.budget,target:input.target,gasReserve:input.gasReserve,shocks:input.shocks,objective:input.objective};
+    let receipt;
+    try{
       const result=frontier(state,constraints);
-      const receipt={model:result.model,sample:input.sample===true,snapshot:state,constraints,result,liquidation:liquidationAnalysis(state,input.shocks),createdAt:now(),classification:"MODEL_COMPARISON_NOT_EXECUTION"};
+      receipt={model:result.model,sample:input.sample===true,snapshot:state,constraints,result,liquidation:liquidationAnalysis(state,input.shocks),createdAt:now(),classification:"MODEL_COMPARISON_NOT_EXECUTION"};
+    }catch{return error(req,422,"Report constraints are invalid or unsupported. Review the budget, target and scenario; no report was saved",auth.cookie)}
+    try{
       const saved=await admin.rpc("rivexis_defi_save_report",{p_owner:auth.user.id,p_receipt:receipt});
-      if(saved.error)return error(req,409,"Report could not be saved. Accounts are limited to 20 reports.",auth.cookie);
+      if(saved.error?.code==='P0001'&&saved.error?.message==='Report limit reached: 20 per account')return error(req,409,"Your account has reached its 20-report limit",auth.cookie);
+      if(saved.error||typeof saved.data!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saved.data))return error(req,503,"Report save could not be confirmed. Check saved reports before retrying",auth.cookie);
       return json(req,{id:saved.data,receipt},201,auth.cookie);
-    }catch{return error(req,422,"Report requires valid constraints and fresh supported protocol evidence",auth.cookie);}
+    }catch{return error(req,503,"Report save could not be confirmed. Check saved reports before retrying",auth.cookie)}
   }
 
   if(path==="/api/v1/auth/web/csrf")return json(req,{csrf_token:auth.session.csrf},200,auth.cookie);
