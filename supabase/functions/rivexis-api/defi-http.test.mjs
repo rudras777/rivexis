@@ -124,3 +124,9 @@ test('sequence unsupported provider method cannot be labelled a user mistake or 
  const original=globalThis.fetch;globalThis.fetch=async(_url,init)=>{const request=JSON.parse(init.body);return Response.json({jsonrpc:'2.0',id:request.id,error:{code:-32601,message:'secret provider diagnostic'}})};
  try{const r=await handleDefi(request(validSequence),sequence,{rpc:async()=>({data:true})});assert.equal(r.status,503);const body=await r.json();assert.equal(body.status,'UNKNOWN');assert.ok(!JSON.stringify(body).includes('secret provider diagnostic'))}finally{globalThis.fetch=original}
 });
+
+test('bounded Morpho sequences validate protocol, position and precision before quota',async()=>{
+ const morpho={wallet,coverage:'morpho-wbtc',actions:[{kind:'repay',asset:'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',amount:'0.001',positionId:`morpho-blue:1:0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49:${wallet}`}]};
+ let quotas=0;assert.equal((await handleDefi(request(morpho),sequence,{rpc:async()=>{quotas++;return {data:false}}})).status,429);assert.equal(quotas,1);
+ for(const changed of [{amount:'0.0000001'},{asset:'0x'+'2'.repeat(40)},{positionId:`aave-v3:1:${wallet}`},{sharesRaw:'1'}])assert.equal((await handleDefi(request({...morpho,actions:[{...morpho.actions[0],...changed}]}),sequence,noQuota)).status,422);
+});
