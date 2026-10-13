@@ -102,9 +102,11 @@ jobs:
           RIVEXIS_BACKUP_RESTORE_DATABASE_URL: postgresql://postgres:ci_only@127.0.0.1:5432/rivexis_restore_ci
           RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY: 'true'
         run: |
-          if [ -x /usr/lib/postgresql/17/bin/pg_dump ]; then
-            export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          if [ ! -x /usr/lib/postgresql/17/bin/pg_dump ]; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client-17
           fi
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
           pg_dump --version
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "CREATE DATABASE rivexis_restore_ci"
           python scripts/certify_postgres_dr.py
