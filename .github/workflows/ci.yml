@@ -95,3 +95,16 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "GRANT SELECT, INSERT, UPDATE ON public.users, public.data_sources TO rivexis_app"
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -f supabase/migrations/20261009145634_legacy_private_table_rls.sql
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -f supabase/tests/legacy_private_table_rls.sql
+      - name: Restore actual CI fixture into a disposable local database
+        env:
+          PGPASSWORD: ci_only
+          RIVEXIS_BACKUP_SOURCE_DATABASE_URL: postgresql://postgres:ci_only@127.0.0.1:5432/rivexis_ci
+          RIVEXIS_BACKUP_RESTORE_DATABASE_URL: postgresql://postgres:ci_only@127.0.0.1:5432/rivexis_restore_ci
+          RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY: 'true'
+        run: |
+          if [ -x /usr/lib/postgresql/17/bin/pg_dump ]; then
+            export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          fi
+          pg_dump --version
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "CREATE DATABASE rivexis_restore_ci"
+          python scripts/certify_postgres_dr.py

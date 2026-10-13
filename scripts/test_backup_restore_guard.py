@@ -122,13 +122,13 @@ class RestoreGuardTests(unittest.TestCase):
             if argv[0] == 'pg_dump':
                 Path(argv[argv.index('--file') + 1]).write_bytes(b'fixture archive')
                 self.assertEqual(kwargs['env']['PGHOST'], 'db.example.com')
-            else:
+            elif kwargs['env']['PGHOST'] == 'localhost':
                 self.assertEqual(kwargs['env']['PGDATABASE'], 'rivexis_restore_dr')
             return subprocess.CompletedProcess(argv, 0, stdout='55\n', stderr='')
 
         with patch.dict(os.environ, env, clear=True), patch('shutil.which', return_value='fixture-tool'), patch('subprocess.run', side_effect=fake_command) as run, redirect_stdout(io.StringIO()):
             runpy.run_path(str(scripts / 'certify_postgres_dr.py'))
-            self.assertEqual([call.args[0][0] for call in run.call_args_list], ['pg_dump', 'pg_restore', 'psql'])
+            self.assertEqual([call.args[0][0] for call in run.call_args_list], ['psql', 'pg_dump', 'pg_restore', 'psql'])
             run.reset_mock()
             legacy = runpy.run_path(str(scripts / 'certify_backup_restore.py'))
             legacy['postgres_certification']()
