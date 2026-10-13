@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib, os, shutil, sqlite3, subprocess, sys, tempfile
 from contextlib import closing
 from pathlib import Path
-from backup_restore_guard import require_disposable_restore
+from backup_restore_guard import require_disposable_restore, run_postgres_tool
 ROOT=Path(__file__).resolve().parents[1];API=ROOT/'apps'/'api'
 
 def sha256(path:Path)->str:
@@ -41,8 +41,8 @@ def postgres_certification():
         raise SystemExit('PostgreSQL backup certification requires pg_dump and pg_restore')
     with tempfile.TemporaryDirectory(prefix='rivexis-pg-backup-') as tmp:
         dump=Path(tmp)/'rivexis.dump'
-        subprocess.run(['pg_dump','--format=custom','--no-owner','--file',str(dump),src],check=True)
-        subprocess.run(['pg_restore','--clean','--if-exists','--no-owner','--dbname',dst,str(dump)],check=True)
+        run_postgres_tool('pg_dump',['--format=custom','--no-owner','--file',str(dump)],src)
+        run_postgres_tool('pg_restore',['--clean','--if-exists','--no-owner',str(dump)],dst)
         print(f'PostgreSQL backup/restore certification: PASS (sha256={sha256(dump)})')
 
 if __name__ == '__main__':

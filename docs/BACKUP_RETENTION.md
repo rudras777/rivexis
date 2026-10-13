@@ -8,6 +8,8 @@ PostgreSQL certification is opt-in with separate source and disposable restore-t
 
 Both legacy scripts now reject remote restore targets, source/target aliases, non-PostgreSQL URLs and connection-routing overrides before running `pg_restore --clean`. The restore database must be local and named `rivexis_restore_*`. Guard regressions run with `python -m unittest discover -s scripts -p test_backup_restore_guard.py`.
 
+PostgreSQL tool calls pass connection credentials through libpq child environment variables rather than command-line URLs. They remove inherited backup URLs from the child environment, suppress password prompts, have a 900-second per-command timeout and redact command failure output. Credentials still exist in the process environment; this is not encrypted credential storage. Tests mock tools and archives explicitly and do not perform a production dump/restore.
+
 These scripts remain procedural drills, not production backup certification: their archive is temporary, roles/storage/service secrets are not completely backed up, and the old PostgreSQL drill expects the legacy55-table fixture. Do not use a passing drill as the production upgrade gate. A durable complete backup and a restore of the actual deployed schema/data/auth/required service configuration must be independently verified before maintenance. Production currently has61 public tables; source-consistent row/data reconciliation, not a fixed fixture count, is required.
 
 Production release gates should document RPO/RTO, encryption, immutable/off-site storage, backup frequency, restore drills, retention/legal requirements, and access/audit controls.

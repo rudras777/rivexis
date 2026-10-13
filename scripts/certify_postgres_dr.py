@@ -10,7 +10,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from backup_restore_guard import require_disposable_restore
+from backup_restore_guard import require_disposable_restore, run_postgres_tool
 
 SRC = os.getenv('RIVEXIS_BACKUP_SOURCE_DATABASE_URL', '').strip()
 DST = os.getenv('RIVEXIS_BACKUP_RESTORE_DATABASE_URL', '').strip()
@@ -32,13 +32,13 @@ with tempfile.TemporaryDirectory(prefix='rivexis-pg-dr-') as tmp:
     dump = Path(tmp) / 'rivexis.dump'
     started = time.perf_counter()
     t0 = time.perf_counter()
-    subprocess.run(['pg_dump', '--format=custom', '--no-owner', '--file', str(dump), SRC], check=True)
+    run_postgres_tool('pg_dump', ['--format=custom', '--no-owner', '--file', str(dump)], SRC)
     dump_seconds = time.perf_counter() - t0
     t0 = time.perf_counter()
-    subprocess.run(['pg_restore', '--clean', '--if-exists', '--no-owner', '--dbname', DST, str(dump)], check=True)
+    run_postgres_tool('pg_restore', ['--clean', '--if-exists', '--no-owner', str(dump)], DST)
     restore_seconds = time.perf_counter() - t0
     verify_sql = "SELECT count(*) FROM information_schema.tables WHERE table_schema=current_schema() AND table_type='BASE TABLE' AND table_name <> 'alembic_version';"
-    p = subprocess.run(['psql', DST, '-Atc', verify_sql], check=True, text=True, capture_output=True)
+    p = run_postgres_tool('psql', ['-Atc', verify_sql], DST)
     table_count = int(p.stdout.strip())
     total = time.perf_counter() - started
     if table_count != 55:
