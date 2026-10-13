@@ -39,3 +39,5 @@ Ethereum method semantics: https://ethereum.github.io/execution-apis/api/methods
 Final focused browser run: all ten passed, zero retries, 13.6 seconds. Full CI and deployed checks remain pending.
 
 Final engine hardening verifies observed starting token balances against the exact snapshot and successful aggregate token consumption against both proposed amounts. Captured source oracle inputs and provider provenance are retained. All 203 financial/API tests passed, including 13 sequence-engine cases. Final actual reconciled engine probe passed again at parent 26186189; USDT 2000000000 -> 1997000000 raw. Evidence: outputs/production-sequence-engine-reconciled-probe.json. CI must certify this final source revision before deployment.
+
+Release regression review found that mixed Aave/Morpho two-action cards must retain their independent-preview limitation. Sequence wording is now conditional on all actions being Aave; the existing cross-protocol browser assertion remains unchanged. Superseded CI runs are not release evidence; final exact-source CI and focused cross-protocol regressions are required.
