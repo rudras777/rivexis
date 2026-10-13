@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 from urllib.parse import parse_qsl, unquote, urlsplit
 
 
@@ -40,3 +41,34 @@ def require_disposable_restore(source: str, target: str) -> None:
         raise SystemExit('Restore denied: target must be a local disposable rivexis_restore_* database')
     if any(os.environ.get(key) for key in ('PGHOSTADDR', 'PGSERVICE', 'PGSERVICEFILE', 'PGOPTIONS')):
         raise SystemExit('Restore denied: inherited PostgreSQL routing overrides must be removed')
+
+
+def run_postgres_tool(tool: str, arguments: list[str], connection: str):
+    """Keep connection credentials out of argv and redact tool failures.
+
+    Call only after require_disposable_restore validates both connections.
+    Credentials still exist in the child environment; this is not a secret vault.
+    """
+    uri = urlsplit(connection)
+    env = os.environ.copy()
+    for key in ('PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD',
+                'RIVEXIS_BACKUP_SOURCE_DATABASE_URL', 'RIVEXIS_BACKUP_RESTORE_DATABASE_URL'):
+        env.pop(key, None)
+    env.update(PGHOST=uri.hostname or '', PGPORT=str(uri.port or 5432),
+               PGDATABASE=unquote(uri.path.removeprefix('/')))
+    if uri.username is not None:
+        env['PGUSER'] = unquote(uri.username)
+    if uri.password is not None:
+        env['PGPASSWORD'] = unquote(uri.password)
+    for key, value in parse_qsl(uri.query):
+        if key == 'sslmode':
+            env['PGSSLMODE'] = value
+    command = [tool, '--no-password']
+    if tool == 'pg_restore':
+        # pg_restore otherwise prints SQL rather than connecting to a database.
+        command.extend(['--dbname', env['PGDATABASE']])
+    command.extend(arguments)
+    try:
+        return subprocess.run(command, env=env, check=True, text=True, capture_output=True, timeout=900)
+    except (subprocess.SubprocessError, OSError, ValueError):
+        raise SystemExit(f'PostgreSQL drill failed: {tool}; connection details and output withheld') from None
