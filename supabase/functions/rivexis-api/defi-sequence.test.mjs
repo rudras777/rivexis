@@ -1,0 +1,29 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {encodeFunctionResult,parseAbi} from 'viem';
+import {poolAbi} from './defi-rpc.mjs';
+import {buildDefenseSequence,decodeDefenseSequence,sequenceInputError} from './defi-sequence.mjs';
+const reference=JSON.parse(readFileSync(new URL('../../../certification-reports/aave-sequential-rpc-reference.json',import.meta.url),'utf8'));
+const original=reference.snapshot,usdt=original.positions[0].reserves.find(r=>r.symbol==='USDT');
+const input={wallet:original.wallet,coverage:'aave',actions:[{kind:'repay',asset:usdt.asset,amount:'1'}]};
+const parent={hash:original.blockHash,number:BigInt(original.blockNumber),timestamp:BigInt(original.blockTimestamp),baseFeePerGas:1n};
+const clone=x=>structuredClone(x);
+const prepare=(i=input,s=original,p=parent)=>buildDefenseSequence(i,s,p,original.blockTimestamp*1000);
+const account=(debt=100n)=>encodeFunctionResult({abi:poolAbi,functionName:'getUserAccountData',result:[1000n,debt,1n,8300n,8000n,1000000000000000000n]});
+const balanceAbi=parseAbi(['function balanceOf(address user) view returns(uint256)']);
+function result(p){return [{parentHash:parent.hash,number:'0x'+(parent.number+1n).toString(16),timestamp:'0x'+(parent.timestamp+12n).toString(16),baseFeePerGas:'0x1',calls:p.calls.map((_,i)=>({status:'0x1',gasUsed:'0x5208',returnData:p.calls[i].label==='Observe lending account'?account(i===0?100n:99n):p.calls[i].label.startsWith('Observe ')?encodeFunctionResult({abi:balanceAbi,functionName:'balanceOf',result:BigInt(p.assets[(i===1?i-1:i-(p.observerCount+p.steps.length)-1)].walletRaw)-(i===1?0n:p.actions.filter(a=>a.asset===p.assets[i-(p.observerCount+p.steps.length)-1].asset).reduce((n,a)=>n+BigInt(a.amountRaw),0n))}):'0x'}))}]}
+test('SQ01 one repayment produces bounded exact approval calls, no raw calldata input',()=>{const p=prepare();assert.equal(p.actions.length,1);assert.ok(p.calls.length<=8);assert.equal(p.calls[0].call.to,p.calls[p.observerCount+p.steps.length].call.to);assert.ok(!JSON.stringify(p.calls).includes('eth_send'))});
+test('SQ02 two same-token actions share one exact aggregate approval',()=>{const p=prepare({...input,actions:[...input.actions,...input.actions]});assert.equal(p.steps.length,4);assert.equal(p.steps.filter(x=>x.label.startsWith('Approve')).length,1);assert.ok(p.steps[1].call.data.endsWith((2000000n).toString(16).padStart(64,'0')))});
+test('SQ03 malformed, unbounded and arbitrary actions fail before provider',()=>{for(const actions of [[],Array(3).fill(input.actions[0]),[null],[{...input.actions[0],data:'0x1234'}],[{...input.actions[0],kind:'borrow'}],[{...input.actions[0],amount:'0'}],[{...input.actions[0],amount:'1e6'}]])assert.ok(sequenceInputError({...input,actions}));assert.ok(sequenceInputError({...input,coverage:'combined'}))});
+test('SQ04 stale, sample and restored evidence cannot be certified',()=>{assert.throws(()=>buildDefenseSequence(input,original,parent,(original.blockTimestamp+181)*1000));for(const key of ['sample','restoredReport']){const s=clone(original);s[key]=true;assert.throws(()=>prepare(input,s))}});
+test('SQ05 wrong account, mode or chain is rejected',()=>{for(const modify of [s=>s.wallet='0x'+'1'.repeat(40),s=>s.positions[0].eMode=1,s=>s.chainId=137]){const s=clone(original);modify(s);assert.throws(()=>prepare(input,s))}});
+test('SQ06 aggregate wallet and debt limits reject repeated over-allocation',()=>{for(const key of ['walletRaw','debtRaw']){const s=clone(original);s.positions[0].reserves.find(r=>r.asset===usdt.asset)[key]='1500000';assert.throws(()=>prepare({...input,actions:[...input.actions,...input.actions]},s))}});
+test('SQ07 ineligible collateral and native gas shortages fail closed',()=>{const s=clone(original);s.nativeBalanceRaw='0';assert.throws(()=>prepare(input,s));const i={...input,actions:[{kind:'supply',asset:usdt.asset,amount:'1'}]};assert.throws(()=>prepare(i))});
+test('SQ08 parent hash, number, timestamp and fee evidence must match',()=>{for(const p of [{...parent,hash:'0x'+'1'.repeat(64)},{...parent,number:parent.number+1n},{...parent,timestamp:parent.timestamp+1n},{...parent,baseFeePerGas:0n}])assert.throws(()=>prepare(input,original,p))});
+test('SQ09 complete successful evidence decodes actual before/after state',()=>{const p=prepare(),r=decodeDefenseSequence(result(p),p,parent);assert.equal(r.status,'SEQUENCE_PREVIEW_ONLY');assert.equal(r.before.debtRaw,'100');assert.equal(r.observedAfter.debtRaw,'99');assert.equal(r.steps.length,p.steps.length);assert.equal(r.stateOverrides,false)});
+test('SQ10 reverted steps retain partial state without a success label',()=>{const p=prepare(),r=result(p);r[0].calls[p.observerCount].status='0x0';const v=decodeDefenseSequence(r,p,parent);assert.equal(v.status,'BLOCKED');assert.equal(v.steps[0].status,'REVERTED');assert.equal(v.steps[0].revertData,'0x');assert.ok(v.blockers.length)});
+test('SQ11 corrupt or missing provider evidence never produces success',()=>{const p=prepare();for(const modify of [r=>r[0].calls.pop(),r=>r[0].parentHash='0x'+'1'.repeat(64),r=>r[0].timestamp='0x1',r=>r[0].calls[0].returnData='0x',r=>r[0].calls[1].gasUsed='0x0',r=>r[0].calls[1].status='0x2']){const r=result(p);modify(r);assert.throws(()=>decodeDefenseSequence(r,p,parent))}});
+test('SQ12 repeated operations do not mutate snapshot or input',()=>{const before=JSON.stringify({input,original});assert.deepEqual(prepare(),prepare());assert.equal(JSON.stringify({input,original}),before)});
+
+test('SQ13 forged successful token effects fail exact reconciliation',()=>{const p=prepare(),r=result(p);r[0].calls.at(-1).returnData=encodeFunctionResult({abi:balanceAbi,functionName:'balanceOf',result:BigInt(p.assets[0].walletRaw)});assert.throws(()=>decodeDefenseSequence(r,p,parent),/effects do not reconcile/)});
