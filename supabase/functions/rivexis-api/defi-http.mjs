@@ -43,6 +43,7 @@ const TRANSACTION_CONSTRAINTS=new Set([
  'Repayment exceeds selected amount','Unsupported Morpho action asset','Reserve cannot accept supply',
  'Reserve borrowing disabled','Reserve cannot accept collateral supply','Reserve borrowing is disabled',
  'Repayment exceeds debt','Withdrawal exceeds supplied balance','Collateral supply unsupported',
+ 'Unsupported Morpho sequence asset','Full Morpho repayment requires the individual share-based preview',
  'Unsupported sequence asset','Sequence supply requires existing eligible collateral','Sequence repayment exceeds observed debt',
  'Sequence exceeds observed wallet token balance','Insufficient native ETH for the bounded simulation gas reserve',
 ]);

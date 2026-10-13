@@ -2,18 +2,23 @@
 import {parseAbi,encodeFunctionData,decodeFunctionResult,isAddress} from 'viem';
 import {snapshot,client,POOL,poolAbi} from './defi-rpc.mjs';
 import {validateSnapshot,decimal,integer} from './defi-model.mjs';
+import {MORPHO_WBTC} from './defi-morpho-oracle.mjs';
+import {morphoDefenseSequence} from './defi-morpho-sequence.mjs';
+import {simulationBlock} from './defi-simulation-evidence.mjs';
 const tokenAbi=parseAbi(['function approve(address spender,uint256 amount) returns(bool)','function balanceOf(address user) view returns(uint256)']);
 const quantity=v=>'0x'+BigInt(v).toString(16);
-const validQuantity=v=>typeof v==='string'&&/^0x(?:0|[1-9a-f][0-9a-f]*)$/i.test(v);
 const hash=v=>typeof v==='string'&&/^0x[0-9a-f]{64}$/i.test(v);
 export function sequenceInputError(input){
- if(input.coverage!==undefined&&input.coverage!=='aave')return 'Sequence previews support Aave normal mode only';
+ if(input.coverage!==undefined&&!['aave','morpho-wbtc'].includes(input.coverage))return 'Sequence previews support Aave normal mode or the validated Morpho market only';
+ const positionPrefix=input.coverage==='morpho-wbtc'?`morpho-blue:1:${MORPHO_WBTC.marketId}`:'aave-v3:1';
  if(!Array.isArray(input.actions)||input.actions.length<1||input.actions.length>2)return 'Select one or two supported defense actions';
  for(const action of input.actions){
   if(!action||typeof action!=='object'||Array.isArray(action)||Object.keys(action).some(k=>!['kind','asset','amount','positionId'].includes(k)))return 'Invalid defense action';
   if(!['repay','supply'].includes(action.kind)||typeof action.asset!=='string'||!isAddress(action.asset,{strict:true})||/^0x0{40}$/i.test(action.asset))return 'Only supported repayment and supply actions can be sequenced';
-  if(action.positionId!==undefined&&(typeof action.positionId!=='string'||action.positionId.toLowerCase()!==`aave-v3:1:${String(input.wallet).toLowerCase()}`))return 'Sequence actions must belong to this Aave account';
-  try{if(decimal(action.amount,18)===0n)return 'Amount must be greater than zero'}catch{return 'Enter a positive decimal token amount with at most 18 decimal places'}
+  if(action.positionId!==undefined&&(typeof action.positionId!=='string'||action.positionId.toLowerCase()!==`${positionPrefix}:${String(input.wallet).toLowerCase()}`))return 'Sequence actions must belong to this protocol account';
+  if(input.coverage==='morpho-wbtc'&&action.asset.toLowerCase()!==(action.kind==='repay'?MORPHO_WBTC.loanToken:MORPHO_WBTC.collateralToken))return 'Unsupported Morpho sequence asset';
+  const decimals=input.coverage==='morpho-wbtc'?(action.kind==='repay'?6:8):18;
+  try{if(decimal(action.amount,decimals)===0n)return 'Amount must be greater than zero'}catch{return `Enter a positive decimal token amount with at most ${decimals} decimal places`}
  }
  return null;
 }
@@ -44,9 +49,7 @@ export function buildDefenseSequence(input,s,parent,now=Date.now()){
  return {snapshot:s,actions,steps,calls,maxFee,gasLimitReserve,observerCount,assets};
 }
 export function decodeDefenseSequence(result,prepared,parent){
- if(!Array.isArray(result)||result.length!==1)throw new Error('Incomplete sequence block');const b=result[0];
- if(!hash(b.parentHash)||b.parentHash.toLowerCase()!==parent.hash.toLowerCase()||!validQuantity(b.number)||BigInt(b.number)!==BigInt(parent.number)+1n||!validQuantity(b.timestamp)||BigInt(b.timestamp)!==BigInt(parent.timestamp)+12n||!validQuantity(b.baseFeePerGas)||BigInt(b.baseFeePerGas)<=0n||!Array.isArray(b.calls)||b.calls.length!==prepared.calls.length)throw new Error('Invalid sequence parent or call evidence');
- for(const c of b.calls)if(!['0x0','0x1'].includes(c.status)||!validQuantity(c.gasUsed)||BigInt(c.gasUsed)<=0n||BigInt(c.gasUsed)>1_000_000n||typeof c.returnData!=='string'||!/^0x(?:[0-9a-f]{2})*$/i.test(c.returnData))throw new Error('Invalid sequence result evidence');
+ const b=simulationBlock(result,prepared,parent);
  const afterIndex=prepared.observerCount+prepared.steps.length;
  if([...b.calls.slice(0,prepared.observerCount),...b.calls.slice(afterIndex)].some(c=>c.status!=='0x1'))throw new Error('Sequence account observation failed');
  const account=c=>{const v=decodeFunctionResult({abi:poolAbi,functionName:'getUserAccountData',data:c.returnData});return {collateralRaw:v[0].toString(),debtRaw:v[1].toString(),healthFactorRaw:v[1]===0n?null:v[5].toString(),liquidationThresholdBps:v[3].toString()}};
@@ -58,6 +61,7 @@ export function decodeDefenseSequence(result,prepared,parent){
 }
 export async function defenseSequence(input,rpc=client()){
  const error=sequenceInputError(input);if(error)throw new Error(error);
+ if(input.coverage==='morpho-wbtc')return morphoDefenseSequence(input,rpc);
  const s=await snapshot(input.wallet,rpc),parent=await rpc.getBlock({blockNumber:BigInt(s.blockNumber)}),prepared=buildDefenseSequence(input,s,parent);
  const result=await rpc.request({method:'eth_simulateV1',params:[{blockStateCalls:[{calls:prepared.calls.map(c=>c.call)}],validation:true,traceTransfers:false,returnFullTransactions:false},quantity(s.blockNumber)]});
  const decoded=decodeDefenseSequence(result,prepared,parent);
