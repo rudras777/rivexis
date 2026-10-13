@@ -315,7 +315,7 @@ async function handleApi(req:Request,path:string,url:URL,auth:AuthContext){
     try{
       const saved=await admin.rpc("rivexis_defi_save_report",{p_owner:auth.user.id,p_receipt:receipt});
       if(saved.error?.code==='P0001'&&saved.error?.message==='Report limit reached: 20 per account')return error(req,409,"Your account has reached its 20-report limit",auth.cookie);
-      if(saved.error||typeof saved.data!=='string'||!saved.data.trim())return error(req,503,"Report save could not be confirmed. Check saved reports before retrying",auth.cookie);
+      if(saved.error||typeof saved.data!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saved.data))return error(req,503,"Report save could not be confirmed. Check saved reports before retrying",auth.cookie);
       return json(req,{id:saved.data,receipt},201,auth.cookie);
     }catch{return error(req,503,"Report save could not be confirmed. Check saved reports before retrying",auth.cookie)}
   }
