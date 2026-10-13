@@ -117,3 +117,4 @@ jobs:
           pg_dump --version
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "CREATE DATABASE rivexis_restore_ci"
           python scripts/certify_postgres_dr.py
+          python scripts/verify_postgres_dr_atomicity.py
