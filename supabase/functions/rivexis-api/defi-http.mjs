@@ -34,6 +34,16 @@ function transactionInputError(input){
   return null;
 }
 
+// Only known local transaction constraints are user-correctable. Provider errors
+// can also contain words such as "invalid" or "unsupported"; never reflect them.
+const TRANSACTION_CONSTRAINTS=new Set([
+ 'Select a supported transaction position','Unsupported transaction','Unsupported asset or transaction',
+ 'Amount must be greater than zero','Repayment requires the Morpho loan token','Amount cannot repay a Morpho share',
+ 'Repayment exceeds selected amount','Unsupported Morpho action asset','Reserve cannot accept supply',
+ 'Reserve borrowing disabled','Reserve cannot accept collateral supply','Reserve borrowing is disabled',
+ 'Repayment exceeds debt','Withdrawal exceeds supplied balance','Collateral supply unsupported',
+]);
+
 // The database gate is atomic across all isolates. There is no in-memory quota fallback.
 export async function handleDefi(req,path,admin,rpcUrl) {
   const respond=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'}});
@@ -44,17 +54,20 @@ export async function handleDefi(req,path,admin,rpcUrl) {
   if(input.coverage!==undefined&&!COVERAGE.includes(input.coverage))return respond({detail:'Unsupported coverage'},422);
   if(!['/api/v1/defi/snapshot','/api/v1/defi/transaction'].includes(path))return respond({detail:'Unsupported endpoint'},404);
   if(path.endsWith('/transaction')){const detail=transactionInputError(input);if(detail)return respond({detail},422);}
-  const {data,error}=await admin.rpc('rivexis_defi_quota',{p_wallet:input.wallet.toLowerCase()});
-  if(error)return respond({detail:'Analysis quota service is unavailable; no RPC request was made'},503);
-  if(data!==true)return respond({detail:'Free beta quota reached. Limit: 300 requests per day globally and 4 per wallet per minute. Try later.'},429);
+  let quota;
+  try{quota=await admin.rpc('rivexis_defi_quota',{p_wallet:input.wallet.toLowerCase()});}
+  catch{return respond({detail:'Analysis quota service is unavailable; no RPC request was made'},503);}
+  if(!quota||quota.error)return respond({detail:'Analysis quota service is unavailable; no RPC request was made'},503);
+  if(quota.data===false)return respond({detail:'Beta quota reached. Limit: 300 requests per day globally and 4 per wallet per minute. Try later.'},429);
+  if(quota.data!==true)return respond({detail:'Analysis quota confirmation is unavailable; no RPC request was made'},503);
   try {
     if(path.endsWith('/transaction'))return respond(await gasguard(input,client(rpcUrl)));
     const state=await snapshot(input.wallet,client(rpcUrl),input.coverage??'aave');
     return respond({...state,liquidation:state.status==='READY'?liquidationAnalysis(state):null});
   }
   catch(cause){
-    const reason=cause?.shortMessage??cause?.message??'Protocol evidence unavailable';
-    const validation=/valid|Unsupported|Amount|decimal|exceeds|stale|Snapshot|Reserve|Insufficient|greater than/.test(reason);
-    return respond({status:'UNKNOWN',detail:validation?reason.slice(0,240):'Ethereum RPC or protocol evidence is unavailable. No financial result has been inferred.'},validation?422:503);
+    const reason=cause?.message;
+    const validation=path.endsWith('/transaction')&&cause?.constructor===Error&&typeof reason==='string'&&(TRANSACTION_CONSTRAINTS.has(reason)||/^Maximum (?:[0-9]|[12][0-9]|3[0-6]) decimal places$/.test(reason));
+    return respond({status:'UNKNOWN',detail:validation?reason:'Ethereum RPC or protocol evidence is unavailable. No financial result has been inferred.'},validation?422:503);
   }
 }
