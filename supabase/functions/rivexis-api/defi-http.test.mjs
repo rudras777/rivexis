@@ -111,3 +111,16 @@ test('body reader preserves exact UTF-8 boundaries and the report-specific byte 
   await assert.rejects(readRequestText(new Request('https://example.com',{method:'POST',body:'x'.repeat(8193)}),8192),/too large/);
   assert.equal((await handleDefi(new Request('https://example.com'+endpoint,{method:'POST',body:new Uint8Array([0xff])}),endpoint,noQuota)).status,422);
 });
+
+const sequence='/api/v1/defi/sequence',validSequence={wallet,coverage:'aave',actions:[{kind:'repay',asset,amount:'1'}]};
+test('sequence malformed actions fail before quota or RPC',async()=>{
+ for(const changed of [{actions:[]},{actions:Array(3).fill(validSequence.actions[0])},{actions:[{...validSequence.actions[0],data:'0x1234'}]},{actions:[{...validSequence.actions[0],amount:'0'}]},{coverage:'combined'}])assert.equal((await handleDefi(request({...validSequence,...changed}),sequence,noQuota)).status,422);
+});
+test('sequence atomic quota exhaustion, errors and unconfirmed replies fail closed',async()=>{
+ const original=globalThis.fetch;let calls=0;globalThis.fetch=async()=>{calls++;assert.fail('Denied quota must never reach RPC')};
+ try{for(const value of [{data:false},{data:null},{data:true,error:{}},{}]){const r=await handleDefi(request(validSequence),sequence,{rpc:async()=>value});assert.equal(r.status,value.data===false?429:503)}assert.equal(calls,0)}finally{globalThis.fetch=original}
+});
+test('sequence unsupported provider method cannot be labelled a user mistake or success',async()=>{
+ const original=globalThis.fetch;globalThis.fetch=async(_url,init)=>{const request=JSON.parse(init.body);return Response.json({jsonrpc:'2.0',id:request.id,error:{code:-32601,message:'secret provider diagnostic'}})};
+ try{const r=await handleDefi(request(validSequence),sequence,{rpc:async()=>({data:true})});assert.equal(r.status,503);const body=await r.json();assert.equal(body.status,'UNKNOWN');assert.ok(!JSON.stringify(body).includes('secret provider diagnostic'))}finally{globalThis.fetch=original}
+});

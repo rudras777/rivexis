@@ -3,6 +3,7 @@ import {client} from './defi-rpc.mjs';
 import {liquidationAnalysis} from './defi-liquidation.mjs';
 import {isAddress} from 'viem';
 import {decimal,integer} from './defi-model.mjs';
+import {defenseSequence,sequenceInputError} from './defi-sequence.mjs';
 
 export function validWallet(wallet){
   return typeof wallet==='string'&&isAddress(wallet,{strict:true})&&!/^0x0{40}$/i.test(wallet);
@@ -42,6 +43,8 @@ const TRANSACTION_CONSTRAINTS=new Set([
  'Repayment exceeds selected amount','Unsupported Morpho action asset','Reserve cannot accept supply',
  'Reserve borrowing disabled','Reserve cannot accept collateral supply','Reserve borrowing is disabled',
  'Repayment exceeds debt','Withdrawal exceeds supplied balance','Collateral supply unsupported',
+ 'Unsupported sequence asset','Sequence supply requires existing eligible collateral','Sequence repayment exceeds observed debt',
+ 'Sequence exceeds observed wallet token balance','Insufficient native ETH for the bounded simulation gas reserve',
 ]);
 
 // The database gate is atomic across all isolates. There is no in-memory quota fallback.
@@ -52,8 +55,9 @@ export async function handleDefi(req,path,admin,rpcUrl) {
   let input;try{input=JSON.parse(raw);}catch{return respond({detail:'Invalid JSON'},422);}
   if(!input||typeof input!=='object'||Array.isArray(input)||!validWallet(input.wallet))return respond({detail:'Enter a valid Ethereum wallet address'},422);
   if(input.coverage!==undefined&&!COVERAGE.includes(input.coverage))return respond({detail:'Unsupported coverage'},422);
-  if(!['/api/v1/defi/snapshot','/api/v1/defi/transaction'].includes(path))return respond({detail:'Unsupported endpoint'},404);
+  if(!['/api/v1/defi/snapshot','/api/v1/defi/transaction','/api/v1/defi/sequence'].includes(path))return respond({detail:'Unsupported endpoint'},404);
   if(path.endsWith('/transaction')){const detail=transactionInputError(input);if(detail)return respond({detail},422);}
+  if(path.endsWith('/sequence')){const detail=sequenceInputError(input);if(detail)return respond({detail},422);}
   let quota;
   try{quota=await admin.rpc('rivexis_defi_quota',{p_wallet:input.wallet.toLowerCase()});}
   catch{return respond({detail:'Analysis quota service is unavailable; no RPC request was made'},503);}
@@ -62,12 +66,13 @@ export async function handleDefi(req,path,admin,rpcUrl) {
   if(quota.data!==true)return respond({detail:'Analysis quota confirmation is unavailable; no RPC request was made'},503);
   try {
     if(path.endsWith('/transaction'))return respond(await gasguard(input,client(rpcUrl)));
+    if(path.endsWith('/sequence'))return respond(await defenseSequence(input,client(rpcUrl)));
     const state=await snapshot(input.wallet,client(rpcUrl),input.coverage??'aave');
     return respond({...state,liquidation:state.status==='READY'?liquidationAnalysis(state):null});
   }
   catch(cause){
     const reason=cause?.message;
-    const validation=path.endsWith('/transaction')&&cause?.constructor===Error&&typeof reason==='string'&&(TRANSACTION_CONSTRAINTS.has(reason)||/^Maximum (?:[0-9]|[12][0-9]|3[0-6]) decimal places$/.test(reason));
+    const validation=(path.endsWith('/transaction')||path.endsWith('/sequence'))&&cause?.constructor===Error&&typeof reason==='string'&&(TRANSACTION_CONSTRAINTS.has(reason)||/^Maximum (?:[0-9]|[12][0-9]|3[0-6]) decimal places$/.test(reason));
     return respond({status:'UNKNOWN',detail:validation?reason:'Ethereum RPC or protocol evidence is unavailable. No financial result has been inferred.'},validation?422:503);
   }
 }
