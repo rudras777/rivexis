@@ -14,6 +14,61 @@ test('distributed quota exhaustion and outages fail closed before RPC',async()=>
   assert.equal((await handleDefi(req(),endpoint,{rpc:async()=>({error:{message:'outage'}})})).status,503);
 });
 
+for(const path of ['/api/v1/defi/snapshot','/api/v1/defi/transaction']){
+ test(path+' distinguishes outage, exhaustion and unconfirmed quota without RPC or financial success',async()=>{
+  const fetchBefore=globalThis.fetch;let rpcCalls=0;
+  globalThis.fetch=async()=>{rpcCalls++;assert.fail('Quota denial must not reach Ethereum RPC')};
+  try{
+   const states=[
+    {value:{data:false},status:429},
+    {value:{data:null},status:503},{value:{},status:503},
+    {value:null,status:503},{value:undefined,status:503},
+    {value:{data:'true'},status:503},{value:{data:1},status:503},
+    {value:{data:true,error:{message:'secret-internal-error'}},status:503},
+    {throws:true,status:503},
+   ];
+   for(const state of states){
+    let quotaCalls=0;
+    const admin={rpc:async(name,args)=>{quotaCalls++;assert.equal(name,'rivexis_defi_quota');assert.equal(args.p_wallet,wallet.toLowerCase());if(state.throws)throw Error('secret-internal-error');return state.value}};
+    const response=await handleDefi(request(path.endsWith('/transaction')?validTransaction:{wallet}),path,admin,'https://rpc.example.invalid');
+    assert.equal(response.status,state.status);assert.equal(quotaCalls,1);
+    const body=await response.json();assert.equal(body.snapshot,undefined);assert.equal(body.liquidation,undefined);assert.equal(body.positions,undefined);assert.equal(body.healthFactorRaw,undefined);
+    assert.ok(!JSON.stringify(body).includes('secret-internal-error'));
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    if(state.status===503)assert.match(body.detail,/unavailable; no RPC request was made/);
+    else assert.match(body.detail,/quota reached/);
+   }
+   assert.equal(rpcCalls,0);
+  }finally{globalThis.fetch=fetchBefore}
+ });
+ test(path+' rechecks the atomic quota after an outage and only then reaches the provider',async()=>{
+  const originalFetch=globalThis.fetch;let providerCalls=0,quotaCalls=0;
+  globalThis.fetch=async()=>{providerCalls++;throw Error('provider transport outage')};
+  const admin={rpc:async()=>{quotaCalls++;if(quotaCalls===1)throw Error('quota outage');return {data:true}}};
+  try{
+   const input=path.endsWith('/transaction')?validTransaction:{wallet};
+   const first=await handleDefi(request(input),path,admin,'https://rpc.example.invalid');
+   assert.equal(first.status,503);assert.equal(providerCalls,0);
+   const second=await handleDefi(request(input),path,admin,'https://rpc.example.invalid');
+   assert.equal(second.status,503);assert.equal(quotaCalls,2);assert.ok(providerCalls>0);
+   const body=await second.json();assert.equal(body.status,'UNKNOWN');assert.match(body.detail,/No financial result has been inferred/);
+  }finally{globalThis.fetch=originalFetch}
+ });
+ test(path+' treats provider invalid-parameter and unsupported-method errors as unavailable evidence',async()=>{
+  const originalFetch=globalThis.fetch;
+  try{
+   for(const code of [-32602,-32601]){
+    let calls=0;
+    globalThis.fetch=async(_url,init)=>{calls++;const input=JSON.parse(init.body);return Response.json({jsonrpc:'2.0',id:input.id,error:{code,message:'Invalid or Unsupported upstream method: secret-provider-detail'}})};
+    const input=path.endsWith('/transaction')?validTransaction:{wallet};
+    const response=await handleDefi(request(input),path,{rpc:async()=>({data:true})},'https://rpc.example.invalid');
+    assert.equal(response.status,503);assert.ok(calls>0);
+    const body=await response.json();assert.equal(body.status,'UNKNOWN');assert.match(body.detail,/No financial result has been inferred/);assert.ok(!JSON.stringify(body).includes('secret-provider-detail'));
+   }
+  }finally{globalThis.fetch=originalFetch}
+ });
+}
+
 const wallet='0x'+'1'.repeat(40),asset='0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const noQuota={rpc(){assert.fail('Malformed input must not consume quota or reach RPC')}};
 const transaction='/api/v1/defi/transaction';
