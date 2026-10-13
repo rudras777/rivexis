@@ -67,6 +67,12 @@ def run_postgres_tool(tool: str, arguments: list[str], connection: str):
     if tool == 'pg_restore':
         # pg_restore otherwise prints SQL rather than connecting to a database.
         command.extend(['--dbname', env['PGDATABASE']])
+        # A failed drill must roll back the cleanup and every restored object.
+        command.extend(['--single-transaction', '--exit-on-error'])
+    elif tool == 'psql':
+        # Startup files can reconnect or alter verification behavior. SQL errors
+        # must fail the process instead of allowing a subsequent query to pass.
+        command.extend(['--no-psqlrc', '--set=ON_ERROR_STOP=1'])
     command.extend(arguments)
     try:
         return subprocess.run(command, env=env, check=True, text=True, capture_output=True, timeout=900)
