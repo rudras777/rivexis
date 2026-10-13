@@ -1,0 +1,204 @@
+{
+  "classification": "CAPTURED_RPC_REPLAY_NOT_FRESH_DATA",
+  "parent": {
+    "hash": "0xbfcdaf20cab9469fcbbba501149cd0177068d9c964d4ee68a8218f02ec5235d6",
+    "number": "0x18f8c00",
+    "timestamp": "0x6ace593f"
+  },
+  "snapshot": {
+    "model": "aave-v3-normal-1",
+    "oracleValidation": "ethereum-aave-oracles-2",
+    "status": "READY",
+    "wallet": "0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18",
+    "chainId": 1,
+    "protocol": "Aave V3",
+    "pool": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+    "poolImplementation": "0x728a138a4823392c2efa55e028d434f526fe03cf",
+    "oracle": "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
+    "dataProvider": "0x0a16f2FCC0D44FaE41cc54e079281D84A363bECD",
+    "blockNumber": "26184704",
+    "blockHash": "0xbfcdaf20cab9469fcbbba501149cd0177068d9c964d4ee68a8218f02ec5235d6",
+    "blockTimestamp": 1791908159,
+    "fetchedAt": "2026-10-13T16:16:09.440Z",
+    "source": "Ethereum RPC / Aave V3 contracts",
+    "rpcHost": "ethereum.publicnode.com",
+    "nativeBalanceRaw": "11484380475684491",
+    "observedCollateralRaw": "2961722615459",
+    "observedDebtRaw": "1498808643931",
+    "observedHealthFactorRaw": "1640122493811917495",
+    "positions": [
+      {
+        "id": "aave-v3:1:0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18",
+        "chainId": 1,
+        "protocol": "Aave V3",
+        "pool": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+        "eMode": 0,
+        "reserves": [
+          {
+            "asset": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            "symbol": "WETH",
+            "decimals": 18,
+            "collateralRaw": "11761759785450139864",
+            "debtRaw": "0",
+            "walletRaw": "0",
+            "allowanceRaw": "0",
+            "priceRaw": "251809480000",
+            "ltBps": "8300",
+            "ltvBps": "8050",
+            "collateralEnabled": true,
+            "supplyAllowed": true,
+            "borrowAllowed": true,
+            "oracleState": "FRESH",
+            "oracleSource": "0x5424384B256154046E9667dDFaaa5e550145215e",
+            "underlyingFeed": "0x5424384B256154046E9667dDFaaa5e550145215e",
+            "oracleAdapter": "DIRECT_OR_STABLE_CAP",
+            "oracleCodeHash": null,
+            "oracleComponents": null,
+            "priceCapRaw": null,
+            "oracleUpdatedAt": "1791907943",
+            "isolation": false,
+            "configurationRaw": "7237005577332262213973186942896404392671584917584971852904788901765910896498",
+            "stableDebtRaw": "0",
+            "scaledVariableDebtRaw": "0",
+            "liquidityRateRay": "13191959718801025332979697"
+          },
+          {
+            "asset": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "symbol": "USDT",
+            "decimals": 6,
+            "collateralRaw": "0",
+            "debtRaw": "15007174064",
+            "walletRaw": "2000000000",
+            "allowanceRaw": "0",
+            "priceRaw": "99872810",
+            "ltBps": "7800",
+            "ltvBps": "7500",
+            "collateralEnabled": false,
+            "supplyAllowed": true,
+            "borrowAllowed": true,
+            "oracleState": "FRESH",
+            "oracleSource": "0x260326c220E469358846b187eE53328303Efe19C",
+            "underlyingFeed": "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
+            "oracleAdapter": "DIRECT_OR_STABLE_CAP",
+            "oracleCodeHash": null,
+            "oracleComponents": null,
+            "priceCapRaw": "104000000",
+            "oracleUpdatedAt": "1791902423",
+            "isolation": false,
+            "configurationRaw": "7237005577332262213973186568752274118742300520618818335960169830504052825420",
+            "stableDebtRaw": "0",
+            "scaledVariableDebtRaw": "12017636350",
+            "liquidityRateRay": "31686831501646221262799097"
+          }
+        ]
+      }
+    ],
+    "warnings": [],
+    "limitations": [
+      "Single Ethereum Aave V3 account; other protocols and chains are not discovered.",
+      "Balances include debt interest accrued by the protocol at the snapshot block. Future interest and governance changes are not forecast.",
+      "Oracle timestamp support is restricted to validated WETH, USDC, USDT and WBTC sources. WBTC requires pinned adapter bytecode and two timestamped component feeds; other sources require separate validation. An RPC response alone does not independently certify the provider."
+    ],
+    "coverage": "aave",
+    "liquidation": {
+      "model": "conditional-collateral-boundaries-1",
+      "blockNumber": "26184704",
+      "blockHash": "0xbfcdaf20cab9469fcbbba501149cd0177068d9c964d4ee68a8218f02ec5235d6",
+      "shocks": {},
+      "rows": [
+        {
+          "positionId": "aave-v3:1:0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18",
+          "protocol": "Aave V3",
+          "asset": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "currentPriceRaw": "251809480000",
+          "healthFactorRaw": "1640122493811917495",
+          "liquidatable": false,
+          "state": "AVAILABLE",
+          "minimumHealthyPriceRaw": "153530898424",
+          "firstLiquidatablePriceRaw": "153530898423",
+          "distanceBps": "3902",
+          "basis": "AAVE_ORACLE_USD_1E8",
+          "reason": "One collateral oracle price changes; all other prices, balances, thresholds and debt accrual stay fixed."
+        }
+      ],
+      "closest": {
+        "positionId": "aave-v3:1:0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18",
+        "protocol": "Aave V3",
+        "asset": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        "symbol": "WETH",
+        "currentPriceRaw": "251809480000",
+        "healthFactorRaw": "1640122493811917495",
+        "liquidatable": false,
+        "state": "AVAILABLE",
+        "minimumHealthyPriceRaw": "153530898424",
+        "firstLiquidatablePriceRaw": "153530898423",
+        "distanceBps": "3902",
+        "basis": "AAVE_ORACLE_USD_1E8",
+        "reason": "One collateral oracle price changes; all other prices, balances, thresholds and debt accrual stay fixed."
+      },
+      "exposures": [
+        {
+          "asset": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "symbol": "WETH",
+          "collateralRaw": "2961722615459",
+          "debtRaw": "0",
+          "collateralBps": "10000",
+          "debtBps": "0"
+        },
+        {
+          "asset": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "symbol": "USDT",
+          "collateralRaw": "0",
+          "debtRaw": "1498808643931",
+          "collateralBps": "0",
+          "debtBps": "10000"
+        }
+      ],
+      "limitations": [
+        "Conditional single-collateral price paths, not a prediction of which asset moves first.",
+        "Separate liquidation domains never offset one another. Minimum health and each position eligibility remain primary.",
+        "Oracle-reference prices differ from executable market prices. Interest, governance changes and joint future moves are held fixed.",
+        "Same-token collateral and debt price boundaries remain explicitly unvalidated. Percent distances truncate to one basis point; adjacent-unit boundary evidence is retained."
+      ]
+    }
+  },
+  "result": [
+    {
+      "parentHash": "0xbfcdaf20cab9469fcbbba501149cd0177068d9c964d4ee68a8218f02ec5235d6",
+      "number": "0x18f8c01",
+      "timestamp": "0x6ace594b",
+      "baseFeePerGas": "0x13e9c2c6",
+      "calls": [
+        {
+          "returnData": "0x000000000000000000000000000000000000000000000000000002b1946ce0b60000000000000000000000000000000000000000000000000000015cf7f54bde000000000000000000000000000000000000000000000000000000ce24a4e906000000000000000000000000000000000000000000000000000000000000206c0000000000000000000000000000000000000000000000000000000000001f7200000000000000000000000000000000000000000000000016c2e2b3eb31ab2b",
+          "logs": [],
+          "gasUsed": "0x22352",
+          "maxUsedGas": "0x22352",
+          "status": "0x1"
+        },
+        {
+          "returnData": "0x0000000000000000000000000000000000000000000000000000000077359400",
+          "logs": [],
+          "gasUsed": "0x6753",
+          "maxUsedGas": "0x6753",
+          "status": "0x1"
+        },
+        {
+          "returnData": "0x000000000000000000000000000000000000000000000000000002b1946ce0b60000000000000000000000000000000000000000000000000000015cf7f54bde000000000000000000000000000000000000000000000000000000ce24a4e906000000000000000000000000000000000000000000000000000000000000206c0000000000000000000000000000000000000000000000000000000000001f7200000000000000000000000000000000000000000000000016c2e2b3eb31ab2b",
+          "logs": [],
+          "gasUsed": "0x22352",
+          "maxUsedGas": "0x22352",
+          "status": "0x1"
+        },
+        {
+          "returnData": "0x0000000000000000000000000000000000000000000000000000000077359400",
+          "logs": [],
+          "gasUsed": "0x6753",
+          "maxUsedGas": "0x6753",
+          "status": "0x1"
+        }
+      ]
+    }
+  ]
+}

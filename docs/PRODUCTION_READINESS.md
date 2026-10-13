@@ -1,53 +1,32 @@
-# Rivexis Production Readiness
+# RIVEXIS production readiness
 
-Last updated: 2026-09-23
+Last updated: 2026-10-13. This matrix supersedes the retired ten-engine readiness matrix; prior source remains in Git history. PASS applies only to the stated supported scope, never unrestricted institutional certification.
 
 Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 
-| Area | State | Evidence / blocker |
+| Area | State | Verified scope / remaining constraint |
 |---|---|---|
-| Repository baseline and source control | PASS | Private repository; durable milestone evidence is maintained in-repo. |
-| Durable execution planning | PASS | Build plan, deployment status, ten-engine contract audit and readiness matrix are maintained in-repo. |
-| Ten-engine architecture | PASS | Repository preserves exactly B1–B5 and F1–F5 plus invariant coverage. Milestone F audits completion quality engine by engine. |
-| Ten-engine live contract integrity | PASS | PRs #13–#15 normalize current live result/evidence versions and source consensus, fail closed on explicit F3 authoritative-adapter failure, and promote unresolved provider conflicts to `CONFLICTING_DATA`. |
-| Ten-engine input/provider/freshness integrity | PASS | Targeted engine regression coverage now extends through PR #30: B1 standard event effects/parser bounds; B2 input boundaries; B3 snapshot/runtime/oracle integrity; B4 provider/token/counterparty integrity; B5 quote integrity; F1 completeness/numeric boundaries; F2/F4/F5 provider/selector/model freshness boundaries; F3 adapter fail-closed semantics. Latest full gate: PR #30 CI #293 (`35897012617`) on head `efbff97df9574bd15c4e1b6c74850fcc59bd2c3f`. |
-| Deterministic decision/UNKNOWN policy | PASS | Incomplete, stale, conflicting or unavailable requested evidence cannot become PROCEED/MODIFY/AVOID through aggregate scoring; it remains WAIT/UNKNOWN except where an explicit hard blocker independently requires AVOID. |
-| Canonical persisted decision inputs | PASS | Persisted analysis IDs are rehydrated before decision scoring; adversarial API coverage proves a forged client copy cannot replace stored risk/confidence/blocker/conflict data. Duplicate analyses/engines cannot silently skew weighting. |
-| Versioned analysis/decision provenance | PASS | Engine results persist analysis framework version; decisions persist methodology, analysis IDs, engine versions/statuses/framework versions, evidence sources/count, unresolved conflicts and canonical-input verification. |
-| Analysis/report provenance presentation | PASS | Decision HTML/PDF and engine-result UI present versions, statuses, evidence and missing/conflicting states from returned/persisted fields without inventing provider grounding. |
-| Persisted History provenance | PASS | PR #12 adds on-demand canonical analysis/decision provenance from existing authorized detail endpoints, without raw payload dumping or eager per-row fan-out. Detail is workspace-keyed and cleared on switch. |
-| Milestone E — Analysis framework | PASS | PRs #10–#12 establish canonical evidence, fail-closed uncertainty semantics, versioned provenance and truthful engine/report/History presentation. PR #12 CI #164 (`35832725687`) is the final Milestone E repository gate. |
-| Milestone F — repository integrity audit | PASS | Contract/input/provider/freshness/parser/runtime defects identified so far by the B1–B5/F1–F5 audit are covered by targeted tests and full CI through PR #30. This PASS is not a declaration that Milestone F evidence-depth capability is complete. |
-| Supabase project health | PASS | Project was verified `ACTIVE_HEALTHY` in `ap-south-1`. |
-| Supabase schema/runtime controls | PASS | 53 product tables + 2 runtime-control tables; runtime-control migration present. |
-| Supabase browser-role exposure review | PASS | Prior review found no explicit `anon`/`authenticated` table grants; re-check if grants/Data API exposure changes. |
-| Frontend free preview | PASS | Public Cloudflare preview was reachable at last verification. |
-| Honest free-tier API boundary | PASS | Free API preview reports degraded and application routes intentionally fail rather than simulating the FastAPI application. |
-| Workspace shell/auth/session repository coverage | PASS | HttpOnly cookie + CSRF, fail-closed access states, session recovery/logout and workspace authorization are covered by API + Playwright tests. |
-| Workspace collection/query isolation | PASS | Workspace-keyed queries and API authorization prevent foreign-workspace collection/detail reuse. |
-| In-place workspace switching across audited tools | PASS | Engine, monitor, investigation, protocol-history and History provenance state are reset/guarded by workspace identity; browser tests prove old-workspace state cannot satisfy new-workspace views. |
-| Provider state boundary | PASS | Global provider registry configuration remains separate from workspace runtime telemetry; absence remains explicit. |
-| Current milestone CI | PASS | PR #30 head `efbff97df9574bd15c4e1b6c74850fcc59bd2c3f` passed API lint/tests/pip-audit, web type/build/vinext/npm-audit/Playwright/Axe, invariants/secret/migration checks and PostgreSQL migration/runtime-control CI #293 (`35897012617`). PR #26/#27/#28/#29 gates #271/#277/#282/#287 also passed before merge. |
-| Live deployment of current merged source | BLOCKED | Current source is CI-green but has not been independently verified on the Cloudflare Worker; no deployment claim is made. |
-| Live FastAPI runtime | BLOCKED | Cloudflare Containers requires Workers Paid or another approved FastAPI-capable platform; no paid activation authorized. |
-| Production custom domain/TLS | BLOCKED | No Rivexis production domain is configured. |
-| Production auth secret installation | BLOCKED | Requires action-time production credential setup. |
-| Least-privilege production API DB credential | BLOCKED | Final runtime credential must be configured into the live API environment. |
-| Isolated production migration run | BLOCKED | Requires the real production deployment path/credential at launch. |
-| Real browser auth/analysis E2E | BLOCKED | Repository harness is green, but the free preview has no live FastAPI runtime, so deployed end-to-end certification cannot be claimed. |
-| Brevo transactional email | BLOCKED | Phone verification, owned domain, DKIM/SPF/DMARC review, credentials and real delivery verification remain. |
-| Live provider certification | BLOCKED | Requires configured/licensed Rivexis-owned provider targets and credentials. |
-| Arkham | BLOCKED | Must remain license-gated until explicit commercial approval. |
-| Hypernative provider-native contract | BLOCKED | Requires an actual documented/customer webhook or API signing contract. |
-| Production backup/restore exercise | NOT STARTED | Destructive restore must use an approved disposable target. |
-| Production observability validation | BLOCKED | Runtime instrumentation exists; real deployment/export evidence is incomplete. |
-| Performance/load certification | NOT STARTED | Must run against representative deployed infrastructure. |
-| Accessibility/browser production certification | BLOCKED | Repository harness is green; deployed-browser evidence is incomplete. |
-| Production release certification bundle | BLOCKED | External gates remain unavailable until real Rivexis-owned targets supply evidence. |
-| Incident/runbook readiness | NOT STARTED | Required operational runbooks remain a future milestone. |
+| Existing production deployment | PASS | Existing rivexis-web Worker and workers.dev URL. Last verified application commit 388ff8fd9780d61e60ea63c160da496a4a68fddc, version 6cc941f5, 100% traffic; exact HTTP/browser build markers matched. See FINANCIAL_REQUEST_CONTEXT_PROGRESS.md. |
+| Source control, rollback and progress | PASS | Safe branches, merged PRs, retained Worker versions and full API rollback archives. Resumable repository progress and evidence branches retained. No production data deleted. |
+| Unified workspace and institutional UI | PASS | Approved branding/landing layout/background, top navigation, account Settings, tooltips and responsive/accessibility checks retained. Public feature entries require verified authentication. |
+| LiquidationGuard | PASS | Validated Ethereum Aave V3 normal mode and bounded Morpho WBTC/USDC 86% LLTV. Same-block identity, oracle validation, exact protocol arithmetic, stale/unsupported states, stress and conditional boundaries. Other modes/chains/markets remain unsupported. |
+| Defense Planner | PASS | Balance-constrained budget/fee/risk-objective comparisons, independent liquidation domains and reproducible reports. Bounded 5% search with at most two actions; no global-optimum or execution guarantee. Five final live exported alternatives independently recomputed exactly. |
+| Individual GasGuard previews | PASS | Genuine successful Aave withdrawal eth_call/gas estimates, exact pinned-block numerical reconciliation and honest allowance/balance/provider blockers. No signing or submission. |
+| Aave sequential protocol certification | PASS | Twelve real eth_simulateV1 scenarios at explicitly refreshed block 26184896, validation enabled, no state/block overrides. Includes approvals and two-action state changes. Historical certification only; observer gas/nonces are included. See SEQUENTIAL_RPC_CERTIFICATION_PROGRESS.md. |
+| Production multi-action simulation service | BLOCKED | Production GasGuard still previews independent calls. Certification tooling is not an exposed user feature; arbitrary sequences, Morpho sequence coverage and future execution remain uncertified. |
+| Market observations and charts | PASS | Genuine bounded visible-tab polling, fee/oracle historical observations, retry/reconnection/freshness states and accessible data tables. Scenario curves are modeled; session snapshot history is not continuous server market storage. |
+| Authentication, Settings and private reports | PASS | Fresh genuine login/verification/recovery, remote preferences, owner report save/reopen/export and secure cookie/CSRF controls documented in CLIENT_RELIABILITY_PROGRESS.md. Request deadlines and response/input generation guards verified. |
+| Browser wallet and contract interfaces | PASS | EIP-6963 integration fixtures, address/network validation, bounded ABI reads and explicit source-verification limits. No private keys, automatic signing or custody. |
+| Native-wallet approval UX certification | BLOCKED | A real installed wallet's permission UI remains unverified; mocked provider coverage does not replace that gate. |
+| Automated and live release checks | PASS | 187 financial/account tests, 150 CI browser tests, 13 final actual-production browser tests, builds/types/AST, dependency/security checks and PostgreSQL migration/restore fixtures. Ten sequential-harness safety tests added; fixtures are separated from actual RPC and production evidence. |
+| Supabase health and exposed database protections | PASS | ACTIVE_HEALTHY, PostgreSQL 17.6.1.166; fresh catalog query: 61 public tables, zero without RLS, nine public security-definer functions and zero callable by anon/authenticated. Nineteen intentionally private tables retain deny-by-default RLS without policies. |
+| Remaining database/auth advisories | BLOCKED | pg_net remains in public and is not removed without a safe recovery path; leaked-password protection remains disabled and is Pro-plan-only. No paid upgrade or privilege widening. See DATABASE_MAINTENANCE_PROGRESS.md and Supabase advisor remediation links. |
+| Complete production backup/restore and upgrade | BLOCKED | Full PostgreSQL dump/verified restore access remains unavailable. Fixture restoration is verified, but is not a production backup. No password reset, partial-dump substitution or destructive upgrade. |
+| Brevo authentication delivery | PASS | Real existing signup/verification/recovery delivery has been verified. Supabase/Brevo infrastructure preserved. This does not certify consistent inbox placement. |
+| Email sending-domain authentication | BLOCKED | Existing freemail sender; owned-domain DNS authentication remains unavailable. Verification mail was observed in Spam. No domain purchase or SMTP replacement. |
+| Free-first infrastructure | PASS | Existing bounded free-tier infrastructure/quotas preserved; no paid AI, new deployment service or paid upgrade. Added recurring cost $0; total account billing is not independently certified. |
+| Monitoring scope | PASS | Bounded browser monitoring and history/report capabilities work within documented limits. Continuous background monitoring or new automated alert-delivery guarantees are not claimed. |
+| Retired B1-B5/F1-F5 product, paid containers and gated commercial providers | NOT APPLICABLE | These are not current launch requirements. Reusable backend controls and historical audit/rollback sources remain preserved. |
+| Unrestricted institutional public-launch certification | BLOCKED | Recovery access, email-domain authentication, native-wallet permission testing and broader production sequence validation remain unresolved. Successful bounded checks do not establish unrestricted coverage, ownership, safety or future execution. |
 
-Milestone F remains active in `BUILD_EXECUTION_PLAN.md`: repository-level integrity coverage is PASS, while deeper engine-capability completion remains in progress. Active work is deliberately not forced into this matrix's terminal-state vocabulary. Repository CI, preview availability and skipped external certification are not production evidence.
-
-## Launch rule
-
-Rivexis must not be called production-ready while any launch-required item above is FAIL, BLOCKED or NOT STARTED.
+Current release evidence: FINANCIAL_REQUEST_CONTEXT_PROGRESS.md. Sequential validation and continuation evidence: SEQUENTIAL_RPC_CERTIFICATION_PROGRESS.md. The latest verified exact production commit is recorded there after its release gates and deployment verification.

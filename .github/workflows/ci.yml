@@ -27,6 +27,7 @@ jobs:
       - run: npx --yes deno@2.9.6 check --config supabase/functions/rivexis-api/deno.json supabase/functions/rivexis-api/index.ts supabase/functions/rivexis-decision-reports/index.ts supabase/functions/rivexis-alert-dispatch/index.ts
       - run: npm run test:api-edge
       - run: npm run test:defi
+      - run: node --test scripts/certify_aave_sequence_rpc.test.mjs
       - run: node --test apps/web/lib/market-feed.test.mjs
       - run: node --test apps/web/lib/api.test.mjs
       - run: npm run lint:web
