@@ -94,6 +94,11 @@ class RestoreGuardTests(unittest.TestCase):
                                          ('127.0.0.1', '5433', 'rivexis_restore_dr', 'local-secret'))
                     if tool == 'pg_restore':
                         self.assertEqual(argv[2:4], ['--dbname', 'rivexis_restore_dr'])
+                        self.assertIn('--single-transaction', argv)
+                        self.assertIn('--exit-on-error', argv)
+                    if tool == 'psql':
+                        self.assertIn('--no-psqlrc', argv)
+                        self.assertIn('--set=ON_ERROR_STOP=1', argv)
 
     def test_command_failures_do_not_include_sensitive_output(self):
         failures = [subprocess.CalledProcessError(1, ['pg_dump', self.source],
@@ -124,6 +129,12 @@ class RestoreGuardTests(unittest.TestCase):
                 self.assertEqual(kwargs['env']['PGHOST'], 'db.example.com')
             elif kwargs['env']['PGHOST'] == 'localhost':
                 self.assertEqual(kwargs['env']['PGDATABASE'], 'rivexis_restore_dr')
+            if argv[0] == 'pg_restore':
+                self.assertIn('--single-transaction', argv)
+                self.assertIn('--exit-on-error', argv)
+            elif argv[0] == 'psql':
+                self.assertIn('--no-psqlrc', argv)
+                self.assertIn('--set=ON_ERROR_STOP=1', argv)
             return subprocess.CompletedProcess(argv, 0, stdout='55\n', stderr='')
 
         with patch.dict(os.environ, env, clear=True), patch('shutil.which', return_value='fixture-tool'), patch('subprocess.run', side_effect=fake_command) as run, redirect_stdout(io.StringIO()):
@@ -133,6 +144,31 @@ class RestoreGuardTests(unittest.TestCase):
             legacy = runpy.run_path(str(scripts / 'certify_backup_restore.py'))
             legacy['postgres_certification']()
             self.assertEqual([call.args[0][0] for call in run.call_args_list], ['pg_dump', 'pg_restore'])
+
+    def test_restore_failure_never_prints_pass_or_runs_post_restore_checks(self):
+        scripts = Path(__file__).resolve().parent
+        env = {'RIVEXIS_BACKUP_SOURCE_DATABASE_URL': self.source,
+               'RIVEXIS_BACKUP_RESTORE_DATABASE_URL': 'postgresql://restore:secret@localhost/rivexis_restore_dr',
+               'RIVEXIS_BACKUP_RESTORE_ALLOW_APPLY': 'true'}
+        for filename in ('certify_postgres_dr.py', 'certify_backup_restore.py'):
+            calls = []
+            def fail_restore(argv, **kwargs):
+                calls.append(argv[0])
+                if argv[0] == 'pg_dump':
+                    Path(argv[argv.index('--file') + 1]).write_bytes(b'explicit fixture archive')
+                if argv[0] == 'pg_restore':
+                    self.assertIn('--single-transaction', argv)
+                    raise subprocess.CalledProcessError(1, argv, stderr='secret')
+                return subprocess.CompletedProcess(argv, 0, stdout='55\n', stderr='')
+            output = io.StringIO()
+            with self.subTest(script=filename), patch.dict(os.environ, env, clear=True), patch('shutil.which', return_value='fixture-tool'), patch('subprocess.run', side_effect=fail_restore), redirect_stdout(output):
+                with self.assertRaises(SystemExit) as error:
+                    module = runpy.run_path(str(scripts / filename))
+                    if filename == 'certify_backup_restore.py':
+                        module['postgres_certification']()
+                self.assertNotIn('secret', str(error.exception))
+                self.assertNotIn('PASS', output.getvalue())
+                self.assertEqual(calls[-1], 'pg_restore')
 
 
 if __name__ == '__main__':
