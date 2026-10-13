@@ -33,7 +33,7 @@ export function DeFiWorkspace({initialView="portfolio",authenticated=false,demoO
   const alive=useRef(true);useEffect(()=>{alive.current=true;return ()=>{alive.current=false}},[]);
   const requestEpoch=useRef(0);useEffect(()=>{const invalidate=()=>invalidatePending();window.addEventListener("rivexis-wallet-context-change",invalidate);return()=>window.removeEventListener("rivexis-wallet-context-change",invalidate)},[]);
   const [operation,setOperation]=useState("");
-  const [view,setView]=useState<View>(initialView),[address,setAddress]=useState(wallet.analysisAddress||wallet.connection?.address||""),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[clock,setClock]=useState(Date.now());
+  const [view,setView]=useState<View>(initialView),[address,setAddress]=useState((!s?.sample&&s?.wallet)||wallet.analysisAddress||wallet.connection?.address||""),[loading,setLoading]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState(""),[clock,setClock]=useState(Date.now());
   const [coverage,setCoverage]=useState("aave"),[positionId,setPositionId]=useState(""),[shares,setShares]=useState<string|undefined>(),[asset,setAsset]=useState(""),[kind,setKind]=useState("repay"),[amount,setAmount]=useState(""),[preview,setPreview]=useState<Record<string,unknown>|null>(null),[reports,setReports]=useState<{id:string;created_at:string;receipt:unknown}[]>([]);
   useEffect(()=>{if(!s){setCoverage(preferences.defaultCoverage);setAddress(previous=>previous||preferences.walletAddresses[0]||"")}},[preferences.defaultCoverage,preferences.walletAddresses]);
   useEffect(()=>{setView(initialView)},[initialView]);
