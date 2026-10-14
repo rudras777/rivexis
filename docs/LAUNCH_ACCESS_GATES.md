@@ -16,6 +16,8 @@ Production application commit 1bbb453dff1e9be35cf89f478ce81677e6369742, Worker 6
 
 Names and secure locations were requested asynchronously. Do not paste secrets into chat or source control. A PostgreSQL.org community-account OAuth login does not supply the existing Supabase database connection and is not needed for this work.
 
+The eight pasted-text master-prompt attachments explicitly supplied in this task were also checked for PostgreSQL connection URIs and database credential labels; none were found. Only match locations/counts were emitted, never secret values. This check was limited to the supplied files and did not search unrelated personal files, password managers or browser profiles. The existing credential remains unavailable from these authorized sources.
+
 ## Security findings retained
 
 Fresh security advisors returned the same two WARN categories: pg_net extension in public, and disabled leaked-password protection. Nineteen RLS-without-policy findings remain INFO for intentionally private tables. No security grants, RLS policies, production data or credentials changed during this recheck. pg_net removal/upgrade stays behind complete recovery verification; no paid plan change for leaked-password protection.
