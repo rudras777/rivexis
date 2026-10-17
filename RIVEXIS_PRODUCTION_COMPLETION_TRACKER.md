@@ -32,6 +32,10 @@ Branch `fix/overview-evidence-freshness-20261018`. The prior genuine production 
 
 Local validation: 16 browser cases passed without retries, including three accessible responsive widths; Next and Vinext builds, TypeScript and AST passed. The default full browser suite now contains 200 cases. Next actions: full source/PR CI and Worker validation, merge, same-URL deployment, public exact-commit checks and genuine authenticated stale/refresh verification. Preserve the PR86 report as historical evidence; do not assign its older Worker identity to this future release.
 
+Follow-up in the same release: market quotes also stop saying “Fresh oracle round” when their block observation ages beyond90 seconds. Strengthened hidden-tab/recovery assertions exposed a Node-versus-browser mock clock mismatch; the RPC fixture now uses the browser's clock, with the failing initial run preserved separately. No production endpoint, polling cost, price series or financial arithmetic changed. Final focused and full regression results must refer to the updated source, not the earlier Overview-only commit.
+
+Updated-source focused result: all35 market/Overview cases passed without retries/skips/failures (52.1s); second Next build, TypeScript and AST passed. Await updated-head full CI before merge/deployment. Earlier Overview-only CI is not the release authority for the additional quote-label fix.
+
 Fresh read-only security follow-up still reports pg_net-in-public and disabled leaked-password protection (two WARN groups), plus 19 intentionally private RLS-without-policy INFO findings. No DDL/settings changed. GitHub advisory GHSA-vfj7-8cjw-p6xm still lists no patched release. Do not claim a clean audit or force a breaking toolchain downgrade.
 
 - Owned sending domain and DNS provider details are not supplied; Brevo's actual Domains page shows Set up your domain. Existing verification/recovery delivery works, but inbox placement is not guaranteed.
