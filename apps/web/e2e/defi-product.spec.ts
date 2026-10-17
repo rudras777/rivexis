@@ -98,7 +98,7 @@ test('obsolete public tools redirect to the unified product',async({page})=>{
 });
 test('optional browser monitoring stops after five checks and never runs for a sample',async({page})=>{
   await page.clock.install();let requests=0;
-  await page.route('**/api/v1/defi/snapshot',route=>{requests++;const fixture=sampleSnapshot();return route.fulfill({status:200,json:{...fixture,sample:false,wallet:'0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18',blockNumber:String(1000+requests),blockHash:'TEST_FIXTURE'}})});
+  await page.route('**/api/v1/defi/snapshot',async route=>{requests++;const fixture=sampleSnapshot(await page.evaluate(()=>Date.now()));return route.fulfill({status:200,json:{...fixture,sample:false,wallet:'0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18',blockNumber:String(1000+requests),blockHash:'TEST_FIXTURE'}})});
   await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await page.getByRole('button',{name:'05Monitoring & Reports',exact:true}).click();
   await expect(page.getByRole('button',{name:'Start five bounded checks'})).toBeDisabled();
   await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();

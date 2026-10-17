@@ -2,6 +2,16 @@
 
 Updated 18 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
 
+## Active implementation: bounded monitoring context integrity
+
+Branch `fix/bounded-monitor-context-20261018`. Further audit found that a pending browser monitoring read could replace evidence after wallet/coverage changes, and hiding a tab stopped monitoring only at the next interval. Three deterministic regression cases reproduced those failures against the previous build; the failing log/JSON are retained outside the repository.
+
+Implemented immediate abort/stop on wallet/coverage/sample/active-workspace/visibility/provider-context changes and unmount. Responses are checked again before committing: same wallet/coverage, supported observed state, valid recent time/block, no older block replacing a newer inspection. Explicit cancellation/restart and the five-check cap remain; no automatic retry, higher quota or new RPC service. Twenty initial new scenarios plus nine existing product tests passed (29 total, zero retries/skips/flakes), followed by an active-workspace cancellation case. Both builds, final focused/CI and same-URL live verification are the next release gates. One local JSX parse error was corrected before the successful build; no broken build was committed/deployed. Financial math, database/API, approved design and services remain unchanged.
+
+Continue through final validation, PR, existing Worker deployment and genuine bounded-check proof. Production remains the independently verified PR87 identity below until that successor passes its gates. Do not stop merely because the unrelated resource/assurance gates exist.
+
+Final local result:45 focused browser cases passed (21 new monitoring, existing product and financial-request-context suites), no failures/skips/flakes/retries. Both builds, normal/nonincremental typecheck and AST passed. The first45-case run had one locator-only failure (44 passed), corrected by using the visible workspace combobox role; original evidence retained. A generated Next/Vinext type/cache conflict was resolved with official type generation and removing only the generated compiler cache; no source gate weakened. Details: `docs/BOUNDED_MONITOR_PROGRESS_20261018.md`. Default full CI now includes221 browser cases. Next: push/create PR, wait for exact-head gates, merge/deploy/independently verify and continue remaining engineering audit.
+
 ## Current release: PR87 verified
 
 - Application merge **6c5623909f9d25099cea3042c4d01bb24bde8b44**, source **f597a949b67812127779acd3b57a24dc171ebfd4**, https://github.com/rudras777/rivexis/pull/87 . Same public URL and authenticated DOM expose the exact merge.
