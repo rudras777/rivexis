@@ -28,7 +28,7 @@ export function BoundedMonitor(){
       if(cancelled||busy)return;
       if(document.visibilityState!=="visible"){stop("Checks stopped because the tab is hidden.");return}
       if(!matches()){stop('Checks stopped because the inspected wallet or coverage changed.');return}
-      busy=true;
+      busy=true;setStatus(`Reading check ${used+1} of 5…`);
       try{
         const body=await api<Snapshot>('/api/v1/defi/snapshot',{method:'POST',body:JSON.stringify({wallet,coverage}),signal:AbortSignal.any([controller.signal,AbortSignal.timeout(35000)])});
         if(cancelled)return;

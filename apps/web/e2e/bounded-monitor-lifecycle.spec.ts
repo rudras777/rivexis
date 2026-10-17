@@ -18,7 +18,7 @@ async function setup(page:Page){
  await page.goto('/workspace/reports');await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();
  return {pending,reads:()=>reads,respond:async(index:number,changes:Record<string,unknown>={})=>pending[index].fulfill({json:snapshot({blockTimestamp:Math.floor(await page.evaluate(()=>Date.now())/1000),blockNumber:String(28000201+index),blockHash:'0x'+String(index+2).repeat(64),...changes})})};
 }
-async function start(page:Page,pending:Route[]){await monitor(page).getByRole('button',{name:'Start five bounded checks',exact:true}).click();await expect.poll(()=>pending.length).toBe(1)}
+async function start(page:Page,pending:Route[]){await monitor(page).getByRole('button',{name:'Start five bounded checks',exact:true}).click();await expect.poll(()=>pending.length).toBe(1);await expect(monitor(page).getByRole('status')).toHaveText('Reading check 1 of 5…')}
 
 for(const input of ['wallet','coverage'])test(`monitor cancels its in-flight read immediately when ${input} changes`,async({page})=>{
  const api=await setup(page);await start(page,api.pending);
