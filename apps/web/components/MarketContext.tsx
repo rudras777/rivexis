@@ -25,6 +25,7 @@ export function MarketContextProvider({children}:{children:React.ReactNode}){
  return <Context.Provider value={{data,fees,quotes,error,notice,busy,visible,refresh:()=>{if(Date.now()-last.current<15000){setNotice('Wait 15 seconds between manual network refreshes.');return}setRequest(n=>n+1)}}}>{children}</Context.Provider>;
 }
 export function LiveMarketContext({networkOnly=false}:{networkOnly?:boolean}){
+ const {preferences}=useAccountPreferences();
  const state=useContext(Context),[clock,setClock]=useState(Date.now());useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),5000);return()=>clearInterval(timer)},[]);
  if(!state)return null;const {data,error,notice,busy,quotes,fees,visible}=state,blockAge=data?Math.max(0,Math.floor(clock/1000-data.block.timestamp)):null;
  const timestamp=(value:number)=>new Date(value*1000).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC';
@@ -35,7 +36,7 @@ export function LiveMarketContext({networkOnly=false}:{networkOnly?:boolean}){
  {data&&<>
  {!networkOnly&&<div className="marketQuoteGrid">{(['ETH','BTC'] as const).map(symbol=>{const quote=data.quotes[symbol],age=quote?Math.max(0,Math.floor(clock/1000-quote.updatedAt)):null;const series=quotes[symbol];const day=[...series].reverse().find(q=>q.updatedAt<=clock/1000-86400&&clock/1000-86400-q.updatedAt<=180);return <article className="marketQuote" key={symbol}>
  <div className="marketAssetHeading"><h3>{symbol==='ETH'?'Ethereum':'Bitcoin'}</h3><span>{symbol} / USD</span></div>
- <strong className="marketPrice">{quote?`$${quote.priceUsd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}`:'Unavailable'}</strong>
+ <strong className="marketPrice">{quote?`$${quote.priceUsd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4,useGrouping:preferences.numberGrouping})}`:'Unavailable'}</strong>
  <p className="marketQuoteStatus">{quote?(error||(blockAge!==null&&blockAge>90)?'Latest quote not reverified':age!>3600?'Stale oracle round':'Fresh oracle round'):'No validated quote'}{quote&&` · updated ${timestamp(quote.updatedAt)}`}</p>
  <ObservationChart title={`${symbol} / USD · observed oracle history`} unit="USD" points={series.map(q=>({time:q.updatedAt,value:q.priceUsd}))} maxGap={7200} empty="No validated historical rounds returned. Missing observations are not filled."/>
  <p className="marketChange">24h change: {quote&&day?`${((quote.priceUsd/day.priceUsd-1)*100).toFixed(2)}% (sparse oracle observations)`:'Unavailable — insufficient historical coverage'}</p>{data.quoteErrors[symbol]&&<p className="warning">{data.quoteErrors[symbol]}</p>}</article>})}</div>}

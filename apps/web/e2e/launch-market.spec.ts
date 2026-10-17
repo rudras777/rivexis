@@ -20,6 +20,10 @@ async function account(page:Page,authenticated=true){
  await page.route('**/api/v1/account/settings',route=>route.fulfill({status:authenticated?200:401,json:authenticated?{profile:{displayName:'Analyst',email:'qa@example.invalid',emailVerified:true},preferences:DEFAULT_PREFERENCES}:{error:{code:'AUTHENTICATION_REQUIRED',message:'Sign in'}}}));
 }
 
+test('market quote labels respect the saved USD grouping preference',async({page})=>{
+ await account(page);await page.route('**/api/v1/account/settings',r=>r.fulfill({json:{profile:{displayName:'Analyst',email:'qa@example.invalid',emailVerified:true},preferences:{...DEFAULT_PREFERENCES,numberGrouping:false}}}));await rpc(page);await page.goto('/workspace/overview');await expect(page.locator('.marketPrice')).toHaveText(['$3000.00','$90000.00']);
+});
+
 /** RPC fixtures live only at the network boundary; no product quote or success state is injected. */
 async function rpc(page:Page,mode:Mode='success'){
  const state={mode,reads:0,batches:0,number:head,time:0,chains:0};

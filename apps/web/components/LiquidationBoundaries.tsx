@@ -1,9 +1,10 @@
 import type {LiquidationAnalysis} from "../../../supabase/functions/rivexis-api/defi-liquidation.mjs";
-import {format} from "../../../supabase/functions/rivexis-api/defi-model.mjs";
+import {displayedUsd} from '@/lib/financial-display';
+import {useAccountPreferences} from './AccountPreferences';
 export function percentage(raw:string|null|undefined){if(raw===null||raw===undefined)return 'Not applicable';const v=BigInt(raw),n=v<0n?-v:v;return `${v<0n?'−':''}${n/100n}.${(n%100n).toString().padStart(2,'0')}%`;}
 const states:Record<string,string>={NO_DEBT:'No debt',NO_DOWNWARD_TRIGGER:'No downward trigger with other prices fixed',SAME_ASSET_DEBT_UNVALIDATED:'Same-token debt path not validated',NO_COLLATERAL:'No collateral',ZERO_SCENARIO_PRICE:'Scenario price is zero',OUTSIDE_BOUNDED_SEARCH:'Outside the bounded price search'};
-const price=(v?:string)=>v?`$${format(v,8,4)}`:'Not available';
 export function LiquidationBoundaries({analysis,scenario=false}:{analysis:LiquidationAnalysis;scenario?:boolean}){
+ const {preferences}=useAccountPreferences();const price=(v?:string)=>v?displayedUsd(v,preferences.numberGrouping,4):'Not available';
  return <section className="instrumentPanel boundaryPanel"><div className="sectionHeading"><div><div className="eyebrow">LIQUIDATIONGUARD / CONDITIONAL BOUNDARIES</div><h2>{scenario?'Thresholds under your scenario':'Distance to the boundary'}</h2></div><span className="modeLabel">Block {analysis.blockNumber}</span></div>
   {analysis.closest?<p className="boundarySummary"><strong>{analysis.closest.protocol} · {analysis.closest.symbol}</strong><span>{percentage(analysis.closest.distanceBps)} to its conditional collateral threshold</span></p>:<p>No validated conditional collateral trigger is available for these positions.</p>}
   <p className="muted">Each row changes one collateral reference price while holding the stated debt, other prices and protocol parameters fixed. This is not a forecast of which asset moves first.</p>
