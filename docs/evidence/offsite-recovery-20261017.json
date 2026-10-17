@@ -1,0 +1,27 @@
+{
+  "scope": "Private off-device encrypted copy and authenticated download verification",
+  "checked_at_utc": "2026-10-17T14:58:30.283Z",
+  "existing_provider": "Owner's connected Google Drive",
+  "folder_shared": false,
+  "file_shared": false,
+  "only_owner_permission_observed": true,
+  "expected_parent_verified": true,
+  "encrypted_bytes": 728698,
+  "download_sha256": "5a2f7ed38bef8c3ada3b9d746d7531eaaf6a3492588615956d8d96f874eb383a",
+  "download_matches_original": true,
+  "encryption": "AES-256-GCM",
+  "authenticated_decryption_verified": true,
+  "decrypted_zip_sha256": "bfbc732a48c090e0bb93f9dd2f29cd8cf8c9554cefa77fc06457b8f4c00de749",
+  "decrypted_zip_matches_previously_validated_package": true,
+  "decrypted_data_written": false,
+  "recovery_key_uploaded": false,
+  "private_data_or_keys_committed": false,
+  "production_application_data_modified": false,
+  "added_recurring_services_cost": 0,
+  "unverified": [
+    "Independent off-device key custody",
+    "Second-machine database restore",
+    "Automated retention and RPO/RTO",
+    "Full provider and service-configuration reconstruction"
+  ]
+}
