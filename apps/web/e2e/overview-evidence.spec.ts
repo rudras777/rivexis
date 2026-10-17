@@ -35,11 +35,12 @@ for(const item of [
 });
 
 test('Overview labels educational values and never invents an evidence block',async({page})=>{
- const reads=await setup(page);await page.goto('/workspace');await page.getByRole('button',{name:'Explore a hypothetical sample',exact:true}).click();await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Hypothetical sample · not live'));await expect(metrics(page).locator('strong')).toHaveText(['$30,000.00','$18,000.00','Not on-chain']);expect(reads()).toBe(0);
+ const reads=await setup(page);await page.goto('/workspace');await page.getByRole('button',{name:'Explore a hypothetical sample',exact:true}).click();await expect(page.getByRole('cell',{name:'Hypothetical input',exact:true})).toHaveCount(2);await expect(page.getByRole('cell',{name:'Validated at snapshot',exact:true})).toHaveCount(0);await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Hypothetical sample · not live'));await expect(metrics(page).locator('strong')).toHaveText(['$30,000.00','$18,000.00','Not on-chain']);expect(reads()).toBe(0);
 });
 
 test('Overview ages an open inspection without extra financial RPC or data mutation',async({page})=>{
  const reads=await setup(page,snapshot(),false);await inspect(page);await expect(metrics(page)).toContainText('Observed snapshot');await page.clock.fastForward(181_000);await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Stale snapshot · refresh in LiquidationGuard'));await expect(metrics(page).locator('strong')).toHaveText(['$30,000.00','$18,000.00','#28000123']);expect(reads()).toBe(1);
+ await page.getByRole('link',{name:'Inspect lending exposure',exact:true}).click();await expect(page.getByText('STALE SNAPSHOT',{exact:true})).toBeVisible();await expect(page.getByRole('cell',{name:'Validated at snapshot',exact:true})).toHaveCount(2);await expect(page.getByRole('cell',{name:'FRESH',exact:true})).toHaveCount(0);await page.getByRole('button',{name:'About oracle evidence',exact:true}).focus();await expect(page.getByRole('tooltip')).toContainText('not current freshness');await page.keyboard.press('Escape');await expect(page.getByRole('tooltip')).toBeHidden();expect(reads()).toBe(1);
 });
 
 test('Overview recalculates age after leaving and returning to the route',async({page})=>{
