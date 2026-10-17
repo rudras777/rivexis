@@ -2,6 +2,32 @@
 
 Updated 18 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
 
+## Active implementation: bounded monitoring context integrity
+
+Branch `fix/bounded-monitor-context-20261018`. Further audit found that a pending browser monitoring read could replace evidence after wallet/coverage changes, and hiding a tab stopped monitoring only at the next interval. Three deterministic regression cases reproduced those failures against the previous build; the failing log/JSON are retained outside the repository.
+
+Implemented immediate abort/stop on wallet/coverage/sample/active-workspace/visibility/provider-context changes and unmount. Responses are checked again before committing: same wallet/coverage, supported observed state, valid recent time/block, no older block replacing a newer inspection. Explicit cancellation/restart and the five-check cap remain; no automatic retry, higher quota or new RPC service. Twenty initial new scenarios plus nine existing product tests passed (29 total, zero retries/skips/flakes), followed by an active-workspace cancellation case. Both builds, final focused/CI and same-URL live verification are the next release gates. One local JSX parse error was corrected before the successful build; no broken build was committed/deployed. Financial math, database/API, approved design and services remain unchanged.
+
+Continue through final validation, PR, existing Worker deployment and genuine bounded-check proof. Production remains the independently verified PR87 identity below until that successor passes its gates. Do not stop merely because the unrelated resource/assurance gates exist.
+
+Final local result:45 focused browser cases passed (21 new monitoring, existing product and financial-request-context suites), no failures/skips/flakes/retries. Both builds, normal/nonincremental typecheck and AST passed. The first45-case run had one locator-only failure (44 passed), corrected by using the visible workspace combobox role; original evidence retained. A generated Next/Vinext type/cache conflict was resolved with official type generation and removing only the generated compiler cache; no source gate weakened. Details: `docs/BOUNDED_MONITOR_PROGRESS_20261018.md`. Default full CI now includes221 browser cases. Next: push/create PR, wait for exact-head gates, merge/deploy/independently verify and continue remaining engineering audit.
+
+## Current release: PR87 verified
+
+- Application merge **6c5623909f9d25099cea3042c4d01bb24bde8b44**, source **f597a949b67812127779acd3b57a24dc171ebfd4**, https://github.com/rudras777/rivexis/pull/87 . Same public URL and authenticated DOM expose the exact merge.
+- Existing Worker **cceee7cf-1d18-4e05-be28-a5fa9974a25a**, native build **f98c8810-d968-4f53-a10f-6b2df3ab1746**, Ready/100% configured allocation. Dashboard and read-only Wrangler independently agree. PR86 Worker82e0659a remains the rollback option.
+- Source CI39065915702, PR CI39065919315, PR Worker39065919335 (successful attempt2), main CI39066406169 and main Worker39066406110 all passed. Main ran **200 browser** tests plus221 DeFi,30 API-edge,10 sequence fixtures,21 market-feed,12 client API and18 wallet lifecycle unit tests, Python/security/PostgreSQL checks and both builds.
+- **26 actual-production browser checks passed**, zero retries/skips/flaky/failures,79.7 seconds. Two further public lab checks passed at fourfold CPU: desktop/mobile LCP1740/1812ms, CLS0/0, no overflow/browser errors. These are single-run lab observations, not field metrics or an SLA.
+- Overview now displays snapshot age and becomes stale after180 seconds, preserving original observed values. Historical/hypothetical inputs remain classified; unsupported/invalid-time values are withheld. Samples never fabricate a block. Local age updates add no financial RPC. Market quotes no longer claim freshness when their block observation exceeds90 seconds.
+- Genuine supported Morpho inspection returned block26214750; Overview displayed identical balances/block and age18 seconds. Actual elapsed-time aging changed all cards to stale after180 seconds, preserving the original observations. Explicit refresh replaced evidence with block26214768 and newly accrued debt; Overview showed the new block/debt at46 seconds of age. Details: `docs/OVERVIEW_EVIDENCE_CLOSEOUT_20261018.md`. No production clock or inputs were mocked.
+- Financial models, API34, database/account data, providers, quotas, branding, CSS and layout remain unchanged. Prior exact financial reconciliation and recovery evidence retain their original dated scope. Added recurring services cost **$0**.
+
+Decision remains **READY FOR CONTROLLED EARLY ACCESS**, not unrestricted institutional certification. Next work requires an existing owned sending domain/DNS authority, human-controlled native wallet setup/permissions, approved independent recovery-key custody/second-machine recovery and controlled security/operational assurance. Existing pg_net/leaked-password warnings, unpatched build-tool advisory and bounded provider/grid/history limitations remain disclosed. No new credential request, paid upgrade, signing or destructive change is needed for this checkpoint.
+
+Final resource readback: the existing Cloudflare account's Domains inventory explicitly shows **No data available** with an empty search field. Brevo still offers domain setup. No existing DNS zone is available in this connected account to authenticate a sending domain; this is a resource gate rather than another request for accessible credentials. No domain purchase/addition, account switch, DNS change or SMTP change was performed. Local screenshot preserves the readback.
+
+This record is a separate documentation evidence branch; deployed application identity above remains authoritative. Do not create another deployment merely to make a document refer to its own commit. The sections below are retained historical PR86 and pre-release PR87 notes, superseded by this verified summary.
+
 ## Verified deployed release
 
 - Repository rudras777/rivexis, merged PR86 commit 31a52fd130ab8419d32900177f519c2095d0d9ff; existing Worker rivexis-web version 82e0659a-ef96-42e0-b89a-fc9bd6eebef7, native build 57e7f03d-0781-49c8-add4-bc67f848d834, Ready/100%. Read-only Wrangler listing independently confirmed 100% deployment allocation. Prior Worker 690c9111 remains the rollback option.
