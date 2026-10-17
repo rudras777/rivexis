@@ -12,6 +12,7 @@ export default defineConfig({
   workers: 2,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
+  failOnFlakyTests: Boolean(process.env.CI),
   reporter: [['list'], ['json', { outputFile: 'test-results/playwright-results.json' }]],
   use: {
     baseURL,

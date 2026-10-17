@@ -22,3 +22,5 @@ Next: full exact-head source/PR CI and Worker gates, merge, existing native Clou
 ### CI prefill assertion correction
 
 The initial source and PR CI each reported235 passed and one flaky case, despite green job status. The release script rejected both rather than merging. The sub-cent test read an empty transaction input synchronously after navigation, before the existing draft-prefill effect ran. Its assertion now polls the settled positive value with Playwright's existing bounded expectation deadline. No production code, arbitrary sleep, assertion removal or retry allowance was added. Ten consecutive repetitions passed locally without retries (1.0m). Updated-head source/PR CI must pass all236 cases without flakes before merge; original CI logs are retained.
+
+CI now also enables Playwright's supported `failOnFlakyTests` setting. A case that needs a retry fails the job itself rather than relying solely on this release's extra log gate. Retries remain available for diagnostics; test thresholds and scenarios are preserved. The installed Playwright type documentation confirms this option. The change must pass the updated exact-head CI before release.
