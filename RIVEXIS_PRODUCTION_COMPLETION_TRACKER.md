@@ -14,6 +14,8 @@ Updated 18 October 2026, Asia/Calcutta. Continue the existing project and approv
 
 Decision remains **READY FOR CONTROLLED EARLY ACCESS**, not unrestricted institutional certification. Next work requires an existing owned sending domain/DNS authority, human-controlled native wallet setup/permissions, approved independent recovery-key custody/second-machine recovery and controlled security/operational assurance. Existing pg_net/leaked-password warnings, unpatched build-tool advisory and bounded provider/grid/history limitations remain disclosed. No new credential request, paid upgrade, signing or destructive change is needed for this checkpoint.
 
+Final resource readback: the existing Cloudflare account's Domains inventory explicitly shows **No data available** with an empty search field. Brevo still offers domain setup. No existing DNS zone is available in this connected account to authenticate a sending domain; this is a resource gate rather than another request for accessible credentials. No domain purchase/addition, account switch, DNS change or SMTP change was performed. Local screenshot preserves the readback.
+
 This record is a separate documentation evidence branch; deployed application identity above remains authoritative. Do not create another deployment merely to make a document refer to its own commit. The sections below are retained historical PR86 and pre-release PR87 notes, superseded by this verified summary.
 
 ## Verified deployed release
