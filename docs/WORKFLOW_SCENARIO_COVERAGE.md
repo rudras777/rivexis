@@ -2,6 +2,8 @@
 
 18 October 2026. This matrix describes executable cases, not a claim that every scenario was performed with a native wallet or production funds. The local release regression passed **184 browser cases without retries**, **221 DeFi tests**, **30 API-edge tests**, and **18 wallet lifecycle unit tests**. Twelve browser cases are new wallet lifecycle coverage. Shared assertions can cover several inputs inside one test; rows below are scenario lists, not additive test totals.
 
+PR87 follow-up: the full main CI regression now passes **200 browser cases**, adding16 Overview provenance/aging cases. The existing financial/API/unit suites above remain passing. All26 actual-public browser cases and two additional public performance cases passed on merge6c562390. Genuine production snapshot aging and replacement were separately observed without mock data or clock changes. See `OVERVIEW_EVIDENCE_CLOSEOUT_20261018.md` for exact release identities, results and original fixture-clock failure/correction.
+
 ## Ten or more scenarios per critical workflow
 
 | Workflow | Realistic scenarios covered | Executable evidence |
@@ -28,6 +30,8 @@
 ## Measured local responsiveness
 
 Two additional desktop/mobile checks passed at fourfold CPU throttling against the local production build. No overflow, browser errors, canvas or WebGL drawing was observed. Desktop LCP 992ms, CLS 0.033; mobile LCP 292ms, CLS 0.104. These are single local lab observations, not Lighthouse, public network performance, field Core Web Vitals or an SLA. The mobile layout-shift result is slightly above 0.1 and remains an improvement/production measurement item. Approved visual design was preserved.
+
+Production measurement completed on PR87: desktop LCP1740ms and mobile1812ms, CLS0 for both, no overflow/browser errors under fourfold CPU throttling. The earlier local blocked-upstream state is retained as historical evidence, not represented as a current production layout defect. These single-run public measurements do not establish field Core Web Vitals, load capacity or provider availability.
 
 ## Release gates still outside this matrix
 
