@@ -76,7 +76,7 @@ export function AppShell({children}:{children:React.ReactNode}){
   }
 
   async function logout(){
-    if(loggingOut)return;setLoggingOut(true);setLogoutError("");
+    if(loggingOut)return;wallet.cancelConnect();window.dispatchEvent(new Event('rivexis-wallet-cancel'));setLoggingOut(true);setLogoutError("");
     let providerRevocationUnconfirmed=false;
     try{const result=await api<{status:string;refreshSessionRevoked?:boolean}>("/api/v1/auth/logout",{method:"POST"});providerRevocationUnconfirmed=result.refreshSessionRevoked===false}
     catch(error){
