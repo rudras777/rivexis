@@ -31,11 +31,13 @@ async function rpc(page:Page,mode:Mode='success'){
   if(state.mode==='rate limited'){await route.fulfill({status:429,body:'Rate limited',headers});return}
   const calls=route.request().postDataJSON() as RpcCall[];
   expect(calls.length).toBeLessThanOrEqual(4);
+  // RPC fixtures and the reader share the browser clock when time is advanced.
+  const latestTime=calls.some(call=>call.method==='eth_getBlockByNumber'&&call.params[0]==='latest')?Math.floor(await page.evaluate(()=>Date.now())/1000):state.time;
   const results=calls.map(call=>{
    let result:any;
    if(call.method==='eth_chainId'){state.chains++;result=state.mode==='wrong chain'?'0x89':'0x1'}
    else if(call.method==='eth_getBlockByNumber'){
-    if(call.params[0]==='latest'){state.reads++;state.number=head+state.reads-1;state.time=Math.floor(Date.now()/1000);state.chains=1}
+    if(call.params[0]==='latest'){state.reads++;state.number=head+state.reads-1;state.time=latestTime;state.chains=1}
     const number=call.params[0]==='latest'?state.number:Number(BigInt(call.params[0]));
     result={number:hex(number),hash:hash(number),parentHash:hash(number-1),timestamp:hex(state.time-(state.number-number)*12),baseFeePerGas:'0x3b9aca00'};
     if(state.mode==='reorg'&&state.chains>=2&&number===state.number)result.hash=hash(number+100);
@@ -127,8 +129,8 @@ test('market: hidden-tab polling pauses and resumes after becoming visible',asyn
  await page.clock.install();await page.addInitScript(()=>{(window as any).launchHidden=false;Object.defineProperty(document,'hidden',{configurable:true,get:()=>(window as any).launchHidden})});
  const state=await open(page);await expect(panel(page)).toContainText('Fresh block observation');
  await page.evaluate(()=>{(window as any).launchHidden=true;document.dispatchEvent(new Event('visibilitychange'))});await expect(panel(page)).toContainText('Paused while this tab is hidden');
- const reads=state.reads;await page.clock.fastForward(125000);expect(state.reads).toBe(reads);
- await page.evaluate(()=>{(window as any).launchHidden=false;document.dispatchEvent(new Event('visibilitychange'))});await expect(panel(page)).toContainText(`Block ${head+1}`);
+ const reads=state.reads;await page.clock.fastForward(125000);expect(state.reads).toBe(reads);await expect(panel(page).locator('.marketQuoteStatus')).toContainText(['Latest quote not reverified','Latest quote not reverified']);
+ await page.evaluate(()=>{(window as any).launchHidden=false;document.dispatchEvent(new Event('visibilitychange'))});await expect(panel(page)).toContainText(`Block ${head+1}`);await expect(panel(page).locator('.marketQuoteStatus')).toContainText(['Fresh oracle round','Fresh oracle round']);
 });
 test('market: authentication failure exposes no market network calls or private context',async({page})=>{
  await account(page,false);const state=await rpc(page);await page.goto('/workspace/overview');await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();expect(state.batches).toBe(0);await expect(panel(page)).toHaveCount(0);
