@@ -1,13 +1,13 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mayReleaseStrandedNavigation as allowed,runGuardedNavigation} from './navigation-driver-policy.mjs';
-const ready={browserName:'firefox',expectedOrigin:'http://127.0.0.1:3000',target:'http://127.0.0.1:3000/workspace',href:'http://127.0.0.1:3000/workspace',previousHref:'about:blank',previousTimeOrigin:1,timeOrigin:2,readyState:'complete',mainPresent:true,buildPresent:true,documentStatus:200,pending:0,pageErrors:0,resourceFailures:0,serverFailures:0};
+const ready={browserName:'firefox',expectedOrigin:'http://127.0.0.1:3000',target:'http://127.0.0.1:3000/workspace',href:'http://127.0.0.1:3000/workspace',previousHref:'about:blank',previousTimeOrigin:1,timeOrigin:2,readyState:'complete',contentPresent:true,buildPresent:true,documentStatus:200,pending:0,pageErrors:0,resourceFailures:0,serverFailures:0};
 test('exact successful new-document driver signature permits one read-only release',()=>assert.equal(allowed(ready),true));
 for(const [name,change] of [
  ['another engine',{browserName:'webkit'}],['invalid target',{target:'not a URL'}],['non-http target',{target:'file:///workspace',href:'file:///workspace'}],
  ['query-bearing target',{target:ready.target+'?code=secret',href:ready.href+'?code=secret'}],['fragment-bearing target',{target:ready.target+'#token',href:ready.href+'#token'}],
  ['different destination',{href:'http://127.0.0.1:3000/login'}],['different origin',{href:'https://example.invalid/workspace'}],['unexpected target origin',{expectedOrigin:'https://example.invalid'}],['unapproved route',{target:'http://127.0.0.1:3000/logout',href:'http://127.0.0.1:3000/logout'}],
- ['uncommitted old document',{previousHref:ready.href,previousTimeOrigin:2}],['loading document',{readyState:'loading'}],['missing main',{mainPresent:false}],['missing app identity',{buildPresent:false}],
+ ['uncommitted old document',{previousHref:ready.href,previousTimeOrigin:2}],['loading document',{readyState:'loading'}],['missing main',{contentPresent:false}],['missing app identity',{buildPresent:false}],
  ['failed document',{documentStatus:500}],['redirect response',{documentStatus:302}],['invalid timing',{timeOrigin:NaN}],
  ['unfinished requests',{pending:1}],['JavaScript error',{pageErrors:1}],['failed resource',{resourceFailures:1}],['server failure',{serverFailures:1}],
 ])test('never release navigation with '+name,()=>assert.equal(allowed({...ready,...change}),false));

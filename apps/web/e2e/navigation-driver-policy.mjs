@@ -6,7 +6,7 @@ export function mayReleaseStrandedNavigation(e){
     return e.browserName==='firefox'&&['http:','https:'].includes(target.protocol)
       &&target.origin===e.expectedOrigin&&readRoutes.has(target.pathname)
       &&!target.search&&!target.hash&&target.href===actual.href
-      &&e.readyState==='complete'&&e.mainPresent===true&&e.buildPresent===true
+      &&e.readyState==='complete'&&e.contentPresent===true&&e.buildPresent===true
       &&(e.previousHref!==e.href||e.previousTimeOrigin!==e.timeOrigin)
       &&Number.isFinite(e.timeOrigin)&&e.timeOrigin>0
       &&Number.isInteger(e.documentStatus)&&e.documentStatus>=200&&e.documentStatus<300
