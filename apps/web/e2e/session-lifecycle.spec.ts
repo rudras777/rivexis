@@ -1,4 +1,4 @@
-import {expect,test} from "@playwright/test";
+import {expect,test} from './browser-test';
 
 const corsHeaders={
   "Access-Control-Allow-Origin":"http://127.0.0.1:3000",
@@ -78,11 +78,11 @@ test.describe("browser session lifecycle",()=>{
       });
     });
 
-    await page.goto("/workspace");
+    await page.goto("/workspace",{waitUntil:'domcontentloaded'});
     await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
     await expect.poll(()=>workspaceCalls).toBeGreaterThanOrEqual(1);
 
-    await page.reload();
+    await page.reload({waitUntil:'domcontentloaded'});
     await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
     await expect.poll(()=>workspaceCalls).toBeGreaterThanOrEqual(2);
 
@@ -102,7 +102,7 @@ test.describe("browser session lifecycle",()=>{
     expect(storageAfter).not.toHaveProperty("rivexis_workspace_id");
     expect(storageAfter).not.toHaveProperty("rivexis_token");
 
-    await page.goto("/workspace");
+    await page.goto("/workspace",{waitUntil:'domcontentloaded'});
     await expect(page.getByTestId("workspace-shell-session")).toContainText("Session ended");
     await expect(page.getByRole("navigation",{name:"Workspace"})).toHaveCount(0);
   });
@@ -129,7 +129,7 @@ test.describe("browser session lifecycle",()=>{
       return route.fulfill({status:500,contentType:"application/json",headers:corsHeaders,body:"{}"});
     });
 
-    await page.goto("/workspace");
+    await page.goto("/workspace",{waitUntil:'domcontentloaded'});
     await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
     await page.evaluate(()=>localStorage.setItem("rivexis_workspace_id","w-stale"));
 
@@ -167,7 +167,7 @@ test.describe("browser session lifecycle",()=>{
       });
     });
 
-    await page.goto("/workspace");
+    await page.goto("/workspace",{waitUntil:'domcontentloaded'});
     await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
     await page.getByLabel("Account menu",{exact:true}).click();await page.getByRole("button",{name:"Log out"}).click();
 

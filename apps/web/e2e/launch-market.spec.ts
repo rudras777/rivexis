@@ -1,4 +1,4 @@
-import {test,expect as baseExpect,type Page} from '@playwright/test';
+import {test,expect as baseExpect,type Page} from './browser-test';
 // Initial canonical/history reads are bounded at25s; do not assert completion at5s.
 const expect=baseExpect.configure({timeout:30000});
 test.setTimeout(45000);
@@ -21,7 +21,7 @@ async function account(page:Page,authenticated=true){
 }
 
 test('market quote labels respect the saved USD grouping preference',async({page})=>{
- await account(page);await page.route('**/api/v1/account/settings',r=>r.fulfill({json:{profile:{displayName:'Analyst',email:'qa@example.invalid',emailVerified:true},preferences:{...DEFAULT_PREFERENCES,numberGrouping:false}}}));await rpc(page);await page.goto('/workspace/overview');await expect(page.locator('.marketPrice')).toHaveText(['$3000.00','$90000.00']);
+ await account(page);await page.route('**/api/v1/account/settings',r=>r.fulfill({json:{profile:{displayName:'Analyst',email:'qa@example.invalid',emailVerified:true},preferences:{...DEFAULT_PREFERENCES,numberGrouping:false}}}));await rpc(page);await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});await expect(page.locator('.marketPrice')).toHaveText(['$3000.00','$90000.00']);
 });
 
 /** RPC fixtures live only at the network boundary; no product quote or success state is injected. */
@@ -75,7 +75,7 @@ async function rpc(page:Page,mode:Mode='success'){
 }
 const panel=(page:Page)=>page.getByRole('region',{name:'Live on-chain market context'});
 async function open(page:Page,mode:Mode='success',path='/workspace/overview'){
- await account(page);const state=await rpc(page,mode);await page.goto(path);await expect(panel(page)).toBeVisible();return state;
+ await account(page);const state=await rpc(page,mode);await page.goto(path,{waitUntil:'domcontentloaded'});await expect(panel(page)).toBeVisible();return state;
 }
 
 test('market: validated quotes, real-shape fee history and accessible exact-value tables',async({page})=>{
@@ -137,7 +137,7 @@ test('market: hidden-tab polling pauses and resumes after becoming visible',asyn
  await page.evaluate(()=>{(window as any).launchHidden=false;document.dispatchEvent(new Event('visibilitychange'))});await expect(panel(page)).toContainText(`Block ${head+1}`);await expect(panel(page).locator('.marketQuoteStatus')).toContainText(['Fresh oracle round','Fresh oracle round']);
 });
 test('market: authentication failure exposes no market network calls or private context',async({page})=>{
- await account(page,false);const state=await rpc(page);await page.goto('/workspace/overview');await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();expect(state.batches).toBe(0);await expect(panel(page)).toHaveCount(0);
+ await account(page,false);const state=await rpc(page);await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();expect(state.batches).toBe(0);await expect(panel(page)).toHaveCount(0);
 });
 test('market: GasGuard uses same genuine observations without automatically simulating transactions',async({page})=>{
  let simulations=0,snapshots=0;await page.route('**/api/v1/defi/transaction**',route=>{simulations++;return route.fulfill({status:400,json:{error:{message:'Not requested'}}})});

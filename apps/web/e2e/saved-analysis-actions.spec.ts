@@ -1,4 +1,4 @@
-import {expect,test} from "@playwright/test";
+import {expect,test} from './browser-test';
 
 const corsHeaders={
   "Access-Control-Allow-Origin":"http://127.0.0.1:3000",
@@ -45,7 +45,7 @@ test("saved analyses support inspect, archive, restore, search and delete",async
     provider_consensus:"SINGLE_SOURCE",evidence:[{provider:"ethereum_rpc",source_type:"direct_state"}],missing_data:["indexed approval history"],
   })}));
 
-  await page.goto("/workspace/saved");
+  await page.goto("/workspace/saved",{waitUntil:'domcontentloaded'});
   await expect(page.getByRole("cell",{name:"Alpha security review"})).toBeVisible();
   await expect(page.getByText("Beta protocol review")).toHaveCount(0);
 

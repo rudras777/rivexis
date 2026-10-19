@@ -1,11 +1,11 @@
-import {test,expect,type Route,type Page} from '@playwright/test';
+import {test,expect,type Route,type Page} from './browser-test';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 const wallet='0x'+'1'.repeat(40);
 const reply={status:'SEQUENCE_PREVIEW_ONLY',simulation:'SEQUENTIAL_CALLS_SUCCEEDED',blockNumber:'123',blockHash:'0x'+'1'.repeat(64),simulatedBlockNumber:'124',before:{collateralRaw:'3000000000000',debtRaw:'1800000000000',healthFactorRaw:'1333333333333333333'},observedAfter:{collateralRaw:'3000000000000',debtRaw:'1600000000000',healthFactorRaw:'1500000000000000000'},walletAssets:[{asset:'0x'+'2'.repeat(40),symbol:'USDC',decimals:6,beforeRaw:'3000000000',afterRaw:'1000000000'}],steps:[{label:'Approve exact USDC amount',status:'SUCCEEDED',gasRaw:'50000'},{label:'Repay USDC',status:'SUCCEEDED',gasRaw:'100000'}],blockers:[],warnings:['Explicit fixture: no live RPC success claim.']};
 async function setup(page:Page,changed={}){
  await page.route('**/health',r=>r.fulfill({json:{status:'ready'}}));await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:true,email_verified:true}}));await page.route('**/api/v1/auth/web/csrf',r=>r.fulfill({json:{csrf_token:'TEST_CSRF'}}));
  const s={...sampleSnapshot(),sample:false,wallet,blockTimestamp:Math.floor(Date.now()/1000),...changed};s.positions[0].id=`aave-v3:1:${wallet}`;
- await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({json:s}));await page.goto('/app');await page.getByLabel('Public Ethereum address').fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
+ await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({json:s}));await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address').fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
 }
 const panel=(page:Page)=>page.getByRole('region',{name:'Selected defense sequence'});
 const button=(page:Page)=>page.getByRole('button',{name:'Preview selected Aave sequence',exact:true});

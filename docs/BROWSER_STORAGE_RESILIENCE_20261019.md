@@ -1,6 +1,8 @@
 # Browser storage resilience — 19 October 2026
 
-Candidate branch: `fix/browser-storage-resilience-20261019`. Production remains PR93 until exact-head release gates and live verification pass.
+Released through [PR94](https://github.com/rudras777/rivexis/pull/94): source `967da19d905c26db1234e86bab92dc70165ece7f`, production merge `5247672bbe1eceb377c2862b90c611549e959071`. The existing URL serves HTTP200 with this exact public and genuine authenticated DOM marker.
+
+Existing Worker version `d36b8134-df3e-4c33-87bf-5eb7c1019280` has100% configured allocation, deployment `0f55a61e-97ef-4676-8a6d-fb34d346ab40`. Native build `c09bc4fb-b28c-43a4-8acc-2185b1e92fe2` has a successful provider check on the exact merge. No newly observed Cloudflare dashboard Ready row is claimed.
 
 ## Reproduced failures and change
 
@@ -16,6 +18,9 @@ No financial arithmetic, supported protocol coverage, API34/backend, database, C
 - First corrected run: all14 storage fault scenarios passed without retries/skips/failures,14.5seconds. Extended cases cover financial-memory clearing after logout/relogin and rejection of external redirects.
 - Both Next and Vinext builds passed. Official Next route generation, TypeScript and final AST167 source checks passed after removal of the temporary probe config. Existing12 API client/deadline cases passed. The initial extensionless helper import failed the Node client test loader; the helper now uses the existing explicit `.mjs`/`.d.mts` pattern and the rerun passed.
 - Final focused suite:59 passed in83,228.973milliseconds, including all16 storage scenarios, existing auth/session/Settings/entry checks and responsive accessibility. Zero failures, retries, skips or flaky results. Logs and JSON remain outside Git.
-- Full source/PR/main release gates, deployment and actual-public checks remain pending at this checkpoint. Controlled API/browser fault fixtures are not production outage evidence or native-wallet certification.
+- SourceCI39264113895, PRCI39264163787, PRWorker39264164086, mainCI39265004648 and mainWorker39265004451 succeeded. Source/PR/main each passed269 browser cases, alongside existing financial/API/security/database/audit gates. All29 actual-public cases passed without retries/skips/flakes in119,564.155milliseconds. Controlled API/browser fault fixtures are not production outage evidence or native-wallet certification.
+- Genuine existing verified-session reload and live Morpho public-reference read at block26228047 rendered collateral$9,924,031.71/debt$6,828,076.30/health1.249, actual exposure and modeled sensitivity, with zero service warnings. No signing/submission, ownership claim, preference/report/account write or production data/clock mocking. This read is integration evidence, not a new independent financial reconciliation; the unchanged parent reference checks remain dated and separately scoped.
+
+Added recurring service cost$0. Public and authenticated screenshots, independent deployment records, logs and JSON are retained in the task evidence directory outside Git. Current decision remains controlled early access within supported scope. Cross-engine follow-up is recorded separately; it does not change these exact-release counts or certify a native wallet/Safari device.
 
 Existing owner resource/assurance gates remain: sending domain/DNS, actual native wallet permission UI, independent recovery key/full-service recovery, pending privileged backup-token authorization, separately authorized database maintenance and sustained operational assurance. Do not create credentials, upgrade services, transmit recovery keys or spend based on an unanswered question.

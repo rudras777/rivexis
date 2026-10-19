@@ -1,4 +1,4 @@
-import {expect,test} from "@playwright/test";
+import {expect,test} from './browser-test';
 
 const corsHeaders={
   "Access-Control-Allow-Origin":"http://127.0.0.1:3000",
@@ -30,7 +30,7 @@ test("organization role drafts do not leak between organizations for the same us
   await baseMocks(page);
   await organizationMocks(page);
 
-  await page.goto("/workspace/settings/workspaces");
+  await page.goto("/workspace/settings/workspaces",{waitUntil:'domcontentloaded'});
   await expect(page.getByRole("heading",{name:"Risk Council members"})).toBeVisible();
   await expect(page.getByLabel("Role for shared@example.com")).toHaveValue("ANALYST");
 
@@ -47,7 +47,7 @@ test("completed organization mutation status does not leak after switching organ
   await baseMocks(page);
   await organizationMocks(page);
 
-  await page.goto("/workspace/settings/workspaces");
+  await page.goto("/workspace/settings/workspaces",{waitUntil:'domcontentloaded'});
   await expect(page.getByRole("heading",{name:"Risk Council members"})).toBeVisible();
   await page.getByLabel("Role for shared@example.com").selectOption("VIEWER");
   await page.getByRole("button",{name:"Update shared@example.com"}).click();
@@ -69,7 +69,7 @@ test("membership claim target is frozen while the authenticated claim request is
     await route.fulfill({status:200,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({organization_id:"org-target",claim_token:"claim_abcdefghijklmnopqrstuvwxyz0123456789",expires_in_seconds:900,expires_at:"2026-09-28T12:15:00Z"})});
   });
 
-  await page.goto("/workspace/settings/workspaces");
+  await page.goto("/workspace/settings/workspaces",{waitUntil:'domcontentloaded'});
   const target=page.getByLabel("Organization ID for membership claim");
   await target.fill("org-target");
   await page.getByRole("button",{name:"Generate claim"}).click();

@@ -1,4 +1,4 @@
-import {test,expect,type Page,type Route} from '@playwright/test';
+import {test,expect,type Page,type Route} from './browser-test';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 import {DEFAULT_PREFERENCES} from '../../../supabase/functions/rivexis-api/account-preferences.mjs';
 
@@ -15,7 +15,7 @@ async function setup(page:Page){
  await page.route('https://ethereum.publicnode.com/**',r=>r.abort('failed'));
  let reads=0;const pending:Route[]=[];
  await page.route('**/api/v1/defi/snapshot',r=>{if(++reads===1)return r.fulfill({json:snapshot()});pending.push(r)});
- await page.goto('/workspace/reports');await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();
  return {pending,reads:()=>reads,respond:async(index:number,changes:Record<string,unknown>={})=>pending[index].fulfill({json:snapshot({blockTimestamp:Math.floor(await page.evaluate(()=>Date.now())/1000),blockNumber:String(28000201+index),blockHash:'0x'+String(index+2).repeat(64),...changes})})};
 }
 async function start(page:Page,pending:Route[]){await monitor(page).getByRole('button',{name:'Start five bounded checks',exact:true}).click();await expect.poll(()=>pending.length).toBe(1);await expect(monitor(page).getByRole('status')).toHaveText('Reading check 1 of 5…')}

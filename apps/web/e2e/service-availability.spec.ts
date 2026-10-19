@@ -1,10 +1,10 @@
-import {test,expect,type Page,type Route} from '@playwright/test';
+import {test,expect,type Page,type Route} from './browser-test';
 const banner=(page:Page)=>page.getByTestId('service-availability');
 async function setup(page:Page,respond:(route:Route,number:number)=>unknown){
  await page.clock.install();let requests=0;
  await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:false,email_verified:false}}));
  await page.route('**/health',r=>respond(r,++requests));
- await page.goto('/');return ()=>requests;
+ await page.goto('/',{waitUntil:'domcontentloaded'});return ()=>requests;
 }
 for(const status of ['ready','healthy','OK'])test(`valid ${status} service status needs no ongoing polling`,async({page})=>{
  const requests=await setup(page,r=>r.fulfill({json:{status}}));await expect.poll(requests).toBe(1);await page.clock.fastForward(120000);await expect(banner(page)).toHaveCount(0);expect(requests()).toBe(1);

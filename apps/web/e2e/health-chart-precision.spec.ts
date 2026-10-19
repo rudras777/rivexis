@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './browser-test';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 import {DEFAULT_PREFERENCES} from '../../../supabase/functions/rivexis-api/account-preferences.mjs';
 
@@ -19,7 +19,7 @@ async function setup(page:Page,precision=3,grouping=true,s=fixture()){
  await page.route('**/api/v1/workspaces',r=>r.fulfill({json:{items:[{id:'QA',name:'QA workspace',access_role:'OWNER'}]}}));
  await page.route('**/api/v1/account/settings',r=>r.fulfill({json:{profile:{displayName:'QA',email:'qa@example.invalid',emailVerified:true},preferences:{...DEFAULT_PREFERENCES,healthPrecision:precision,numberGrouping:grouping}}}));
  await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({json:s}));await page.route('https://ethereum.publicnode.com/**',r=>r.abort('failed'));
- await page.goto('/workspace');await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();
+ await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();
 }
 const sensitivity=(page:Page)=>page.locator('figure').filter({hasText:'Aave V3 · health sensitivity to WETH'});
 const headline=(page:Page)=>page.getByRole('region',{name:'Observed portfolio metrics'}).locator(':scope > div').nth(2).locator('strong');
