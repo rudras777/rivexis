@@ -2,6 +2,7 @@ import {test,expect,type Page} from './browser-test';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 import {frontier,format} from '../../../supabase/functions/rivexis-api/defi-unified-model.mjs';
 import {readFileSync} from 'node:fs';
+import {DEFAULT_PREFERENCES} from '../../../supabase/functions/rivexis-api/account-preferences.mjs';
 const wallet='0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18';
 function fixture(now=Date.now()){return {...sampleSnapshot(now),sample:false,wallet,blockNumber:'18001',blockHash:'0x'+'1'.repeat(64)};}
 async function setup(page:Page){
@@ -9,6 +10,7 @@ async function setup(page:Page){
  await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:true,email_verified:true}}));
  await page.route('**/api/v1/auth/web/csrf',r=>r.fulfill({status:200,json:{csrf_token:'TEST_CSRF'}}));
  await page.route('**/api/v1/workspaces',r=>r.fulfill({status:200,json:{items:[{id:'COMPLETION_WORKSPACE',name:'Test workspace',role:'Individual',access_role:'OWNER'}]}}));
+ await page.route('**/api/v1/account/settings',r=>r.fulfill({json:{profile:{displayName:'Test analyst',email:'qa@example.invalid',emailVerified:true},preferences:DEFAULT_PREFERENCES}}));
 }
 test('liquidation illustration matches independent example arithmetic and aligns labels to their health-factor markers',async({page})=>{
  await setup(page);
@@ -58,7 +60,16 @@ test('private saved comparison reopens as historical and requires refresh for ne
  await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Load saved reports'}).click();await page.getByRole('button',{name:'Open comparison →'}).click();
  await expect(page).toHaveURL(/\/workspace\/frontier$/);await expect(page.getByText('HISTORICAL COMPARISON · REFRESH REQUIRED')).toBeVisible();
  await expect(page.getByRole('region',{name:'Selected defense plan comparison'})).toBeVisible();await expect(page.getByRole('button',{name:'Calculate alternatives ↗'})).toBeDisabled();await expect(page.locator('.alternative').first().getByRole('button',{name:'Preview action →'})).toBeDisabled();
- await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:fixture()}));await page.getByRole('button',{name:'Refresh evidence ↻'}).click();await expect(page.getByText('HISTORICAL COMPARISON · REFRESH REQUIRED')).toHaveCount(0);await expect(page.getByRole('button',{name:'Calculate alternatives ↗'})).toBeEnabled();
+ const fresh={...fixture(),blockNumber:'18002',blockHash:'0x'+'2'.repeat(64)};let refreshRequests=0;
+ await page.route('**/api/v1/defi/snapshot',r=>{refreshRequests++;expect(r.request().postDataJSON()).toEqual({wallet,coverage:'aave'});return r.fulfill({status:200,json:fresh})});
+ const started=Date.now();let responseStatus:number|null=null;
+ try{
+  // Validate transport completion separately from the UI replacement. The API
+  // has its own bounded deadline; a five-second UI assertion cannot stand in for it.
+  const [response]=await Promise.all([page.waitForResponse('**/api/v1/defi/snapshot'),page.getByRole('button',{name:'Refresh evidence ↻'}).click()]);
+  responseStatus=response.status();expect(refreshRequests).toBe(1);expect(response.ok()).toBe(true);expect(await response.json()).toEqual(fresh);
+  await expect(page.getByText('HISTORICAL COMPARISON · REFRESH REQUIRED')).toHaveCount(0);await expect(page.locator('.evidenceStrip')).toContainText('Block 18002');await expect(page.getByRole('button',{name:'Calculate alternatives ↗'})).toBeEnabled();
+ }finally{console.info('REPORT_REFRESH_EVIDENCE '+JSON.stringify({requests:refreshRequests,responseStatus,elapsedMs:Date.now()-started,historicalMarkers:await page.getByText('HISTORICAL COMPARISON · REFRESH REQUIRED').count()}))}
 });
 test('unverified identities receive a usable verification route before workspace content',async({page})=>{
  await setup(page);await page.route('**/api/v1/workspaces',r=>r.fulfill({status:403,json:{detail:'Email verification is required before analysis or reports'}}));
