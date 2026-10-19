@@ -2,6 +2,20 @@
 
 Updated 19 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
 
+## Current verified application: PR91
+
+Production **20920918c46f23edc91d4f2edd57b8254bdafd4a**, source25ea84d0964da8c712f7bc67b483e9edfea377db. Existing Worker **eabeff8d-5489-44fa-a6a8-a3a8daf68c72**,100% allocation observed by read-only Wrangler. Native build **09dd1d92-50d1-4062-b5ce-b1be5f79843d** has a successful provider check on this exact merge. Public/authenticated build markers agree. The Cloudflare dashboard stalled during reload, so do not claim a newly observed Ready row; deployment is independently established by the provider check, Worker version and actual website.
+
+SourceCI39234059263, PRCI39234067143, PRWorker39234066717, mainCI39234864988 and mainWorker39234865005 succeeded. Source/PR/main each passed238 browser cases without flaky outcomes; all28 actual-public cases passed, including no premature auth requests and successful chosen login/signup entries. Genuine signed-in landing→GasGuard→landing→Open dashboard retained the same real snapshot26225926 and identical portfolio metrics. No signing, transaction submission or account-data changes.
+
+The public entry change removed both speculative auth-route requests and the unused form chunk, with roughly30KB lower observed initial transfer. It did **not** demonstrate an LCP improvement: the three mobile4x-CPU samples were5.980/3.840/6.756s versus parent5.316/3.660/4.016s. Two reduced-motion diagnostics remained slow6.360/5.120s; do not remove approved visuals or claim they caused this. Stable layout/no overflow/errors passed, but initial bootstrap/CPU profiling remains actionable work. Temporary reduced-motion config was removed.
+
+Fresh read-only Supabase audit: ACTIVE_HEALTHY,17.6.1.166;61 public tables, zero without RLS;9 public security-definer functions, zero executable by client roles. Same two WARN groups and19 intentional private-table INFO findings. Upgrade review offers17.11.0.003, with all services offline up to1 hour and no downgrade. Catalog preflight found zero ltree/float-GiST/custom-estimator indexes/operators; pgcrypto exists but no PGP routines in application schemas. This is not ciphertext compatibility certification. No upgrade, grant, credential, schema or plan change performed. See `docs/DATABASE_REVIEW_20261019.md`.
+
+Current follow-up: profile initial loading; prepare only authorized safe database maintenance prerequisites. A fresh protected backup/isolated restore is needed immediately before any upgrade, followed by explicit approval for its outage/irreversible version change. The earlier scoped backup token was revoked. Preserve the completed17 October recovery evidence; do not ask for the original database password. Owned email domain/DNS, usable unlocked native test wallet and independent key custody/second-machine/full-service recovery remain resource/assurance gates. Never silently spend, create privileged credentials or confirm maintenance.
+
+Detailed release evidence: `docs/PUBLIC_ENTRY_LOADING_CLOSEOUT_20261019.md`; raw proof and performance/audit records remain outside source control. This documentation checkpoint does not require a new deployment merely to refer to itself. All older current/active headings below are historical.
+
 ## Latest verified application: PR90
 
 Production **35f62adf329a9e58fd63fbfb349f3b2206aac2c8**, source **ea3ddc2e4594e78e9edc4c949a747537d4101d6d**, existing Worker **d11c4aea-00d6-4401-a21d-2a07fe213ea0**, native build **62e4dbd4-406a-4131-83ca-26169e45228b**, Ready/100% allocation. Public and genuine authenticated build markers match. SourceCI39073408132, PRCI39073411170, PRWorker39073411076, mainCI39073827255 and mainWorker39073827131 succeeded. Source/PR/main each passed236 browser cases without flaky outcomes; all26 actual-public browser cases passed on19 October. The original watch connection failed temporarily; completed-run diagnostics and logs were then retrieved successfully. This was a diagnostic connection failure, not a failed job.
