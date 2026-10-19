@@ -2,9 +2,15 @@
 
 Updated 19 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
 
-## Active release-gate integrity correction
+## Current verified release: PR92
 
-Branch `fix/audit-gate-failure-20261019` corrects a reproduced false PASS when npm audit returns registry/error JSON or contradictory evidence. Original22-case regression:10 passed/12 failed; corrected28-case CLI matrix passes, as does the real registry audit with its one existing exception. No dependency/runtime/model/database/design changes. Types/AST passed. The branch includes the earlier performance-harness correction and documentation closeout; exact-head CI, merge and same-URL identity verification remain required. See `docs/AUDIT_GATE_INTEGRITY_20261019.md`. Current verified runtime remains PR91/20920918 below. Fresh-backup credential approval remains unanswered; no token or upgrade has been created/performed.
+Production **ddb70a7dcaee5691cf49b829acd891f992998c16**, source **e9fe582d6f1c7c1ce606ac048435fc7b8274ab1e**, merged PR92. Existing Worker **d7c23d0f-88d8-4c3a-b000-e458e88ec0b9**,100% allocation; successful native build **74b5e477-83b0-4f45-8c1b-7db6312f9f46**. HTTP200 and genuine authenticated DOM markers agree. SourceCI39252650174, PRCI39252691381, PRWorker39252691501, mainCI39253505281 and mainWorker39253505689 succeeded. Source/PR/main each passed238 browser cases and28 new audit-gate CLI scenarios. All28 actual-public checks passed without retries/skips/flakes.
+
+PR92 rejects false clean npm audit results caused by registry/error JSON, malformed/missing findings, inconsistent severities/counts and abnormal exits. Initial22-case regression reproduced12 failures; corrected28-case set and real registry gate pass. The existing one advisory/seven-High transitive entries remains disclosed. Includes the previously validated measurement-harness correction and PR91 closeout. No application runtime, financial math, API34, schema, auth, infrastructure or approved visual changes; added recurring cost$0.
+
+Genuine signed-in verification: real Morpho snapshot26226679; all six planner alternatives and baseline matched independent integer and rational budget checks exactly. Successful three-step approval/supply simulation at parent26226684/child26226685 reconciled debt/health, WBTC delta3615052, exact approvals and132065 total gas. Individual preview26226691 correctly BLOCKED on allowance/call/fee evidence, and real market history contained four fee observations. No signing/submission, ownership claim, saved report/preference/account write or production clock/data mocking. Details: `docs/AUDIT_GATE_INTEGRITY_20261019.md`.
+
+Three additional recorder-disabled mobile4x-CPU probes passed behavior/overflow/error checks but remained variable: LCP5568/2240/4260ms, first-response3621/634/563ms, CLS0/0/0.000943. Keep all samples; no stable field/performance-SLA certification. Current verdict remains controlled early access within supported scope, not unrestricted institutional readiness. Fresh-backup privileged credential approval remains unanswered; token not created and database not upgraded. Owned sender domain/DNS, native test-wallet permission UX, independent key custody/second-machine/full-service recovery and operational assurance remain open. All older current/active headings below are historical. Documentation closeout is a separate branch and does not require another self-referential deployment.
 
 ## Current verified application: PR91
 
