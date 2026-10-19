@@ -1,6 +1,24 @@
 # RIVEXIS production completion checkpoint
 
-Updated 18 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
+Updated 19 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
+
+## Latest verified application: PR90
+
+Production **35f62adf329a9e58fd63fbfb349f3b2206aac2c8**, source **ea3ddc2e4594e78e9edc4c949a747537d4101d6d**, existing Worker **d11c4aea-00d6-4401-a21d-2a07fe213ea0**, native build **62e4dbd4-406a-4131-83ca-26169e45228b**, Ready/100% allocation. Public and genuine authenticated build markers match. SourceCI39073408132, PRCI39073411170, PRWorker39073411076, mainCI39073827255 and mainWorker39073827131 succeeded. Source/PR/main each passed236 browser cases without flaky outcomes; all26 actual-public browser cases passed on19 October. The original watch connection failed temporarily; completed-run diagnostics and logs were then retrieved successfully. This was a diagnostic connection failure, not a failed job.
+
+PR90 preserves raw health for chart/readout/table formatting, respects saved financial preferences and prevents positive dust amounts/costs being shown as zero. Financial math, protocol coverage, backend/API34, database, quotas, design and infrastructure are unchanged. An initial prefill-test race was fixed and passed ten consecutive no-retry repetitions. CI itself now fails on flaky outcomes. The original235-pass/one-flaky runs were rejected before merge and retained as evidence.
+
+Genuine19 October verification: a real public-reference Morpho position at block26225744 showed1.262721 consistently in headline/chart/table after securely saving/reloading six-decimal precision with grouping disabled. Independent Python integer calculations, without application imports or RPC, matched accrued interest, share debt, native health and exposure exactly. Original three-decimal/grouped preferences were restored and reloaded; another fresh read showed1.262 consistently with grouping restored. No connection/signature/submission or ownership claim. See `docs/FINANCIAL_DISPLAY_CLOSEOUT_20261019.md` and the separate outside-repository evidence.
+
+Active follow-up: performance diagnostics. Fourfold-CPU public landing probes passed behavior/overflow/error checks but measured desktop LCP2.524s and mobile LCP5.316s, then3.660s and4.016s in two additional cold probes. CLS remained near zero. These are local lab samples, not field data or an SLA. Investigate initial loading before making any nonvisual change; preserve the approved experience. Do not repeat completed financial/database recovery work or manufacture institutional certification.
+
+Implementation branch `perf/public-entry-intent-20261019`: two new genuine-public cases reproduced eager login/signup route requests before a click. The narrowly scoped candidate sets `prefetch={false}` on public session-dependent entry links, preserving destinations and all authentication/model/design behavior. Default/public suites now include the two no-interception cases (238/28). Both builds/focused/source/PR/Worker gates, same-URL verification and measured request/resource comparison are required before claiming it deployed or faster. See `docs/PUBLIC_ENTRY_LOADING_PROGRESS_20261019.md`. Current production remains the independently verified PR90 identity above.
+
+Candidate local gates are now complete: both builds, types/AST165 passed;28 existing entry/auth/session cases plus the two corrected loading probes passed on the same build, without retries. Initial global-idle and default-URL test assumptions were corrected without changing application behavior, and both original failures were retained. Proceed through exact-head source/PR/Worker CI, merge, same-URL28-case release checks and genuine signed-in/performance verification. Do not stop at this local checkpoint or claim institutional certification.
+
+Remaining resource/assurance gates: owned email domain and DNS authority; usable unlocked native test wallet for real provider permission checks; approved independent recovery-key custody and second-machine/full-service recovery; controlled database/auth/dependency findings and independent institutional assurance. Domain/native-wallet questions remain unanswered; silence is not approval for spending, credential creation, key transmission or protected operations. Continue independent engineering while possible.
+
+All older current-production and active-work headings below are historical continuation records, superseded by this latest entry. Their original exact commits and evidence remain useful; they are not instructions to repeat already completed releases.
 
 ## Current production: PR89; active financial display integrity work
 

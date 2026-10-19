@@ -19,11 +19,11 @@ The initial core is free to users. Supported financial coverage is deliberately 
 
 ## Release and recovery evidence
 
-[Release report](docs/DEFI_RELEASE_REPORT.md), [resumable transformation journal](docs/TRANSFORMATION_PROGRESS.md), and [independent live checks](certification-reports/defi-live-verification.json).
+[Current resumable checkpoint](RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md), [19 October verified application evidence](docs/FINANCIAL_DISPLAY_CLOSEOUT_20261019.md), [supported workflow scenarios](docs/WORKFLOW_SCENARIO_COVERAGE.md), and [readiness boundaries](docs/PRODUCTION_READINESS.md). The [original transformation release](docs/DEFI_RELEASE_REPORT.md) and [original independent checks](certification-reports/defi-live-verification.json) remain dated historical evidence.
 
-Deployed source: `e7b2c33464c63fe71e5ebbede49e79f1292fbd87`. Later documentation-only commits may be deployed automatically by the retained Cloudflare integration; inspect the public build marker for current identity. Recovery tag: `baseline/pre-defi-transformation-20261009`. Existing users and historical data remain intact; quota and receipt tables are additive.
+Last verified application: `35f62adf329a9e58fd63fbfb349f3b2206aac2c8`, PR90, checked19 October2026. Subsequent builds can be deployed by the retained Cloudflare integration; inspect the public build marker and latest checkpoint for current identity. Recovery tag: `baseline/pre-defi-transformation-20261009`. Existing users and historical data remain intact; quota and receipt tables are additive.
 
-New inbox delivery through Brevo and current Cloudflare billing totals remain unverified. See the release report for security findings, operational quotas and exact test coverage.
+Actual verification/recovery email delivery and isolated production logical recovery have been verified within their recorded scope. Owned-domain authentication, consistent inbox placement, real native-wallet permission testing, independent recovery-key custody and broader institutional assurance remain unresolved. Added recurring services cost is $0; total account billing is not independently certified. Supported bounded workflows are ready for controlled early access; unrestricted institutional certification is not established. See the current checkpoint for exact evidence and next safe actions.
 
 ## Development and validation
 
