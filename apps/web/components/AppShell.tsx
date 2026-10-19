@@ -36,7 +36,7 @@ function ShellState({title,message,kind,action}:ShellStateProps){
 
 function clearClientSessionState(){setCsrfToken(null);clearActiveWorkspaceId()}
 
-export function AppShell({children}:{children:React.ReactNode}){
+export function AppShell({children,renderNavigation}:{children:React.ReactNode;renderNavigation?:(mobile:boolean)=>React.ReactNode}){
   const p=usePathname(),wallet=useWalletConnection();
   const {account}=useAccountPreferences();
   const accountMenu=useRef<HTMLDetailsElement>(null),mobileMenu=useRef<HTMLDetailsElement>(null);
@@ -109,9 +109,9 @@ export function AppShell({children}:{children:React.ReactNode}){
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>
     <header className="workspaceHeaderBar">
       <Brand/>
-      <WorkspaceNavigation/>
+      {renderNavigation?renderNavigation(false):<WorkspaceNavigation/>}
       <div className="workspaceHeaderActions"><Link prefetch={false} className="walletHeaderControl ghost" href="/workspace/wallets">{wallet.connection?`${wallet.connection.address.slice(0,6)}…${wallet.connection.address.slice(-4)}`:"Connect Wallet"}</Link>
-        <details className="workspaceMobileNav" ref={mobileMenu}><summary aria-label="Open workspace navigation">Menu <span aria-hidden="true">⌄</span></summary><WorkspaceNavigation mobile/></details>
+        <details className="workspaceMobileNav" ref={mobileMenu}><summary aria-label="Open workspace navigation">Menu <span aria-hidden="true">⌄</span></summary>{renderNavigation?renderNavigation(true):<WorkspaceNavigation mobile/>}</details>
         <details className="accountMenu" ref={accountMenu}><summary aria-label="Account menu"><span className="accountInitials" aria-hidden="true">{(account?.profile.displayName||"R").split(/\s+/).slice(0,2).map(n=>n[0]).join("").toUpperCase()}</span><span>Account</span><span aria-hidden="true">⌄</span></summary><nav aria-label="Account"><strong>{account?.profile.displayName||"Your account"}</strong><Link prefetch={false} href="/workspace/settings">Settings</Link><Link prefetch={false} href="/workspace/settings/workspaces">Workspaces & organizations</Link><Link prefetch={false} href="/workspace/history">Historical records</Link><button type="button" className="criticalButton" aria-label={loggingOut?"Logging out…":"Log out"} onClick={logout} disabled={loggingOut}>{loggingOut?"Logging out…":"Log out"}</button></nav></details>
       </div>
     </header>

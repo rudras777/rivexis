@@ -22,9 +22,9 @@ test('guest feature entries preserve their destination and direct protected URLs
 });
 test('interactive educational analysis also requires a verified free account',async({page})=>{
   await setup(page);await page.goto('/demo',{waitUntil:'domcontentloaded'});
-  await expect(page.getByRole('heading',{name:'Your intelligence workspace'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Session ended'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0);
-  await expect(page.getByRole('link',{name:'Log in',exact:true})).toHaveAttribute('href','/login?next=%2Fdemo');
+  await expect(page.getByRole('link',{name:'Log in again',exact:true})).toHaveAttribute('href','/login?next=%2Fdemo');
   await page.goto('/',{waitUntil:'domcontentloaded'});await expect(page.getByRole('slider')).toHaveCount(0);
   await expect(page.locator('.signatureRiskField,.riskAtlas,canvas')).toHaveCount(0);await expect(page.locator('.blockchainBackground')).toHaveCount(1);
 });

@@ -77,23 +77,26 @@ test('portfolio shows exact oracle units and never hides a positive dust balance
   await expect(page.locator('[aria-label="Observed portfolio metrics"]')).toContainText('<0.0001 ETH');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
-test('responsive dark/light product surfaces have no page overflow or serious axe findings',async({page})=>{
-  // Eight viewport workflows plus seven axe scans need a suite-sized budget.
-  test.setTimeout(90_000);
-  for(const width of [320,375,390,768,1024,1280,1440,1920]){
-    await page.setViewportSize({width,height:1000});await page.goto('/',{waitUntil:'domcontentloaded'});
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`home overflow ${width}`).toBe(true);
-    await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
-    await openWorkspaceView(page,'frontier');await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`app overflow ${width}`).toBe(true);
-  }
-  for(const path of ['/','/workspace','/demo','/forgot-password','/verify-email','/methodology']){
-    await page.goto(path,{waitUntil:'domcontentloaded'});const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
-    expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical'),path).toEqual([]);
-  }
+// Keep every viewport and accessibility assertion isolated: one slow browser
+// must identify its failing surface instead of exhausting a combined budget.
+for(const width of [320,375,390,768,1024,1280,1440,1920])test(`responsive product surfaces have no overflow at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:1000});await page.goto('/',{waitUntil:'domcontentloaded'});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`home overflow ${width}`).toBe(true);
+  await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
+  await openWorkspaceView(page,'frontier');await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`app overflow ${width}`).toBe(true);
+});
+for(const path of ['/','/workspace','/demo','/forgot-password','/verify-email','/methodology'])test(`product surface has no serious axe findings: ${path}`,async({page})=>{
+  await page.goto(path,{waitUntil:'domcontentloaded'});const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
+  expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical'),path).toEqual([]);
+});
+test('saved light appearance has no serious axe findings',async({page})=>{
   await mockWorkspaceAccess(page,'light');await page.addInitScript(()=>localStorage.setItem('rivexis_theme','light'));await page.goto('/workspace',{waitUntil:'domcontentloaded'});await expect(page.locator('html')).toHaveAttribute('data-theme','light');
+  await expect(page.locator('.workspaceScope')).toHaveCSS('background-color','rgb(243, 243, 239)');
+  await expect(page.locator('.lookupBar')).toHaveCSS('background-color','rgb(250, 250, 247)');
   const light=await new AxeBuilder({page}).withTags(['wcag2aa','wcag22aa']).analyze();expect(light.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);
 });
+
 test('obsolete public tools redirect to the unified product',async({page})=>{
   await page.goto('/blockchain-intelligence',{waitUntil:'domcontentloaded'});await expect(page).toHaveURL(/\/gasguard$/);
   await page.goto('/crypto-finance',{waitUntil:'domcontentloaded'});await expect(page).toHaveURL(/\/liquidationguard$/);

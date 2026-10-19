@@ -19,6 +19,14 @@ test('six categories disclose destinations only on intentional interaction and r
  await expect(nav.getByRole('link',{name:'LiquidationGuard',exact:true})).toBeHidden();const risk=nav.getByRole('button',{name:'Risk Intelligence',exact:false});await risk.hover();await expect(nav.getByRole('link',{name:'LiquidationGuard',exact:true})).toBeVisible();await page.mouse.move(0,700);await expect(nav.getByRole('link',{name:'LiquidationGuard',exact:true})).toBeHidden();
  const onchain=nav.getByRole('button',{name:'On-Chain',exact:false});await onchain.focus();await page.keyboard.press('ArrowDown');await expect(nav.getByRole('link',{name:'Wallets',exact:false})).toBeFocused();await page.keyboard.press('Escape');await expect(onchain).toBeFocused();await expect(onchain).toHaveAttribute('aria-expanded','false');await onchain.click();await nav.getByRole('link',{name:'Contracts',exact:false}).click();await expect(page).toHaveURL(/\/workspace\/contracts$/);await expect(onchain).toHaveAttribute('data-active','true');
 });
+test('clicking a hover-open category keeps destinations available until a second activation',async({page})=>{
+ await setup(page);await page.setViewportSize({width:1920,height:1000});await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});
+ const nav=page.getByRole('navigation',{name:'Workspace',exact:true}),trigger=nav.getByRole('button',{name:'Decision Intelligence',exact:true}),destination=nav.getByRole('link',{name:'Defense Planner',exact:true});
+ await trigger.hover();await expect(trigger).toHaveAttribute('aria-expanded','true');await expect(destination).toBeVisible();
+ await trigger.click();await expect(trigger).toHaveAttribute('aria-expanded','true');await expect(destination).toBeVisible();
+ await trigger.click();await expect(trigger).toHaveAttribute('aria-expanded','false');await expect(destination).toBeHidden();
+ await trigger.focus();await page.keyboard.press('ArrowDown');await expect(destination).toBeFocused();await page.keyboard.press('Escape');await expect(trigger).toBeFocused();await expect(trigger).toHaveAttribute('aria-expanded','false');
+});
 for(const width of [320,768,1440])test(`connections and tooltips are accessible without overflow at ${width}px`,async({page})=>{
  await setup(page);await page.setViewportSize({width,height:1000});await page.goto('/workspace/contracts',{waitUntil:'domcontentloaded'});
  const info=page.getByRole('button',{name:'About contract connection'});await info.focus();await expect(page.getByRole('tooltip')).toBeVisible();const tip=(await page.getByRole('tooltip').boundingBox())!;expect(tip.x).toBeGreaterThanOrEqual(0);expect(tip.x+tip.width).toBeLessThanOrEqual(width);await page.keyboard.press('Escape');await expect(page.getByRole('tooltip')).toBeHidden();await info.click();await expect(page.getByRole('tooltip')).toBeVisible();await page.getByRole('heading',{name:'Contracts',exact:true}).click();await expect(page.getByRole('tooltip')).toBeHidden();

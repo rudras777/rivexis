@@ -12,7 +12,7 @@ export function applyAppearance(p:Preferences){
 }
 const Context=createContext<{preferences:Preferences;account:AccountSettings|null}>({preferences:DEFAULT_PREFERENCES,account:null});
 export function AccountPreferencesProvider({children}:{children:ReactNode}){
- const path=usePathname();const q=useQuery({queryKey:['account-settings'],queryFn:({signal})=>api<AccountSettings>('/api/v1/account/settings',{signal}),enabled:path.startsWith('/workspace'),retry:false});
+ const path=usePathname();const q=useQuery({queryKey:['account-settings'],queryFn:({signal})=>api<AccountSettings>('/api/v1/account/settings',{signal}),enabled:path.startsWith('/workspace')||path==='/demo',retry:false});
  const account=q.data??null,preferences=account?.preferences??DEFAULT_PREFERENCES;
  useEffect(()=>{
   let current=preferences;
