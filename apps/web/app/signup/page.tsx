@@ -11,6 +11,7 @@ import {usePublicSession} from "@/components/AuthActions";
 import {AuthFrame} from "@/components/AuthFrame";
 import {api,setCsrfToken} from "@/lib/api";
 import {authErrorMessage} from "@/lib/auth";
+import {writeDeviceHint} from "@/lib/browser-storage.mjs";
 
 type Form={email:string;password:string;role:string};
 type SignupResponse={csrf_token?:string;verification_required?:boolean;email_status?:string};
@@ -33,9 +34,9 @@ export default function Signup(){
         method:"POST",
         body:JSON.stringify(v),
       });
-      const destination=intendedDestination();sessionStorage.setItem("rivexis_pending_destination",destination);
+      const destination=intendedDestination();writeDeviceHint('session',"rivexis_pending_destination",destination);
       if(r.verification_required){
-        sessionStorage.setItem("rivexis_pending_verification_email",v.email);
+        writeDeviceHint('session',"rivexis_pending_verification_email",v.email);
         router.replace(authHref("/verify-email",destination,{sent:r.email_status==="accepted"?"1":"0"}));
         return;
       }

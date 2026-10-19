@@ -9,6 +9,7 @@ import {Brand} from "@/components/Brand";
 import {ApiError,api,setActiveWorkspaceId} from "@/lib/api";
 import {intendedDestination} from "@/lib/auth-destination";
 import {authErrorMessage} from "@/lib/auth";
+import {removeDeviceHint} from "@/lib/browser-storage.mjs";
 
 type Form={name:string;role:string};
 type Workspace={id:string;name:string;role:string};
@@ -29,7 +30,7 @@ export default function Onboarding(){
     const existing=workspaces.data?.items[0];
     if(!existing)return;
     setActiveWorkspaceId(existing.id);
-    const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
+    const destination=intendedDestination();removeDeviceHint('session',"rivexis_pending_destination");
       window.location.replace(destination);
   },[router,workspaces.data]);
 
@@ -39,7 +40,7 @@ export default function Onboarding(){
       const existing=current.items.find(w=>w.name===v.name&&w.role===v.role);
       if(!existing)return false;
       setActiveWorkspaceId(existing.id);
-      const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
+      const destination=intendedDestination();removeDeviceHint('session',"rivexis_pending_destination");
       window.location.replace(destination);
       return true;
     }catch{
@@ -61,7 +62,7 @@ export default function Onboarding(){
           body:JSON.stringify(v),
         });
         setActiveWorkspaceId(created.id);
-        const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
+        const destination=intendedDestination();removeDeviceHint('session',"rivexis_pending_destination");
       window.location.replace(destination);
       }catch(createError){
         if(await reconcileCreatedWorkspace(v))return;
