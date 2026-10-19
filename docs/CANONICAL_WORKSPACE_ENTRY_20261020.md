@@ -1,0 +1,13 @@
+# Canonical workspace entry correction
+
+Production baseline is verified PR95 merge4ef85b4cfa0c26fcf2f30fa269c3df8e779ac91d. A final actual signed-in audit found the older /app route still rendered PublicNav and01–05 tool tabs outside approved workspace navigation. The before screenshot and three deliberately failing routing regressions are retained outside Git.
+
+The candidate uses Next's documented server redirect from /app to /workspace, dropping obsolete query inputs. The existing canonical shell handles session/workspace authorization; no legacy interface flashes or parallel product is introduced. Public landing, isolated educational /demo, logo, colors, layout, API34, financial component/model, schema, dependencies and infrastructure remain unchanged. No production write, signing, credential or paid change.
+
+Five financial suites now enter /workspace and use actual horizontal category/dropdown links. Explicit authenticated workspace/settings fixtures replace assumptions that bypassed the canonical shell. Financial expectation expressions are structurally preserved; one existing UI status selector now targets the direct save-success notice, while separately asserting the idle monitor status. This preserves the stale-save rejection assertion without mistaking a truthful monitor message for a save notice. The light-theme accessibility case now supplies the actual saved account preference; remote Settings correctly override device hints. Neither correction changes production behavior or filters errors.
+
+Local Next production build and types/AST172 pass. The first70-case focused run passed68 and exposed those two old fixture assumptions; all original logs/failure artifacts remain retained. Final5-case retest passed without retries/skips/flakes in47409.438ms, including both corrections and all3 route/authorization guards. The broader focused financial/auth/demo/chart flows remain scoped to their original68 passing cases. This is not a claim of70 cases rerun after correction.
+
+Final Worker build/type generation, exact-source default273 and Firefox/WebKit273 gates, main/Worker gates, same-URL deployed identity and30 actual-public cases per engine remain required. The candidate is not yet deployed. Earlier full PR95/financial/recovery evidence remains in BROWSER_COMPATIBILITY_CLOSEOUT_20261020.md.
+
+Next redirect behavior was checked against the installed16.3.8 docs at node_modules/next/dist/docs/01-app/03-api-reference/04-functions/redirect.md before implementation. Browser tests preserve every financial calculation/check and distinguish fixture responses from genuine production evidence.

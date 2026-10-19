@@ -15,7 +15,7 @@ test('guest feature entries preserve their destination and direct protected URLs
   await expect(page.locator('.folioNav').getByRole('link',{name:'Sign up',exact:false})).toBeVisible();
   await page.getByRole('link',{name:'Open GasGuard',exact:false}).click();
   await expect(page).toHaveURL(/\/login\?next=%2Fworkspace%2Ftransactions$/);
-  await page.goto('/app',{waitUntil:'domcontentloaded'});await expect(page.getByRole('heading',{name:'Your intelligence workspace'})).toBeVisible();
+  await page.goto('/app',{waitUntil:'domcontentloaded'});await expect(page.getByRole('heading',{name:'Session ended'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toHaveCount(0);
   await page.goto('/workspace/frontier',{waitUntil:'domcontentloaded'});await expect(page.getByRole('heading',{name:'Session ended'})).toBeVisible();
   await expect(page.getByRole('link',{name:'Log in again'})).toHaveAttribute('href','/login?next=%2Fworkspace%2Ffrontier');
@@ -63,9 +63,9 @@ test('demo context is isolated and confirmed logout clears financial memory befo
   await page.route('**/api/v1/auth/web/login',async r=>{await setup(page,true);return r.fulfill({status:200,json:{csrf_token:'ENTRY_TEST_CSRF'}})});
   await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.getByText('$30,000.00',{exact:true})).toBeVisible();
-  await page.locator('.folioNav').getByRole('link',{name:'Rivexis home'}).click();await page.getByRole('link',{name:'Explore an educational demo',exact:false}).click();await expect(page).toHaveURL(/\/demo$/);await expect(page.getByRole('button',{name:'Explore a hypothetical sample'})).toBeVisible();
+  await page.getByRole('link',{name:'Rivexis home',exact:true}).click();await page.getByRole('link',{name:'Explore an educational demo',exact:false}).click();await expect(page).toHaveURL(/\/demo$/);await expect(page.getByRole('button',{name:'Explore a hypothetical sample'})).toBeVisible();
   await expect(page.getByText('$30,000.00',{exact:true})).toHaveCount(0);
-  await page.locator('.folioNav').getByRole('link',{name:'Rivexis home'}).click();await page.locator('.folioNav').getByRole('link',{name:'Open dashboard',exact:false}).click();
+  await page.getByRole('link',{name:'Rivexis home',exact:true}).click();await page.locator('.folioNav').getByRole('link',{name:'Open dashboard',exact:false}).click();
   await expect(page.getByText('$30,000.00',{exact:true})).toBeVisible();
   await page.getByLabel('Account menu',{exact:true}).click();await page.getByRole('button',{name:'Log out',exact:true}).click();await expect(page).toHaveURL(/\/login$/);
   await page.getByLabel('Email',{exact:true}).fill('qa@example.invalid');await page.getByLabel('Password',{exact:true}).fill('test-password-only');await page.getByRole('button',{name:'Log in',exact:true}).click();
@@ -73,9 +73,9 @@ test('demo context is isolated and confirmed logout clears financial memory befo
 });
 test('verified login refreshes cached guest access before opening the app',async({page})=>{
   await setup(page);await page.route('**/api/v1/auth/web/login',async r=>{await setup(page,true);return r.fulfill({status:200,json:{csrf_token:'ENTRY_TEST_CSRF'}})});
-  await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByRole('link',{name:'Log in',exact:true}).click();
+  await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByRole('link',{name:'Log in again',exact:true}).click();
   await page.getByLabel('Email',{exact:true}).fill('qa@example.invalid');await page.getByLabel('Password',{exact:true}).fill('test-password-only');await page.getByRole('button',{name:'Log in',exact:true}).click();
-  await expect(page).toHaveURL(/\/app$/);await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toBeVisible();
+  await expect(page).toHaveURL(/\/workspace$/);await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toBeVisible();
 });
 test('a late wallet response cannot repopulate financial memory after logout',async({page})=>{
   await setup(page,true);let requested=false,release!:()=>void;const held=new Promise<void>(resolve=>{release=resolve});

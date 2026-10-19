@@ -1,0 +1,109 @@
+{
+  "status": "released-verified",
+  "source": "fea24cd967e3d6c875c7bf5cd1b03178ec13fbfb",
+  "runs": {
+    "source": 39309367050,
+    "pr": 39309373287,
+    "worker": 39309373315,
+    "browsers": 39309373300
+  },
+  "safetyTests": 30,
+  "types": "PASS",
+  "ast": 170,
+  "localWebkitStorageAndStaleOracle": 2,
+  "localWebkitPositiveMarket": 1,
+  "zeroTestRetries": true,
+  "guardedDriverGETsReportedSeparately": true,
+  "financialSourceUnchanged": true,
+  "designUnchanged": true,
+  "newRecurringCost": 0,
+  "merge": "4ef85b4cfa0c26fcf2f30fa269c3df8e779ac91d",
+  "sourcePassed": 270,
+  "prPassed": 270,
+  "firefoxPassed": 270,
+  "webkitPassed": 270,
+  "testSkipped": 0,
+  "testFlaky": 0,
+  "firefoxDriverReleaseAttempts": 0,
+  "firefoxDurationMs": 432401.008,
+  "webkitDurationMs": 478460.375,
+  "production": "4ef85b4cfa0c26fcf2f30fa269c3df8e779ac91d",
+  "mainCI": 39333547052,
+  "mainWorker": 39333547031,
+  "publicCompatibility": 39333789476,
+  "nativeBuild": "9dfef0f1-bb1f-4fc2-a607-576a9b038456",
+  "nativeBuildStatus": "success",
+  "httpStatus": 200,
+  "httpBuildMatches": true,
+  "workerVersion": "67149fef-2995-4fc0-9f3c-443731593911",
+  "workerAllocation": 100,
+  "deployment": "f55dae48-208e-49d9-b86d-915a685956d5",
+  "date": "2026-10-20 Asia/Calcutta",
+  "url": "https://rivexis-web.rudrasingh0718.workers.dev",
+  "mainBrowserPass": 270,
+  "actualPublicChromiumPass": 29,
+  "actualPublicChromiumDurationMs": 119184.81,
+  "actualPublicFirefoxPass": 29,
+  "actualPublicFirefoxDurationMs": 66012.936,
+  "actualPublicWebkitPass": 29,
+  "actualPublicWebkitDurationMs": 93478.223,
+  "publicDriverReleaseAttempts": 0,
+  "genuineSnapshotBlock": "26229556",
+  "genuineCollateralUSD": "9926164.35",
+  "genuineDebtUSD": "6828265.99",
+  "genuineDisplayedHealth": "1.250",
+  "independentPlannerAlternatives": 6,
+  "independentPlannerStatus": "EXACT_MATCH",
+  "genuineSequenceParent": "26229566",
+  "genuineSequenceNext": "26229567",
+  "independentSequenceStatus": "EXACT_MATCH",
+  "sequenceTokenDeltaRaw": "3639338",
+  "sequenceGasSum": "132065",
+  "realSigningOrSubmission": false,
+  "newPrivilegedTokenCreated": false,
+  "databaseUpgradePerformed": false,
+  "readiness": "controlled early access within supported Ethereum scope; unrestricted institutional certification blocked",
+  "evidenceHashes": [
+    {
+      "file": "pr95-live-browser-results-20261020.json",
+      "sha256": "69c871b21c2617a5840376c1b4f0d5ecdd3a9526317c881e5f7546f9ff75de33"
+    },
+    {
+      "file": "pr95-public-compatibility-20261020.log",
+      "sha256": "1027fc328e42c8ba3b8eeecc1cf629c36602823454a0704c13453d26fec8c85b"
+    },
+    {
+      "file": "pr95-live-defense-plan-20261020.json",
+      "sha256": "a4be3ee4255f5ed4cab7964d56cbf7323c80c20779e60abe726f4d3ca98e4f40"
+    },
+    {
+      "file": "pr95-live-planner-reconciliation-20261020.json",
+      "sha256": "1153e2bab28910a91fba7c4e12419ec792fa4b331c4b24c419e2c965d81bffa8"
+    },
+    {
+      "file": "pr95-live-sequence-20261020.json",
+      "sha256": "3e0d93914c8f0eaba89f0413d6bf4ea5477b9768ed5312a15f92c5f1278d1401"
+    },
+    {
+      "file": "pr95-live-sequence-reconciliation-20261020.json",
+      "sha256": "b6e0270a105f6f119e8748c3762f24e61bd46c968dcac2233c537f8d8ac2d759"
+    },
+    {
+      "file": "pr95-authenticated-dom-20261020.json",
+      "sha256": "ea646cf18b021c2fdfeca9ffa7337511c6548caabd57addd90c9f5388c68347d"
+    },
+    {
+      "file": "pr95-live-sequence-20261020.png",
+      "sha256": "b4fe32388fb0707495c22cee1f3082b29635708e8be22a71ce0ff1f60068f2f1"
+    }
+  ],
+  "rawEvidenceLocation": "Retained outside Git in the task outputs directory; credentials and private recovery material excluded.",
+  "limitations": [
+    "Supported Ethereum Aave V3 normal mode and one validated Morpho WBTC/USDC86%LLTV market only.",
+    "Planner uses bounded5% allocation search, at most2 actions; no global optimum, safety or execution guarantee.",
+    "Browser-provider fixtures do not certify native installed-wallet permissions or Safari/Apple hardware.",
+    "Owned authenticated email domain and consistent inbox delivery remain unresolved.",
+    "Independent recovery-key custody, second-machine/full-service recovery and sustained operating assurance remain unresolved.",
+    "Known narrowly scoped transitive build-tool advisory exception remains; no clean-dependency claim."
+  ]
+}
