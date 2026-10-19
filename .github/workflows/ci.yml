@@ -28,6 +28,7 @@ jobs:
         with: {node-version: '24', cache: 'npm'}
       - run: npm ci
       - run: node --check apps/web/scripts/cloudflare-workers-build-deploy.mjs
+      - run: node --test scripts/npm-audit-ci.test.mjs
       - run: npm run typecheck:api-edge
       - run: npx --yes deno@2.9.6 check --config supabase/functions/rivexis-api/deno.json supabase/functions/rivexis-api/index.ts supabase/functions/rivexis-decision-reports/index.ts supabase/functions/rivexis-alert-dispatch/index.ts
       - run: npm run test:api-edge

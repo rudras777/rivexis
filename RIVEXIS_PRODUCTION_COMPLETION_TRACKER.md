@@ -2,6 +2,10 @@
 
 Updated 19 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
 
+## Active release-gate integrity correction
+
+Branch `fix/audit-gate-failure-20261019` corrects a reproduced false PASS when npm audit returns registry/error JSON or contradictory evidence. Original22-case regression:10 passed/12 failed; corrected28-case CLI matrix passes, as does the real registry audit with its one existing exception. No dependency/runtime/model/database/design changes. Types/AST passed. The branch includes the earlier performance-harness correction and documentation closeout; exact-head CI, merge and same-URL identity verification remain required. See `docs/AUDIT_GATE_INTEGRITY_20261019.md`. Current verified runtime remains PR91/20920918 below. Fresh-backup credential approval remains unanswered; no token or upgrade has been created/performed.
+
 ## Current verified application: PR91
 
 Production **20920918c46f23edc91d4f2edd57b8254bdafd4a**, source25ea84d0964da8c712f7bc67b483e9edfea377db. Existing Worker **eabeff8d-5489-44fa-a6a8-a3a8daf68c72**,100% allocation observed by read-only Wrangler. Native build **09dd1d92-50d1-4062-b5ce-b1be5f79843d** has a successful provider check on this exact merge. Public/authenticated build markers agree. The Cloudflare dashboard stalled during reload, so do not claim a newly observed Ready row; deployment is independently established by the provider check, Worker version and actual website.
