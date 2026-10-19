@@ -9,7 +9,7 @@ for(const destination of ['login','signup'])test(`public landing defers auth-rou
   if(['/login','/signup'].includes(url.pathname)&&!request.isNavigationRequest())premature.push(url.pathname);
  });
  const sessionReady=page.waitForResponse(response=>new URL(response.url()).pathname.endsWith('/api/v1/auth/session-status'),{timeout:15000});
- await page.goto('/');await expect(page.locator('#hero-title')).toBeVisible();await sessionReady;
+ await page.goto('/',{waitUntil:'domcontentloaded'});await expect(page.locator('#hero-title')).toBeVisible();await sessionReady;
  if(process.env.RIVEXIS_EXPECTED_BUILD_SHA)await expect(page.locator('meta[name="rivexis-build"]')).toHaveAttribute('content',process.env.RIVEXIS_EXPECTED_BUILD_SHA);
  // Observe a bounded post-hydration window. Unrelated streaming route prefetches
  // need not become globally idle for this specific negative-request assertion.

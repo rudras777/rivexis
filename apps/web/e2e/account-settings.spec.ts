@@ -26,7 +26,8 @@ test('saved identity validation rejects zero and bad checksum before a write and
   await page.getByLabel('Public analysis address').fill(invalid);await page.getByRole('button',{name:'Add address',exact:true}).click();await expect(page.locator('.settingsFeedback [role=alert]')).toContainText('Enter a complete Ethereum address');await expect(page.locator('.savedWallet')).toHaveCount(0);expect(api.updates).toHaveLength(0);
  }
  const valid='0x52908400098527886E0F7030069857D2E4169EE7';await page.getByLabel('Public analysis address').fill(valid);await page.getByRole('button',{name:'Add address',exact:true}).click();await save(page);await page.reload();await tab(page,'Connected Wallets');await expect(page.locator('.savedWallet')).toContainText(valid.toLowerCase());expect(api.updates).toHaveLength(1);
- await page.getByLabel('Public analysis address').fill(valid.toLowerCase());await page.getByRole('button',{name:'Add address',exact:true}).click();await expect(page.locator('.settingsFeedback [role=alert]')).toContainText('already saved');expect(api.updates).toHaveLength(1);
+ const input=page.getByLabel('Public analysis address');await input.fill(valid.toLowerCase());await expect(input).toHaveValue(valid.toLowerCase());await input.press('Tab');
+ await page.getByRole('button',{name:'Add address',exact:true}).click();await expect(page.locator('.settingsFeedback [role=alert]')).toContainText('already saved');await expect(page.locator('.savedWallet')).toHaveCount(1);expect(api.updates).toHaveLength(1);
 });
 test('profile saves remotely, failures retain drafts and account data never enters device appearance storage',async({page})=>{
  const api=await setup(page);await page.goto('/workspace/settings');await page.getByLabel('Display name').fill('RIVEXIS Analyst');await save(page);await page.reload();await expect(page.getByLabel('Display name')).toHaveValue('RIVEXIS Analyst');

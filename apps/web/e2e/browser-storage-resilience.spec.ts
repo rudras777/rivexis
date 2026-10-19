@@ -45,6 +45,21 @@ async function login(page:Page){
   await page.getByRole('button',{name:'Log in',exact:true}).click();
 }
 
+test('Overview waits for selection before fetching private destination routes',async({page})=>{
+  const state=await setup(page),premature:string[]=[];
+  page.on('request',request=>{
+    const path=new URL(request.url()).pathname;
+    if(['/workspace','/workspace/wallets','/workspace/reports'].includes(path)&&!request.isNavigationRequest())premature.push(path);
+  });
+  await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('.workspaceSelector select')).toHaveValue(primary.id);
+  // Bounded negative-request observation, not global network-idle synchronization.
+  await page.waitForTimeout(1000);expect(premature).toEqual([]);
+  await page.getByRole('link',{name:'Open private reports',exact:false}).click();
+  await expect(page).toHaveURL(/\/workspace\/reports$/);
+  await expect(page.getByRole('heading',{name:'Monitoring & Reports',exact:true})).toBeVisible();expect(state.errors).toEqual([]);
+});
+
 for(const [label,fault] of [
   ['local storage getter denied',{area:'local',operation:'access'}],
   ['workspace hint read denied',{area:'local',operation:'getItem',key:'rivexis_workspace_id'}],

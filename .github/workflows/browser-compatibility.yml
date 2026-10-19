@@ -45,6 +45,11 @@ jobs:
         working-directory: apps/web
         run: |
           node --input-type=module -e "import fs from 'node:fs'; const p='test-results/compatibility-results.json'; if(fs.existsSync(p)){const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify({browser:'${{ matrix.browser }}',stats:r.stats,errors:r.errors},null,2))}else{console.error('Browser results were not produced'); process.exitCode=1}"
+      - name: Print controlled failure context
+        if: failure()
+        working-directory: apps/web
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; if(fs.existsSync('test-results'))for(const e of fs.readdirSync('test-results',{withFileTypes:true}).filter(e=>e.isDirectory()).slice(0,10)){const p='test-results/'+e.name+'/error-context.md'; if(fs.existsSync(p))console.log(fs.readFileSync(p,'utf8').split('\n').slice(0,200).join('\n'))}"
   public-compatibility:
     if: github.event_name == 'workflow_dispatch' && inputs.production_build != ''
     name: public-${{ matrix.browser }}
@@ -72,3 +77,8 @@ jobs:
         working-directory: apps/web
         run: |
           node --input-type=module -e "import fs from 'node:fs'; const p='test-results/live-compatibility-results.json'; if(fs.existsSync(p)){const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify({browser:'${{ matrix.browser }}',stats:r.stats,errors:r.errors},null,2))}else{console.error('Public browser results were not produced'); process.exitCode=1}"
+      - name: Print public failure context
+        if: failure()
+        working-directory: apps/web
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; if(fs.existsSync('test-results'))for(const e of fs.readdirSync('test-results',{withFileTypes:true}).filter(e=>e.isDirectory()).slice(0,10)){const p='test-results/'+e.name+'/error-context.md'; if(fs.existsSync(p))console.log(fs.readFileSync(p,'utf8').split('\n').slice(0,200).join('\n'))}"

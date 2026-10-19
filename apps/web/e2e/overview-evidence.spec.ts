@@ -16,7 +16,7 @@ async function setup(page:Page,data=snapshot(),fixed=true){
  return ()=>reads;
 }
 const metrics=(page:Page)=>page.getByRole('region',{name:'Current analysis overview',exact:true});
-async function inspect(page:Page){await page.goto('/workspace');await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByRole('button',{name:'Refresh evidence ↻',exact:true})).toBeVisible();await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page)).toBeVisible()}
+async function inspect(page:Page){await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByRole('button',{name:'Refresh evidence ↻',exact:true})).toBeVisible();await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page)).toBeVisible()}
 
 test('Overview without inspection has no invented balances or block',async({page})=>{
  const reads=await setup(page);await page.goto('/workspace/overview');await expect(metrics(page).locator('strong')).toHaveText(['—','—','—']);await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Inspect a wallet to view this metric'));expect(reads()).toBe(0);
@@ -35,7 +35,7 @@ for(const item of [
 });
 
 test('Overview labels educational values and never invents an evidence block',async({page})=>{
- const reads=await setup(page);await page.goto('/workspace');await page.getByRole('button',{name:'Explore a hypothetical sample',exact:true}).click();await expect(page.getByRole('cell',{name:'Hypothetical input',exact:true})).toHaveCount(2);await expect(page.getByRole('cell',{name:'Validated at snapshot',exact:true})).toHaveCount(0);await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Hypothetical sample · not live'));await expect(metrics(page).locator('strong')).toHaveText(['$30,000.00','$18,000.00','Not on-chain']);expect(reads()).toBe(0);
+ const reads=await setup(page);await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample',exact:true}).click();await expect(page.getByRole('cell',{name:'Hypothetical input',exact:true})).toHaveCount(2);await expect(page.getByRole('cell',{name:'Validated at snapshot',exact:true})).toHaveCount(0);await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Hypothetical sample · not live'));await expect(metrics(page).locator('strong')).toHaveText(['$30,000.00','$18,000.00','Not on-chain']);expect(reads()).toBe(0);
 });
 
 test('Overview ages an open inspection without extra financial RPC or data mutation',async({page})=>{
@@ -50,7 +50,7 @@ test('Overview recalculates age after leaving and returning to the route',async(
 test('Overview keeps restored report evidence historical even when its timestamp is recent',async({page})=>{
  const reads=await setup(page);const receipt={snapshot:snapshot(),constraints:{budget:'3000',target:'1.50',gasReserve:'25',shocks:{},objective:'target'}};
  await page.route('**/api/v1/defi-reports',r=>r.fulfill({json:{items:[{id:'HISTORY_FIXTURE',created_at:instant.toISOString(),receipt}]}}));
- await page.goto('/workspace/reports');await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await page.getByRole('button',{name:'Open comparison →',exact:true}).click();await expect(page).toHaveURL(/\/workspace\/frontier$/);await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Historical receipt · refresh before analysis'));await expect(metrics(page).locator('strong')).toHaveText(['$30,000.00','$18,000.00','#28000123']);expect(reads()).toBe(0);
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await page.getByRole('button',{name:'Open comparison →',exact:true}).click();await expect(page).toHaveURL(/\/workspace\/frontier$/);await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Historical receipt · refresh before analysis'));await expect(metrics(page).locator('strong')).toHaveText(['$30,000.00','$18,000.00','#28000123']);expect(reads()).toBe(0);
 });
 
 for(const width of [320,768,1440])test(`stale Overview evidence remains accessible without overflow at ${width}px`,async({page})=>{
