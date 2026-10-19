@@ -1,3 +1,4 @@
+import {readDeviceHint,writeDeviceHint,removeDeviceHint} from './browser-storage.mjs';
 const configuredApi=process.env.NEXT_PUBLIC_RIVEXIS_API_URL;
 export const API=configuredApi==="same-origin"
  ? ""
@@ -13,9 +14,9 @@ export class ApiError extends Error{
  }
 }
 
-export function activeWorkspaceId(){return typeof window!=="undefined"?localStorage.getItem("rivexis_workspace_id"):null}
-export function setActiveWorkspaceId(id:string){if(typeof window!=="undefined")localStorage.setItem("rivexis_workspace_id",id)}
-export function clearActiveWorkspaceId(){if(typeof window!=="undefined")localStorage.removeItem("rivexis_workspace_id")}
+export function activeWorkspaceId(){return readDeviceHint('local',"rivexis_workspace_id")}
+export function setActiveWorkspaceId(id:string){writeDeviceHint('local',"rivexis_workspace_id",id)}
+export function clearActiveWorkspaceId(){removeDeviceHint('local',"rivexis_workspace_id")}
 
 let csrfToken:string|null=null;
 export function setCsrfToken(token:string|null){csrfToken=token}

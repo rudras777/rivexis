@@ -9,6 +9,7 @@ import {authHref,intendedDestination} from "@/lib/auth-destination";
 import {useRouter} from "next/navigation";
 import {AuthFrame} from "@/components/AuthFrame";
 import {api,setCsrfToken} from "@/lib/api";
+import {readDeviceHint,removeDeviceHint} from "@/lib/browser-storage.mjs";
 
 type EmailForm={email:string};
 type CodeForm={token:string};
@@ -24,7 +25,7 @@ export default function VerifyEmail(){
 
   useEffect(()=>{
     setDestination(intendedDestination());
-    const pending=sessionStorage.getItem("rivexis_pending_verification_email");
+    const pending=readDeviceHint('session',"rivexis_pending_verification_email");
     if(pending)emailForm.setValue("email",pending);
     if(new URLSearchParams(window.location.search).get("sent")==="1")setNotice("Verification email requested. Open its confirmation link, then log in. Check your spam folder if it has not arrived.");
   },[emailForm]);
@@ -42,16 +43,16 @@ export default function VerifyEmail(){
   async function confirm(v:CodeForm){
     try{
       setError("");
-      const email=emailForm.getValues("email")||sessionStorage.getItem("rivexis_pending_verification_email")||"";
+      const email=emailForm.getValues("email")||readDeviceHint('session',"rivexis_pending_verification_email")||"";
       const result=await api<{status:string;authenticated?:boolean;csrf_token?:string}>("/api/v1/auth/email-verification/confirm",{method:"POST",body:JSON.stringify({...v,email})});
-      sessionStorage.removeItem("rivexis_pending_verification_email");
+      removeDeviceHint('session',"rivexis_pending_verification_email");
       const destination=intendedDestination();
       if(result.authenticated&&result.csrf_token){
         setCsrfToken(result.csrf_token);
         risk.reset();
       await queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});
       await queryClient.invalidateQueries({queryKey:["public-session"]});
-        sessionStorage.removeItem("rivexis_pending_destination");
+        removeDeviceHint('session',"rivexis_pending_destination");
         router.replace(destination);
       }else router.replace(authHref("/login",destination,{verified:"1"}));
     }catch{

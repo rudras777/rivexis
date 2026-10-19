@@ -2,6 +2,9 @@
 
 Updated 19 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
 
+## Active follow-up: optional browser storage resilience
+
+Branch `fix/browser-storage-resilience-20261019`. Original controlled regressions reproduced a workspace crash when browser storage access was denied, and successful server verification shown as an invalid code when cached-email removal failed. Candidate makes only workspace/auth navigation hints best-effort, preserving cookie/session authorization, allowlisted URL destinations and private-memory cleanup. No model, backend/API34, schema, design or service change. All59 final focused cases (16 storage scenarios), both builds, final type/AST167 and12 API-client cases passed without retries/skips/flakes. Exact-head source/PR/main/Worker/live gates remain pending; actual production remains PR93/b138b14 below. See `docs/BROWSER_STORAGE_RESILIENCE_20261019.md`. Existing protected credential/maintenance and owner resource questions remain pending; do not treat continue as their answer.
 ## Current verified release: PR93
 
 Production **b138b1491ac790aa63937426ba080238d5e09e27**, source60b548fc7c4ec48e3a4749709d1a0c21e7bee68d, merged PR93. Existing Worker **7e0ff9e9-c555-490a-9378-5a57d312ae3c**,100% configured allocation; successful native build **8076b51a-3a8b-415e-83b3-a83bcdaea0cd**. HTTP200 and genuine authenticated DOM markers agree. SourceCI39257361835, PRCI39257383895, PRWorker39257384007, mainCI39258441332 and mainWorker39258441421 succeeded. Source/PR/main each passed253 browser cases plus existing financial/API/security/database gates. All29 actual-public checks passed without retries/skips/flakes.

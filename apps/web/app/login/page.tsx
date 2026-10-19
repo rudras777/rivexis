@@ -11,6 +11,7 @@ import {usePublicSession} from "@/components/AuthActions";
 import {AuthFrame} from "@/components/AuthFrame";
 import {api,setCsrfToken} from "@/lib/api";
 import {authErrorMessage} from "@/lib/auth";
+import {removeDeviceHint} from "@/lib/browser-storage.mjs";
 
 type Form={email:string;password:string};
 
@@ -50,7 +51,7 @@ export default function Login(){
       risk.reset();
       await queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});
       await queryClient.invalidateQueries({queryKey:["public-session"]});
-      const destination=intendedDestination();sessionStorage.removeItem("rivexis_pending_destination");
+      const destination=intendedDestination();removeDeviceHint('session',"rivexis_pending_destination");
       router.replace(destination);
     }catch(e){
       setError(authErrorMessage(e,"login"));

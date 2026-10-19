@@ -12,6 +12,7 @@ import {Brand} from "./Brand";
 import {MarketContextProvider} from "./MarketContext";
 import {useAccountPreferences} from "./AccountPreferences";
 import {WorkspaceContextProvider,type WorkspaceSummary} from "./WorkspaceContext";
+import {removeDeviceHint} from "@/lib/browser-storage.mjs";
 import {
   ApiError,
   activeWorkspaceId,
@@ -82,7 +83,7 @@ export function AppShell({children}:{children:React.ReactNode}){
     catch(error){
       if(!(error instanceof ApiError)||error.status!==401){setLogoutError("Rivexis could not confirm logout. Retry before leaving this device.");setLoggingOut(false);return}
     }
-    clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset();window.dispatchEvent(new Event("rivexis-wallet-forget"));queryClient.removeQueries({queryKey:["public-session"]});sessionStorage.removeItem("rivexis_pending_destination");
+    clearWorkspaceQueries();clearClientSessionState();void queryClient.cancelQueries({queryKey:["account-settings"]});queryClient.removeQueries({queryKey:["account-settings"]});risk.reset();window.dispatchEvent(new Event("rivexis-wallet-forget"));queryClient.removeQueries({queryKey:["public-session"]});removeDeviceHint('session',"rivexis_pending_destination");
     void queryClient.cancelQueries({queryKey:["workspaces-shell"]});queryClient.removeQueries({queryKey:["workspaces-shell"]});
     if(providerRevocationUnconfirmed){setLogoutWarning(true);setLoggingOut(false);return}
     router.replace("/login");router.refresh();
