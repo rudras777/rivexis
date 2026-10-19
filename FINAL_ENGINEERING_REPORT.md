@@ -1,4 +1,8 @@
-# Rivexis Final Engineering Report — P37
+# Historical backend engineering report
+
+This retained pre-transformation report documents reusable backend certification controls. Its ten-engine product and P37 labels are historical; they do not describe the current RIVEXIS website. Read the [current production checkpoint](RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md), [current verified application evidence](docs/FINANCIAL_DISPLAY_CLOSEOUT_20261019.md) and [readiness scope](docs/PRODUCTION_READINESS.md) first. Existing source and rollback history are preserved.
+
+## Original Rivexis Final Engineering Report — P37
 
 Build: **P37 certification-outcome-integrity correction over P36**
 API/package version: **3.4.3**
