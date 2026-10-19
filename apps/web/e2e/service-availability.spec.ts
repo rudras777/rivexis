@@ -1,4 +1,4 @@
-import {test,expect,type Page,type Route} from '@playwright/test';
+import {test,expect,type Page,type Route} from './browser-test';
 const banner=(page:Page)=>page.getByTestId('service-availability');
 async function setup(page:Page,respond:(route:Route,number:number)=>unknown){
  await page.clock.install();let requests=0;

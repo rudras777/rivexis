@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './browser-test';
 import AxeBuilder from '@axe-core/playwright';
 import {DEFAULT_PREFERENCES,validateAccountUpdate} from '../../../supabase/functions/rivexis-api/account-preferences.mjs';
 const address='0x'+'1'.repeat(40);

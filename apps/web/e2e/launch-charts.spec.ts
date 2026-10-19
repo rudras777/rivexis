@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './browser-test';
 import AxeBuilder from '@axe-core/playwright';
 import {readFileSync} from 'node:fs';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';

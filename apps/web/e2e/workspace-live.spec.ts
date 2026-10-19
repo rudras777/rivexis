@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './browser-test';
 test('new production routes require a real verified session before exposing controls',async({page})=>{
  for(const route of ['overview','wallets','contracts','networks']){await page.goto('/workspace/'+route,{waitUntil:'domcontentloaded'});await expect(page.locator('meta[name="rivexis-build"]')).toHaveAttribute('content',process.env.RIVEXIS_EXPECTED_BUILD_SHA!);await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'Log in again'})).toHaveAttribute('href','/login?next='+encodeURIComponent('/workspace/'+route));await expect(page.locator('.connectionPanel')).toHaveCount(0);await expect(page.locator('.blockchainBackground')).toHaveCount(1)}
 });

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './browser-test';
 
 test('public responses carry the baseline browser security headers', async ({ request }) => {
   const response = await request.get('/');

@@ -35,6 +35,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: {node-version: '24', cache: 'npm'}
       - run: npm ci
+      - run: node --test apps/web/e2e/navigation-driver-policy.test.mjs
       - run: npm run build:web
       - run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: apps/web
@@ -44,7 +45,7 @@ jobs:
         if: always()
         working-directory: apps/web
         run: |
-          node --input-type=module -e "import fs from 'node:fs'; const p='test-results/compatibility-results.json'; if(fs.existsSync(p)){const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify({browser:'${{ matrix.browser }}',stats:r.stats,errors:r.errors},null,2))}else{console.error('Browser results were not produced'); process.exitCode=1}"
+          node --input-type=module -e "import fs from 'node:fs'; const p='test-results/compatibility-results.json'; if(fs.existsSync(p)){const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify({browser:'${{ matrix.browser }}',driverNavigationReleaseAttempts:((function walk(s){return s.flatMap(x=>[...(x.specs??[]).flatMap(p=>(p.tests??[]).flatMap(t=>(t.annotations??[]).filter(a=>a.type==='firefox-driver-navigation-release'))),...walk(x.suites??[])])})(r.suites??[])).length,stats:r.stats,errors:r.errors},null,2))}else{console.error('Browser results were not produced'); process.exitCode=1}"
       - name: Print controlled failure context
         if: failure()
         working-directory: apps/web
@@ -68,6 +69,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: {node-version: '24', cache: 'npm'}
       - run: npm ci
+      - run: node --test apps/web/e2e/navigation-driver-policy.test.mjs
       - run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: apps/web
       - run: npx playwright test --config playwright.live-compatibility.config.ts --project=${{ matrix.browser }}
@@ -76,7 +78,7 @@ jobs:
         if: always()
         working-directory: apps/web
         run: |
-          node --input-type=module -e "import fs from 'node:fs'; const p='test-results/live-compatibility-results.json'; if(fs.existsSync(p)){const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify({browser:'${{ matrix.browser }}',stats:r.stats,errors:r.errors},null,2))}else{console.error('Public browser results were not produced'); process.exitCode=1}"
+          node --input-type=module -e "import fs from 'node:fs'; const p='test-results/live-compatibility-results.json'; if(fs.existsSync(p)){const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify({browser:'${{ matrix.browser }}',driverNavigationReleaseAttempts:((function walk(s){return s.flatMap(x=>[...(x.specs??[]).flatMap(p=>(p.tests??[]).flatMap(t=>(t.annotations??[]).filter(a=>a.type==='firefox-driver-navigation-release'))),...walk(x.suites??[])])})(r.suites??[])).length,stats:r.stats,errors:r.errors},null,2))}else{console.error('Public browser results were not produced'); process.exitCode=1}"
       - name: Print public failure context
         if: failure()
         working-directory: apps/web

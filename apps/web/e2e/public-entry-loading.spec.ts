@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './browser-test';
 
 // No response interception: this also runs against the real public deployment.
 // Auth pages are loaded only when chosen; no credentials are entered or submitted.

@@ -1,4 +1,4 @@
-import {test,expect,type Route,type Page} from '@playwright/test';
+import {test,expect,type Route,type Page} from './browser-test';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 const wallet='0x'+'1'.repeat(40);
 const reply={status:'SEQUENCE_PREVIEW_ONLY',simulation:'SEQUENTIAL_CALLS_SUCCEEDED',blockNumber:'123',blockHash:'0x'+'1'.repeat(64),simulatedBlockNumber:'124',before:{collateralRaw:'3000000000000',debtRaw:'1800000000000',healthFactorRaw:'1333333333333333333'},observedAfter:{collateralRaw:'3000000000000',debtRaw:'1600000000000',healthFactorRaw:'1500000000000000000'},walletAssets:[{asset:'0x'+'2'.repeat(40),symbol:'USDC',decimals:6,beforeRaw:'3000000000',afterRaw:'1000000000'}],steps:[{label:'Approve exact USDC amount',status:'SUCCEEDED',gasRaw:'50000'},{label:'Repay USDC',status:'SUCCEEDED',gasRaw:'100000'}],blockers:[],warnings:['Explicit fixture: no live RPC success claim.']};

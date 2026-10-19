@@ -1,4 +1,4 @@
-import {test,expect,type Route,type Page} from '@playwright/test';
+import {test,expect,type Route,type Page} from './browser-test';
 import {readFileSync} from 'node:fs';
 const historical=JSON.parse(readFileSync(new URL('../../../certification-reports/morpho-sequence-reference.json',import.meta.url),'utf8'));
 // Browser fixtures only: historical balances and market, with explicitly adjusted freshness.

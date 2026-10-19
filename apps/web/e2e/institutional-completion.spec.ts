@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './browser-test';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 import {frontier,format} from '../../../supabase/functions/rivexis-api/defi-unified-model.mjs';
 import {readFileSync} from 'node:fs';

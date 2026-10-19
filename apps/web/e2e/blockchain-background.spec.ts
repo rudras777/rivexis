@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './browser-test';
 import AxeBuilder from '@axe-core/playwright';
 test.beforeEach(async({page})=>{await page.route('**/health',r=>r.fulfill({json:{status:'ready'}}));await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:false,email_verified:false}}))});
 test('only the reference-inspired blockchain atmosphere remains; no mesh, canvas or financial requests',async({page})=>{

@@ -1,4 +1,4 @@
-import {expect,test} from "@playwright/test";
+import {expect,test} from './browser-test';
 
 const corsHeaders={
   "Access-Control-Allow-Origin":"http://127.0.0.1:3000",
