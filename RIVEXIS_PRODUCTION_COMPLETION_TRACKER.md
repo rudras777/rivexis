@@ -2,6 +2,10 @@
 
 Updated 19 October 2026, Asia/Calcutta. Continue the existing project and approved design. Never add credentials, recovery keys or private user data here.
 
+## Active service-status recovery candidate
+
+Branch `fix/service-status-recovery-20261019` repairs a reproduced permanently retained service warning after one transient failure. The component now uses bounded retries/explicit retry, deadline/body validation, offline/visibility cancellation and stale-response rejection, while preserving healthy-page design and all financial/auth/data source. Final both builds, types/AST166 and45 focused recovery/entry/auth/session cases passed without retries/skips/flakes. Original failing regression and earlier15/30-case runs are retained. Exact-head CI and same-URL verification remain required. Default/live suites become253/29. See `docs/SERVICE_STATUS_RECOVERY_20261019.md`. Recorder-disabled CPU profiling showed297ms script time and a large delay before the first HTTP request in one sample; no background redesign or causal performance claim. Current actual runtime remains PR92 below; pending privileged credential/maintenance and owner-resource questions remain unchanged.
+
 ## Current verified release: PR92
 
 Production **ddb70a7dcaee5691cf49b829acd891f992998c16**, source **e9fe582d6f1c7c1ce606ac048435fc7b8274ab1e**, merged PR92. Existing Worker **d7c23d0f-88d8-4c3a-b000-e458e88ec0b9**,100% allocation; successful native build **74b5e477-83b0-4f45-8c1b-7db6312f9f46**. HTTP200 and genuine authenticated DOM markers agree. SourceCI39252650174, PRCI39252691381, PRWorker39252691501, mainCI39253505281 and mainWorker39253505689 succeeded. Source/PR/main each passed238 browser cases and28 new audit-gate CLI scenarios. All28 actual-public checks passed without retries/skips/flakes.

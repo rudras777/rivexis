@@ -9,6 +9,20 @@ const authRoutes=[
 ];
 
 test.describe("public production regressions",()=>{
+  test("genuine healthy service evidence clears its availability warning",async({page})=>{
+    test.setTimeout(45000);
+    const [response]=await Promise.all([
+      page.waitForResponse(async response=>{
+        if(new URL(response.url()).pathname!=="/health"||!response.ok())return false;
+        try{const body=await response.json();return typeof body?.status==="string"&&["ok","healthy","ready"].includes(body.status.toLowerCase());}catch{return false;}
+      },{timeout:35000}),
+      page.goto("/"),
+    ]);
+    expect(response.ok()).toBe(true);
+    await expect(page.locator('meta[name="rivexis-build"]')).toHaveAttribute('content',process.env.RIVEXIS_EXPECTED_BUILD_SHA!);
+    await expect(page.getByTestId('service-availability')).toHaveCount(0);
+  });
+
   test("auth and recovery forms never submit credentials or tokens with GET",async({page})=>{
     for(const path of authRoutes){
       await page.goto(path);
