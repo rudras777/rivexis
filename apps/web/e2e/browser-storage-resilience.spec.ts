@@ -45,11 +45,11 @@ async function login(page:Page){
   await page.getByRole('button',{name:'Log in',exact:true}).click();
 }
 
-test('Overview waits for selection before fetching private destination routes',async({page})=>{
-  const state=await setup(page),premature:string[]=[];
+test('Overview waits for selection before fetching private destination routes',async({page,baseURL})=>{
+  const state=await setup(page),premature:string[]=[],origin=new URL(baseURL??'http://127.0.0.1:3000').origin;
   page.on('request',request=>{
-    const path=new URL(request.url()).pathname;
-    if(['/workspace','/workspace/wallets','/workspace/reports'].includes(path)&&!request.isNavigationRequest())premature.push(path);
+    const url=new URL(request.url());
+    if(url.origin===origin&&['/','/workspace/overview','/workspace','/workspace/wallets','/workspace/reports'].includes(url.pathname)&&!request.isNavigationRequest())premature.push(url.pathname);
   });
   await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});
   await expect(page.locator('.workspaceSelector select')).toHaveValue(primary.id);

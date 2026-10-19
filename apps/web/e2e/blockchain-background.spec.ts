@@ -14,5 +14,5 @@ test('decoration never intercepts inputs or removes the native cursor',async({pa
 
 test('server-rendered motion control stays disabled until client handlers mount',async({browser})=>{
  const context=await browser.newContext({javaScriptEnabled:false});
- try{const page=await context.newPage();await page.goto('/');await page.getByText('Motion preferences',{exact:true}).click();await expect(page.getByRole('button',{name:'Pause background motion',exact:true})).toBeDisabled()}finally{await context.close()}
+ try{const page=await context.newPage();await page.goto('/',{waitUntil:'domcontentloaded'});await page.getByText('Motion preferences',{exact:true}).click();await expect(page.getByRole('button',{name:'Pause background motion',exact:true})).toBeDisabled()}finally{await context.close()}
 });
