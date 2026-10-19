@@ -19,9 +19,9 @@ The initial core is free to users. Supported financial coverage is deliberately 
 
 ## Release and recovery evidence
 
-[Current resumable checkpoint](RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md), [19 October verified application evidence](docs/FINANCIAL_DISPLAY_CLOSEOUT_20261019.md), [supported workflow scenarios](docs/WORKFLOW_SCENARIO_COVERAGE.md), and [readiness boundaries](docs/PRODUCTION_READINESS.md). The [original transformation release](docs/DEFI_RELEASE_REPORT.md) and [original independent checks](certification-reports/defi-live-verification.json) remain dated historical evidence.
+[Current resumable checkpoint](RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md), [20 October verified application evidence](docs/BROWSER_COMPATIBILITY_CLOSEOUT_20261020.md), [supported workflow scenarios](docs/WORKFLOW_SCENARIO_COVERAGE.md), and [readiness boundaries](docs/PRODUCTION_READINESS.md). The [original transformation release](docs/DEFI_RELEASE_REPORT.md) and [original independent checks](certification-reports/defi-live-verification.json) remain dated historical evidence.
 
-Last verified application: `5247672bbe1eceb377c2862b90c611549e959071`, PR94, checked19 October2026. See the [browser-storage release evidence](docs/BROWSER_STORAGE_RESILIENCE_20261019.md) for exact CI/live evidence and unresolved launch boundaries; [release-gate closeout](docs/AUDIT_GATE_INTEGRITY_20261019.md) retains parent financial/audit evidence. Subsequent builds can be deployed by the retained Cloudflare integration; inspect the public build marker and latest checkpoint for current identity. Recovery tag: `baseline/pre-defi-transformation-20261009`. Existing users and historical data remain intact; quota and receipt tables are additive.
+Last verified application: `4ef85b4cfa0c26fcf2f30fa269c3df8e779ac91d`, PR95, checked 20 October 2026. See the [browser and live-financial closeout](docs/BROWSER_COMPATIBILITY_CLOSEOUT_20261020.md): 270 workflow cases pass per Chromium/Firefox/WebKit engine, 29 actual-public checks pass per engine, and current planner/sequence receipts independently reconcile exactly. The [browser-storage release](docs/BROWSER_STORAGE_RESILIENCE_20261019.md) remains included. Recovery tag: `baseline/pre-defi-transformation-20261009`. Existing users and data remain intact; no new database migration or infrastructure change.
 
 Actual verification/recovery email delivery and isolated production logical recovery have been verified within their recorded scope. Owned-domain authentication, consistent inbox placement, real native-wallet permission testing, independent recovery-key custody and broader institutional assurance remain unresolved. Added recurring services cost is $0; total account billing is not independently certified. Supported bounded workflows are ready for controlled early access; unrestricted institutional certification is not established. See the current checkpoint for exact evidence and next safe actions.
 
@@ -33,6 +33,7 @@ Use the locked Node workspace dependencies with `npm ci`. The current web applic
 - `npm run test:defi`
 - `npm run test:api-edge`
 - `npm run test:e2e`
+- `npm --workspace @rivexis/web run test:compatibility` runs the bounded local Firefox/WebKit suites after installing the pinned browser packages.
 - `npm run build:web`, `npm run typecheck:web`, `npm run lint:web`
 - `npm run build` builds the existing Cloudflare Worker.
 - `node scripts/verify-defi-live.mjs` verifies the public supported beta and records evidence.
