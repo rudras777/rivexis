@@ -1,0 +1,74 @@
+name: browser-compatibility
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'supabase/functions/rivexis-api/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/browser-compatibility.yml'
+  workflow_dispatch:
+    inputs:
+      production_build:
+        description: 'Optional exact deployed commit: run read-only checks on the existing public URL instead of fixtures'
+        type: string
+        required: false
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: browser-compatibility-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compatibility:
+    if: github.event_name != 'workflow_dispatch' || inputs.production_build == ''
+    name: compatibility-${{ matrix.browser }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: {node-version: '24', cache: 'npm'}
+      - run: npm ci
+      - run: npm run build:web
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+        working-directory: apps/web
+      - run: npm run test:compatibility -- --project=${{ matrix.browser }}
+        working-directory: apps/web
+      - name: Record exact result counts
+        if: always()
+        working-directory: apps/web
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; const p='test-results/compatibility-results.json'; if(fs.existsSync(p)){const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify({browser:'${{ matrix.browser }}',stats:r.stats,errors:r.errors},null,2))}else{console.error('Browser results were not produced'); process.exitCode=1}"
+  public-compatibility:
+    if: github.event_name == 'workflow_dispatch' && inputs.production_build != ''
+    name: public-${{ matrix.browser }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    env:
+      RIVEXIS_WEB_BASE_URL: https://rivexis-web.rudrasingh0718.workers.dev
+      RIVEXIS_EXPECTED_BUILD_SHA: ${{ inputs.production_build }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: {node-version: '24', cache: 'npm'}
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+        working-directory: apps/web
+      - run: npx playwright test --config playwright.live-compatibility.config.ts --project=${{ matrix.browser }}
+        working-directory: apps/web
+      - name: Record exact public result counts
+        if: always()
+        working-directory: apps/web
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; const p='test-results/live-compatibility-results.json'; if(fs.existsSync(p)){const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify({browser:'${{ matrix.browser }}',stats:r.stats,errors:r.errors},null,2))}else{console.error('Public browser results were not produced'); process.exitCode=1}"

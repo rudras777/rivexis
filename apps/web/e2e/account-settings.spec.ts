@@ -59,10 +59,19 @@ test('unverified account cannot render Settings controls',async({page})=>{
  await setup(page);await page.route('**/api/v1/workspaces',r=>r.fulfill({status:403,json:{detail:'Email verification required'}}));await page.goto('/workspace/settings');await expect(page.getByRole('heading',{name:'Verify your email'})).toBeVisible();await expect(page.getByLabel('Display name')).toHaveCount(0);
 });
 
-test('saved address copy, default ordering and forgetting wallet access work without signing',async({page,context})=>{
- await setup(page);await context.grantPermissions(['clipboard-read','clipboard-write']);await page.addInitScript(({address})=>{(window as any).ethereum={request:async({method}:{method:string})=>method==='eth_chainId'?'0x1':[address]}},{address});await page.goto('/workspace/settings');await tab(page,'Connected Wallets');
+test('saved address copy, default ordering and forgetting wallet access work without signing',async({page,context,browserName})=>{
+ await setup(page);
+ if(browserName==='chromium')await context.grantPermissions(['clipboard-read','clipboard-write']);
+ else await page.addInitScript(()=>{
+  const nativeWrite=navigator.clipboard.writeText.bind(navigator.clipboard);
+  Object.defineProperty(navigator.clipboard,'writeText',{value:async(value:string)=>{await nativeWrite(value);(window as any).confirmedClipboardWrite=value}});
+ });
+ await page.addInitScript(({address})=>{(window as any).ethereum={request:async({method}:{method:string})=>method==='eth_chainId'?'0x1':[address]}},{address});await page.goto('/workspace/settings');await tab(page,'Connected Wallets');
  for(const value of [address,'0x'+'2'.repeat(40)]){await page.getByLabel('Public analysis address').fill(value);await page.getByRole('button',{name:'Add address',exact:true}).click()}
- await page.getByRole('button',{name:`Copy ${address}`,exact:true}).click();expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(address);await page.getByRole('button',{name:'Use as default',exact:true}).click();await save(page);await page.reload();await tab(page,'Connected Wallets');await expect(page.locator('.savedWallet').first()).toContainText('0x'+'2'.repeat(40));
+ await page.getByRole('button',{name:`Copy ${address}`,exact:true}).click();
+ if(browserName==='chromium')expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(address);
+ else await expect.poll(()=>page.evaluate(()=>(window as any).confirmedClipboardWrite)).toBe(address);
+ await page.getByRole('button',{name:'Use as default',exact:true}).click();await save(page);await page.reload();await tab(page,'Connected Wallets');await expect(page.locator('.savedWallet').first()).toContainText('0x'+'2'.repeat(40));
  await page.getByRole('button',{name:'Select browser wallet address'}).click();await expect(page.locator('.selectedWallet')).toContainText(address);await page.getByRole('button',{name:'Forget selected address'}).click();await expect(page.locator('.selectedWallet')).toHaveCount(0);await expect(page.locator('.savedWallet')).toHaveCount(2);
  await page.goto('/workspace');await expect(page.getByLabel('Public Ethereum address',{exact:true})).toHaveValue('0x'+'2'.repeat(40));
 });
