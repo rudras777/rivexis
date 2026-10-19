@@ -47,7 +47,7 @@ test.describe("History canonical provenance",()=>{
       })});
     });
 
-    await page.goto("/workspace/history");
+    await page.goto("/workspace/history",{waitUntil:'domcontentloaded'});
     const analysisRow=page.getByRole("row").filter({hasText:"analysis-alpha"});
     await analysisRow.getByRole("button",{name:"Inspect provenance"}).click();
     const detail=page.getByTestId("history-provenance-detail");
@@ -94,7 +94,7 @@ test.describe("History canonical provenance",()=>{
       })});
     });
 
-    await page.goto("/workspace/history");
+    await page.goto("/workspace/history",{waitUntil:'domcontentloaded'});
     await expect(page.getByText("analysis-alpha")).toBeVisible();
     await expect(page.getByText("decision-alpha")).toBeVisible();
 
@@ -134,7 +134,7 @@ test.describe("History canonical provenance",()=>{
       return route.fulfill({status:409,contentType:"application/json",headers:corsHeaders,body:JSON.stringify({detail:"Already saved"})});
     });
 
-    await page.goto("/workspace/history");
+    await page.goto("/workspace/history",{waitUntil:'domcontentloaded'});
     const analysisRow=page.getByRole("row").filter({hasText:"analysis-alpha"});
     await expect(analysisRow.getByRole("button",{name:"Saved",exact:true})).toBeDisabled();
     expect(postRequests).toBe(0);

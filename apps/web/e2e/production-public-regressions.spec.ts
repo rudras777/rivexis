@@ -16,7 +16,7 @@ test.describe("public production regressions",()=>{
         if(new URL(response.url()).pathname!=="/health"||!response.ok())return false;
         try{const body=await response.json();return typeof body?.status==="string"&&["ok","healthy","ready"].includes(body.status.toLowerCase());}catch{return false;}
       },{timeout:35000}),
-      page.goto("/"),
+      page.goto("/",{waitUntil:'domcontentloaded'}),
     ]);
     expect(response.ok()).toBe(true);
     await expect(page.locator('meta[name="rivexis-build"]')).toHaveAttribute('content',process.env.RIVEXIS_EXPECTED_BUILD_SHA!);
@@ -25,7 +25,7 @@ test.describe("public production regressions",()=>{
 
   test("auth and recovery forms never submit credentials or tokens with GET",async({page})=>{
     for(const path of authRoutes){
-      await page.goto(path);
+      await page.goto(path,{waitUntil:'domcontentloaded'});
       const form=page.locator("form.form").first();
       await expect(form).toBeVisible();
       await expect(form).toHaveAttribute("method",/^post$/i);
@@ -35,7 +35,7 @@ test.describe("public production regressions",()=>{
   test("public pages do not overflow a 375px viewport",async({page})=>{
     await page.setViewportSize({width:375,height:812});
     for(const path of ["/","/docs"]){
-      await page.goto(path);
+      await page.goto(path,{waitUntil:'domcontentloaded'});
       await page.evaluate(()=>document.fonts?.ready);
       const dimensions=await page.evaluate(()=>({
         viewport:document.documentElement.clientWidth,

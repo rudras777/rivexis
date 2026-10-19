@@ -5,7 +5,7 @@ const reply={status:'SEQUENCE_PREVIEW_ONLY',simulation:'SEQUENTIAL_CALLS_SUCCEED
 async function setup(page:Page,changed={}){
  await page.route('**/health',r=>r.fulfill({json:{status:'ready'}}));await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:true,email_verified:true}}));await page.route('**/api/v1/auth/web/csrf',r=>r.fulfill({json:{csrf_token:'TEST_CSRF'}}));
  const s={...sampleSnapshot(),sample:false,wallet,blockTimestamp:Math.floor(Date.now()/1000),...changed};s.positions[0].id=`aave-v3:1:${wallet}`;
- await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({json:s}));await page.goto('/app');await page.getByLabel('Public Ethereum address').fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
+ await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({json:s}));await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address').fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
 }
 const panel=(page:Page)=>page.getByRole('region',{name:'Selected defense sequence'});
 const button=(page:Page)=>page.getByRole('button',{name:'Preview selected Aave sequence',exact:true});

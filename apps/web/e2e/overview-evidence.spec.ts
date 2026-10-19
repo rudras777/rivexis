@@ -19,7 +19,7 @@ const metrics=(page:Page)=>page.getByRole('region',{name:'Current analysis overv
 async function inspect(page:Page){await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByRole('button',{name:'Refresh evidence ↻',exact:true})).toBeVisible();await page.getByRole('link',{name:'Overview',exact:true}).click();await expect(metrics(page)).toBeVisible()}
 
 test('Overview without inspection has no invented balances or block',async({page})=>{
- const reads=await setup(page);await page.goto('/workspace/overview');await expect(metrics(page).locator('strong')).toHaveText(['—','—','—']);await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Inspect a wallet to view this metric'));expect(reads()).toBe(0);
+ const reads=await setup(page);await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});await expect(metrics(page).locator('strong')).toHaveText(['—','—','—']);await expect(metrics(page).locator('small')).toHaveText(Array(3).fill('Inspect a wallet to view this metric'));expect(reads()).toBe(0);
 });
 for(const item of [
  {name:'recent snapshot',changes:{},hint:'Observed snapshot · 0s old',values:['$30,000.00','$18,000.00','#28000123']},

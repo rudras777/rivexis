@@ -11,14 +11,14 @@ async function setup(page:Page){
 test('stalled workspace access recovers to an explicit retry control',async({page})=>{
  await setup(page);let requests=0,healthy=false;
  await page.route('**/api/v1/workspaces',r=>{requests++;if(healthy)return r.fulfill({json:{items:[{id:'QA',name:'QA workspace',role:'Individual',access_role:'OWNER'}]}})});
- await page.goto('/workspace/settings');await expect.poll(()=>requests).toBe(1);await page.clock.fastForward(35_100);
+ await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await expect.poll(()=>requests).toBe(1);await page.clock.fastForward(35_100);
  await expect(page.getByRole('heading',{name:'Workspace could not load'})).toBeVisible();expect(requests).toBe(1);
  healthy=true;await page.getByRole('button',{name:'Retry',exact:true}).click();await expect(page.getByLabel('Display name')).toHaveValue('QA');expect(requests).toBe(2);
 });
 test('stalled reports stop loading and allow an explicit successful retry',async({page})=>{
  await setup(page);let requests=0,healthy=false;
  await page.route('**/api/v1/defi-reports',r=>{requests++;if(healthy)return r.fulfill({json:{items:[]}})});
- await page.goto('/workspace/reports');await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>requests).toBe(1);await page.clock.fastForward(35_100);
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>requests).toBe(1);await page.clock.fastForward(35_100);
  await expect(page.locator('.defiWorkspace [role=alert]')).toContainText('Saved reports could not load');await expect(page.getByRole('button',{name:'Load saved reports',exact:true})).toBeEnabled();expect(requests).toBe(1);
  healthy=true;await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>requests).toBe(2);await expect(page.locator('.defiWorkspace [role=alert]')).toHaveCount(0);
 });

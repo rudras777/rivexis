@@ -24,7 +24,7 @@ test.describe("browser authentication and onboarding",()=>{
       body:JSON.stringify({detail:"Account alice@example.com exists but password is wrong"}),
     }));
 
-    await page.goto("/login");
+    await page.goto("/login",{waitUntil:'domcontentloaded'});
     await page.getByLabel("Email").fill("alice@example.com");
     await page.getByLabel("Password",{exact:true}).fill("wrong-password");
     await page.getByRole("button",{name:"Log in"}).click();
@@ -50,7 +50,7 @@ test.describe("browser authentication and onboarding",()=>{
       });
     });
 
-    await page.goto("/signup");
+    await page.goto("/signup",{waitUntil:'domcontentloaded'});
     await page.getByLabel("Email").fill("existing@example.com");
     await page.getByLabel("Password",{exact:true}).fill("correct-horse-battery");
     await page.getByRole("button",{name:"Continue"}).click();
@@ -73,7 +73,7 @@ test.describe("browser authentication and onboarding",()=>{
       body:JSON.stringify({detail:"Email verification required for internal user u1"}),
     }));
 
-    await page.goto("/login?verified=1");
+    await page.goto("/login?verified=1",{waitUntil:'domcontentloaded'});
     await expect(page.getByRole("status")).toHaveText("Log in to continue after verifying your email.");
     await expect(page.getByRole("link",{name:"Verify an existing account"})).toHaveAttribute("href","/verify-email");
     await page.getByLabel("Email").fill("pending@example.com");
@@ -94,7 +94,7 @@ test.describe("browser authentication and onboarding",()=>{
       body:JSON.stringify({verification_required:true,email_status:"accepted",user:{id:"u1",email:"new@example.com",role:"Individual"}}),
     }));
 
-    await page.goto("/signup");
+    await page.goto("/signup",{waitUntil:'domcontentloaded'});
     await page.getByLabel("Email").fill("new@example.com");
     await page.getByLabel("Password",{exact:true}).fill("correct-horse-battery");
     await page.getByRole("button",{name:"Continue"}).click();
@@ -110,7 +110,7 @@ test.describe("browser authentication and onboarding",()=>{
   test('link-based verification retains the requested workspace and resend instructions',async({page})=>{
     await mockHealthyService(page);
     await page.route('**/api/v1/auth/email-verification/request',r=>r.fulfill({status:202,json:{status:'accepted'}}));
-    await page.goto('/verify-email?next=%2Fworkspace%2Fsettings');
+    await page.goto('/verify-email?next=%2Fworkspace%2Fsettings',{waitUntil:'domcontentloaded'});
     await expect(page.getByRole('link',{name:'Continue to login',exact:true})).toHaveAttribute('href','/login?next=%2Fworkspace%2Fsettings');
     await page.getByLabel('Email',{exact:true}).fill('pending@example.invalid');
     await page.getByRole('button',{name:'Send verification email',exact:true}).click();
@@ -122,7 +122,7 @@ test.describe("browser authentication and onboarding",()=>{
     await mockHealthyService(page);
     await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:false,email_verified:false}}));
     let authPosts=0;page.on('request',req=>{if(req.method()==='POST'&&req.url().includes('/api/v1/auth/'))authPosts++});
-    await page.goto('/login?verified=1&next=%2Fworkspace%2Freports#access_token=FAKE_CONFIRM_ACCESS&refresh_token=FAKE_CONFIRM_REFRESH&type=signup');
+    await page.goto('/login?verified=1&next=%2Fworkspace%2Freports#access_token=FAKE_CONFIRM_ACCESS&refresh_token=FAKE_CONFIRM_REFRESH&type=signup',{waitUntil:'domcontentloaded'});
     await expect(page).toHaveURL(/\/login\?verified=1&next=%2Fworkspace%2Freports$/);
     await expect(page.getByRole('status')).toHaveText('Log in to continue after verifying your email.');
     await expect(page.getByRole('button',{name:'Log in',exact:true})).toBeVisible();
@@ -134,7 +134,7 @@ test.describe("browser authentication and onboarding",()=>{
   test("expired email-link errors are actionable and never echo provider descriptions or query tokens",async({page})=>{
     await mockHealthyService(page);
     await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:false,email_verified:false}}));
-    await page.goto('/login?verified=1&access_token=FAKE_QUERY_ACCESS#error=access_denied&error_code=otp_expired&error_description=PRIVATE_PROVIDER_DETAIL');
+    await page.goto('/login?verified=1&access_token=FAKE_QUERY_ACCESS#error=access_denied&error_code=otp_expired&error_description=PRIVATE_PROVIDER_DETAIL',{waitUntil:'domcontentloaded'});
     await expect(page).toHaveURL(/\/login\?verified=1$/);
     await expect(page.locator(".formCard .error[role='alert']")).toHaveText('This email verification link is invalid or expired. Request a new verification link.');
     await expect(page.locator('body')).not.toContainText('PRIVATE_PROVIDER_DETAIL');
@@ -152,7 +152,7 @@ test.describe("browser authentication and onboarding",()=>{
       body:JSON.stringify({status:"accepted"}),
     }));
 
-    await page.goto("/forgot-password");
+    await page.goto("/forgot-password",{waitUntil:'domcontentloaded'});
     await page.getByLabel("Email").fill("unknown@example.com");
     await page.getByRole("button",{name:"Send reset link"}).click();
 
@@ -169,7 +169,7 @@ test.describe("browser authentication and onboarding",()=>{
       body:JSON.stringify({detail:"internal token digest mismatch"}),
     }));
 
-    await page.goto("/reset-password?token=expired-token");
+    await page.goto("/reset-password?token=expired-token",{waitUntil:'domcontentloaded'});
     await expect(page.getByLabel("Recovery token")).toHaveValue("expired-token");
     await page.getByLabel("New password",{exact:true}).fill("new-correct-horse");
     await page.getByLabel("Confirm new password").fill("new-correct-horse");
@@ -187,7 +187,7 @@ test.describe("browser authentication and onboarding",()=>{
       input=route.request().postDataJSON();
       return route.fulfill({status:200,json:{status:"updated",sessions_revoked:true}});
     });
-    await page.goto("/reset-password?token_hash=FAKE_RECOVERY_HASH&type=recovery");
+    await page.goto("/reset-password?token_hash=FAKE_RECOVERY_HASH&type=recovery",{waitUntil:'domcontentloaded'});
     await expect(page).toHaveURL(/\/reset-password\?type=recovery$/);
     await expect(page.getByLabel("Recovery token")).toHaveCount(0);
     await expect(page.getByLabel("Email",{exact:true})).toHaveCount(0);
@@ -206,7 +206,7 @@ test.describe("browser authentication and onboarding",()=>{
       input=route.request().postDataJSON();
       return route.fulfill({status:200,json:{status:"updated",sessions_revoked:true}});
     });
-    await page.goto("/reset-password#access_token=FAKE_ACCESS&refresh_token=FAKE_REFRESH&type=recovery");
+    await page.goto("/reset-password#access_token=FAKE_ACCESS&refresh_token=FAKE_REFRESH&type=recovery",{waitUntil:'domcontentloaded'});
     await expect(page).toHaveURL(/\/reset-password$/);
     await expect(page.getByLabel("Recovery token")).toHaveCount(0);
     await page.getByLabel("New password",{exact:true}).fill("fake-recovery-password");
@@ -221,7 +221,7 @@ test.describe("browser authentication and onboarding",()=>{
   test('a changed password with unconfirmed revocation gives accurate session guidance',async({page})=>{
     await mockHealthyService(page);
     await page.route('**/api/v1/auth/password-reset/confirm',r=>r.fulfill({status:200,json:{status:'updated',sessions_revoked:false}}));
-    await page.goto('/reset-password?token_hash=TEST_RECOVERY_HASH');
+    await page.goto('/reset-password?token_hash=TEST_RECOVERY_HASH',{waitUntil:'domcontentloaded'});
     await page.getByLabel('New password',{exact:true}).fill('test-new-password');
     await page.getByLabel('Confirm new password').fill('test-new-password');
     await page.getByRole('button',{name:'Update password',exact:true}).click();
@@ -237,7 +237,7 @@ test.describe("browser authentication and onboarding",()=>{
       input=route.request().postDataJSON();
       return route.fulfill({status:200,json:{status:"updated",sessions_revoked:true}});
     });
-    await page.goto("/reset-password?token=123456&email=qa%40example.invalid");
+    await page.goto("/reset-password?token=123456&email=qa%40example.invalid",{waitUntil:'domcontentloaded'});
     await expect(page).toHaveURL(/\/reset-password$/);
     await expect(page.getByLabel("Recovery token")).toHaveValue("123456");
     await expect(page.getByLabel("Email",{exact:true})).toHaveValue("qa@example.invalid");
@@ -271,7 +271,7 @@ test.describe("browser authentication and onboarding",()=>{
       });
     });
 
-    await page.goto("/onboarding");
+    await page.goto("/onboarding",{waitUntil:'domcontentloaded'});
     await expect(page).toHaveURL(/\/workspace$/);
     await expect(page.getByRole("navigation",{name:"Workspace"})).toBeVisible();
     expect(posts).toBe(0);
@@ -323,7 +323,7 @@ test.describe("browser authentication and onboarding",()=>{
       });
     });
 
-    await page.goto("/onboarding");
+    await page.goto("/onboarding",{waitUntil:'domcontentloaded'});
     await expect(page.getByRole("heading",{name:"Configure workspace"})).toBeVisible();
     await page.getByRole("button",{name:"Open workspace"}).click();
 

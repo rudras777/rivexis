@@ -13,7 +13,7 @@ async function setup(page:Page){
 test('liquidation illustration matches independent example arithmetic and aligns labels to their health-factor markers',async({page})=>{
  await setup(page);
  for(const width of [320,390,1440]){
-  await page.setViewportSize({width,height:1000});await page.goto('/');
+  await page.setViewportSize({width,height:1000});await page.goto('/',{waitUntil:'domcontentloaded'});
   const figure=page.locator('.thresholdPlate');
   // Independent reference: 10*3000*.8/18000; after shock, 10*2400*.8/18000.
   await expect(figure.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);
@@ -41,7 +41,7 @@ test('planner selection, supported preview and route return retain the original 
  await setup(page);const snapshot=fixture();
  await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:snapshot}));
  await page.route('**/api/v1/defi/transaction',r=>r.fulfill({status:200,json:{status:'PREVIEW_ONLY',simulation:'SUCCEEDED_AT_BLOCK',blockNumber:'19002',blockHash:'0x'+'2'.repeat(64),nonceAtBlock:7,before:{healthFactorRaw:'1333333333333333333'},after:{healthFactorRaw:'1500000000000000000'},gasRaw:'100000',feeReserveWei:'100000000000000',blockers:[],warnings:[]}}));
- await page.goto('/workspace/frontier');await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
+ await page.goto('/workspace/frontier',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
  await expect(page.getByRole('region',{name:'Selected defense plan comparison'})).toBeVisible();
  await page.getByLabel('Alternative',{exact:true}).selectOption('1');await expect(page.getByRole('heading',{name:'Inspect alternative 2'})).toBeVisible();
  await page.getByRole('button',{name:/Select alternative 1:/}).press('Enter');await expect(page.getByRole('heading',{name:'Inspect alternative 1'})).toBeVisible();
@@ -55,17 +55,17 @@ test('planner selection, supported preview and route return retain the original 
 test('private saved comparison reopens as historical and requires refresh for new work',async({page})=>{
  await setup(page);const snapshot=fixture(Date.now()-600000),constraints={budget:'3000',target:'1.5',gasReserve:'25',objective:'target',shocks:{}};
  await page.route('**/api/v1/defi-reports',r=>r.fulfill({status:200,json:{items:[{id:'OWNER_ARCHIVE',created_at:new Date().toISOString(),receipt:{snapshot,constraints,result:frontier(snapshot,constraints,snapshot.blockTimestamp*1000)}}]}}));
- await page.goto('/workspace/reports');await page.getByRole('button',{name:'Load saved reports'}).click();await page.getByRole('button',{name:'Open comparison →'}).click();
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Load saved reports'}).click();await page.getByRole('button',{name:'Open comparison →'}).click();
  await expect(page).toHaveURL(/\/workspace\/frontier$/);await expect(page.getByText('HISTORICAL COMPARISON · REFRESH REQUIRED')).toBeVisible();
  await expect(page.getByRole('region',{name:'Selected defense plan comparison'})).toBeVisible();await expect(page.getByRole('button',{name:'Calculate alternatives ↗'})).toBeDisabled();await expect(page.locator('.alternative').first().getByRole('button',{name:'Preview action →'})).toBeDisabled();
  await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:fixture()}));await page.getByRole('button',{name:'Refresh evidence ↻'}).click();await expect(page.getByText('HISTORICAL COMPARISON · REFRESH REQUIRED')).toHaveCount(0);await expect(page.getByRole('button',{name:'Calculate alternatives ↗'})).toBeEnabled();
 });
 test('unverified identities receive a usable verification route before workspace content',async({page})=>{
  await setup(page);await page.route('**/api/v1/workspaces',r=>r.fulfill({status:403,json:{detail:'Email verification is required before analysis or reports'}}));
- await page.goto('/workspace/frontier');await expect(page.getByRole('heading',{name:'Verify your email'})).toBeVisible();await expect(page.getByRole('link',{name:'Verify email',exact:true})).toHaveAttribute('href','/verify-email?next=%2Fworkspace%2Ffrontier');await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toHaveCount(0);
+ await page.goto('/workspace/frontier',{waitUntil:'domcontentloaded'});await expect(page.getByRole('heading',{name:'Verify your email'})).toBeVisible();await expect(page.getByRole('link',{name:'Verify email',exact:true})).toHaveAttribute('href','/verify-email?next=%2Fworkspace%2Ffrontier');await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toHaveCount(0);
 });
 test('landing depth and cursor effects are bounded, optional and never replace the native pointer',async({page})=>{
- await setup(page);await page.setViewportSize({width:1440,height:1000});await page.goto('/');
+ await setup(page);await page.setViewportSize({width:1440,height:1000});await page.goto('/',{waitUntil:'domcontentloaded'});
  await expect(page.locator('.heroFolioWrap')).toHaveCount(0);await expect(page.getByRole('slider')).toHaveCount(0);
  await expect(page.locator('.signatureRiskField,.riskAtlas,canvas')).toHaveCount(0);await expect(page.locator('.blockchainBackground')).toHaveCount(1);await page.emulateMedia({reducedMotion:'reduce'});await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','false');await expect(page.locator('.precisionPointer')).toBeHidden();
  expect(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');expect(await page.evaluate(()=>getComputedStyle(document.body).cursor)).not.toBe('none');
@@ -74,7 +74,7 @@ test('landing depth and cursor effects are bounded, optional and never replace t
 test('a verified OTP response opens the original feature with a refreshed account cache',async({page})=>{
  await setup(page);await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:false,email_verified:false}}));
  await page.route('**/api/v1/auth/email-verification/confirm',async r=>{await page.route('**/api/v1/auth/session-status',v=>v.fulfill({status:200,json:{authenticated:true,email_verified:true}}));await r.fulfill({status:200,json:{status:'verified',authenticated:true,csrf_token:'TEST_CSRF'}})});
- await page.goto('/verify-email?next=%2Fworkspace%2Ffrontier');await page.getByLabel('Email',{exact:true}).fill('qa@example.invalid');await page.getByLabel('Verification code').fill('test-only-code');await page.getByRole('button',{name:'Verify account'}).click();
+ await page.goto('/verify-email?next=%2Fworkspace%2Ffrontier',{waitUntil:'domcontentloaded'});await page.getByLabel('Email',{exact:true}).fill('qa@example.invalid');await page.getByLabel('Verification code').fill('test-only-code');await page.getByRole('button',{name:'Verify account'}).click();
  await expect(page).toHaveURL(/\/workspace\/frontier$/);await expect(page.getByRole('button',{name:'Inspect wallet',exact:true})).toBeVisible();
 });
 
@@ -97,7 +97,7 @@ for(const width of [375,1440])test(`multi-position planner hands each action to 
  const requests:Record<string,unknown>[]=[];
  await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:snapshot}));
  await page.route('**/api/v1/defi/transaction',r=>{requests.push(r.request().postDataJSON());return r.fulfill({status:200,json:{status:'PREVIEW_ONLY',simulation:'SUCCEEDED_AT_BLOCK',blockNumber:'19002',nonceAtBlock:7,before:{healthFactorRaw:'1333333333333333333'},after:{healthFactorRaw:'1500000000000000000'},gasRaw:'100000',feeReserveWei:'100000000000000',blockers:[],warnings:[]}})});
- await page.goto('/workspace/frontier');await page.getByLabel('Protocol coverage').selectOption('combined');await page.getByLabel('Public Ethereum address',{exact:true}).fill(snapshot.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
+ await page.goto('/workspace/frontier',{waitUntil:'domcontentloaded'});await page.getByLabel('Protocol coverage').selectOption('combined');await page.getByLabel('Public Ethereum address',{exact:true}).fill(snapshot.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
  await page.getByLabel('Capital budget / USD',{exact:true}).fill(multiConstraints.budget);await page.getByLabel('Assumed total fee reserve / USD',{exact:true}).fill(multiConstraints.gasReserve);await page.getByRole('combobox',{name:/^Risk objective/}).selectOption('max-min');await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
  await expect(page.locator('.alternative')).toHaveCount(result.alternatives.length);
  const card=page.locator('.alternative').first();await expect(card).toContainText('Independent previews; combined execution is not simulated.');await expect(card.getByRole('button')).toHaveCount(2);await card.screenshot({path:`test-results/frontier-independent-${width}.png`});
@@ -119,6 +119,6 @@ test('historical multi-action comparisons keep every individual preview disabled
  await setup(page);const snapshot=multiActionFixture();
  await page.route('**/api/v1/defi-reports',r=>r.fulfill({status:200,json:{items:[{id:'MULTI_ARCHIVE',created_at:new Date().toISOString(),receipt:{snapshot,constraints:multiConstraints}}]}}));
  let transactionRequests=0;await page.route('**/api/v1/defi/transaction',r=>{transactionRequests++;return r.abort()});
- await page.goto('/workspace/reports');await page.getByRole('button',{name:'Load saved reports'}).click();await page.getByRole('button',{name:'Open comparison →'}).click();
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Load saved reports'}).click();await page.getByRole('button',{name:'Open comparison →'}).click();
  await expect(page.getByText('HISTORICAL COMPARISON · REFRESH REQUIRED')).toBeVisible();const buttons=page.locator('.alternative').first().getByRole('button');await expect(buttons).toHaveCount(2);await expect(buttons.nth(0)).toBeDisabled();await expect(buttons.nth(1)).toBeDisabled();expect(transactionRequests).toBe(0);
 });

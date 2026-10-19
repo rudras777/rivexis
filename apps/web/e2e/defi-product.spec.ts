@@ -8,7 +8,7 @@ test.beforeEach(async({page})=>{
   await page.route('**/api/v1/auth/web/csrf',r=>r.fulfill({status:200,json:{csrf_token:'TEST_CSRF'}}));
 });
 test('verified educational sample connects scenarios, constrained frontier, and export',async({page})=>{
-  await page.goto('/demo');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
+  await page.goto('/demo',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
   await expect(page.getByText('HYPOTHETICAL SAMPLE · NOT LIVE')).toBeVisible();
   await expect(page.getByText('$30,000.00',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'02Risk Scenario Lab',exact:true}).click();
@@ -24,7 +24,7 @@ test('verified educational sample connects scenarios, constrained frontier, and 
   await expect(page.getByRole('button',{name:'Preview transaction ↗'})).toBeDisabled();
 });
 test('invalid address and unavailable provider preserve honest no-result state',async({page})=>{
-  await page.goto('/app');await page.getByLabel('Public Ethereum address').fill('bad');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
+  await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address').fill('bad');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.locator('.defiWorkspace .error[role=alert]')).toContainText('complete Ethereum');
   await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:503,json:{detail:'RPC evidence unavailable'}}));
   await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
@@ -35,7 +35,7 @@ test('saved reports can load without a wallet snapshot while new calculations st
   let snapshotRequests=0,reportRequests=0;
   await page.route('**/api/v1/defi/snapshot',r=>{snapshotRequests++;return r.fulfill({status:503,json:{detail:'Not needed'}})});
   await page.route('**/api/v1/defi-reports',r=>{reportRequests++;return r.fulfill({status:200,json:{items:[{id:'TEST_OWNER_REPORT',created_at:'2026-10-09T00:00:00Z',receipt:{classification:'TEST_FIXTURE'}}]}})});
-  await page.goto('/app');await page.getByRole('button',{name:'05Monitoring & Reports',exact:true}).click();
+  await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'05Monitoring & Reports',exact:true}).click();
   await expect(page.getByRole('button',{name:'Save comparison to account',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect(page.getByText('TEST_OWNER_REPORT',{exact:true})).toBeVisible();
   expect(snapshotRequests).toBe(0);expect(reportRequests).toBe(1);
@@ -51,7 +51,7 @@ test('explicit Morpho coverage keeps protocol positions, scenario assets and tra
   const requests:{coverage?:string;positionId?:string;asset?:string}[]=[];
   await page.route('**/api/v1/defi/snapshot',r=>{requests.push(r.request().postDataJSON());return r.fulfill({status:200,json:fixture})});
   await page.route('**/api/v1/defi/transaction',r=>{requests.push(r.request().postDataJSON());return r.fulfill({status:200,json:reference.transaction})});
-  await page.setViewportSize({width:375,height:900});await page.goto('/app');
+  await page.setViewportSize({width:375,height:900});await page.goto('/app',{waitUntil:'domcontentloaded'});
   await page.getByLabel('Protocol coverage').selectOption('combined');await page.getByLabel('Public Ethereum address').fill(fixture.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();expect(requests[0].coverage).toBe('combined');
   await expect(page.locator('.instrumentPanel').filter({has:page.getByRole('heading',{name:'Lending exposure',exact:true})}).getByRole('cell').filter({hasText:'Morpho Blue'})).toHaveCount(2);
@@ -68,7 +68,7 @@ test('portfolio shows exact oracle units and never hides a positive dust balance
   fixture.observedDebtRaw='90071992547409939901000000'; // Renderer-only regression above JS safe precision.
   fixture.nativeBalanceRaw='1';
   await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:{...fixture,sample:false}}));
-  await page.setViewportSize({width:375,height:900});await page.goto('/app');await page.getByLabel('Public Ethereum address').fill(fixture.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
+  await page.setViewportSize({width:375,height:900});await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address').fill(fixture.wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect(page.getByRole('cell',{name:'$0.99991234',exact:true})).toBeVisible();
   await expect(page.getByRole('cell',{name:'<0.00000001',exact:true})).toBeVisible();
   await expect(page.getByText('$900,719,925,474,099,399.01',{exact:true})).toBeVisible();
@@ -79,27 +79,27 @@ test('responsive dark/light product surfaces have no page overflow or serious ax
   // Eight viewport workflows plus seven axe scans need a suite-sized budget.
   test.setTimeout(90_000);
   for(const width of [320,375,390,768,1024,1280,1440,1920]){
-    await page.setViewportSize({width,height:1000});await page.goto('/');
+    await page.setViewportSize({width,height:1000});await page.goto('/',{waitUntil:'domcontentloaded'});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`home overflow ${width}`).toBe(true);
-    await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
+    await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();
     await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`app overflow ${width}`).toBe(true);
   }
   for(const path of ['/','/app','/demo','/forgot-password','/verify-email','/methodology']){
-    await page.goto(path);const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
+    await page.goto(path,{waitUntil:'domcontentloaded'});const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
     expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical'),path).toEqual([]);
   }
-  await page.addInitScript(()=>localStorage.setItem('rivexis_theme','light'));await page.goto('/app');await expect(page.locator('html')).toHaveAttribute('data-theme','light');
+  await page.addInitScript(()=>localStorage.setItem('rivexis_theme','light'));await page.goto('/app',{waitUntil:'domcontentloaded'});await expect(page.locator('html')).toHaveAttribute('data-theme','light');
   const light=await new AxeBuilder({page}).withTags(['wcag2aa','wcag22aa']).analyze();expect(light.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);
 });
 test('obsolete public tools redirect to the unified product',async({page})=>{
-  await page.goto('/blockchain-intelligence');await expect(page).toHaveURL(/\/gasguard$/);
-  await page.goto('/crypto-finance');await expect(page).toHaveURL(/\/liquidationguard$/);
+  await page.goto('/blockchain-intelligence',{waitUntil:'domcontentloaded'});await expect(page).toHaveURL(/\/gasguard$/);
+  await page.goto('/crypto-finance',{waitUntil:'domcontentloaded'});await expect(page).toHaveURL(/\/liquidationguard$/);
 });
 test('optional browser monitoring stops after five checks and never runs for a sample',async({page})=>{
   await page.clock.install();let requests=0;
   await page.route('**/api/v1/defi/snapshot',async route=>{requests++;const fixture=sampleSnapshot(await page.evaluate(()=>Date.now()));return route.fulfill({status:200,json:{...fixture,sample:false,wallet:'0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18',blockNumber:String(1000+requests),blockHash:'TEST_FIXTURE'}})});
-  await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await page.getByRole('button',{name:'05Monitoring & Reports',exact:true}).click();
+  await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await page.getByRole('button',{name:'05Monitoring & Reports',exact:true}).click();
   await expect(page.getByRole('button',{name:'Start five bounded checks'})).toBeDisabled();
   await page.getByLabel('Public Ethereum address').fill('0x6164eb38bADD2d7A8ab87CD9939ddAcfbB007f18');await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();
   await expect.poll(()=>requests).toBe(1);await page.getByRole('button',{name:'Start five bounded checks'}).click();await expect.poll(()=>requests).toBe(2);await expect(page.getByText('Check 1 of 5 complete. Latest block: 1002.',{exact:true})).toBeVisible();
@@ -108,7 +108,7 @@ test('optional browser monitoring stops after five checks and never runs for a s
   await page.clock.fastForward(240000);expect(requests).toBe(6);
 });
 test('an already-met target ranks a zero-cost current-state alternative first',async({page})=>{
-  await page.goto('/app');await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();
+  await page.goto('/app',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await page.getByRole('button',{name:'03Defense Frontier',exact:true}).click();
   await page.getByLabel('Target health factor',{exact:true}).fill('1.2');await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
   const best=page.locator('.alternative').first();await expect(best).toContainText('Keep current position (no transaction)');await expect(best).toContainText('$0.00');
   await expect(best.getByRole('button',{name:'No transaction required'})).toBeDisabled();
