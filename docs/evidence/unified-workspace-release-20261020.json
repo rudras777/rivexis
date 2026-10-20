@@ -1,0 +1,135 @@
+{
+  "date": "2026-10-20 Asia/Calcutta",
+  "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+  "releaseCommit": "4849a626d433c051f440d2b9aff434cc4435e277",
+  "implementationSource": "83ec3746329dafa016a937a890bc9e07062301ae",
+  "implementationMerge": "fd294bf05b9fb9256ccbffa8609e8613e1eb913c",
+  "testCorrectionSource": "910a60a5e66cec6ce245c0b0c6a3120d17332098",
+  "prs": [
+    96,
+    97
+  ],
+  "workerVersion": "6824855c-fed9-45ae-8d6b-72e85fa93476",
+  "workerAllocationPercent": 100,
+  "deployment": "0d9b69e0-2bc0-42b7-aebf-9c1fe81fce3d",
+  "nativeBuild": "cac2f5f3-b11f-461a-b4a8-17e92b8fc3ef",
+  "httpStatus": 200,
+  "publicAndAuthenticatedBuildMatches": true,
+  "runs": {
+    "implementationSource": 39371873877,
+    "implementationPR": 39371876392,
+    "implementationWorker": 39371876504,
+    "implementationCompatibility": 39371876497,
+    "testCorrectionSource": 39373801206,
+    "testCorrectionPR": 39373806917,
+    "testCorrectionWorker": 39373807026,
+    "testCorrectionCompatibility": 39373806920,
+    "main": 39374822104,
+    "mainWorker": 39374822122,
+    "finalPublicCompatibility": 39375045067
+  },
+  "defaultBrowserCasesPerEngine": 291,
+  "finalCompatibility": {
+    "firefox": {
+      "passed": 291,
+      "durationMs": 455409.806,
+      "driverGETReleaseAttempts": 0
+    },
+    "webkit": {
+      "passed": 291,
+      "durationMs": 409788.097,
+      "driverGETReleaseAttempts": 0
+    }
+  },
+  "actualPublic": {
+    "chromium": {
+      "startTime": "2026-10-20T05:28:05.907Z",
+      "duration": 112341.254,
+      "expected": 30,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "firefox": {
+      "passed": 30,
+      "durationMs": 68272.822
+    },
+    "webkit": {
+      "passed": 30,
+      "durationMs": 64321.042
+    },
+    "skipped": 0,
+    "flaky": 0,
+    "unexpected": 0,
+    "driverGETReleaseAttempts": 0
+  },
+  "financial": {
+    "source": "genuine authenticated exported public-reference position",
+    "block": "26231717",
+    "alternativesIndependentlyChecked": 6,
+    "integerAndRationalCostChecks": "EXACT_MATCH",
+    "applicationModelImportedByChecker": false,
+    "signingOrSubmission": false
+  },
+  "database": {
+    "readOnly": true,
+    "status": "ACTIVE_HEALTHY",
+    "version": "17.6.1.166",
+    "publicTables": 61,
+    "tablesWithoutRLS": 0,
+    "publicSecurityDefiners": 9,
+    "clientCallableSecurityDefiners": 0,
+    "warnings": [
+      "pg_net in public",
+      "leaked-password protection disabled (Pro-only option)"
+    ]
+  },
+  "preserved": [
+    "existing repository/Worker/URL",
+    "Supabase project/users/data/auth",
+    "Brevo",
+    "logo/colors/public layout/background",
+    "financial models/API34",
+    "rollback versions"
+  ],
+  "addedRecurringCostUSD": 0,
+  "accountWideBillingCertified": false,
+  "earlierPublicFailure": {
+    "kind": "genuine unanswered document request",
+    "route": "/demo",
+    "browser": "Firefox",
+    "limitMs": 15000,
+    "guardRefusedRelease": true,
+    "run": 39373826528,
+    "subsequentBoundedHTTP200Ms": [
+      943,
+      226
+    ],
+    "finalRecoveryRun": 39375045067,
+    "continuousAvailabilityCertified": false
+  },
+  "readiness": "controlled early access in supported Ethereum scope; unrestricted institutional certification remains blocked",
+  "rawEvidenceSHA256": {
+    "pr97-source-ci-20261020.log": "75f76a460424798e9a051225efe594976e2da7b07657a353370f5fa5206a76b2",
+    "pr97-pr-ci-20261020.log": "38cde34bc1c248be019be59dac1e45a42f983a449fb58022f996adcdec1ba144",
+    "pr97-worker-ci-20261020.log": "6a3d5acea8878214c965880d5a617b7780b1632a99027c291cb8f3069e973cc3",
+    "pr97-compatibility-20261020.log": "2bd249af9a8505f95bcb3f680c9594b20245ff9008b04a5504ae1db6d17148c4",
+    "pr97-main-ci-20261020.log": "292620ce7ea2d59d907844f04813e12b9f44006ddc56402a561482bf25c76200",
+    "pr97-main-worker-ci-20261020.log": "13d4fe8ac1eafb4e4960be262f5af6d642db070c92bf44e37171f9dcb5c4e934",
+    "pr97-final-live-browser-results-20261020.json": "21d3b509a3f62ec378b0274c7b8af4e62c45c1174da8b1da7a37cfc5f320e716",
+    "pr97-final-public-compatibility-20261020.log": "534865d475febe0a943fee9eda668f4b717bfbba6163f863640c49493414b979",
+    "pr97-public-http-20261020.json": "1e122ffa79ca76190a1b21cf4c13b869317bcc571939c8a0b0ef38b83b183b7d",
+    "pr97-native-build-check-20261020.json": "84d4ee55b76e49e4f5831204b5b1e787609e481940f4f9a2b7450fe05c9d5881",
+    "pr97-worker-deployments-20261020.json": "98a8daca7afe1f4d40f6ff982c5a895b156ebfc182c34b4f9899d2799c7d5cf1",
+    "pr97-final-authenticated-dom-20261020.json": "8d1086d37172dce0d654dccf32cee0b654ee833887d7f559ba0c66ee31e9e3ff",
+    "pr97-final-live-planner-dom-20261020.json": "558da5b807c5ea649f04ede99f2e58d43f8f257821a9bcb1aff0be48dabe3b61",
+    "pr97-final-live-defense-plan-20261020.json": "4ef7aced962250de99bfda1ef25fd918f053c05bd056312f0becb070863c79dc",
+    "pr97-final-live-planner-reconciliation-20261020.json": "41a64fef200bce9cfe11ee91a4969e2a3e2b1c4eac26bbfb9b474acca9b5946d",
+    "check_pr97_final_live_planner.py": "56c3ae230a4d452e85f84a04f1f872f6aee3149dfedc4024232c925b51f83a5b",
+    "pr97-final-live-overview-20261020.png": "17e79fd5aa7bdf0c8a80eed67c94f02e9f6fc324dcf57b78ab578a9c563481d5",
+    "pr96-readonly-database-20261020.json": "e1c83b5a076197a67b35d9927e0399598e7f1270b2469fe185c0be018fb20760",
+    "pr96-public-compatibility-initial-20261020.log": "428d7969ec099f229c5d48b2d5bafa2fe7b93ed2376f6c5be3539a694803669f",
+    "pr96-public-corrected-initial-20261020.log": "08dabd7e9f0e3da54b9d0dbb7d1515082e37909fd31c0e90c10fc17954b8a351",
+    "pr96-demo-transport-probes-20261020.json": "0324d1825bed63935255385d0449503673677c8c10cbd3fb1f012dcdf818ce69"
+  }
+}
