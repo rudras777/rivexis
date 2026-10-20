@@ -83,3 +83,43 @@ test('a failed refresh can be retried explicitly and publish only the confirmed 
 test('a rejection code on a provider503 cannot turn an outage into session deletion',async()=>{
  const h=harness({read:async()=>({data:{user:null},error:rejection('bad_jwt',503)})});const r=await h.handler(h.request());assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.equal(h.calls().refreshes,0);
 });
+
+for(const path of ['/api/v1/auth/session-status','/api/v1/workspaces'])test(`${path}: actual invalid refresh contract ends the rejected session`,async()=>{
+ const h=harness({read:async()=>({data:{user:null},error:rejection('bad_jwt',403)}),refresh:async()=>({data:{user:null,session:null},error:rejection('validation_failed',400)})});
+ const r=await h.handler(h.request(path));assert.equal(r.status,path.endsWith('session-status')?200:401);assert.match(r.headers.get('set-cookie'),/Max-Age=0/);assert.deepEqual(h.calls(),{reads:1,refreshes:1,dbCalls:0});
+ if(path.endsWith('session-status'))assert.equal((await r.json()).authenticated,false);
+});
+test('validation_failed on a user read is not interpreted as refresh-token rejection',async()=>{
+ const h=harness({read:async()=>({data:{user:null},error:rejection('validation_failed',400)})});const r=await h.handler(h.request());assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.equal(h.calls().refreshes,0);
+});
+test('validation_failed on a refresh provider503 preserves the original session',async()=>{
+ const h=harness({read:async()=>({data:{user:null},error:rejection('bad_jwt',403)}),refresh:async()=>({data:{user:null,session:null},error:rejection('validation_failed',503)})});
+ const r=await h.handler(h.request());assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.equal(h.calls().dbCalls,0);
+});
+
+for(const [service,path] of [['rivexis-decision-reports','/api/v1/history'],['rivexis-alerts','/api/v1/alerts']]){
+ const source=stripTypeScriptTypes(readFileSync(new URL(`../${service}/index.ts`,import.meta.url),'utf8').replace(/^import .*;\r?$/gm,''));
+ function isolated({read=validRead,refresh=validRefresh,session={access_token:'fixture-access',refresh_token:'fixture-refresh',csrf:'fixture-csrf'}}={}){
+  let handler,reads=0,refreshes=0,dbCalls=0;const actors=[];
+  const createClient=()=>({auth:{getUser:async()=>{reads++;return await read()},refreshSession:async()=>{refreshes++;return await refresh()}},rpc:async(_name,args)=>{dbCalls++;if(args?.p_actor_user_id)actors.push(args.p_actor_user_id);return {data:{items:[]},error:null}}});
+  const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,atob,btoa,console:{error:()=>{}}});
+  new vm.Script(source).runInContext(context);
+  return {actors,send:()=>handler(new Request('https://example.invalid'+path,{headers:session?{cookie:'rvx_session='+Buffer.from(JSON.stringify(session)).toString('base64url')}:{}})),calls:()=>({reads,refreshes,dbCalls})};
+ }
+ for(const [label,read] of [
+  ...[500,502,503,504,429].map(status=>[`provider${status}`,async()=>({data:{user:null},error:{status,name:'AuthRetryableFetchError'}})]),
+  ['transport exception',async()=>{throw new TypeError('private provider detail')}],
+  ['malformed success',async()=>({data:{user:null},error:null})],
+  ['unknown rejection',async()=>({data:{user:null},error:rejection('unknown_configuration',401)})],
+ ])test(`${service}: ${label} preserves cookie and blocks database access`,async()=>{
+  const h=isolated({read});const r=await h.send();assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.deepEqual(h.calls(),{reads:1,refreshes:0,dbCalls:0});assert.ok(!(await r.text()).includes('private provider detail'));
+ });
+ test(`${service}: healthy verified identity reaches owner-bound read`,async()=>{const h=isolated(),r=await h.send();assert.equal(r.status,200);assert.equal(h.calls().reads,1);assert.equal(h.calls().refreshes,0);assert.ok(h.calls().dbCalls>0);assert.deepEqual(h.actors,['fixture-owner']);assert.equal(r.headers.get('set-cookie'),null)});
+ test(`${service}: confirmed renewal retains HttpOnly cookie`,async()=>{const h=isolated({read:async()=>({data:{user:null},error:rejection('bad_jwt',403)})}),r=await h.send();assert.equal(r.status,200);assert.equal(h.calls().refreshes,1);assert.match(r.headers.get('set-cookie'),/HttpOnly; Secure; SameSite=Lax/)});
+ test(`${service}: rejected refresh ends invalid session`,async()=>{const h=isolated({read:async()=>({data:{user:null},error:rejection('bad_jwt',403)}),refresh:async()=>({data:{user:null,session:null},error:rejection('validation_failed',400)})}),r=await h.send();assert.equal(r.status,401);assert.match(r.headers.get('set-cookie'),/Max-Age=0/);assert.equal(h.calls().dbCalls,0)});
+ test(`${service}: refresh outage preserves original cookie`,async()=>{const h=isolated({read:async()=>({data:{user:null},error:rejection('bad_jwt',403)}),refresh:async()=>({data:{user:null,session:null},error:{status:503,name:'AuthRetryableFetchError'}})}),r=await h.send();assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.equal(h.calls().dbCalls,0)});
+ test(`${service}: malformed replacement cannot grant access`,async()=>{const h=isolated({read:async()=>({data:{user:null},error:rejection('bad_jwt',403)}),refresh:async()=>({data:{user,session:{access_token:42,refresh_token:'fixture-refresh'}},error:null})}),r=await h.send();assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.equal(h.calls().dbCalls,0)});
+ test(`${service}: no cookie never accesses provider or database`,async()=>{const h=isolated({session:null}),r=await h.send();assert.equal(r.status,401);assert.deepEqual(h.calls(),{reads:0,refreshes:0,dbCalls:0})});
+ for(const field of ['access_token','refresh_token','csrf'])test(`${service}: malformed ${field} denied before provider access`,async()=>{const h=isolated({session:{access_token:'fixture-access',refresh_token:'fixture-refresh',csrf:'fixture-csrf',[field]:42}}),r=await h.send();assert.equal(r.status,401);assert.deepEqual(h.calls(),{reads:0,refreshes:0,dbCalls:0})});
+ test(`${service}: repeated outages recover with original session`,async()=>{let n=0;const h=isolated({read:async()=>++n<3?{data:{user:null},error:{status:503,name:'AuthRetryableFetchError'}}:validRead()});for(let i=0;i<2;i++){const r=await h.send();assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null)}assert.equal((await h.send()).status,200);assert.equal(h.calls().refreshes,0)});
+}

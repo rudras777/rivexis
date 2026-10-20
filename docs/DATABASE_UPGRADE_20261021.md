@@ -1,6 +1,6 @@
 # Approved database upgrade and recovery follow-up
 
-21 October2026, Asia/Calcutta. Existing project `ivszvufdonfgwjpfgwii`, application URL, users/data and integrations retained. **Database maintenance completed: PostgreSQL17.6.1.166 →17.11.0.003, ACTIVE_HEALTHY.** Application remains4ad0ddb0 and API34 at this checkpoint; the authentication recovery fix below is locally verified but not deployed yet.
+21 October2026, Asia/Calcutta. Existing project `ivszvufdonfgwjpfgwii`, application URL, users/data and integrations retained. **Database maintenance completed: PostgreSQL17.6.1.166 →17.11.0.003, ACTIVE_HEALTHY.** Recovery PR99 passed source/PR/Worker/Firefox/WebKit gates, merged as b40c6d3f, and deployed API35 with all24 source files matched to the tested package. Its existing native Worker build is25df7238. A live invalid-token follow-up below must pass before final release verification.
 
 ## Authorization, baseline and actual maintenance
 
@@ -38,8 +38,18 @@ Before the fix,25 of31 new actual Edge-handler cases failed; six already passed.
 
 Remaining ordinary work at this checkpoint: source/PR CI, review/merge, deploy the existing API function and existing Worker as required, compare deployed source identity, rerun actual-public/auth probes and complete genuine authenticated financial/Settings/report checks after normal sign-in. Do not force a production auth outage to test the failure path, create a privileged test bypass, or claim recovery of already-ended sessions. Refresh-response loss outside this confirmed-response contract is not solved or guaranteed away.
 
+## Actual invalid-refresh contract follow-up
+
+After API35 deployment, ten actual public invalid-cookie scenarios produced eight passing scenarios and two failing scenarios (eleven requests total). No private access was granted. Missing/malformed/incorrectly typed cookies were rejected correctly, but the deliberately invalid token pair returned503 without cookie deletion. A direct read using only the existing public anon key and deliberately invalid tokens established the actual Auth contract: invalid access403/bad_jwt; invalid refresh400/validation_failed, with the provider stating Refresh token is not valid. No account, credential, user row or provider configuration was changed.
+
+The first classifier conservatively left this unrecognized rejection unavailable. A focused follow-up on safe branch `fix/auth-refresh-validation-20261021` accepts400/validation_failed only from the refresh endpoint after our own nonempty-string input validation. The same code on a user read, unknown errors and provider5xx remain unavailable without deleting cookies. Four additional actual-handler cases reproduce both private and session-status failures before correction and guard against broadening the classification. The two rejection cases failed before the fix; the other36 already passed. Original live failure results and API34 rollback remain retained, and API35 can also be reconstructed from PR99. No visual, financial, database-schema or dependency change is included.
+
+All259 financial/auth cases and Deno checking pass locally. Release gates, deployment and fresh actual-public checks for this follow-up remain pending at this source checkpoint. Genuine authenticated checks still require the owner's normal website sign-in; no bypass or password reset is authorized by this checkpoint.
+
 Owner gates still include sending-domain ownership/DNS, real native-wallet permission UX, independent key custody/second-machine/full-service recovery and institutional security/operating assurance. The supported beta scope and prior financial receipts retain their separately dated limits.
 
 Raw evidence is in task outputs outside Git: database-maintenance-preflight, database-upgrade-started/completed screenshots, unavailable-workspace screenshot, ACL reconciliation, Vault equality, public browser/paced HTTP results, API34 rollback, before/after regressions and local test/typecheck logs. No key, credential, private user row, cookie or decrypted Vault value belongs in Git evidence.
 
 References: [official Auth errors](https://supabase.com/docs/guides/auth/debugging/error-codes), [upgrade compatibility notice](https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes), [pg_net advisor](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public), [password security](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+
+The same concrete provider-failure defect was then reproduced in the separate history/report and alerts handlers:28 of36 new secondary cases failed before correction. Both now follow the same verified-session contract, including malformed-cookie validation, unavailable-provider preservation, explicit rejection and confirmed renewal. All74 auth-provider cases pass after correction. Existing owner-bound reads and CSRF checks are retained. The alerts SDK is pinned to the already-tested2.117.3; CI now includes alerts in Deno checks. Preserved production source archives for decision-reports3 and alerts4 match all4/1 repository files before mutation. Follow-up PR100 contains these related corrections; its latest exact head must pass gates before deploying all three existing functions.
