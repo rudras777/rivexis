@@ -83,3 +83,16 @@ test('a failed refresh can be retried explicitly and publish only the confirmed 
 test('a rejection code on a provider503 cannot turn an outage into session deletion',async()=>{
  const h=harness({read:async()=>({data:{user:null},error:rejection('bad_jwt',503)})});const r=await h.handler(h.request());assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.equal(h.calls().refreshes,0);
 });
+
+for(const path of ['/api/v1/auth/session-status','/api/v1/workspaces'])test(`${path}: actual invalid refresh contract ends the rejected session`,async()=>{
+ const h=harness({read:async()=>({data:{user:null},error:rejection('bad_jwt',403)}),refresh:async()=>({data:{user:null,session:null},error:rejection('validation_failed',400)})});
+ const r=await h.handler(h.request(path));assert.equal(r.status,path.endsWith('session-status')?200:401);assert.match(r.headers.get('set-cookie'),/Max-Age=0/);assert.deepEqual(h.calls(),{reads:1,refreshes:1,dbCalls:0});
+ if(path.endsWith('session-status'))assert.equal((await r.json()).authenticated,false);
+});
+test('validation_failed on a user read is not interpreted as refresh-token rejection',async()=>{
+ const h=harness({read:async()=>({data:{user:null},error:rejection('validation_failed',400)})});const r=await h.handler(h.request());assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.equal(h.calls().refreshes,0);
+});
+test('validation_failed on a refresh provider503 preserves the original session',async()=>{
+ const h=harness({read:async()=>({data:{user:null},error:rejection('bad_jwt',403)}),refresh:async()=>({data:{user:null,session:null},error:rejection('validation_failed',503)})});
+ const r=await h.handler(h.request());assert.equal(r.status,503);assert.equal(r.headers.get('set-cookie'),null);assert.equal(h.calls().dbCalls,0);
+});

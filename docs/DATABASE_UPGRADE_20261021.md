@@ -1,6 +1,6 @@
 # Approved database upgrade and recovery follow-up
 
-21 October2026, Asia/Calcutta. Existing project `ivszvufdonfgwjpfgwii`, application URL, users/data and integrations retained. **Database maintenance completed: PostgreSQL17.6.1.166 →17.11.0.003, ACTIVE_HEALTHY.** Application remains4ad0ddb0 and API34 at this checkpoint; the authentication recovery fix below is locally verified but not deployed yet.
+21 October2026, Asia/Calcutta. Existing project `ivszvufdonfgwjpfgwii`, application URL, users/data and integrations retained. **Database maintenance completed: PostgreSQL17.6.1.166 →17.11.0.003, ACTIVE_HEALTHY.** Recovery PR99 passed source/PR/Worker/Firefox/WebKit gates, merged as b40c6d3f, and deployed API35 with all24 source files matched to the tested package. Its existing native Worker build is25df7238. A live invalid-token follow-up below must pass before final release verification.
 
 ## Authorization, baseline and actual maintenance
 
@@ -37,6 +37,14 @@ Safe branch `fix/auth-provider-recovery-20261021` now distinguishes known explic
 Before the fix,25 of31 new actual Edge-handler cases failed; six already passed. After the change and three additional repeated/recovery cases, all34 cases pass. Full financial/auth suite255, API-edge30 and Deno checking pass locally. Two older SDK fixtures now supply realistic bad_jwt/refresh_token_not_found error contracts; their assertions are unchanged. Financial models, default values, authentication requirements, CSRF, UI/branding and dependencies are unchanged. API34 rollback source is preserved outside Git before any release.
 
 Remaining ordinary work at this checkpoint: source/PR CI, review/merge, deploy the existing API function and existing Worker as required, compare deployed source identity, rerun actual-public/auth probes and complete genuine authenticated financial/Settings/report checks after normal sign-in. Do not force a production auth outage to test the failure path, create a privileged test bypass, or claim recovery of already-ended sessions. Refresh-response loss outside this confirmed-response contract is not solved or guaranteed away.
+
+## Actual invalid-refresh contract follow-up
+
+After API35 deployment, ten actual public invalid-cookie scenarios produced eight passing scenarios and two failing scenarios (eleven requests total). No private access was granted. Missing/malformed/incorrectly typed cookies were rejected correctly, but the deliberately invalid token pair returned503 without cookie deletion. A direct read using only the existing public anon key and deliberately invalid tokens established the actual Auth contract: invalid access403/bad_jwt; invalid refresh400/validation_failed, with the provider stating Refresh token is not valid. No account, credential, user row or provider configuration was changed.
+
+The first classifier conservatively left this unrecognized rejection unavailable. A focused follow-up on safe branch `fix/auth-refresh-validation-20261021` accepts400/validation_failed only from the refresh endpoint after our own nonempty-string input validation. The same code on a user read, unknown errors and provider5xx remain unavailable without deleting cookies. Four additional actual-handler cases reproduce both private and session-status failures before correction and guard against broadening the classification. The two rejection cases failed before the fix; the other36 already passed. Original live failure results and API34 rollback remain retained, and API35 can also be reconstructed from PR99. No visual, financial, database-schema or dependency change is included.
+
+All259 financial/auth cases and Deno checking pass locally. Release gates, deployment and fresh actual-public checks for this follow-up remain pending at this source checkpoint. Genuine authenticated checks still require the owner's normal website sign-in; no bypass or password reset is authorized by this checkpoint.
 
 Owner gates still include sending-domain ownership/DNS, real native-wallet permission UX, independent key custody/second-machine/full-service recovery and institutional security/operating assurance. The supported beta scope and prior financial receipts retain their separately dated limits.
 

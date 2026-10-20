@@ -145,7 +145,13 @@ async function authenticate(req:Request):Promise<AuthContext|null>{
     if(verified.error.code!=="bad_jwt")return null;
     let renewed;
     try{renewed=await auth.auth.refreshSession({refresh_token:refresh})}catch{throw new SessionVerificationUnavailable()}
-    if(renewed?.error){if(confirmedSessionRejection(renewed.error))return null;throw new SessionVerificationUnavailable()}
+    if(renewed?.error){
+      // The real refresh endpoint also rejects invalid refresh-token format with
+      // 400/validation_failed. Apply this only to our validated refresh request;
+      // a validation/configuration error on identity reads remains unavailable.
+      if(confirmedSessionRejection(renewed.error)||(renewed.error.status===400&&renewed.error.code==="validation_failed"))return null;
+      throw new SessionVerificationUnavailable();
+    }
     const replacement=renewed?.data?.session,nextUser=renewed?.data?.user;
     if(!replacement||!validSessionValue(replacement.access_token)||!validSessionValue(replacement.refresh_token)||!validIdentity(nextUser))throw new SessionVerificationUnavailable();
     user=nextUser;access=replacement.access_token;refresh=replacement.refresh_token;refreshed=true;
