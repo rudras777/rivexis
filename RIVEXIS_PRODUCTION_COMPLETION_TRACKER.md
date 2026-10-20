@@ -42,6 +42,8 @@ The missing-profile crash was locally fault-injected; it was not observed in pro
 
 Resume a specifically authorized owner gate or a newly evidenced defect. Do not ask for generic continue, create another site/project or repeat finished checks merely to consume tokens.
 
+20 October continuation: [pg_net exposure review](docs/NET_EXTENSION_EXPOSURE_REVIEW_20261020.md) confirms the installed extension is nonrelocatable, its twelve net-schema routines are security invoker with broad client-role database grants, and the actual Data API exposes only public/graphql_public, excluding net. No routine/queue data was accessed or grant changed. The proposed 24-hour single-project Database read-write backup token remains at final review and uncreated; a specific action-time confirmation is pending. No production upgrade is included in that request. Screenshots are preserved outside Git.
+
 ## Related evidence
 
 - [Readiness](docs/PRODUCTION_READINESS.md), [scenarios](docs/WORKFLOW_SCENARIO_COVERAGE.md), [operating runbook](docs/SUPPORTED_BETA_OPERATIONS_20261020.md)
