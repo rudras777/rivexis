@@ -1,0 +1,115 @@
+{
+  "date": "2026-10-20 Asia/Calcutta",
+  "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+  "pr": 98,
+  "source": "2d96c5e975479242f11500fd901e266d35ac2886",
+  "releaseCommit": "4ad0ddb0177add65fd0748202e64ed6115638c69",
+  "testedSourceTreeMatchesMain": true,
+  "workerVersion": "6d7ffd8d-82be-4d10-92c3-04c21afffb3e",
+  "allocationPercent": 100,
+  "deployment": "2d6c78c6-ef40-4e69-b084-3aad86e6f359",
+  "nativeBuild": "818c8f15-bfa8-4f18-b040-27053191a749",
+  "runs": {
+    "source": 39386577710,
+    "pr": 39386618824,
+    "worker": 39386618897,
+    "compatibility": 39386618916,
+    "main": 39388116043,
+    "mainWorker": 39388116083,
+    "publicCompatibility": 39388528360
+  },
+  "browserCasesPerEngine": 305,
+  "newBrowserCases": 14,
+  "localSettingsCases": {
+    "chromium": 31,
+    "webkit": 31
+  },
+  "compatibility": {
+    "firefox": {
+      "passed": 305,
+      "durationMs": 462390.035
+    },
+    "webkit": {
+      "passed": 305,
+      "durationMs": 650133.194
+    }
+  },
+  "actualPublic": {
+    "chromium": {
+      "startTime": "2026-10-20T07:44:35.526Z",
+      "duration": 94049.078,
+      "expected": 30,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "firefox": {
+      "passed": 30,
+      "durationMs": 65900.385
+    },
+    "webkit": {
+      "passed": 30,
+      "durationMs": 81133.523
+    }
+  },
+  "finalSkippedUnexpectedFlakyAndDriverGETReleases": 0,
+  "genuineSignedInSettings": {
+    "buildMatches": true,
+    "sections": 10,
+    "remotePreferencesRendered": true,
+    "writesSubmitted": false
+  },
+  "financialModelsBackendAPIDependenciesAndPublicAssetsUnchangedFrom": "4849a626d433c051f440d2b9aff434cc4435e277",
+  "previousIndependentFinancialReceiptBlock": "26231717",
+  "newFinancialReceiptOrSequenceClaimed": false,
+  "baselineOperationalObservations": {
+    "activeWorkerAtCapture": "6824855c",
+    "invocations": 644,
+    "runtimeErrors": 0,
+    "clientCancelled": 74,
+    "supabaseSuccessfulFunctions": 2091,
+    "supabaseAuthenticationDenials": 548,
+    "supabase503": 1,
+    "gatewayError": "SUPABASE_EDGE_RUNTIME_SERVICE_DEGRADED",
+    "boundedPublicGETObservations": 30,
+    "boundedPublicGETPassed": 30,
+    "sustainedSLAClaimed": false
+  },
+  "earlierProbeFailure": {
+    "client": "Python urllib",
+    "path": "/",
+    "status": 403,
+    "bodyAndHeadersNotCaptured": true,
+    "cause": "unestablished",
+    "independentNodeAndBrowserChecksPassed": true
+  },
+  "newCredentialsUpgradeMigrationSigningOrAccountWrites": false,
+  "addedRecurringCostUSD": 0,
+  "accountWideBillingCertified": false,
+  "readiness": "controlled early access in supported Ethereum scope; institutional owner/resource/security/operational assurance gates remain open",
+  "rawEvidenceSHA256": {
+    "account-schema-before-20261020.json": "7d12aff8bf6050ce343e7d8d32cbb8122ef39b9884a1c9111e3bab8e0c3fd4ce",
+    "account-schema-before-page-errors-20261020.json": "76e670d2fc59bd5b87965230be1c9fd54dd3680353a04e662bcb8592111bfda5",
+    "account-response-chromium-20261020.json": "b766b6bf9bfcbab7a9f4abfeadc6b5e32e92649cd604c2c80bdb71c9cab4cedc",
+    "account-response-webkit-20261020.json": "f7660a295839747faa2fbac19bcbbb64e26674e3f6c02a3871b74f74c6a56885",
+    "account-response-next-build-20261020.log": "df520452ec5dff492f0d9a74580d26fb674b10072edc40c5a52a022132383a8f",
+    "account-response-worker-build-20261020.log": "0eaa8728ebe6d4359f2b23d94bb84e92f8082876379d184c1a55870c53f5f6a4",
+    "account-response-source-ci-20261020.log": "0a525442d87a990e6531ed19b1f9e6beab3b0530a8785500d2d6341dcf2ec9c9",
+    "account-response-pr-ci-20261020.log": "e5363fe309d56a9002d17f0f30b8b5479c30ebd44659793a2771b853c8cea9a0",
+    "account-response-worker-ci-20261020.log": "6c1441d7def37a86061a6f06b3b8ae980a3455201ad9c52e2cdbbd66140a5d4f",
+    "account-response-compatibility-ci-20261020.log": "ec43dad0573e4803f01389cbe4bced2efd00fa48f1a379b3091e11508ad86b39",
+    "account-response-main-ci-20261020.log": "ae7d2853a468fca32a93def1792b6ca9b6f2fbcacc6456fe137c8f697c8562e4",
+    "account-response-main-worker-ci-20261020.log": "86b28407c718273bb8a1b72a8758e3faa8740eed2946acbfb3d35c395ef463dc",
+    "account-response-public-compatibility-ci-20261020.log": "2dda1500fc904056b8b6c8b31accf037c6576cad6735cc8ab935b4e0fbc654d1",
+    "account-response-live-chromium-20261020.json": "eb8133ad60a5b4f4a4bc577c202aaeac4bf790a64d31312ab2dd080a192b4158",
+    "account-response-public-http-20261020.json": "21ef7b7b3b659d5f1716498ce445f63bb65579271182e44bff53bd581162a2c6",
+    "account-response-worker-deployments-20261020.json": "839ac02cf2a8bc3b3c69029586042d30e36fa1c2e42b89be4b6724889b175507",
+    "account-response-native-build-20261020.json": "bdd96a68eaa626b0ef4e252ce0aaa7c2888765a51f2a2471468087f93678e6ab",
+    "account-response-live-settings-20261020.json": "f5b18dc66b9823648838a0b0dde090c4a257a4d406a063f7e4aba361c9a2be19",
+    "account-response-live-appearance-20261020.png": "6f0eba8697293807ff5c77780f3af989650b89cdf1e069f302af1146d1c72dfc",
+    "operational-active-worker-20261020.json": "3f0e78a93d9dd9f1089b4368a9e33801392090419f27ebec758f2ae9f08ddde9",
+    "operational-supabase-aggregate-20261020.json": "80f1d77f4c8a8db92b7b0b9077e7c93c2c9f271c2bb0ab6f990756e97be28522",
+    "operational-public-availability-20261020.json": "61634cf63f3cdbd335a6ce92c30cb603ebb3c920428e15b89ea1719ff0eb7e24",
+    "operational-public-availability-probe-20261020.mjs": "da6de3b67b47c45d36a0062fae68b9640f6dfee928dd53afb330357c6365cbb8"
+  }
+}
