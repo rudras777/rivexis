@@ -2,9 +2,9 @@
 import {createContext,useContext,useEffect,type ReactNode} from "react";
 import {usePathname} from "next/navigation";
 import {useQuery} from "@tanstack/react-query";
-import {api} from "@/lib/api";
+import {requestAccountSettings,type AccountSettings} from "@/lib/account-settings";
 import {DEFAULT_PREFERENCES,storedPreferences,type Preferences} from "../../../supabase/functions/rivexis-api/account-preferences.mjs";
-export type AccountSettings={profile:{displayName:string;email:string;emailVerified:boolean;createdAt:string|null;lastSignInAt:string|null};preferences:Preferences};
+export type {AccountSettings} from "@/lib/account-settings";
 export const APPEARANCE_CACHE="rivexis_appearance";
 export function applyAppearance(p:Preferences){
  const root=document.documentElement;root.dataset.theme=p.theme==='system'?(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'):p.theme;root.dataset.motion=p.motion;root.dataset.contrast=p.contrast;root.dataset.density=p.density;root.dataset.textSize=p.textSize;
@@ -12,7 +12,7 @@ export function applyAppearance(p:Preferences){
 }
 const Context=createContext<{preferences:Preferences;account:AccountSettings|null}>({preferences:DEFAULT_PREFERENCES,account:null});
 export function AccountPreferencesProvider({children}:{children:ReactNode}){
- const path=usePathname();const q=useQuery({queryKey:['account-settings'],queryFn:({signal})=>api<AccountSettings>('/api/v1/account/settings',{signal}),enabled:path.startsWith('/workspace')||path==='/demo',retry:false});
+ const path=usePathname();const q=useQuery({queryKey:['account-settings'],queryFn:({signal})=>requestAccountSettings({signal}),enabled:path.startsWith('/workspace')||path==='/demo',retry:false});
  const account=q.data??null,preferences=account?.preferences??DEFAULT_PREFERENCES;
  useEffect(()=>{
   let current=preferences;

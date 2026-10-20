@@ -40,11 +40,11 @@ Actual-public tests use no route mocks, fabricated market responses, production 
 
 ## Genuine financial and browser observations
 
-On final4849a626, a genuine signed-in read of public-reference wallet 0xbdc3c47122d033ccd1Ad7b986071187Be597fF72 produced Morpho block **26231717**, hash 0x52225d94f29cef51683ee677d49598f715d26203e120468f113143432288e9e6. Displayed collateral $9, 928, 946.26, debt $6, 828, 631.80 and health1.250 are observations, not wallet ownership or current quotes.
+On final4849a626, a genuine signed-in read of public-reference wallet 0xbdc3c47122d033ccd1Ad7b986071187Be597fF72 produced Morpho block **26231717**, hash 0x52225d94f29cef51683ee677d49598f715d26203e120468f113143432288e9e6. Displayed collateral $9,928,946.26, debt $6,828,631.80 and health1.250 are observations, not wallet ownership or current quotes.
 
 Budget3000, assumed fee 25, target 1.50 and zero shocks examined59 allocations and returned six alternatives, all honestly marked target unmet. The actual UI JSON export was independently checked with integer/rational arithmetic, without importing application models or making new RPC calls. Baseline, all six outcomes, debt-share rounding, wallet balances, costs/fees and unrounded budget bounds reconcile exactly. No transaction was signed, submitted or saved to the account. The three-minute evidence age limit correctly withholds subsequent calculations when stale.
 
-Earlier genuine sequence evidence at 26229566→26229567 remains included: three steps, 3, 639, 338 raw WBTC delta and 132, 065 summed gas independently reconcile exactly. This release did not run a new sequence simulation or broaden sequential protocol coverage.
+Earlier genuine sequence evidence at 26229566→26229567 remains included: three steps, 3,639,338 raw WBTC delta and 132,065 summed gas independently reconcile exactly. This release did not run a new sequence simulation or broaden sequential protocol coverage.
 
 Actual authenticated navigation, all ten Settings sections, /app redirect, educational sample isolation and restored actual analysis were inspected. Natural market polling advanced26231654→26231670 and fee history12→24 without clock/network changes; ETH/BTC oracle history contained seven observations each. Missing24-hour coverage remains explicitly stated. Final Overview screenshot/DOM record4849a626, actual position 26231717 and market 26231726, including freshness and understandable charts/tables.
 

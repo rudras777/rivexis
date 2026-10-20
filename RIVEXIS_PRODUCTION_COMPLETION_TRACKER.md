@@ -1,6 +1,6 @@
 # RIVEXIS production completion checkpoint
 
-Updated20 October 2026, Asia/Calcutta. Current resumable record; prior chronology remains in Git and the linked dated reports. Do not repeat completed implementation/deployment or expose private recovery material.
+Updated 20 October 2026, Asia/Calcutta. Current resumable record; prior chronology remains in Git and the linked dated reports. Do not repeat completed implementation/deployment or expose private recovery material.
 
 ## Verified live release
 
@@ -20,8 +20,8 @@ Full report: [UNIFIED_WORKSPACE_CLOSEOUT_20261020.md](docs/UNIFIED_WORKSPACE_CLO
 - Settings calls the existing logout controller directly; pending logout disables writes; failure preserves explicit retry. Before-fix regression reproduced. Financial handlers/models, API34/backend/dependencies/assets and logout controller semantics remain unchanged.
 - Final source 39373801206, PR39373806917, Worker 39373807026, compatibility 39373806920, main 39374822104 and mainWorker39374822122 PASS. Chromium 291 source/PR/main; Firefox 291/WebKit 291. Actual-public30 per engine PASS; Firefox/WebKit 39375045067. Zero final skipped/flaky/unexpected browser cases, test retries or driver GET releases.
 - Financial 221/API-edge 30/audit 28/sequence-RPC 10/market 21/API-client12/wallet 18/driver-safety 30, builds/types/AST 173 and standard database/security gates pass. [At least ten scenarios per critical workflow](docs/WORKFLOW_SCENARIO_COVERAGE.md).
-- Genuine final Morpho block 26231717: collateral $9, 928, 946.26, debt $6, 828, 631.80, displayedHF1.250. Budget3000/fee 25/target 1.50/zero shocks: 59 allocations, six alternatives, target honestly unmet. Independent integer/rational checker reconciles all six exactly, including raw debt shares and unrounded budget bounds. No model imports, signing, submission or account write.
-- Earlier genuine sequence26229566→26229567 remains separately validated: three steps, 3, 639, 338 raw WBTC delta, 132, 065 summed gas, exact independent reconciliation. No new sequence simulation claimed this release.
+- Genuine final Morpho block 26231717: collateral $9,928,946.26, debt $6,828,631.80, displayedHF1.250. Budget3000/fee 25/target 1.50/zero shocks: 59 allocations, six alternatives, target honestly unmet. Independent integer/rational checker reconciles all six exactly, including raw debt shares and unrounded budget bounds. No model imports, signing, submission or account write.
+- Earlier genuine sequence26229566→26229567 remains separately validated: three steps, 3,639,338 raw WBTC delta, 132,065 summed gas, exact independent reconciliation. No new sequence simulation claimed this release.
 - Genuine natural market polling26231654→26231670, fee observations 12→24, seven ETH/BTC oracle observations each. Final Overview screenshot and DOM on 4849a626 show actual position 26231717 and market 26231726. Missing historical coverage and stale receipts remain explicit.
 - Fresh read-only Supabase: ACTIVE_HEALTHY, 17.6.1.166; 61 public tables, zero without RLS; nine public security-definer functions, zero client-callable. No SQL mutation/token/upgrade/plan change.
 - Existing rollback versions and baseline/pre-defi-transformation-20261009 retained. Added recurring services $0; account-wide billing not independently certified.
@@ -52,3 +52,9 @@ No further ordinary code task is pending in this checkpoint. Resume only a speci
 - [Audit gate integrity](docs/AUDIT_GATE_INTEGRITY_20261019.md)
 
 Raw logs/screenshots/receipts/checkers remain in the task outputs directory outside Git. The pre-existing untracked repository outputs directory is preserved. Protected recovery/key material is never part of the evidence manifest.
+
+## Active follow-up — account-response validation, 20 October
+
+Safe branch fix/account-response-recovery-20261020. Read-only operational review of the active Worker found644 invocations/zero runtime errors and74 client cancellations in the displayed24-hour window; do not interpret cancellations as proved application crashes. Supabase aggregation found one503 on GET account/settings with explicit SUPABASE_EDGE_RUNTIME_SERVICE_DEGRADED,2091 successful function responses and548 authentication denials. Requests were aggregated without extracting identities/tokens/IPs.
+
+A separate controlled malformed200 response with missing profile failed the before-fix browser recovery regression. Shared account GET/PATCH responses are now decoded before cache publication or save confirmation; complete validated preferences are required, preserving financial defaults and explicit write retry. No silent retry, new persistence or authorization logic. Local Next/Worker builds, official typegen/types and AST174 pass; Settings31/31 Chromium and31/31 WebKit cases pass, including14 new cases. New full suite305 per engine/public30; exact-head full release gates pending. Existing production remains4849a626 until exact-head gates pass and a new deployment is verified. Domain/DNS information requested asynchronously; no privileged token, maintenance or paid action performed.

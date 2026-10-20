@@ -20,6 +20,55 @@ async function setup(page:Page){
 async function tab(page:Page,name:string){await page.getByRole('tab',{name,exact:true}).click()}
 async function save(page:Page){await page.getByRole('button',{name:'Save changes',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Account settings saved'})).toBeVisible()}
 
+const validAccount=()=>({profile:{displayName:'Recovered analyst',email:'qa@example.invalid',emailVerified:true},preferences:structuredClone(DEFAULT_PREFERENCES)});
+const malformedAccounts:[string,()=>unknown][]=[
+ ['missing profile',()=>({preferences:DEFAULT_PREFERENCES})],
+ ['null body',()=>null],
+ ['array body',()=>[]],
+ ['wrong verification type',()=>({...validAccount(),profile:{...validAccount().profile,emailVerified:'true'}})],
+ ['missing preferences',()=>({profile:validAccount().profile})],
+ ['partial preferences',()=>({...validAccount(),preferences:{theme:'dark'}})],
+ ['unsupported appearance',()=>({...validAccount(),preferences:{...DEFAULT_PREFERENCES,theme:'unexpected'}})],
+ ['nondecimal budget',()=>({...validAccount(),preferences:{...DEFAULT_PREFERENCES,defaultBudget:'NaN'}})],
+ ['fee above capital',()=>({...validAccount(),preferences:{...DEFAULT_PREFERENCES,defaultBudget:'1',defaultFee:'25'}})],
+ ['zero saved identity',()=>({...validAccount(),preferences:{...DEFAULT_PREFERENCES,walletAddresses:['0x'+'0'.repeat(40)]}})],
+];
+for(const [label,malformed] of malformedAccounts)test(`malformed successful Settings response: ${label} fails safely and allows recovery`,async({page})=>{
+ await setup(page);let healthy=false,reads=0;const errors:string[]=[];
+ page.on('pageerror',error=>errors.push(error.message));
+ await page.route('**/api/v1/account/settings',r=>{expect(r.request().method()).toBe('GET');reads++;return r.fulfill({json:healthy?validAccount():malformed()})});
+ await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});
+ await expect(page.getByRole('alert').filter({hasText:'Account settings are unavailable'})).toBeVisible();
+ await expect(page.getByLabel('Display name')).toHaveCount(0);expect(errors).toEqual([]);const initial=reads;expect(initial).toBeGreaterThanOrEqual(1);expect(initial).toBeLessThanOrEqual(2);
+ healthy=true;await page.getByRole('button',{name:'Retry settings',exact:true}).click();
+ await expect(page.getByLabel('Display name')).toHaveValue('Recovered analyst');expect(reads).toBe(initial+1);expect(errors).toEqual([]);
+});
+
+for(const fault of ['degraded503','transport','malformed-json'])test(`Settings read recovers explicitly after ${fault} without any writes`,async({page})=>{
+ await setup(page);let healthy=false,reads=0,writes=0;
+ await page.route('**/api/v1/account/settings',r=>{
+  if(r.request().method()!=='GET'){writes++;return r.fulfill({status:500})}reads++;
+  if(healthy)return r.fulfill({json:validAccount()});
+  if(fault==='transport')return r.abort('failed');
+  if(fault==='malformed-json')return r.fulfill({contentType:'application/json',body:'{'});
+  return r.fulfill({status:503,headers:{'sb-error-code':'SUPABASE_EDGE_RUNTIME_SERVICE_DEGRADED'},json:{detail:'Provider temporarily unavailable'}});
+ });
+ await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await expect(page.getByRole('button',{name:'Retry settings',exact:true})).toBeEnabled();const initial=reads;
+ healthy=true;await page.getByRole('button',{name:'Retry settings',exact:true}).click();await expect(page.getByLabel('Display name')).toHaveValue('Recovered analyst');expect(reads).toBe(initial+1);expect(writes).toBe(0);
+});
+
+test('unverified save confirmation retains the draft and requires an explicit write retry',async({page})=>{
+ await setup(page);let writes=0;
+ await page.route('**/api/v1/account/settings',r=>{
+  if(r.request().method()==='GET')return r.fulfill({json:validAccount()});
+  writes++;expect(r.request().headers()['x-rivexis-csrf']).toBe('TEST_CSRF');
+  return r.fulfill({json:writes===1?{status:'ok'}:{...validAccount(),profile:{...validAccount().profile,displayName:'Draft retained'}}});
+ });
+ await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await page.getByLabel('Display name').fill('Draft retained');await page.getByRole('button',{name:'Save changes',exact:true}).click();
+ await expect(page.locator('.settingsFeedback [role=alert]')).toContainText('could not be confirmed');await expect(page.getByLabel('Display name')).toHaveValue('Draft retained');await expect(page.locator('.settingsFeedback [role=status]')).toHaveCount(0);expect(writes).toBe(1);
+ await save(page);expect(writes).toBe(2);await expect(page.getByRole('button',{name:'Save changes',exact:true})).toBeDisabled();
+});
+
 test('saved identity validation rejects zero and bad checksum before a write and retains a valid checksum across reload',async({page})=>{
  const api=await setup(page);await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await tab(page,'Connected Wallets');
  for(const invalid of ['0x'+'0'.repeat(40),'0x52908400098527886E0F7030069857D2E4169Ee7']){
