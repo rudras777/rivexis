@@ -1,3 +1,4 @@
-import {DeFiWorkspace} from "@/components/DeFiWorkspace";
-import {FeatureGate} from "@/components/FeatureGate";
-export default function App(){return <FeatureGate><DeFiWorkspace/></FeatureGate>}
+import {redirect} from "next/navigation";
+
+// Existing bookmarks enter the same authorized workspace and navigation.
+export default function App(){redirect("/workspace")}

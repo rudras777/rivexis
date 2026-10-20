@@ -9,6 +9,10 @@ const authRoutes=[
 ];
 
 test.describe("public production regressions",()=>{
+  test('legacy app entry redirects to the existing canonical workspace without forwarding query inputs',async({request})=>{
+    const response=await request.get('/app?view=transactions',{maxRedirects:0});
+    expect(response.status()).toBe(307);expect(response.headers().location).toBe('/workspace');
+  });
   test("genuine healthy service evidence clears its availability warning",async({page})=>{
     test.setTimeout(45000);
     const [response]=await Promise.all([

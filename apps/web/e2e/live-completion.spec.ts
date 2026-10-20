@@ -15,7 +15,12 @@ for(const route of ['/workspace','/workspace/scenarios','/workspace/frontier','/
  if(route==='/workspace')await page.screenshot({path:path.join(output,'completion-live-guest-gate.png')});
 });
 for(const route of ['/app','/demo'])test(`real guest cannot open educational workflow ${route}`,async({page})=>{
- await page.goto(route,{waitUntil:'domcontentloaded'});await expect(page.getByRole('heading',{name:'Your intelligence workspace',exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'Log in',exact:true})).toHaveAttribute('href','/login?next='+encodeURIComponent(route));await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0);
+ await page.goto(route,{waitUntil:'domcontentloaded'});
+ const canonical=route==='/app';
+ if(canonical)await expect(page).toHaveURL(/\/workspace$/);
+ await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();
+ await expect(page.getByRole('link',{name:'Log in again',exact:true})).toHaveAttribute('href','/login?next='+encodeURIComponent(canonical?'/workspace':route));
+ await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0);
 });
 for(const route of ['/api/v1/workspaces','/api/v1/defi-reports','/api/v1/account/settings','/api/v1/account/export'])test(`real guest API access is rejected: ${route}`,async({request})=>{
  expect((await request.get(route)).status()).toBe(401);

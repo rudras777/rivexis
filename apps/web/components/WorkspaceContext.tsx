@@ -15,6 +15,8 @@ type WorkspaceContextValue={
   workspace:WorkspaceSummary;
   workspaces:WorkspaceSummary[];
   switchWorkspace:(workspaceId:string)=>void;
+  logout:()=>Promise<void>;
+  loggingOut:boolean;
 };
 
 const WorkspaceContext=createContext<WorkspaceContextValue|null>(null);
