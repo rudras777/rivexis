@@ -19,7 +19,11 @@ for(const route of ['/app','/demo'])test(`real guest cannot open educational wor
  const canonical=route==='/app';
  if(canonical)await expect(page).toHaveURL(/\/workspace$/);
  await expect(page.getByRole('heading',{name:'Session ended',exact:true})).toBeVisible();
- await expect(page.getByRole('link',{name:'Log in again',exact:true})).toHaveAttribute('href','/login?next='+encodeURIComponent(canonical?'/workspace':route));
+ // The default workspace is deliberately omitted from authHref's query.
+ const login=page.getByRole('link',{name:'Log in again',exact:true});
+ await expect(login).toHaveAttribute('href',canonical?'/login':'/login?next='+encodeURIComponent(route));
+ await login.click();await expect(page).toHaveURL(canonical?/\/login$/:/\/login\?next=%2Fdemo$/);
+ await expect(page.getByRole('button',{name:'Log in',exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Explore a hypothetical sample',exact:true})).toHaveCount(0);
 });
 for(const route of ['/api/v1/workspaces','/api/v1/defi-reports','/api/v1/account/settings','/api/v1/account/export'])test(`real guest API access is rejected: ${route}`,async({request})=>{
