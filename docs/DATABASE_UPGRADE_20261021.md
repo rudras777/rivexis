@@ -1,5 +1,7 @@
 # Approved database upgrade and recovery follow-up
 
+**Final release update:** PR100 is deployed as1bd99ed0, API36/reports4/alerts5; all29 source files match. Source/PR/main, Worker and all three browser engines pass;30 real public cases per engine and30 invalid-cookie scenarios/33 requests pass. Fresh normal sign-in is still required for genuine authenticated production sign-off. [Final closeout and exact evidence](AUTH_RECOVERY_CLOSEOUT_20261021.md) supersedes the implementation checkpoints below.
+
 21 October2026, Asia/Calcutta. Existing project `ivszvufdonfgwjpfgwii`, application URL, users/data and integrations retained. **Database maintenance completed: PostgreSQL17.6.1.166 →17.11.0.003, ACTIVE_HEALTHY.** Recovery PR99 passed source/PR/Worker/Firefox/WebKit gates, merged as b40c6d3f, and deployed API35 with all24 source files matched to the tested package. Its existing native Worker build is25df7238. A live invalid-token follow-up below must pass before final release verification.
 
 ## Authorization, baseline and actual maintenance

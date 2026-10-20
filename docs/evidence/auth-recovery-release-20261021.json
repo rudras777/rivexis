@@ -1,0 +1,418 @@
+{
+  "recordedAtUTC": "2026-10-20T19:59:44.679249+00:00",
+  "clientDate": "21 October 2026, Asia/Calcutta",
+  "release": {
+    "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+    "source": "32f804bb4ac2350cefcc127f58d79afa645ede38",
+    "production": "1bd99ed02b185d121177c29a68b8dcf780fcc61d",
+    "pr": 100,
+    "previousPR": 99,
+    "previousProduction": "b40c6d3f624591535dc6f9c15586ede0bc668926",
+    "workerVersion": "38e5925c-5f4b-4d7f-9ce4-cc87be39faea",
+    "allocationPercent": 100,
+    "deployment": "0573d302-afa1-4738-b75d-cc2715cf3ff9",
+    "nativeBuild": "abe065f0-8c11-4cab-8756-c563ff2465cf",
+    "nativeBuildConclusion": "success",
+    "sourceCI": 39485302272,
+    "prCI": 39485310926,
+    "workerCI": 39485310996,
+    "compatibilityCI": 39485311089,
+    "mainCI": 39486909207,
+    "mainCIConclusion": "success",
+    "mainWorkerCI": 39486909231,
+    "publicCompatibilityCI": 39487086056,
+    "publicCompatibilityConclusion": "success",
+    "fixtureCasesPerEngine": 305,
+    "fixtureFirefoxDriverGetReleases": 1,
+    "fixtureWebkitDriverGetReleases": 0,
+    "publicCasesPerEngine": 30,
+    "publicSkippedUnexpectedFlakyOrDriverGetReleases": 0,
+    "testRetries": 0,
+    "apiVersion": 36,
+    "reportVersion": 4,
+    "alertsVersion": 5,
+    "normalWebsiteSignInPending": true
+  },
+  "local": {
+    "head": "32f804bb4ac2350cefcc127f58d79afa645ede38",
+    "changedFiles": [
+      ".github/workflows/ci.yml",
+      "RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md",
+      "docs/DATABASE_UPGRADE_20261021.md",
+      "supabase/functions/rivexis-alerts/index.ts",
+      "supabase/functions/rivexis-api/defi-auth-provider.test.mjs",
+      "supabase/functions/rivexis-api/index.ts",
+      "supabase/functions/rivexis-decision-reports/index.ts"
+    ],
+    "secretPatterns": "PASS",
+    "financialAuth": 295,
+    "authProviderLatest": 74,
+    "denoFunctions": 4,
+    "uiSchemaFinancialModelUnchanged": true
+  },
+  "deployedFunctions": [
+    {
+      "service": "rivexis-api",
+      "version": 36,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "candidate": "32f804bb4ac2350cefcc127f58d79afa645ede38",
+      "normalization": "CRLF to LF and trailing whitespace only",
+      "files": [
+        {
+          "name": "index.ts",
+          "match": true
+        },
+        {
+          "name": "report-pdf.mjs",
+          "match": true
+        },
+        {
+          "name": "brand.mjs",
+          "match": true
+        },
+        {
+          "name": "analysis.mjs",
+          "match": true
+        },
+        {
+          "name": "membership.mjs",
+          "match": true
+        },
+        {
+          "name": "role.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-http.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-portfolio-rpc.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-rpc.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-model.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-oracles.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-unified-model.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-morpho-model.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-morpho-oracle.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-morpho-rpc.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-liquidation.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-sequence.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-morpho-sequence.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-simulation-evidence.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-account-settings.mjs",
+          "match": true
+        },
+        {
+          "name": "account-preferences.mjs",
+          "match": true
+        },
+        {
+          "name": "onchain-http.mjs",
+          "match": true
+        },
+        {
+          "name": "defi-sample.mjs",
+          "match": true
+        },
+        {
+          "name": "deno.json",
+          "match": true
+        }
+      ],
+      "allMatch": true
+    },
+    {
+      "service": "rivexis-decision-reports",
+      "version": 4,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "candidate": "32f804bb4ac2350cefcc127f58d79afa645ede38",
+      "normalization": "CRLF to LF and trailing whitespace only",
+      "files": [
+        {
+          "name": "rivexis-decision-reports/index.ts",
+          "match": true
+        },
+        {
+          "name": "rivexis-api/report-pdf.mjs",
+          "match": true
+        },
+        {
+          "name": "rivexis-api/brand.mjs",
+          "match": true
+        },
+        {
+          "name": "rivexis-api/decision-report.mjs",
+          "match": true
+        }
+      ],
+      "allMatch": true
+    },
+    {
+      "service": "rivexis-alerts",
+      "version": 5,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "candidate": "32f804bb4ac2350cefcc127f58d79afa645ede38",
+      "normalization": "CRLF to LF and trailing whitespace only",
+      "files": [
+        {
+          "name": "index.ts",
+          "match": true
+        }
+      ],
+      "allMatch": true
+    }
+  ],
+  "finalSecurity": {
+    "recordedAtUTC": "2026-10-20 19:59:42 UTC",
+    "project": "ivszvufdonfgwjpfgwii",
+    "status": "ACTIVE_HEALTHY",
+    "database": "17.11.0.003",
+    "securityWarnings": [
+      {
+        "name": "extension_in_public",
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public",
+        "count": 1
+      },
+      {
+        "name": "auth_leaked_password_protection",
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection",
+        "count": 1
+      }
+    ],
+    "informationalFindings": [
+      {
+        "name": "rls_enabled_no_policy",
+        "count": 19,
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+      }
+    ],
+    "newDDL": false,
+    "newPaidPlan": false,
+    "accountBillingCertified": false
+  },
+  "actualPublicChromium": {
+    "startTime": "2026-10-20T19:52:02.540Z",
+    "duration": 127061.326,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "actualInvalidCookieScenarios": {
+    "passed": 30,
+    "requests": 33,
+    "engines": "HTTP client; no real authenticated session"
+  },
+  "database": {
+    "project": "ivszvufdonfgwjpfgwii",
+    "version": "17.11.0.003",
+    "status": "ACTIVE_HEALTHY",
+    "publicTables": 61,
+    "publicTablesWithoutRLS": 0,
+    "authUsers": 7,
+    "vaultRecords": 1,
+    "cronJobs": 1,
+    "clientCallablePublicSecurityDefiners": 0,
+    "policyFingerprintUnchanged": true,
+    "rawAclFingerprintChanged": true,
+    "all61OwnersAnd67NonownerPrivilegesMatchArchive": true,
+    "productionVaultValueEqualsProtectedBaseline": true
+  },
+  "boundaries": {
+    "genuinePostUpgradeSignIn": "pending normal owner website login; no credential reset or session import",
+    "realSessionLossCause": "not established",
+    "providerOutageRegression": "controlled actual-handler SDK fixtures; not injected in production",
+    "financialModelChange": false,
+    "designChange": false,
+    "newSchemaMigration": false,
+    "newRecurringServiceCostUSD": 0,
+    "accountWideBillingCertified": false,
+    "institutionalLaunchReady": false
+  },
+  "remaining": [
+    "Fresh genuine signed-in workflow checks after normal login.",
+    "Owned email sending domain/DNS and inbox-placement assurance.",
+    "Actual installed native-wallet permission UX.",
+    "Independent key custody/second-machine/full-service restore/retention/RPO/RTO.",
+    "Sustained provider/load/field availability and institutional operating/security assurance.",
+    "Disclosed pg_net/leaked-password warnings and scoped build-tool advisory."
+  ],
+  "evidence": [
+    {
+      "file": "auth-recovery-final-security-20261021.json",
+      "bytes": 902,
+      "sha256": "11d48f7da06c0c382fc2916757d5a7c617be0ba0c065f0bfa8e08cc9513e86f7"
+    },
+    {
+      "file": "auth-provider-before-20261021.log",
+      "bytes": 22716,
+      "sha256": "5ecb5c88e60df260ebe88c5ef5d773a2ca338f9c2a1e86afc8e2de3f0732e615"
+    },
+    {
+      "file": "auth-refresh-contract-before-20261021.log",
+      "bytes": 5358,
+      "sha256": "b7387084d2851400590f43c2129db129625769491dd8bc04eb7b4db35d44169a"
+    },
+    {
+      "file": "auth-secondary-provider-before-20261021.log",
+      "bytes": 30200,
+      "sha256": "b90b7fb93687164898dcd8f07009e7ad40dc87eefa49ca3d46039a277d9f39af"
+    },
+    {
+      "file": "auth-secondary-provider-after-20261021.log",
+      "bytes": 6934,
+      "sha256": "e74f14ceb33052703690a344ae5583d839e9d0a441fb2a8e29658c1eadbb7a10"
+    },
+    {
+      "file": "auth-secondary-defi-suite-20261021.log",
+      "bytes": 26267,
+      "sha256": "28f746fe7139a555fd00799c859d9e5d37a8254251ef4295e30d0bf8efba8738"
+    },
+    {
+      "file": "auth-secondary-deno-check-20261021.log",
+      "bytes": 215,
+      "sha256": "aa76116ec39bb45dd86ee6b8182c2e2268dfb40d79c3d5a542387f1260f8481b"
+    },
+    {
+      "file": "auth-refresh-final-local-checks-20261021.json",
+      "bytes": 587,
+      "sha256": "3b97abd8fc2ad7b5690e3090cd652db281b5fe25e32cd3d35ea48a2850a19199"
+    },
+    {
+      "file": "auth-refresh-final-source-ci-20261021.log",
+      "bytes": 504045,
+      "sha256": "32ff42e598de137699f5ed5bc398bf0b0306de0b3b0e3d6345769a22fe8bdd66"
+    },
+    {
+      "file": "auth-refresh-final-pr-ci-20261021.log",
+      "bytes": 507794,
+      "sha256": "bdff2d3546104b82898cf7278f9ecbaa226d95bf5d6d196a1231551a6f1ac5c1"
+    },
+    {
+      "file": "auth-refresh-final-worker-ci-20261021.log",
+      "bytes": 397229,
+      "sha256": "9df0a7c178758aa70788eb624ee7bde3d95f1095c0c33eb0e9236bd9b4e4664f"
+    },
+    {
+      "file": "auth-refresh-final-compatibility-ci-20261021.log",
+      "bytes": 522794,
+      "sha256": "2332d396ba9672eeae1b30209861312559d73892360ca5bf90dfc0e893358382"
+    },
+    {
+      "file": "auth-recovery-final-main-ci-20261021.log",
+      "bytes": 501206,
+      "sha256": "05738f8a199203aa74dada738a76c8a3478fe0ae675f816a34eeac06f35b36f6"
+    },
+    {
+      "file": "auth-recovery-final-main-worker-ci-20261021.log",
+      "bytes": 393681,
+      "sha256": "da21a8ebd7e0794d72d2bbf069f39ff7bbe6bd2fa493bf73fef8b4f383c650d3"
+    },
+    {
+      "file": "auth-recovery-final-public-compatibility-20261021.log",
+      "bytes": 355279,
+      "sha256": "6e62d333a9f6570e21d7d3c35e47e45a4ffba0644240d3b50432c324df976566"
+    },
+    {
+      "file": "auth-provider-live-invalid-cookies-20261021.json",
+      "bytes": 3658,
+      "sha256": "a77ba577a513829d77aa3425cf407dbee08514e640fb2fba85f4f0d67e563ee0"
+    },
+    {
+      "file": "auth-recovery-final-public-probe-20261021.json",
+      "bytes": 8890,
+      "sha256": "1a3a7016d68fa986856bad3d1af0c05e5dee108abbcced7c50ffea7791a1942b"
+    },
+    {
+      "file": "auth-recovery-final-live-chromium-20261021.json",
+      "bytes": 37396,
+      "sha256": "7f6f9b027212575701a00916393376e3c2907c321dd5d15dfc4e8d322e97eb2c"
+    },
+    {
+      "file": "auth-recovery-final-function-identity-20261021.json",
+      "bytes": 3072,
+      "sha256": "9646240ffc4d78d4f008a2c5b0266fcae0afa7fd13a99d08425a6a4508d42d21"
+    },
+    {
+      "file": "auth-recovery-final-public-identity-20261021.json",
+      "bytes": 486,
+      "sha256": "ca54f812a32cd0a448d02a5d54d756421478804fb8eb316f4cfe85296ef4034c"
+    },
+    {
+      "file": "auth-recovery-final-worker-deployments-20261021.json",
+      "bytes": 4274,
+      "sha256": "aeb3035f2a3287db1f8289cd94179220243634a43cd0d3c2559049446f6971ba"
+    },
+    {
+      "file": "database-upgrade-acl-reconciliation-20261021.json",
+      "bytes": 1053,
+      "sha256": "b48bfe3fe4440e4b1249233023cfe3251deec2a2df4ae092966f88c19b38386e"
+    },
+    {
+      "file": "database-upgrade-vault-equality-20261021.json",
+      "bytes": 153,
+      "sha256": "e0ed2591cab58f6c23653e771f78bcccea7a88b612bd68a6ec18fc44c5f43697"
+    },
+    {
+      "file": "database-upgrade-live-chromium-20261021.json",
+      "bytes": 37399,
+      "sha256": "b3329aca518b4983dd8fc1f4e14224e3b1c3c04c19e0361bfd0ff00bf3e4f721"
+    },
+    {
+      "file": "database-upgrade-public-availability-20261021.json",
+      "bytes": 7938,
+      "sha256": "dd3f75f869081aaab65222232b296192051f07373a5e8d5aeeeea3d156c9e7d3"
+    },
+    {
+      "file": "auth-recovery-final-home-20261021.jpg",
+      "bytes": 74591,
+      "sha256": "c2ee66bf881375a3bda037df56eadb3c3de6f5bb96b5697f38c7be2c21a45b54"
+    },
+    {
+      "file": "auth-recovery-final-cloudflare-20261021.jpg",
+      "bytes": 109578,
+      "sha256": "af3fea0952d0e6d4278101a6fde4fed7aee585e984504c860549da224c82e709"
+    }
+  ]
+}
