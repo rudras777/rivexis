@@ -112,22 +112,50 @@ async function ensureAppUser(user:User){
   return await bridge("ensure_user",user.id,{email:(user.email??"").toLowerCase(),role:roleOrDefault(user.user_metadata?.role)}) as Json;
 }
 
+class SessionVerificationUnavailable extends Error{
+  cookie?:string;
+  constructor(cookie?:string){super("Account verification is temporarily unavailable. Please retry.");this.name="SessionVerificationUnavailable";this.cookie=cookie}
+}
+const SESSION_REJECTIONS=new Set(["bad_jwt","session_expired","session_not_found","user_not_found","user_banned","refresh_token_not_found","refresh_token_already_used"]);
+function confirmedSessionRejection(cause:unknown){
+  if(!cause||typeof cause!=="object")return false;
+  const failure=cause as {status?:unknown;code?:unknown;name?:unknown};
+  if(typeof failure.status!=="number"||![400,401,403].includes(failure.status))return false;
+  return (typeof failure.code==="string"&&SESSION_REJECTIONS.has(failure.code))||(failure.status===400&&failure.name==="AuthSessionMissingError");
+}
+function validSessionValue(value:unknown):value is string{return typeof value==="string"&&value.trim().length>0}
+function validIdentity(user:User|null|undefined):user is User{return Boolean(user&&validSessionValue(user.id))}
+
 async function authenticate(req:Request):Promise<AuthContext|null>{
   const value=cookieValue(req,COOKIE);
   const stored=value?decode<SessionCookie>(value):null;
-  if(!stored?.access_token||!stored.refresh_token||!stored.csrf)return null;
+  if(!stored||!validSessionValue(stored.access_token)||!validSessionValue(stored.refresh_token)||!validSessionValue(stored.csrf))return null;
   const auth=createClient(SUPABASE_URL,ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
   let access=stored.access_token;
   let refresh=stored.refresh_token;
   let refreshed=false;
-  let {data:{user}}=await auth.auth.getUser(access);
-  if(!user){
-    const {data,error}=await auth.auth.refreshSession({refresh_token:refresh});
-    if(error||!data.user||!data.session)return null;
-    user=data.user;access=data.session.access_token;refresh=data.session.refresh_token;refreshed=true;
+  let verified;
+  try{verified=await auth.auth.getUser(access)}catch{throw new SessionVerificationUnavailable()}
+  let user=verified?.data?.user;
+  if(verified?.error){
+    // A provider outage/configuration failure must not revoke the browser session
+    // or trigger unnecessary refresh-token rotation. Only explicit auth rejections
+    // may end it; only a bad/expired access JWT attempts the normal refresh flow.
+    if(user||!confirmedSessionRejection(verified.error))throw new SessionVerificationUnavailable();
+    if(verified.error.code!=="bad_jwt")return null;
+    let renewed;
+    try{renewed=await auth.auth.refreshSession({refresh_token:refresh})}catch{throw new SessionVerificationUnavailable()}
+    if(renewed?.error){if(confirmedSessionRejection(renewed.error))return null;throw new SessionVerificationUnavailable()}
+    const replacement=renewed?.data?.session,nextUser=renewed?.data?.user;
+    if(!replacement||!validSessionValue(replacement.access_token)||!validSessionValue(replacement.refresh_token)||!validIdentity(nextUser))throw new SessionVerificationUnavailable();
+    user=nextUser;access=replacement.access_token;refresh=replacement.refresh_token;refreshed=true;
   }
+  if(!validIdentity(user))throw new SessionVerificationUnavailable();
   const next={access_token:access,refresh_token:refresh,csrf:stored.csrf};
-  return {user,appUser:await ensureAppUser(user),session:next,cookie:refreshed?sessionCookie(next):undefined};
+  const cookie=refreshed?sessionCookie(next):undefined;
+  let appUser;
+  try{appUser=await ensureAppUser(user)}catch{throw new SessionVerificationUnavailable(cookie)}
+  return {user,appUser,session:next,cookie};
 }
 
 function requireCsrf(req:Request,auth:AuthContext){
@@ -553,6 +581,7 @@ Deno.serve(async(req:Request)=>{
     if(!auth)return error(req,401,"Authentication required",clearCookie());
     return await handleApi(req,path,url,auth);
   }catch(cause){
+    if(cause instanceof SessionVerificationUnavailable)return error(req,503,cause.message,cause.cookie);
     console.error("rivexis-api request failed",cause instanceof Error?cause.message:JSON.stringify(cause));
     return error(req,500,"Rivexis could not complete the request safely");
   }
