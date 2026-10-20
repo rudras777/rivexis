@@ -15,13 +15,13 @@ This narrows the prior warning: broad database-role grants are present, but this
 
 Outside-Git screenshot: task outputs `net-api-exposed-schemas-20261020.png`. It shows the actual exposed-schema checkmarks. No recovery key, user rows, queue data or credential is included in this report.
 
-## Specific pending recovery authorization
+## Recovery authorization review and subsequent outcome
 
 The existing dashboard is at the final review for proposed token `RIVEXIS-pre-upgrade-backup-20261019`: 24-hour expiry, one existing project, Database read-write capability only. **Create token has not been clicked.** The browser identifies this as high risk because it grants new privileged access.
 
 An explicit asynchronous confirmation now describes that exact scope and its write capability. Planned use is solely to request a temporary read-only database login, create a fresh protected production archive, verify an isolated restore and revoke the token. No password reset, paid upgrade, production restore or database upgrade is included. The earlier approved token was revoked after the dated 17 October drill; it has not been reused.
 
-Until the new confirmation arrives, keep the reviewed proposal uncreated. A production version upgrade still needs its own explicit outage/no-downgrade approval after fresh recovery verification. Sender-domain ownership, actual native-wallet permission testing and independent recovery/operating assurance remain separate gates.
+That review recorded the state before authorization. The user then replied continue directly to the exact reviewed proposal/risk. The approved temporary-access task completed: fresh protected production capture, isolated restore and exact102-entry/32,179-row comparison, logical Vault recovery, encrypted kit verification, token revocation/login expiry and cleanup all passed. [Fresh recovery closeout](FRESH_RECOVERY_DRILL_20261020.md) supersedes the earlier pending-token state. A production version upgrade still needs its own explicit outage/no-downgrade approval. Sender-domain ownership, actual native-wallet permission testing and independent recovery/operating assurance remain separate gates.
 
 Outside-Git review screenshot: task outputs `recovery-access-confirmation-20261020.png`. The proposal contains no generated credential.
 
