@@ -103,7 +103,7 @@ export function AppShell({children,renderNavigation}:{children:React.ReactNode;r
 
   const selected=active||q.data.items[0].id;
   const selectedWorkspace=q.data.items.find(w=>w.id===selected)??q.data.items[0];
-  const contextValue={workspaceId:selected,workspace:selectedWorkspace,workspaces:q.data.items,switchWorkspace:change};
+  const contextValue={workspaceId:selected,workspace:selectedWorkspace,workspaces:q.data.items,switchWorkspace:change,logout,loggingOut};
 
   return <div className="appShell">
     <a className="skipLink" href="#workspace-main">Skip to workspace content</a>

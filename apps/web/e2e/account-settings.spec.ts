@@ -82,6 +82,27 @@ test('an unsupported wallet network remains unconnected and never writes a prefe
 test('Settings current-browser logout uses the retained CSRF controller and removes account data',async({page})=>{
  await setup(page);let ended=false;await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:!ended,email_verified:!ended}}));await page.route('**/api/v1/auth/logout',r=>{expect(r.request().headers()['x-rivexis-csrf']).toBe('TEST_CSRF');ended=true;return r.fulfill({json:{status:'revoked'}})});await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await tab(page,'Sessions');await page.getByRole('button',{name:'Log out of this browser'}).click();await expect(page).toHaveURL(/\/login$/);expect(ended).toBe(true);await expect(page.getByLabel('Display name')).toHaveCount(0);expect(await page.evaluate(()=>localStorage.getItem('rivexis_workspace_id'))).toBeNull();
 });
+test('Settings logout reaches the shell when the legacy event bridge is unavailable and remains pending until confirmed',async({page})=>{
+ await setup(page);let ended=false,requests=0;let pending:import('@playwright/test').Route|undefined;
+ await page.addInitScript(()=>{const dispatch=window.dispatchEvent.bind(window);(window as any).legacyLogoutEvents=0;window.dispatchEvent=(event:Event)=>{if(event.type==='rivexis-request-logout'){(window as any).legacyLogoutEvents++;return true}return dispatch(event)}});
+ await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:!ended,email_verified:!ended}}));
+ await page.route('**/api/v1/auth/logout',r=>{expect(r.request().headers()['x-rivexis-csrf']).toBe('TEST_CSRF');requests++;pending=r});
+ await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await tab(page,'Sessions');await page.getByRole('button',{name:'Log out of this browser'}).click();
+ await expect.poll(()=>requests).toBe(1);await expect(page.getByRole('tabpanel',{name:'Sessions'}).getByRole('button',{name:'Logging out…'})).toBeDisabled();
+ expect(await page.evaluate(()=>(window as any).legacyLogoutEvents)).toBe(0);await expect(page).toHaveURL(/\/workspace\/settings$/);
+ const response=page.waitForResponse('**/api/v1/auth/logout');ended=true;await pending!.fulfill({json:{status:'revoked'}});expect((await response).ok()).toBe(true);
+ await expect(page).toHaveURL(/\/login$/);await expect(page.getByLabel('Display name')).toHaveCount(0);expect(await page.evaluate(()=>localStorage.getItem('rivexis_workspace_id'))).toBeNull();expect(requests).toBe(1);
+});
+test('Settings logout failure preserves the session and supports an explicit retry without automatic writes',async({page})=>{
+ await setup(page);let requests=0,ended=false;
+ await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:!ended,email_verified:!ended}}));
+ await page.route('**/api/v1/auth/logout',r=>{requests++;expect(r.request().headers()['x-rivexis-csrf']).toBe('TEST_CSRF');if(requests===1)return r.fulfill({status:503,json:{detail:'Fixture provider failure'}});ended=true;return r.fulfill({json:{status:'revoked'}})});
+ await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await tab(page,'Sessions');await page.getByRole('button',{name:'Log out of this browser'}).click();
+ await expect(page.locator('.shellLogoutError')).toContainText('could not confirm logout');await expect(page.getByRole('button',{name:'Log out of this browser'})).toBeEnabled();
+ await expect(page).toHaveURL(/\/workspace\/settings$/);expect(ended).toBe(false);expect(requests).toBe(1);expect(await page.evaluate(()=>localStorage.getItem('rivexis_workspace_id'))).toBe('SETTINGS_OWNER');
+ const response=page.waitForResponse('**/api/v1/auth/logout');await page.getByRole('button',{name:'Log out of this browser'}).click();expect((await response).ok()).toBe(true);
+ await expect(page).toHaveURL(/\/login$/);expect(requests).toBe(2);expect(ended).toBe(true);expect(await page.evaluate(()=>localStorage.getItem('rivexis_workspace_id'))).toBeNull();
+});
 test('Light Settings remain accessible and grouping changes only displayed USD totals',async({page})=>{
  await setup(page);await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await tab(page,'Appearance');await page.getByLabel('Theme',{exact:true}).selectOption('light');await save(page);await expect(page.locator('.workspaceGroupedNav .workspaceNavGroup>button').first()).toHaveCSS('color','rgb(71, 86, 86)');const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations).toEqual([]);await tab(page,'Financial Preferences');await page.getByRole('checkbox',{name:'Group USD thousands'}).uncheck();await page.getByLabel('Health factor precision').selectOption('6');await save(page);await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await expect(page.getByRole('region',{name:'Observed portfolio metrics'})).toContainText('$30000.00');await expect(page.getByRole('region',{name:'Observed portfolio metrics'})).toContainText('1.333333');await expect(page.getByRole('region',{name:'Observed portfolio metrics'})).toContainText('$18000.00');
 });
