@@ -1,0 +1,156 @@
+{
+  "date": "2026-10-20",
+  "scope": "Fresh production logical snapshot, local isolated matching-version restore and protected portable kit; no institutional/full-service certification",
+  "project": "ivszvufdonfgwjpfgwii",
+  "productionCommit": "4ad0ddb0177add65fd0748202e64ed6115638c69",
+  "sourcePostgres": "17.6.1.166",
+  "authorization": "User replied continue immediately after review of this exact 24-hour single-project Database read-write token, restricted read-only login/export/local restore/revocation purpose and risk. This does not authorize a production upgrade.",
+  "capture": {
+    "StartedAtUtc": "2026-10-20T16:29:27.9698265Z",
+    "Project": "ivszvufdonfgwjpfgwii",
+    "ReadOnlyRequested": true,
+    "Tls": "verify-full with official Supabase production CA from project dashboard",
+    "Result": "ARCHIVE_EXPORTED_AND_PROTECTED_RESTORE_UNVERIFIED",
+    "Connection": {
+      "current_user": "supabase_read_only_user",
+      "session_user": "cli_login_supabase_read_only_user",
+      "transaction_read_only": "on",
+      "database_bytes": 40668307,
+      "public_tables": 61
+    },
+    "ArchiveBytes": 1428343,
+    "ArchiveSha256": "F1A453349F067C7972820B4E0DD41B324E02711B92B98ECB08CAF1EAC0CC1367",
+    "ProtectedArchiveSha256": "729F15BA2D80B4A016A4AFAF45171F95F2E1F452D975F6050D70CDB38B916514",
+    "CompletedAtUtc": "2026-10-20T16:30:07.2964036Z"
+  },
+  "roleSupplement": {
+    "nonTemporaryNonBuiltinRoles": 19,
+    "passwordsExcluded": true,
+    "bootstrap": {
+      "prepared": true,
+      "bootstrap_create_omitted": 1,
+      "ephemeral_statements_omitted": 3,
+      "original_grantors_preserved": 26,
+      "source_sha256": "451f6e9aa4d7b58898ae07922e86a841b9cc7143bb2748e3096ca1e0469c57d5",
+      "bootstrap_sha256": "46cbfa51c6feb8e38b1186b3b7d910986ca8220e0d840a878fac0f12d7efee09",
+      "scope": "isolated local restore only"
+    }
+  },
+  "restore": {
+    "network": "none",
+    "ports": {},
+    "restartPolicy": "no",
+    "cronLaunchActiveJobs": "off",
+    "inactivePgNetTarget": true,
+    "image": "supabase/postgres@sha256:b3bfedb107413abb3b8cb0d0874b0414a1dceb3d55bc0c778de6ad22d1f7dc86",
+    "database": "rivexis_restore_20261020",
+    "publicTables": 61,
+    "authUsers": 7,
+    "vaultRows": 1,
+    "cronJobs": 1,
+    "publicTablesWithoutRLS": 0,
+    "transactionalRestore": true,
+    "reconciliation": {
+      "status": "PASS",
+      "archive_table_data_entries": 102,
+      "matched_entries": 102,
+      "total_archived_rows": 32179,
+      "mismatched_tables": [],
+      "method": "Sorted raw PostgreSQL COPY row bytes, SHA256 and exact row counts; before any local Vault logical rekey."
+    }
+  },
+  "vault": {
+    "status": "PASS",
+    "vault_records_verified": 1,
+    "method": "Original UUID, nonce, name, description and timestamps retained; isolated ciphertext re-encrypted under a fresh local key; exact decrypted value equality checked inside transaction.",
+    "production_vault_changed": false,
+    "original_production_root_key_exported": false,
+    "network": "none"
+  },
+  "portableKit": {
+    "status": "PASS",
+    "format": "AES-256-GCM, authenticated version header, 12-byte nonce",
+    "bytes": 804514,
+    "ciphertextSha256": "fedbd8db3ea05414587fcc79989cdaad1cbf8f5314c52ac3e53dc3561f2d4724",
+    "zipSha256": "3ed66caf52720b1e89abfeae3bcbfcd550cc3d7a0ed860acfe7d54f2cdadcb01",
+    "roundtripVerified": true,
+    "tamperRejected": true,
+    "separateOwnerOnlyKey": true,
+    "keyUploaded": false,
+    "independentDecryptionPending": false,
+    "independentDecryptionAndZipManifestVerified": true,
+    "manifestFilesVerified": 16
+  },
+  "accessCloseout": {
+    "scopedTokenRevoked": true,
+    "dashboardNoAccessTokensFound": true,
+    "tokenAndLoginLocalCopiesRemoved": true,
+    "temporaryLoginValidUntilUTC": "2026-10-20T16:34:30.032025Z",
+    "temporaryLoginCatalogConfirmedExpired": true
+  },
+  "cleanup": {
+    "RemovedPlaintextFiles": 9,
+    "VerifiedEncryptedKitPreserved": true,
+    "SeparateOwnerKeyPreserved": true,
+    "OldRecoveryMaterialUntouched": true,
+    "RuntimeRemoved": true
+  },
+  "postDrill": {
+    "projectStatus": "ACTIVE_HEALTHY",
+    "databaseVersion": "17.6.1.166",
+    "publicTables": 61,
+    "publicTablesWithoutRLS": 0,
+    "observedAtUTC": "2026-10-20T16:38:57.332422Z",
+    "publicHTTP": {
+      "observedAtUtc": "2026-10-20T16:39:36.763Z",
+      "expected": "4ad0ddb0177add65fd0748202e64ed6115638c69",
+      "results": [
+        {
+          "path": "/",
+          "status": 200,
+          "build": "4ad0ddb0177add65fd0748202e64ed6115638c69",
+          "buildMatches": true,
+          "durationMs": 928
+        },
+        {
+          "path": "/demo",
+          "status": 200,
+          "build": "4ad0ddb0177add65fd0748202e64ed6115638c69",
+          "buildMatches": true,
+          "durationMs": 238
+        }
+      ],
+      "scope": "Post-recovery public HTTP identity check; no authenticated workflow or SLA claim"
+    }
+  },
+  "upgradePreflight": {
+    "observedAtUTC": "2026-10-20T16:42:44.052578Z",
+    "offeredVersion": "17.11.0.003",
+    "ltreeOrArrayOpclassKeyIndexes": 0,
+    "floatGistOpclassKeyIndexes": 0,
+    "operatorsWithNonbuiltinSelectivityEstimators": 0,
+    "nonextensionPGPRoutinesPublicAuthVault": 0,
+    "externalCiphertextAndClientsNotScanned": true,
+    "actualDialogWarning": "All services offline for up to one hour; no downgrade to17.6.1.166; 2GB disk right-sized.",
+    "confirmNotClicked": true,
+    "specificApprovalPending": true
+  },
+  "screenshots": [
+    {
+      "file": "recovery-token-revoked-20261020.png",
+      "bytes": 53021,
+      "sha256": "88bf69823e89c7ab66cd0037276e15d8da6884e5b7d8b4f91abd56c6821a4a07"
+    },
+    {
+      "file": "fresh-recovery-upgrade-review-20261020.png",
+      "bytes": 42137,
+      "sha256": "f1c4732a701aab22f682602074ad33dd81e960cad53a7c31ed1a46f5fe8f1f51"
+    }
+  ],
+  "limits": [
+    "Fresh encrypted kit has not been uploaded off-device; prior17October encrypted Drive copy remains a separate dated snapshot.",
+    "New portable key remains separately owner-only on the originating machine; no independent key custody/second-machine recovery/retention/RPO/RTO verified.",
+    "No original production root key, role passwords or full provider/service configuration recovery.",
+    "No production upgrade, paid change, password reset, production restore or transaction signing."
+  ]
+}
