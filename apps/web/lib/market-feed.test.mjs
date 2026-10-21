@@ -135,3 +135,63 @@ test("recent round fallback does not cross phase boundaries", async () => {
   assert.deepEqual(data.history.ETH, []);
   assert.ok(data.history.errors.some((e) => e.includes("phase boundary")));
 });
+
+const recentCall = c => c.method === 'eth_call' && c.params[0].data.startsWith('0x9a6fc8f5');
+function partialHistory(symbols=['ETH','BTC'],extra=()=>{}){
+ return fixture((response,call,calls)=>{
+  if(call.method==='eth_call'&&Number(BigInt(call.params[1].blockHash))<head-2400&&symbols.some(s=>call.params[0].to===MARKET_FEEDS[s])){delete response.result;response.error={code:-32000}}
+  extra(response,call,calls);
+ });
+}
+for(const symbol of ['ETH','BTC'])test(`partial ${symbol} archive history supplements only that feed`,async()=>{
+ const other=symbol==='ETH'?'BTC':'ETH';const f=partialHistory([symbol]);const data=await f.read({history:true});
+ assert.equal(data.history.mode,'mixed-observations');assert.equal(data.history[symbol].length,8);assert.equal(data.history[other].length,6);
+ assert.equal(f.calls.filter(c=>recentCall(c)&&c.params[0].to===MARKET_FEEDS[symbol]).length,6);assert.equal(f.calls.filter(c=>recentCall(c)&&c.params[0].to===MARKET_FEEDS[other]).length,0);
+ assert.equal(data.history.errors.length,4);
+});
+test('both partial histories preserve sampled points and supplement actual rounds in timestamp order',async()=>{
+ const data=await partialHistory().read({history:true});assert.equal(data.history.mode,'mixed-observations');
+ for(const symbol of ['ETH','BTC']){assert.equal(data.history[symbol].length,8);assert.ok(data.history[symbol].some(p=>p.blockNumber<head));assert.ok(data.history[symbol].some(p=>p.blockNumber===head));assert.ok(data.history[symbol].every((p,i,a)=>!i||p.updatedAt>a[i-1].updatedAt))}
+ assert.equal(data.history.errors.length,8);
+});
+test('a feed with no archive coverage recovers even when the other archive is complete',async()=>{
+ const f=fixture((r,c)=>{if(c.method==='eth_call'&&c.params[0].to===MARKET_FEEDS.ETH&&Number(BigInt(c.params[1].blockHash))<head){delete r.result;r.error={code:-32000}}});
+ const data=await f.read({history:true});assert.equal(data.history.mode,'mixed-observations');assert.equal(data.history.ETH.length,6);assert.equal(data.history.BTC.length,6);assert.equal(f.calls.filter(c=>recentCall(c)&&c.params[0].to===MARKET_FEEDS.BTC).length,0);
+});
+test('complete archive coverage spends no supplemental round calls',async()=>{
+ const f=fixture();const data=await f.read({history:true});assert.equal(data.history.mode,'sampled-blocks');assert.equal(f.calls.filter(recentCall).length,0);
+});
+test('supplement provider errors retain partial observations and disclose every rejected round',async()=>{
+ const data=await partialHistory(['ETH','BTC'],(r,c)=>{if(recentCall(c)){delete r.result;r.error={code:-32000}}}).read({history:true});
+ assert.equal(data.history.ETH.length,2);assert.equal(data.history.BTC.length,2);assert.equal(data.history.mode,'sampled-blocks');assert.equal(data.history.errors.length,20);
+});
+test('wrong returned supplemental round cannot fill a partial archive gap',async()=>{
+ const data=await partialHistory(['ETH','BTC'],(r,c)=>{if(recentCall(c))r.result=round(time-60)}).read({history:true});
+ assert.equal(data.history.ETH.length,2);assert.equal(data.history.BTC.length,2);assert.equal(data.history.errors.length,20);assert.ok(data.history.errors.some(e=>e.includes('recent oracle round')));
+});
+test('partial archive supplement respects a new aggregator phase boundary',async()=>{
+ const f=partialHistory(['ETH','BTC'],(r,c)=>{if(c.method==='eth_call'&&c.params[0].data==='0xfeaf968c'&&Number(BigInt(c.params[1].blockHash))===head)r.result=round(time-60,1n,(2n<<64n)+1n)});
+ const data=await f.read({history:true});assert.equal(data.history.ETH.length,2);assert.equal(f.calls.filter(recentCall).length,0);assert.ok(data.history.errors.some(e=>e.includes('phase boundary')));
+});
+test('overlapping sampled and recent observations are deduplicated by actual oracle update time',async()=>{
+ const data=await partialHistory(['ETH'],(r,c)=>{
+  if(c.method!=='eth_call'||c.params[0].to!==MARKET_FEEDS.ETH)return;
+  if(recentCall(c)){const id=BigInt('0x'+c.params[0].data.slice(10));r.result=round(time-60-Number(10n-id)*3600,300000000000n,id)}
+  else if(c.params[0].data==='0xfeaf968c'&&Number(BigInt(c.params[1].blockHash))===head-1200)r.result=round(time-14460,300000000000n,6n);
+ }).read({history:true});
+ assert.equal(data.history.ETH.length,7);assert.equal(new Set(data.history.ETH.map(p=>p.updatedAt)).size,7);assert.equal(data.history.ETH.find(p=>p.updatedAt===time-14460).blockNumber,head);
+});
+test('supplemental timestamps newer than the latest validated round remain unavailable',async()=>{
+ const data=await partialHistory(['ETH','BTC'],(r,c)=>{if(recentCall(c))r.result=round(time-30,300000000000n,BigInt('0x'+c.params[0].data.slice(10)))}).read({history:true});
+ assert.equal(data.history.ETH.length,2);assert.equal(data.history.BTC.length,2);assert.equal(data.history.errors.length,20);
+});
+test('ordinary quote polling does not backfill history or spend supplemental calls',async()=>{
+ const f=partialHistory();const data=await f.read();assert.equal(data.history.requested,false);assert.equal(f.calls.filter(recentCall).length,0);assert.equal(f.calls.length,13);
+});
+
+test('same-round conflicts exclude both ambiguous observations instead of choosing a source',async()=>{
+ const data=await partialHistory(['ETH'],(r,c)=>{
+  if(c.method==='eth_call'&&c.params[0].to===MARKET_FEEDS.ETH&&c.params[0].data==='0xfeaf968c'&&Number(BigInt(c.params[1].blockHash))===head-1200)r.result=round(time-14460,200000000000n,6n);
+ }).read({history:true});
+ assert.equal(data.history.ETH.find(p=>p.roundId==='6'),undefined);assert.ok(data.history.errors.some(e=>e.includes('both observations excluded')));
+});

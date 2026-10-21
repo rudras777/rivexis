@@ -10,7 +10,7 @@ const hex=(number:number)=>`0x${number.toString(16)}`;
 const hash=(number:number)=>`0x${BigInt(number).toString(16).padStart(64,'0')}`;
 const word=(number:number|bigint)=>BigInt(number).toString(16).padStart(64,'0');
 type RpcCall={id:number;method:string;params:any[]};
-type Mode='success'|'stale quote'|'negative quote'|'wrong chain'|'offline'|'rate limited'|'reorg'|'empty fees'|'archive unavailable'|'history gaps'|'future quote';
+type Mode='success'|'stale quote'|'negative quote'|'wrong chain'|'offline'|'rate limited'|'reorg'|'empty fees'|'archive unavailable'|'history gaps'|'future quote'|'ETH feed unavailable';
 
 async function account(page:Page,authenticated=true){
  await page.route('**/health',route=>route.fulfill({json:{status:'ready'}}));
@@ -26,7 +26,7 @@ test('market quote labels respect the saved USD grouping preference',async({page
 
 /** RPC fixtures live only at the network boundary; no product quote or success state is injected. */
 async function rpc(page:Page,mode:Mode='success'){
- const state={mode,reads:0,batches:0,number:head,time:0,chains:0};
+ const state={mode,reads:0,batches:0,number:head,time:0,chains:0,archiveCalls:0};
  await page.route(`${endpoint}/**`,async route=>{
   const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'POST, OPTIONS'};
   if(route.request().method()==='OPTIONS'){await route.fulfill({status:204,headers});return}
@@ -53,6 +53,8 @@ async function rpc(page:Page,mode:Mode='success'){
     expect(pinned.requireCanonical).toBe(true);
     const number=Number(BigInt(pinned.blockHash));
     const archived=number<state.number;
+    if(archived)state.archiveCalls++;
+    if(state.mode==='ETH feed unavailable'&&transaction.to==='0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419')return {jsonrpc:'2.0',id:call.id,error:{code:-32000,message:'ETH feed temporarily unavailable'}};
     if(archived&&(state.mode==='archive unavailable'||state.mode==='history gaps'))return {jsonrpc:'2.0',id:call.id,error:{code:-32000,message:'Archive state unavailable'}};
     if(transaction.data==='0x313ce567')result=`0x${word(8)}`;
     else{
@@ -128,6 +130,14 @@ test('market: repeated manual refresh is bounded and later block advance updates
  await page.clock.install();const state=await open(page);await expect(panel(page)).toContainText(`Block ${head}`);
  await panel(page).getByRole('button',{name:'Refresh market context',exact:true}).click();await expect(panel(page)).toContainText('Wait 15 seconds');expect(state.reads).toBe(1);
  await page.clock.fastForward(16000);await panel(page).getByRole('button',{name:'Refresh market context',exact:true}).click();await expect(panel(page)).toContainText(`Block ${head+1}`);expect(state.reads).toBe(2);
+});
+
+test('market: a recovered missing feed backfills history after bounded delay without repeated archive polling',async({page})=>{
+ await page.clock.install();const state=await open(page,'ETH feed unavailable');await expect(panel(page)).toContainText('No validated quote');
+ const archiveCalls=state.archiveCalls;state.mode='success';await page.clock.fastForward(60001);await expect(panel(page).locator('.marketQuoteStatus')).toContainText(['Fresh oracle round','Fresh oracle round']);expect(state.archiveCalls).toBe(archiveCalls);
+ await page.clock.fastForward(240001);
+ await expect.poll(()=>state.archiveCalls).toBeGreaterThan(archiveCalls);
+ const chart=panel(page).getByRole('img',{name:'ETH / USD · observed oracle history'});await expect.poll(()=>chart.locator('circle').count()).toBeGreaterThanOrEqual(7);
 });
 test('market: hidden-tab polling pauses and resumes after becoming visible',async({page})=>{
  await page.clock.install();await page.addInitScript(()=>{(window as any).launchHidden=false;Object.defineProperty(document,'hidden',{configurable:true,get:()=>(window as any).launchHidden})});

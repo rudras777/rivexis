@@ -136,10 +136,13 @@ export function createMarketReader({ fetchImpl = globalThis.fetch, now = () => D
             }
           } catch (error) { historical.errors.push(`Block ${number}: ${error.message}`); }
         }
-        if (!historical.ETH.length && !historical.BTC.length) {
-          historical.mode = "recent-oracle-rounds";
+        const sampledCount = historical.ETH.length + historical.BTC.length;
+        if (["ETH", "BTC"].some((symbol) => historical[symbol].length < 6)) {
+          let supplemented = false;
           for (const symbol of ["ETH", "BTC"]) {
+            if (historical[symbol].length >= 6) continue;
             if (!quotes[symbol]) { historical.errors.push(`${symbol}: latest round unavailable; recent rounds cannot be read`); continue; }
+            const recent = [], conflictingRounds = new Set();
             const latestRound = BigInt(quotes[symbol].roundId);
             const roundInPhase = latestRound & ((1n << 64n) - 1n);
             const count = Number(roundInPhase > 6n ? 6n : roundInPhase > 1n ? roundInPhase - 1n : 0n);
@@ -151,12 +154,27 @@ export function createMarketReader({ fetchImpl = globalThis.fetch, now = () => D
                 const expectedRound = latestRound - BigInt(distances[i]);
                 try {
                   const point = decodeOracleQuote(must(result), symbol, block);
-                  if (point.roundId !== expectedRound.toString() || point.updatedAt >= quotes[symbol].updatedAt || (historical[symbol].length && point.updatedAt <= historical[symbol].at(-1).updatedAt)) throw new Error("Invalid recent oracle round order");
-                  historical[symbol].push(point);
+                  if (point.roundId !== expectedRound.toString() || point.updatedAt >= quotes[symbol].updatedAt || (recent.length && point.updatedAt <= recent.at(-1).updatedAt)) throw new Error("Invalid recent oracle round order");
+                  const archived = historical[symbol].find((sample) => sample.roundId === point.roundId);
+                  if (archived && (archived.updatedAt !== point.updatedAt || archived.answerRaw !== point.answerRaw)) {
+                    conflictingRounds.add(point.roundId);
+                    throw new Error("Conflicting sampled and recent oracle round; both observations excluded");
+                  }
+                  recent.push(point);
                 } catch (error) { historical.errors.push(`${symbol} round ${expectedRound}: ${error.message}`); }
               });
             }
+            historical[symbol] = historical[symbol].filter((point) => !conflictingRounds.has(point.roundId));
+            if (recent.length) {
+              // These are returned oracle rounds, not interpolated archive prices.
+              // A round can also occur in a sampled block; retain it once at its
+              // actual oracle update time, with the most recent observed evidence.
+              historical[symbol] = [...new Map([...historical[symbol], ...recent].map((point) => [point.updatedAt, point])).values()].sort((a, b) => a.updatedAt - b.updatedAt);
+              supplemented = true;
+            }
           }
+          if (!sampledCount) historical.mode = "recent-oracle-rounds";
+          else if (supplemented) historical.mode = "mixed-observations";
         }
       }
       const final = await batch([["eth_chainId", []], ["eth_getBlockByNumber", [tag(block.number), false]]]);
