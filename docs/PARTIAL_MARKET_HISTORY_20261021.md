@@ -1,6 +1,6 @@
 # Partial oracle history and recovery — 21 October 2026
 
-Release candidate on `fix/partial-oracle-history-20261021`, based on the verified production application `1bd99ed02b185d121177c29a68b8dcf780fcc61d` plus its documentation closeout. Deployment is pending the exact-head release gates; this record does not claim production completion.
+Initial candidate record retained below. **Final result:** PR101 is merged and deployed as `5123c22bbb4c28a5e79708e88ecba0c9f69b2865`, with all release gates and actual-public30 cases per engine passing. See [final closeout, retained failures and remaining owner gates](MARKET_HISTORY_CLOSEOUT_20261021.md). Earlier pending statements below describe the candidate stage.
 
 ## Reproduced defects and correction
 
@@ -20,12 +20,12 @@ No financial arithmetic, authentication contract, schema, infrastructure, logo, 
 
 Raw task-output artifacts: `partial-history-before-20261021.log`, `partial-history-after-20261021.log`, `partial-history-recovery-before-20261021.json`, `partial-history-final-market-browser-20261021.json`, `partial-history-final-next-build-20261021.log`, `partial-history-final-types-20261021.log`, `partial-history-final-ast-20261021.log`, `market-provider-partial-before-20261021.json` and `market-provider-partial-verified-20261021.json`. Preserve failed evidence. These are outside Git; protected recovery material is excluded.
 
-## Readiness limits retained
-
 ## Security gate follow-up
 
 Initial source `a8db4119ae0e2982efeeb501082ab68465fd5a54` was rejected by the unchanged npm audit gate for Vite8.3.0: GHSA-587h-7wmj-h5pm (High) plus GHSA-698v-4r3x-3vcv and GHSA-r825-w8mm-5pxw (Moderate), relating to development editor launching. The [reviewed advisory](https://github.com/advisories/GHSA-587h-7wmj-h5pm) identifies Vite8.3.3 as patched; the official [Vite8.3.5 release](https://github.com/vitejs/vite/releases/tag/v8.3.5) is pinned, with its required Rolldown/OXC dependency updates recorded in the lockfile. The local audit now passes the existing narrow braces-only exception. No new advisory exception or audit-rule change was made. Existing unpatched GHSA-vfj7-8cjw-p6xm remains disclosed.
 
 The initial source PostgreSQL job separately failed during pip installation with ConnectionResetError104; the same-head PR PostgreSQL job passed. Neither failure is concealed or represented as a successful initial gate. Latest patched-head gates must pass before merge.
+
+## Readiness limits retained
 
 Fresh genuine authenticated production workflow checks require the pending normal owner website sign-in. Do not reset passwords, import sessions or manufacture an identity to bypass it. This frontend-only release does not require a backend redeployment, migration, account change or new service. Existing API36/reports4/alerts5, PostgreSQL17.11.0.003 and the protected rollback/recovery references remain unchanged. Independent native-wallet permission UX, owned-domain inbox placement, recovery custody/full-service restore and institutional operating/security/load assurance remain open; see [readiness](PRODUCTION_READINESS.md) and the [prior verified release](AUTH_RECOVERY_CLOSEOUT_20261021.md).
