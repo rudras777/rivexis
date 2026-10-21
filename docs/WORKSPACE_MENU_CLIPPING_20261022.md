@@ -1,0 +1,13 @@
+# Workspace menu clipping correction — 22 October 2026
+
+The owner reported a selected function whose description was cut by a horizontal line. Actual signed-in production c829a3d reproduces the issue at the desktop breakpoint: the selected Contracts description spans205.18–222.77px vertically while the inherited underline starts215.77px. This is a style-selector collision, not missing feature content.
+
+The active top-navigation underline now applies only to the direct Overview link. Dropdown titles/descriptions use natural-height left-aligned rows, retaining approved typography, colors and selection backgrounds. Dropdowns and the compact menu have viewport-bounded scrolling and keyboard scroll clearance; nested mobile submenus use the outer menu scroller.
+
+Thirteen regression profiles cover all five groups with selected destinations on desktop/mobile, two short-window layouts and enlarged-text navigation. The corrected before-change fixture produced seven failures (five active desktop decorations and two viewport bounds) and six passes. The initial fixture incorrectly expected mobile Escape to keep the category focused, despite the existing outer-menu close/summary-focus behavior; that expectation was corrected, and the original results remain retained. No application Escape behavior changed.
+
+All24 local navigation/connectivity cases pass, including the13 new profiles; Next production build, standalone types and AST checks pass. An initial nullable diagnostic-label type error in the test was corrected; the failed log is retained. Exact-head remote release checks are pending. Do not claim this correction deployed until source/PR/main/Worker/browser gates and the same production URL are verified. No financial model, API, authentication, schema, integration, branding or paid service change.
+
+The separate institutional-readiness continuation completed six genuine guest performance observations on c829a3d with fourfold CPU throttling and no trace/video. All returned200 with no JavaScript/request/HTTP failures or overflow. Mobile LCP ranged1236–1484ms; desktop1732–4616ms, with the slowest first request starting3159.7ms after navigation. These are small lab observations, not field Core Web Vitals, load capacity, an SLA or an established cause. The official braces advisory still lists no patched version: https://github.com/advisories/GHSA-vfj7-8cjw-p6xm . Existing audit protections remain intact.
+
+Raw logs/screenshots/JSON remain in task outputs outside Git. Existing recovery material and private account export are excluded.

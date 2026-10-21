@@ -27,6 +27,40 @@ test('clicking a hover-open category keeps destinations available until a second
  await trigger.click();await expect(trigger).toHaveAttribute('aria-expanded','false');await expect(destination).toBeHidden();
  await trigger.focus();await page.keyboard.press('ArrowDown');await expect(destination).toBeFocused();await page.keyboard.press('Escape');await expect(trigger).toBeFocused();await expect(trigger).toHaveAttribute('aria-expanded','false');
 });
+
+const menuCases=[
+ ['Risk Intelligence','/workspace'],['Transaction Intelligence','/workspace/transactions'],['Decision Intelligence','/workspace/frontier'],['On-Chain','/workspace/contracts'],['Research & Monitoring','/workspace/reports'],
+] as const;
+for(const width of [375,1920])for(const [category,route] of menuCases)test(`dropdown descriptions remain readable for ${category} at ${width}px`,async({page})=>{
+ await setup(page);await page.setViewportSize({width,height:900});await page.goto(route,{waitUntil:'domcontentloaded'});
+ if(width<1120)await page.getByLabel('Open workspace navigation').click();
+ const nav=page.getByRole('navigation',{name:width<1120?'Mobile workspace':'Workspace',exact:true});
+ const trigger=nav.getByRole('button',{name:category,exact:true});await trigger.focus();await page.keyboard.press('ArrowDown');
+ const dropdown=nav.locator('.workspaceDropdown').filter({visible:true});await expect(dropdown).toBeVisible();
+ const rows=await dropdown.getByRole('link').evaluateAll(links=>links.map(link=>{
+  const box=link.getBoundingClientRect(),label=link.querySelector('strong')!.getBoundingClientRect(),description=link.querySelector('span')!.getBoundingClientRect(),after=getComputedStyle(link,'::after');
+  const lineTop=box.bottom-parseFloat(after.bottom)-parseFloat(after.height);
+  return {name:link.getAttribute('aria-label')??'Menu destination',labelInside:label.top>=box.top&&label.bottom<=box.bottom&&label.left>=box.left&&label.right<=box.right,descriptionInside:description.top>=label.bottom&&description.bottom<=box.bottom&&description.left>=box.left&&description.right<=box.right,decorationCrossesDescription:after.content!=='none'&&after.content!=='normal'&&after.display!=='none'&&lineTop<description.bottom&&lineTop+parseFloat(after.height)>description.top,leftAligned:Math.abs(label.left-description.left)<1};
+ }));
+ for(const row of rows){expect(row.labelInside,row.name).toBe(true);expect(row.descriptionInside,row.name).toBe(true);expect(row.decorationCrossesDescription,row.name).toBe(false);expect(row.leftAligned,row.name).toBe(true)}
+ await expect(dropdown.locator('[aria-current=page]')).toHaveCount(1);
+ await page.screenshot({path:test.info().outputPath(`menu-${width}.png`)});
+ await page.keyboard.press('Escape');if(width<1120){await expect(page.getByLabel('Open workspace navigation')).toBeFocused();await expect(nav).toBeHidden()}else{await expect(trigger).toBeFocused();await expect(dropdown).toBeHidden()}
+});
+
+for(const viewport of [{width:650,height:240},{width:1920,height:240},{width:1440,height:900}])test(`dropdown stays inside a short or enlarged workspace at ${viewport.width}x${viewport.height}`,async({page})=>{
+ await setup(page);await page.setViewportSize(viewport);
+ if(viewport.width===1440)await page.route('**/api/v1/account/settings',r=>r.fulfill({json:{profile:{displayName:'Analyst',email:'qa@example.invalid',emailVerified:true},preferences:{...DEFAULT_PREFERENCES,textSize:'large'}}}));
+ await page.goto('/workspace',{waitUntil:'domcontentloaded'});const mobile=viewport.width!==1920;
+ if(mobile)await page.getByLabel('Open workspace navigation').click();
+ const nav=page.getByRole('navigation',{name:mobile?'Mobile workspace':'Workspace',exact:true}),trigger=nav.getByRole('button',{name:'Risk Intelligence',exact:true});
+ await trigger.focus();await page.keyboard.press('ArrowDown');const dropdown=nav.locator('.workspaceDropdown').filter({visible:true});await expect(dropdown).toBeVisible();
+ const panel=mobile?nav:dropdown,box=(await panel.boundingBox())!;expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(viewport.height-8);
+ for(const link of await dropdown.getByRole('link').all()){
+  await link.focus();await expect(link).toBeFocused();const a=(await link.boundingBox())!,p=(await panel.boundingBox())!;expect(a.y).toBeGreaterThanOrEqual(p.y);expect(a.y+a.height).toBeLessThanOrEqual(p.y+p.height);
+ }
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
 for(const width of [320,768,1440])test(`connections and tooltips are accessible without overflow at ${width}px`,async({page})=>{
  await setup(page);await page.setViewportSize({width,height:1000});await page.goto('/workspace/contracts',{waitUntil:'domcontentloaded'});
  const info=page.getByRole('button',{name:'About contract connection'});await info.focus();await expect(page.getByRole('tooltip')).toBeVisible();const tip=(await page.getByRole('tooltip').boundingBox())!;expect(tip.x).toBeGreaterThanOrEqual(0);expect(tip.x+tip.width).toBeLessThanOrEqual(width);await page.keyboard.press('Escape');await expect(page.getByRole('tooltip')).toBeHidden();await info.click();await expect(page.getByRole('tooltip')).toBeVisible();await page.getByRole('heading',{name:'Contracts',exact:true}).click();await expect(page.getByRole('tooltip')).toBeHidden();
