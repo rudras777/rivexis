@@ -1,0 +1,446 @@
+{
+  "recordedAtUTC": "2026-10-21T10:50:35.624318+00:00",
+  "release": {
+    "recordedAtUTC": "2026-10-21T10:50:12.146840+00:00",
+    "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+    "production": "c829a3dae89ee6711339af6da2b386c008de27bd",
+    "source": "7c1d9dee0df9003e9c37b9029264bb363dc005e4",
+    "tree": "4798eafacd0945b505065d7123011af2ebcd0db2",
+    "pr": 102,
+    "workerVersion": "a77fd608-8118-4e5f-82d9-7122b3e8e94a",
+    "allocationPercent": 100,
+    "deployment": "6fe79ad9-97a3-4725-adc7-73623ec9dc0e",
+    "nativeBuild": "12f19742-fcc8-4c29-bf62-e28e62cf3819",
+    "nativeBuildStatus": "Ready48s",
+    "sourceCI": 39584989002,
+    "prCI": 39584996408,
+    "workerCI": 39584996593,
+    "fixtureCompatibilityCI": 39584996466,
+    "mainCI": 39586508124,
+    "mainWorkerCI": 39586508148,
+    "publicCompatibilityCI": 39586700783,
+    "allFinalGates": "PASS",
+    "authenticatedCorrectionVerification": "PASS",
+    "fixtureCasesPerEngine": 309,
+    "publicCasesPerEngine": 30,
+    "localFocusedCases": 31,
+    "financialAuth": 295,
+    "apiEdge": 30,
+    "marketUnits": 33,
+    "finalSkippedFlakyUnexpectedTestRetries": 0,
+    "finalDriverRecoveries": 0,
+    "finalHeadJobReruns": 0,
+    "preliminaryHeadFirefoxFailure": {
+      "source": "e1e6a99e0969d8266bd09aefdda91f5686093e84",
+      "run": 39583445292,
+      "passed": 306,
+      "failed": 1,
+      "diagnostic": "Initial signup navigation15s deadline, complete200,zero pending/page/resource failures,one observed5xx, guarded release refused; cause unestablished",
+      "driverRecoveries": 0
+    },
+    "genuineFinancialReceiptBase": "5123c22bbb4c28a5e79708e88ecba0c9f69b2865",
+    "postReleaseAaveBlock": 26240458,
+    "reportsRetained": 5,
+    "temporaryWatchRestored": true,
+    "financialModelsUnchanged": true,
+    "designUnchanged": true,
+    "backendDeployment": false,
+    "schemaMigrationAdded": false,
+    "newRecurringServiceCostUSD": 0,
+    "accountWideBillingCertified": false,
+    "institutionalLaunchReady": false,
+    "boundedBetaCoreWorkflowsVerified": true,
+    "remaining": [
+      "Native installed-wallet permission UX",
+      "Owned sending-domain and inbox placement",
+      "Independent recovery custody/second-machine/full-service restore/RPO/RTO",
+      "Sustained field performance/load/availability and independent security/operating assurance",
+      "Disclosed unpatched braces advisory and Supabase configuration advisories"
+    ],
+    "rollback": {
+      "production": "5123c22bbb4c28a5e79708e88ecba0c9f69b2865",
+      "workerVersion": "f535fd05-2fd8-4e5a-95dc-81235e7e66da",
+      "backend": "Unchanged API36/reports4/alerts5; protected recovery material preserved"
+    }
+  },
+  "financialChecks": {
+    "plannerAlternatives": 6,
+    "plannerRepeatable": true,
+    "AaveBeforeAndStress": "independent integer exact match",
+    "MorphoSequence": "six actual steps, independent token/share/native-health exact match",
+    "individualGasGuard": "real successful bounded withdrawal and genuine blocked repayment retained",
+    "savedReport": "server recomputed newer block, persisted history4 to5, historical safeguard verified",
+    "modelsChanged": false
+  },
+  "securityAndScope": {
+    "normalOwnerLogin": true,
+    "importedSession": false,
+    "signingOrSubmission": false,
+    "newRecurringServiceCostUSD": 0,
+    "unrestrictedInstitutionalCertification": false,
+    "rawEvidenceCommitted": false,
+    "accountExportAndRecoveryKeysExcluded": true
+  },
+  "files": [
+    {
+      "name": "authenticated-browser-observations-20261021.json",
+      "sha256": "91616f53d804c296cf2d153e3cada99774332464f8ff9e6c521f49fa49419160",
+      "bytes": 16342
+    },
+    {
+      "name": "authenticated-final-contract-identity-20261021.json",
+      "sha256": "896d22b93b9cb6fc6d72e2a2e21ec24292843eec418f87860114f34d7d5ee9ea",
+      "bytes": 278
+    },
+    {
+      "name": "authenticated-final-planner-20261021.png",
+      "sha256": "811406133ed865df5f5e3c52abc7be356044d73e94b13472be4e3664204d76eb",
+      "bytes": 127725
+    },
+    {
+      "name": "authenticated-final-planner-browser-20261021.json",
+      "sha256": "9f8bedd3485def9eb15cf1bc0d6792f77d8d81d94c8467ff2bf114a9a591af1d",
+      "bytes": 2578
+    },
+    {
+      "name": "authenticated-final-planner-math-20261021.log",
+      "sha256": "790ad13d565649ff851a7fd29226acd38f4b5299fc09b2e091ee10d33ac823ec",
+      "bytes": 1913
+    },
+    {
+      "name": "authenticated-final-planner-receipt-20261021.json",
+      "sha256": "42197b8985fcaa94c2ded406c2de8228a4004f07992de14b50f3fa3097be9ae1",
+      "bytes": 11290
+    },
+    {
+      "name": "authenticated-final-planner-reconciliation-20261021.json",
+      "sha256": "790ad13d565649ff851a7fd29226acd38f4b5299fc09b2e091ee10d33ac823ec",
+      "bytes": 1913
+    },
+    {
+      "name": "authenticated-final-settings-20261021.json",
+      "sha256": "f833a71f93cdb3ec466648df9ae5ffe3fb63947820c1997b9524f17f7b43bf17",
+      "bytes": 949
+    },
+    {
+      "name": "authenticated-final-verification-20261021.json",
+      "sha256": "d7ecc6937d8208ad8286852cef30034ca1044db66f31ab405a555ecb5765015b",
+      "bytes": 1430
+    },
+    {
+      "name": "authenticated-live-aave-plan-20261021.json",
+      "sha256": "f7df7554b671ab7b89ca725b217358747c5cd00ba100590c3916fbf4fdbfff0f",
+      "bytes": 11290
+    },
+    {
+      "name": "authenticated-live-aave-reconciliation-20261021.json",
+      "sha256": "44c6e0f5bed68b93f27474338ab8f88699e172c10dc34e1d46ec7192fccdb8cf",
+      "bytes": 1011
+    },
+    {
+      "name": "authenticated-live-aave-report-math-20261021.log",
+      "sha256": "5c9960d6d8642d3dcc7715b644632f2a8f321062ff85eb3b35a45bded7b4fab2",
+      "bytes": 1912
+    },
+    {
+      "name": "authenticated-live-blocked-repayment-20261021.json",
+      "sha256": "205fb6be1a5c562538077b403a2a3857dfc2bfec2062090e641cc1e46ab73f58",
+      "bytes": 3777
+    },
+    {
+      "name": "authenticated-live-contract-20261021.jpg",
+      "sha256": "37e19754bf7470724c549146ad7d57cbb7d957e41e22c41ba6033338cce1e449",
+      "bytes": 107775
+    },
+    {
+      "name": "authenticated-live-defense-plan-20261021.json",
+      "sha256": "96df34755ff71086116caf26cb2aa0dedd59a5b3251a9969e3cd921867328902",
+      "bytes": 25078
+    },
+    {
+      "name": "authenticated-live-gasguard-20261021.jpg",
+      "sha256": "3bed33728bfb6a6d0dd7fa362f97eca693d72ed95ba88b310e7d914b99982749",
+      "bytes": 137182
+    },
+    {
+      "name": "authenticated-live-gasguard-20261021.json",
+      "sha256": "9ea1a4425ee167c16badd847697cb699cacd5c33a5ae242deae13fd115c0e078",
+      "bytes": 3280
+    },
+    {
+      "name": "authenticated-live-gasguard-reconciliation-20261021.json",
+      "sha256": "8144b40184236881894686d6c4b6bc3f688ce10c575d291cf4823bf9b29de517",
+      "bytes": 873
+    },
+    {
+      "name": "authenticated-live-morpho-sequence-20261021.json",
+      "sha256": "d96e7c175fb63461beffe4ed384222003c4027c86ee2c05e8b125cc15e731a24",
+      "bytes": 10293
+    },
+    {
+      "name": "authenticated-live-morpho-sequence-reconciliation-20261021.json",
+      "sha256": "941b766f7e016a35c6d40398637b1e12c4acffb3bcfd831711e2ebf757c0a313",
+      "bytes": 799
+    },
+    {
+      "name": "authenticated-live-planner-20261021.jpg",
+      "sha256": "7b3adde438af2d280acc7dd27cd343a84a16aa000f0de70d7abd75773ae2f2eb",
+      "bytes": 24026
+    },
+    {
+      "name": "authenticated-live-planner-math-20261021.log",
+      "sha256": "3a2940704f168fc257ffffb2cc74b169fb78719b4414fc46c11351a3e0bdad56",
+      "bytes": 1902
+    },
+    {
+      "name": "authenticated-live-planner-reconciliation-20261021.json",
+      "sha256": "386ab4e9b3c03074a4dd43fea7eceaec93b04b15001793478b5eb04f50a33eb0",
+      "bytes": 1900
+    },
+    {
+      "name": "authenticated-live-saved-report-20261021.json",
+      "sha256": "f76362ce46cc237b7a9138f2ee156f8a8b87edbf6557a1a54d774072b1bb67aa",
+      "bytes": 8595
+    },
+    {
+      "name": "authenticated-live-saved-report-reconciliation-20261021.json",
+      "sha256": "5c9960d6d8642d3dcc7715b644632f2a8f321062ff85eb3b35a45bded7b4fab2",
+      "bytes": 1912
+    },
+    {
+      "name": "authenticated-live-sequence-math-20261021.log",
+      "sha256": "941b766f7e016a35c6d40398637b1e12c4acffb3bcfd831711e2ebf757c0a313",
+      "bytes": 799
+    },
+    {
+      "name": "authenticated-live-stress-controls-20261021.json",
+      "sha256": "2039b99354734a4f96a362ccd77651eb771d1e40af4a4af5d07970e964a3ef69",
+      "bytes": 7140
+    },
+    {
+      "name": "authenticated-live-stress-reset-20261021.png",
+      "sha256": "392b5aff1e8da24fc55358994bd2be144846b851c4987d7128cf6cbeac9648c5",
+      "bytes": 166478
+    },
+    {
+      "name": "authenticated-planner-repeatability-20261021.json",
+      "sha256": "c637664ddc4e486f342ab769380f0c6f3da85c48d038d70ad2382d014b83fb7e",
+      "bytes": 318
+    },
+    {
+      "name": "authenticated-settings-proof-20261021.json",
+      "sha256": "9093d15f18a6b728d6f402244198e336e9265a855bfbc52ffc4c3985ef0afd6d",
+      "bytes": 1522
+    },
+    {
+      "name": "authenticated-settings-restored-20261021.jpg",
+      "sha256": "b6193024ab8513a3bf99a81b3dce50352438fa7dceefa81e241d0f6a6307b02f",
+      "bytes": 21162
+    },
+    {
+      "name": "authenticated-wallet-context-before-20261021.png",
+      "sha256": "a5c92ea4cf07ae0fec68908da97e6e9285eae30b7467e365271884a320a1ea02",
+      "bytes": 77252
+    },
+    {
+      "name": "check_authenticated_aave_receipts_20261021.py",
+      "sha256": "2ae88c285252d60f9f0dbaee428686d02e0be301e859b7915d7ee8945b9af488",
+      "bytes": 2329
+    },
+    {
+      "name": "check_authenticated_final_aave_20261021.py",
+      "sha256": "ae60ba2c9b7e69b8b2361912318509b255f7994ab4ec8acc03e32d2a3b657136",
+      "bytes": 2327
+    },
+    {
+      "name": "check_authenticated_live_planner_20261021.py",
+      "sha256": "7500bc0c194a01431f48d35fef91b563c9aaaa599a1a75e7899fe70a3441d674",
+      "bytes": 5510
+    },
+    {
+      "name": "frontier-context-compatibility-ci-20261021.log",
+      "sha256": "347c9318ab80ece4ae6db2fb3794360ca968bbde94d7b78da33c50bd522b7c0d",
+      "bytes": 540684
+    },
+    {
+      "name": "frontier-context-final-gates-20261021.json",
+      "sha256": "97cf53fac380fe1f40268d5a635bf8fdab527b0d05f6f8547de4cbc6d9ee8852",
+      "bytes": 35305
+    },
+    {
+      "name": "frontier-context-live-chromium-20261021.json",
+      "sha256": "af56cdc8fd4d67764b0e43f9c4b7277ff87c6c59d7230eb8d7a642b6081fcf60",
+      "bytes": 36297
+    },
+    {
+      "name": "frontier-context-live-chromium-20261021.log",
+      "sha256": "c3884be9979c129d7509188e4bd2b293ad781023730683183f7309e96c6e2591",
+      "bytes": 4196
+    },
+    {
+      "name": "frontier-context-main-ci-20261021.log",
+      "sha256": "8938be5b870f7ae9c107362605f187a00e214355afa23eaf811cf27dd09d6b66",
+      "bytes": 510450
+    },
+    {
+      "name": "frontier-context-main-worker-ci-20261021.log",
+      "sha256": "0c3ad04082f6cb09a39fb90b6a225b406cdc4c5a16c2487accceabc37382eea9",
+      "bytes": 394013
+    },
+    {
+      "name": "frontier-context-native-build-20261021.json",
+      "sha256": "26c7b1294e8648c0054063eca4db7c2e7f8a453879771bb717dc1415cdfc3b4d",
+      "bytes": 509
+    },
+    {
+      "name": "frontier-context-native-build-20261021.png",
+      "sha256": "ab28178d0bcd9c172347dbe4bebcf33fc287f6ad98e7bb3140f6dffd7c33270a",
+      "bytes": 109851
+    },
+    {
+      "name": "frontier-context-pr-ci-20261021.log",
+      "sha256": "c5feb5d94aefd03589d4d2b8e0055156f6b218113048a4533e85967a985eec93",
+      "bytes": 519773
+    },
+    {
+      "name": "frontier-context-pre-release-deployments-20261021.json",
+      "sha256": "f12103c5cf9a45fd5b61ecc2a068925b2f98154f96918414bef91bbb31a08712",
+      "bytes": 4272
+    },
+    {
+      "name": "frontier-context-premerge-gates-20261021.json",
+      "sha256": "01032ddf5e4b43bfe7791223b402f897f4ee85d9544cad546045bbd4d2346b98",
+      "bytes": 56688
+    },
+    {
+      "name": "frontier-context-production-deployments-20261021.json",
+      "sha256": "e5339dba36898f512609d519d6d4e195671334f016dc4f6ef38b3e8842b7004f",
+      "bytes": 4272
+    },
+    {
+      "name": "frontier-context-public-browser-results-20261021.json",
+      "sha256": "4e63717577d15a24914516cd1a56f71b28edbbb63b1dddc5f0df264b32fced13",
+      "bytes": 845
+    },
+    {
+      "name": "frontier-context-public-compatibility-ci-20261021.log",
+      "sha256": "eb40ed651ef666759facfd239614a4da83cf949482d51918a95833b3dce7ffe8",
+      "bytes": 369944
+    },
+    {
+      "name": "frontier-context-source-ci-20261021.log",
+      "sha256": "7b5a5ffcb520466fad53e8bcf38562ed08c115bbebf41106ae3d5a20b298112b",
+      "bytes": 512165
+    },
+    {
+      "name": "frontier-context-unchanged-financial-source-20261021.json",
+      "sha256": "ff56d7a326314d5ebd9adfe58bcb53ab29b416cd817b8f6b97ff074d654462f0",
+      "bytes": 435
+    },
+    {
+      "name": "frontier-context-verified-release-20261021.json",
+      "sha256": "66a5678ac04534050d85fa5b5172ca78438070638f2fd786bbc76ace6c6916f4",
+      "bytes": 2559
+    },
+    {
+      "name": "frontier-context-worker-ci-20261021.log",
+      "sha256": "ee8d1de44a5942b7a953fa4964c338a774a54281cd5ec98cfe88e1f2ca884e92",
+      "bytes": 397746
+    },
+    {
+      "name": "frontier-empty-after-20261021.json",
+      "sha256": "c948358590a92b9a6c3f03a062569b00f55a3bf6a7c6cf18dfa36d9f6e3ba777",
+      "bytes": 19478
+    },
+    {
+      "name": "frontier-empty-ast-20261021.log",
+      "sha256": "3d3ecae9949b2cecb91a52cb2d62976e44466eaa693bbcc7ad4f3584764f1b99",
+      "bytes": 206
+    },
+    {
+      "name": "frontier-empty-before-20261021.json",
+      "sha256": "3d1499709121773529c315fbf70a519eb247f8ca9e21254555e0550b3116b465",
+      "bytes": 21796
+    },
+    {
+      "name": "frontier-empty-initial-compatibility-ci-20261021.log",
+      "sha256": "f1f3deeeb4c3792ac966ed006a7a677cd8e9fd3dbfd413726ae74eea4521ef78",
+      "bytes": 571745
+    },
+    {
+      "name": "frontier-empty-initial-compatibility-failed-20261021.log",
+      "sha256": "2010ded47ea11955a3fcd0584fbbb8d3be160beb46f1574ea4f099389a1a9bce",
+      "bytes": 89196
+    },
+    {
+      "name": "frontier-empty-initial-firefox-diagnostic-20261021.json",
+      "sha256": "7f3ea9f6f295f376c37350dc83cc446f0712a9eb58be4afbbd3bc2483e7edd4b",
+      "bytes": 688
+    },
+    {
+      "name": "frontier-empty-next-build-20261021.log",
+      "sha256": "8cd1f341a0a7ff8e6fab0696e5b989f04afef93e8b297ee6326b9656b8581238",
+      "bytes": 2078
+    },
+    {
+      "name": "frontier-empty-production-http-20261021.json",
+      "sha256": "62b3b9628d4e6f9a03d4a703c4e1dab9d0b2a8f0b1de237438286a329ae1ad98",
+      "bytes": 949
+    },
+    {
+      "name": "frontier-empty-source-ci-20261021.log",
+      "sha256": "0453adf2288c943d2e8ed0ca6840943ba4230551a40c86fd0d4c033c0ab7ba92",
+      "bytes": 511428
+    },
+    {
+      "name": "frontier-empty-types-20261021.log",
+      "sha256": "12fb64ccfd9938e53e0b0080ea0dc1fb5fadbfecd72e7f9f8d3bef7133508be6",
+      "bytes": 119
+    },
+    {
+      "name": "frontier-empty-worker-ci-20261021.log",
+      "sha256": "63bf9e0677b46909cd5a925db65b332b2675e8b8ffa2ffdca5f2c1af13b1d840",
+      "bytes": 397913
+    },
+    {
+      "name": "verify-authenticated-morpho-sequence-20261021.mjs",
+      "sha256": "73fb1f414f23e7f9673f3ca0d3180cc51a72c5b426550be6730ec64ca610070f",
+      "bytes": 2887
+    },
+    {
+      "name": "watch-context-after-20261021.json",
+      "sha256": "378620f12cbe85e98e67a4a2aa066a1c1da571aae66d77161e49502ddcb57035",
+      "bytes": 37590
+    },
+    {
+      "name": "watch-context-after-20261021.log",
+      "sha256": "feb0db80ab110ec1b4605abf0a8b83736ddbd2e92dbbf22289a719dedf355604",
+      "bytes": 4870
+    },
+    {
+      "name": "watch-context-ast-20261021.log",
+      "sha256": "df0904d3f5cfca8270ad3805e1eb073a8375571b16e080a6b5e1967b29b39011",
+      "bytes": 270
+    },
+    {
+      "name": "watch-context-before-20261021.json",
+      "sha256": "f1ec92ce8e8d8a6c9770e579df4d7456a065294c603d8914807b78c1f7826a20",
+      "bytes": 21474
+    },
+    {
+      "name": "watch-context-before-20261021.log",
+      "sha256": "bc744cd79314795a1b80216e2feb856fd80aa8e521856fbf5652a6bc988a7c72",
+      "bytes": 9632
+    },
+    {
+      "name": "watch-context-next-build-20261021.log",
+      "sha256": "c8c2a032ceaa51f8295e47faa500cb5803dbb88e17b7b65bce354f18c38d892f",
+      "bytes": 2077
+    },
+    {
+      "name": "watch-context-types-20261021.log",
+      "sha256": "12fb64ccfd9938e53e0b0080ea0dc1fb5fadbfecd72e7f9f8d3bef7133508be6",
+      "bytes": 119
+    }
+  ]
+}
