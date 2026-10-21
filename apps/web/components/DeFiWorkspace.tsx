@@ -38,7 +38,8 @@ export function DeFiWorkspace({initialView="portfolio",authenticated=false,demoO
   const [coverage,setCoverage]=useState("aave"),[positionId,setPositionId]=useState(""),[shares,setShares]=useState<string|undefined>(),[asset,setAsset]=useState(""),[kind,setKind]=useState("repay"),[amount,setAmount]=useState(""),[preview,setPreview]=useState<Record<string,unknown>|null>(null),[reports,setReports]=useState<{id:string;created_at:string;receipt:unknown}[]>([]);
   useEffect(()=>{if(!s){setCoverage(preferences.defaultCoverage);setAddress(previous=>previous||preferences.walletAddresses[0]||"")}},[preferences.defaultCoverage,preferences.walletAddresses]);
   useEffect(()=>{setView(initialView)},[initialView]);
-  useEffect(()=>{if(wallet.analysisAddress)setAddress(wallet.analysisAddress)},[wallet.analysisAddress]);
+  // A retained watch selection must not relabel an already inspected snapshot on route mount.
+  useEffect(()=>{if(wallet.analysisAddress&&!s)setAddress(wallet.analysisAddress)},[wallet.analysisAddress]);
   useEffect(()=>{if(typeof s?.coverage==='string')setCoverage(s.coverage)},[s?.coverage]);
   useEffect(()=>{const timer=setInterval(()=>setClock(Date.now()),10000);return()=>clearInterval(timer)},[]);
   const stale=!!s&&!s.sample&&(clock/1000-s.blockTimestamp>180),ready=!!s&&s.status==="READY"&&!stale&&!s.restoredReport;

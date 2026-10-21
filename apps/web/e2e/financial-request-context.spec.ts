@@ -61,3 +61,16 @@ for(const destination of ['Stress-test this position →','Open Defense Frontier
  await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address').fill(addressA);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:destination,exact:true}).click();await expect(page).toHaveURL(destination.startsWith('Stress')?/\/workspace\/scenarios$/:/\/workspace\/frontier$/);await expect(page.getByLabel('Public Ethereum address')).toHaveValue(addressA);await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();
 });
+
+for(const view of ['scenarios','frontier'] as const)test(`retained watch selection cannot relabel a different inspected wallet in ${view}`,async({page})=>{
+ await page.route('**/api/v1/account/settings',r=>r.fulfill({json:{profile:{displayName:'QA',email:'qa@example.invalid',emailVerified:true},preferences:{...DEFAULT_PREFERENCES,walletAddresses:[addressB]}}}));
+ const inspected:string[]=[];
+ await page.route('**/api/v1/defi/snapshot',r=>{const wallet=r.request().postDataJSON().wallet;inspected.push(wallet);return r.fulfill({json:snapshot(wallet)})});
+ await page.goto('/workspace/wallets',{waitUntil:'domcontentloaded'});
+ await page.getByRole('button',{name:'Inspect',exact:true}).click();await expect(page).toHaveURL(/\/workspace$/);
+ await expect(page.getByLabel('Public Ethereum address')).toHaveValue(addressB);expect(inspected).toEqual([]);
+ await page.getByLabel('Public Ethereum address').fill(addressA);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();
+ await openWorkspaceView(page,view);
+ await expect(page.getByLabel('Public Ethereum address')).toHaveValue(addressA);await expect(page.getByText('ON-CHAIN SNAPSHOT',{exact:true})).toBeVisible();expect(inspected).toEqual([addressA]);
+ await page.getByRole('button',{name:'Refresh evidence ↻',exact:true}).click();await expect.poll(()=>inspected.length).toBe(2);expect(inspected).toEqual([addressA,addressA]);await expect(page.getByLabel('Public Ethereum address')).toHaveValue(addressA);
+});
