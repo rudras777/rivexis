@@ -5,6 +5,7 @@ import {format,type Frontier} from "../../../supabase/functions/rivexis-api/defi
 export function FrontierChart({result,selected=0,onSelect}:{result:Frontier;selected?:number;onSelect?:(i:number)=>void}){
   const {preferences}=useAccountPreferences();
   const money=(raw:string)=>displayedMoney(raw,preferences.numberGrouping);
+  if(!result.alternatives.length)return <figure className="frontierChart"><figcaption><strong>Capital / modeled stressed health</strong></figcaption><p role="status">No feasible alternatives to plot. Current position remains in the recorded baseline; available token balances and planning constraints produced no eligible action.</p></figure>;
   const finite=result.alternatives.filter(a=>a.minHealthFactorRaw!==null);
   if(!finite.length)return <figure className="frontierChart"><figcaption><strong>Capital / modeled stressed health</strong></figcaption><p role="status">No finite health factor to plot. Debt-free alternatives retain their costs in the comparison table; their health factor is not represented as a fabricated number.</p></figure>;
   const maxCapital=Math.max(1,...finite.map(a=>Number(format(a.totalBudgetRaw,8,8)))),maxHf=Math.max(2,Number(format(result.targetRaw,18,6)),...finite.map(a=>Number(format(a.minHealthFactorRaw!,18,6)))),target=Number(format(result.targetRaw,18,6));

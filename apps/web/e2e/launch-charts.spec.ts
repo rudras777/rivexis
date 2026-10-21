@@ -67,7 +67,7 @@ test('CH08 zero-capital planner gives honest empty state without scatter points'
  await inspect(page,fixture());await openWorkspaceView(page,'frontier');
  await page.getByLabel('Capital budget / USD',{exact:true}).fill('0');await page.getByLabel('Assumed total fee reserve / USD',{exact:true}).fill('0');
  await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();await expect(page.getByRole('heading',{name:'No alternative found that reaches your target.'})).toBeVisible();
- await expect(page.getByRole('group',{name:/Scatter chart/})).toHaveCount(0);await expect(page.getByText('No finite health factor to plot.',{exact:false})).toBeVisible();
+ await expect(page.getByRole('group',{name:/Scatter chart/})).toHaveCount(0);await expect(page.getByText('No feasible alternatives to plot.',{exact:false})).toBeVisible();await expect(page.locator('.frontierChart').filter({hasText:'Capital / modeled stressed health'})).not.toContainText('Debt-free');
 });
 test('CH09 debt-free planner retains zero-cost baseline without arbitrary numeric health',async({page})=>{
  const s=fixture();s.positions[0].reserves[1].debtRaw='0';s.observedDebtRaw='0';s.observedHealthFactorRaw=null;await inspect(page,s);
@@ -96,4 +96,11 @@ test('CH13 mobile graphs expose accessible data tables without page overflow',as
  await expect(sensitivity(page).getByRole('table')).toBeVisible();await expect(page.getByRole('img',{name:'Collateral and debt share by asset'})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const scan=await new AxeBuilder({page}).include('[aria-label="Position charts"]').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);
+});
+
+test('CH14 unfunded wallet keeps its finite baseline without a debt-free chart explanation',async({page})=>{
+ const s=fixture();for(const position of s.positions)for(const reserve of position.reserves)reserve.walletRaw='0';
+ await inspect(page,s);await openWorkspaceView(page,'frontier');await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
+ await expect(page.locator('.alternative')).toHaveCount(0);await expect(page.getByText('No eligible balance-constrained action was found.',{exact:false})).toBeVisible();
+ const empty=page.locator('.frontierChart').filter({hasText:'Capital / modeled stressed health'});await expect(empty).toContainText('No feasible alternatives to plot.');await expect(empty).toContainText('Current position remains in the recorded baseline');await expect(empty).not.toContainText('Debt-free');await expect(empty.locator('svg')).toHaveCount(0);
 });
