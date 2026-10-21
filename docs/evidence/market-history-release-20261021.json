@@ -1,0 +1,259 @@
+{
+  "recordedAtUTC": "2026-10-21T08:28:11.016880+00:00",
+  "release": {
+    "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+    "production": "5123c22bbb4c28a5e79708e88ecba0c9f69b2865",
+    "source": "635eef96952eda5ccbbb985192ea49a0643376f2",
+    "tree": "371b9aec56f15fe6602ae67c2960f3b4d90629b7",
+    "pr": 101,
+    "worker": "f535fd05-2fd8-4e5a-95dc-81235e7e66da",
+    "allocation": 100,
+    "deployment": "c269613d-35dc-47a2-9abb-930d2f69d2c5",
+    "nativeBuild": "96389e29-240b-4edc-a786-bdc9786317e3",
+    "nativeResult": "success",
+    "sourceCI": 39565667407,
+    "prCI": 39565674047,
+    "workerCI": 39565674103,
+    "fixtureCompatibilityCI": 39565674155,
+    "mainCI": 39568560026,
+    "mainWorkerCI": 39568559896,
+    "publicCompatibilityCI": 39568824246,
+    "allFinalGates": "PASS"
+  },
+  "tests": {
+    "fixtureCasesPerEngine": 306,
+    "actualPublicCasesPerEngine": 30,
+    "finalSkippedFlakyUnexpectedTestRetries": 0,
+    "firefoxJobReruns": 1,
+    "fixtureFirefoxDriverReleases": 1,
+    "publicDriverReleases": 0,
+    "originalFirefoxFailedCases": 1,
+    "originalFailureCause": "Unestablished; unchanged-head full retest passed",
+    "localFirefoxLaunchFailures": 20,
+    "localFirefoxFunctionalResults": 0,
+    "additionalChromiumHandoffs": 10,
+    "financialAuth": 295,
+    "apiEdge": 30,
+    "marketUnits": 33,
+    "localMarketBrowser": 21
+  },
+  "actualMarket": {
+    "blocks": [
+      26239751,
+      26239753
+    ],
+    "historyPerAsset": 8,
+    "distinctChartTimestampsPerAsset": 9,
+    "archiveErrors": 8,
+    "conflicts": 0,
+    "rpcCalls": [
+      55,
+      13
+    ],
+    "httpRequests": [
+      21,
+      5
+    ],
+    "elapsedMs": [
+      6970,
+      1241
+    ],
+    "scope": "Actual source collector on public RPC; not signed-in UI/SLA certification"
+  },
+  "unchanged": {
+    "financialModels": true,
+    "design": true,
+    "data": true,
+    "apiVersion": 36,
+    "reportVersion": 4,
+    "alertsVersion": 5,
+    "database": "17.11.0.003",
+    "addedRecurringServicesUSD": 0
+  },
+  "limits": [
+    "Fresh authenticated production workflow checks pending normal owner login; no reset/import/bypass",
+    "Independent native-wallet permission UX",
+    "Owned sending-domain and inbox placement",
+    "Independent recovery custody, second-machine/full-service restore/RPO/RTO",
+    "Sustained performance/load/availability and institutional operating/security assurance",
+    "Single braces advisory through seven High package entries remains; no patched3.x version",
+    "Supabase pg_net and Pro-only leaked-password-protection advisories remain"
+  ],
+  "evidence": [
+    {
+      "file": "partial-history-before-20261021.log",
+      "bytes": 9601,
+      "sha256": "aa4d8c3a4f33467f357d5df1a3ee3caf885f722887c0091e157dc1de0990fa3e"
+    },
+    {
+      "file": "partial-history-after-20261021.log",
+      "bytes": 2681,
+      "sha256": "92550d86435a39620a4fac9b1c9d6339ed66d18fdd5b04c1c293a79cf4ca9952"
+    },
+    {
+      "file": "partial-history-recovery-before-20261021.json",
+      "bytes": 10784,
+      "sha256": "6c8e2bdd89f9ca4339b6c171a66dc61030f198d0c97066202b4ba94aebb2fd0b"
+    },
+    {
+      "file": "partial-history-final-market-browser-20261021.json",
+      "bytes": 27296,
+      "sha256": "9ed9819cb473242170609175f54990fddf6f8e14b48956a01897b3ec2beabbdf"
+    },
+    {
+      "file": "partial-history-final-next-build-20261021.log",
+      "bytes": 2076,
+      "sha256": "b66d056525a4e624bdcfa2f34ed8cc572b8964f37412bdfccf3f20b6dcdcb47d"
+    },
+    {
+      "file": "partial-history-final-types-20261021.log",
+      "bytes": 333,
+      "sha256": "ad1f486de148e024a051a79be5c9a8883ab2976a4b852be690a480361bfa18e4"
+    },
+    {
+      "file": "partial-history-final-ast-20261021.log",
+      "bytes": 206,
+      "sha256": "3d3ecae9949b2cecb91a52cb2d62976e44466eaa693bbcc7ad4f3584764f1b99"
+    },
+    {
+      "file": "market-provider-partial-before-20261021.json",
+      "bytes": 13499,
+      "sha256": "de050e619368726fff11a3ca3a0ff112886de77d0926c5bb78d2359bfadd53df"
+    },
+    {
+      "file": "market-provider-partial-verified-20261021.json",
+      "bytes": 18925,
+      "sha256": "44ee2771a0cc1dd1339a3fcf5eb6d9b65632f86ac450d3627512ff1645ebffe7"
+    },
+    {
+      "file": "partial-history-source-web-20261021.log",
+      "bytes": 98101,
+      "sha256": "b22ce738638225306ecd67ed612db17985b20187fb8a1cb4319c820fafe26373"
+    },
+    {
+      "file": "partial-history-source-postgres-20261021.log",
+      "bytes": 38035,
+      "sha256": "adffc949a285649508fcf3e5d4a8b552aaebfc7b28246438540482948784c75f"
+    },
+    {
+      "file": "partial-history-npm-audit-before-20261021.json",
+      "bytes": 5883,
+      "sha256": "c51c22837ebcefd1bc295bac8f1e2be0e25b7a1c71b80e1d7ddeeb9ece898948"
+    },
+    {
+      "file": "partial-history-npm-audit-patched-20261021.json",
+      "bytes": 4005,
+      "sha256": "25ee7f454d24cacaee981803d6c3f3ffc2b0ecd9fb8efa300cea05f0d7df1281"
+    },
+    {
+      "file": "partial-history-patched-audit-20261021.log",
+      "bytes": 225,
+      "sha256": "bc9a35a00089ac77124cf6f4f135db58343f6826c1d41186cc18f2203427257e"
+    },
+    {
+      "file": "partial-history-vite-worker-build-20261021.log",
+      "bytes": 3215,
+      "sha256": "5cd516ff51134bd358466df722755fce5a8d782a10fd4b39c88221d0184d718b"
+    },
+    {
+      "file": "partial-history-vite-worker-dryrun-20261021.log",
+      "bytes": 110491,
+      "sha256": "5526a99d55f4c0bbf87af9a1f061a927f902f97888720c16b4ed26a1de59304e"
+    },
+    {
+      "file": "partial-history-final-source-ci-20261021.log",
+      "bytes": 512159,
+      "sha256": "b939c7a42f149a8b0eb0d3662dc7bff07757690c7789595d55a4e8096ce465e4"
+    },
+    {
+      "file": "partial-history-final-pr-ci-20261021.log",
+      "bytes": 516846,
+      "sha256": "5ddc3b9c3101cb40f462f8b6723d6365752e56c20c80fc92b6b130f0bf24f538"
+    },
+    {
+      "file": "partial-history-final-worker-ci-20261021.log",
+      "bytes": 396144,
+      "sha256": "d69bbf19c97bd40b3661c152a51f85f0292032a1ff607affcbbfff54259a8c95"
+    },
+    {
+      "file": "partial-history-first-compatibility-20261021.log",
+      "bytes": 575893,
+      "sha256": "f2e4e92aa886365be44c9b1d406773e4026c13918c72e44732cebfa2f21e746a"
+    },
+    {
+      "file": "partial-history-final-compatibility-20261021.log",
+      "bytes": 475870,
+      "sha256": "de71e3b26c589268e2b1704e91213b821de7b57824cc88f394c016cc86b14f84"
+    },
+    {
+      "file": "partial-history-firefox-first-failure-20261021.log",
+      "bytes": 149986,
+      "sha256": "7efd4309eea9fd27250e9d159c44e71196f29aee41ab468cb82b5f32fe722127"
+    },
+    {
+      "file": "partial-history-firefox-handoff-diagnostic-20261021.json",
+      "bytes": 37915,
+      "sha256": "5021dd71dec9fdc263cbc22f2306097b4afc115a243eecd8f0376bb8b2872031"
+    },
+    {
+      "file": "partial-history-firefox-handoff-repaired-20261021.json",
+      "bytes": 37869,
+      "sha256": "8221a1a3c57deb7c9990178e4d0fb0e225241ea6ced5245a5ebd52c287552cb9"
+    },
+    {
+      "file": "partial-history-firefox-runtime-repair-20261021.log",
+      "bytes": 8843,
+      "sha256": "4f29363187fa73969d17d99d00bdd1f895dc0b4ef55584452f0d03fce58f6792"
+    },
+    {
+      "file": "partial-history-chromium-handoff-diagnostic-20261021.json",
+      "bytes": 15386,
+      "sha256": "6b2aafd4333dc0d4ac0d648574df6c2f5b9a6e8999d18e2871308e823b4cc763"
+    },
+    {
+      "file": "partial-history-final-main-ci-20261021.log",
+      "bytes": 508665,
+      "sha256": "8106ce5409fcb495927c0d7ef44516554a46346d41e17a5c2a712dd54a4e7156"
+    },
+    {
+      "file": "partial-history-final-main-worker-20261021.log",
+      "bytes": 392599,
+      "sha256": "fa2e415f5d3c82c62fc8785e2e93583caf3926729607016938fdca5dbc631af1"
+    },
+    {
+      "file": "partial-history-public-chromium-20261021.json",
+      "bytes": 37399,
+      "sha256": "e071aba337c49bb8930f0d9f6fec8d9d9e95d2fddf7c9f7aceafe47f98ddb866"
+    },
+    {
+      "file": "partial-history-public-compatibility-20261021.log",
+      "bytes": 370111,
+      "sha256": "65078fa2cb43eff4e6677ba705d5ea5eeed68f37be2f6a0cfe724e8383639971"
+    },
+    {
+      "file": "partial-history-production-http-20261021.json",
+      "bytes": 947,
+      "sha256": "0ff42e3f47300d49840dcb85259b01bbd578fefb33f716747500f4954ae36b40"
+    },
+    {
+      "file": "partial-history-final-deployments-20261021.json",
+      "bytes": 4272,
+      "sha256": "f12103c5cf9a45fd5b61ecc2a068925b2f98154f96918414bef91bbb31a08712"
+    },
+    {
+      "file": "market-provider-deployed-20261021.json",
+      "bytes": 21098,
+      "sha256": "f299fbd2ba3050b5f997fbc87a4ab94cd1f5d713ed31ecd3ee3273ce727ed7a1"
+    },
+    {
+      "file": "partial-history-live-home-20261021.jpg",
+      "bytes": 74659,
+      "sha256": "fee7c3585264108e479cc0e691824ecc74c9f07264a57a3f21b556e4808e6349"
+    },
+    {
+      "file": "partial-history-live-rollout-20261021.jpg",
+      "bytes": 82107,
+      "sha256": "ff20c96fa26b5694013e03efc3217388b430d3e3822c53da09899369552e4b47"
+    }
+  ]
+}
