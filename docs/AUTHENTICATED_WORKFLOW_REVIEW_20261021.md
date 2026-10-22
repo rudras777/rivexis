@@ -21,20 +21,30 @@ The owner completed normal sign-in to the existing RIVEXIS website and existing 
 
 Raw evidence and checkers are in task outputs, outside Git. Source receipts contain actual public-reference financial observations and remain local; manifests contain hashes only. The standalone checkers import no application models and issue no extra RPC requests. The actual production cases complement, rather than replace, the [at-least-ten scenario fixtures per critical workflow](WORKFLOW_SCENARIO_COVERAGE.md). Do not describe all invalid/provider failure fixtures as production events.
 
-## Reproduced chart-state defect and correction in progress
+## Reproduced chart-state defect and released correction
 
 The live unfunded Aave result exposed a misleading scatter-chart empty message: it described debt-free alternatives when no alternatives existed, despite a finite baseline with debt. The calculation and zero-balance feasibility result were correct. The chart now distinguishes an empty alternatives list from nonempty debt-free alternatives. No financial arithmetic, API, schema, design, color, logo, navigation or infrastructure change.
 
-Before correction, zero-capital and zero-wallet browser cases both fail on the misleading message. After correction, all14 chart cases pass, including preserved debt-free baseline behavior. Next production build, types and AST checks pass. Exact-head source/PR/Worker/Firefox/WebKit gates, merge, same-Worker rollout and public/authenticated verification remain required before claiming this correction deployed. Branch: `fix/frontier-empty-chart-state-20261021`.
+Before correction, zero-capital and zero-wallet browser cases both fail on the misleading message. After correction, all14 chart cases pass, including preserved debt-free baseline behavior. Next production build, types and AST checks pass. Exact-head source/PR/Worker/Firefox/WebKit gates, merge, same-Worker rollout and public/authenticated verification subsequently passed; final identities are recorded below. Branch: `fix/frontier-empty-chart-state-20261021`.
 
-## Inspected-wallet route context correction in progress
+## Inspected-wallet route context released correction
 
 An actual route check found the earlier selected watch identity could overwrite the address field after manually inspecting a different wallet and navigating to another financial route. Snapshot, refresh and transaction requests remained bound to the actual inspected wallet; the visible input was misleading. The mount-time watch selection now defers to an existing snapshot. Explicit new watch/provider selections still reset evidence and require inspection.
 
-Both new route cases fail before the correction on the mismatched address; all31 chart/request-context cases pass after it, with no retries, skips or flaky results. The production build, types and AST checks pass. No financial model or wallet permission change. PR102 includes this correction and must pass a fresh exact-head full release gate before deployment.
+Both new route cases fail before the correction on the mismatched address; all31 chart/request-context cases pass after it, with no retries, skips or flaky results. The production build, types and AST checks pass. No financial model or wallet permission change. PR102 includes this correction and subsequently passed fresh exact-head full release gates before deployment.
 
-Retained preliminary head e1e6a99: source/PR/Worker passed; WebKit307 passed, Firefox306/307 failed a15-second initial `/signup` navigation deadline before the signup assertion. There were zero driver recovery attempts; cause is unestablished. That result remains retained, and is not called a successful release gate. New full gates are required on the combined correction; no assertion, timeout or retry policy was weakened.
+Retained preliminary head e1e6a99: source/PR/Worker passed; WebKit307 passed, Firefox306/307 failed a15-second initial `/signup` navigation deadline before the signup assertion. There were zero driver recovery attempts. Diagnostics found a complete200 document with zero pending/page/resource failures but one observed5xx; the guard correctly refused recovery. Cause is unestablished. That result remains retained, and is not called a successful release gate. New full gates are required on the combined correction; no assertion, timeout or retry policy was weakened.
 
 ## Scope and remaining assurance gates
 
 Fresh signed-in core workflow verification is now performed within the stated Ethereum Aave normal-mode and bounded Morpho market coverage. This is not unrestricted institutional certification. Native-wallet permission dialogs, owned sending-domain/inbox placement, independent recovery-key custody/second-machine/full-service restore/RPO/RTO and sustained field/load/availability/security/operating assurance remain open. Existing upstream braces and Supabase configuration advisories stay disclosed. No paid upgrade or new recurring service. Existing authentication, Brevo, Supabase users/data and rollback remain preserved.
+
+## Final release and verification
+
+PR102 source `7c1d9dee0df9003e9c37b9029264bb363dc005e4` passed all exact-head gates and merged as `c829a3dae89ee6711339af6da2b386c008de27bd` with an identical Git tree. Existing Cloudflare Worker `a77fd608-8118-4e5f-82d9-7122b3e8e94a` is allocated100%; native build `12f19742-fcc8-4c29-bf62-e28e62cf3819` is ready. Same production URL, backend API36/reports4/alerts5, users/data and approved design/models are retained. No backend deployment or migration.
+
+All309 fixture cases pass per Chromium/Firefox/WebKit engine on the combined source; all30 actual-public cases pass per engine on the exact deployed commit. Financial/auth295, API-edge30, market33 and full standard security/build/type/Worker/database checks pass. The preliminary Firefox navigation failure above remains retained; no release assertion, timeout or retry policy was weakened. Final-run retry/driver details are in the structured manifest.
+
+Normal authenticated post-rollout verification confirms the no-feasible-actions message without a debt-free claim, the watch-selection/manual-inspection route identity correction, retained Settings preferences and five private reports. Public build identity, HTTP health, native rollout and actual browser DOM agree. Actual financial receipts described above remain dated5123c22; source comparison confirms the financial models/API did not change. This is a supported bounded beta release, with separate institutional assurance gates still open.
+
+[Structured evidence hashes and exact release/test identities](evidence/authenticated-workflows-release-20261021.json). Raw receipts/screenshots/logs remain outside Git; account export, cookies and recovery keys are excluded.

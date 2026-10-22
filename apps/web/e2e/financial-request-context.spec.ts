@@ -50,7 +50,12 @@ test('an obsolete report load cannot replace the current list or unlock its requ
 });
 
 test('a stale save completion does not announce success for a replaced comparison',async({page})=>{
- let pending:Route|undefined;await page.route('**/api/v1/defi-reports',r=>{pending=r});await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await openWorkspaceView(page,'frontier');await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();await openWorkspaceView(page,'reports');await page.getByRole('button',{name:'Save comparison to account',exact:true}).click();await expect.poll(()=>Boolean(pending)).toBe(true);
+ let pending:Route|undefined;await page.route('**/api/v1/defi-reports',r=>{pending=r});await page.goto('/workspace',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await openWorkspaceView(page,'frontier');await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();await openWorkspaceView(page,'reports');
+ const requests:string[]=[];page.on('request',request=>requests.push(new URL(request.url()).pathname));
+ await page.evaluate(()=>{const events:unknown[]=[];(window as any).__saveClickEvidence=events;for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,event=>{const target=event.target as HTMLElement;events.push({type,button:target.closest('button')?.textContent?.trim(),tag:target.tagName})},true)});
+ try{await page.getByRole('button',{name:'Save comparison to account',exact:true}).click();await expect.poll(()=>Boolean(pending)).toBe(true)}finally{
+  console.info('SAVE_CLICK_EVIDENCE '+JSON.stringify({pending:!!pending,requests,dom:await page.evaluate(()=>({events:(window as any).__saveClickEvidence,scrollBehavior:getComputedStyle(document.documentElement).scrollBehavior,buttons:Array.from(document.querySelectorAll('.inlineActions button')).map(button=>({label:button.textContent?.trim(),disabled:(button as HTMLButtonElement).disabled,top:button.getBoundingClientRect().top})),errors:Array.from(document.querySelectorAll('.defiWorkspace [role=alert]')).map(element=>element.textContent)}))}));
+ }
  await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();const response=page.waitForResponse('**/api/v1/defi-reports');await pending!.fulfill({json:{id:'OBSOLETE_SAVE'}});await response;await expect(page.locator('.defiWorkspace > .success[role=status]')).toHaveCount(0);await expect(page.getByText(/Report saved:/)).toHaveCount(0);await expect(page.locator('.defiWorkspace p[role=status]')).toHaveText('No background monitoring is active.');
 });
 
