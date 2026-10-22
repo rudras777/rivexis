@@ -1,5 +1,7 @@
 # Workspace navigation production closeout
 
+Subsequent security follow-up: the documentation branch's17:40UTC audit detected a newly published critical Next.js finding after the navigation release gates had passed. The historical results below remain retained; do not infer current dependency sign-off from them. [Active security correction](NEXT_SECURITY_FOLLOWUP_20261022.md).
+
 Verified 22 October 2026, Asia/Calcutta. The selected-function clipping and the subsequently reproduced interaction defects are corrected on the [existing production website](https://rivexis-web.rudrasingh0718.workers.dev/). Production commit **643de5a2d2aad9ca05caee32131685f0bc2f5d50**, merged [PR104](https://github.com/rudras777/rivexis/pull/104), matches source 4ec652976805455979f80cbd3537603a994ad55a and tree 7c1d4ef4437a2b8c96a4cda34973431b56bb8afe. [PR103](https://github.com/rudras777/rivexis/pull/103) supplied the clipping correction; PR104 completed interaction verification and correction.
 
 The same rivexis-web Worker serves version b5f973a6-b683-413b-8bcc-c39d8fbed0d5 at 100%, deployment a47f428d-9d1d-4a64-ad0c-8d0c00b51f2b. Native Cloudflare build 93aa29ad-d811-49c5-a8b0-85d3e156c080 is Ready. Actual public HTML, health, guest-session status and the genuine signed-in browser identify the same commit. No separate site, Worker, repository or deployment provider was created.
