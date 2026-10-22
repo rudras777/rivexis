@@ -12,6 +12,7 @@ function fixture(raw8='124481528'){
  return {...s,sample:false,wallet,coverage:'aave',blockNumber:'28000300',blockHash:'0x'+'1'.repeat(64),observedCollateralRaw:collateral.toString(),observedDebtRaw:'100000000',observedHealthFactorRaw:(goal*10n**10n).toString()};
 }
 async function setup(page:Page,precision=3,grouping=true,s=fixture()){
+ await page.addInitScript(()=>{const events:unknown[]=[];(window as any).__chartInteractionEvidence=events;for(const type of ['pointerdown','pointerup','click','submit','invalid'])document.addEventListener(type,event=>{if(events.length>=80)return;const target=event.target as HTMLElement;events.push({type,button:target.closest('button')?.textContent?.trim(),tag:target.tagName,scrollY,defaultPrevented:event.defaultPrevented})},type==='invalid')});
  await page.clock.install({time:instant});await page.clock.setFixedTime(instant);
  await page.route('**/health',r=>r.fulfill({json:{status:'ready'}}));
  await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:true,email_verified:true}}));
@@ -54,10 +55,12 @@ test('USD history readouts and data tables respect disabled thousands grouping',
  await expect(page.getByRole('cell',{name:'$3000.00000000',exact:true})).toBeVisible();await expect(page.getByRole('cell',{name:'$3000.0000',exact:true})).toBeVisible();
 });
 test('positive sub-cent defense capital is never labeled zero in chart alternatives',async({page})=>{
+ try{
  await setup(page);await page.getByRole('button',{name:'Open Defense Frontier →',exact:true}).click();await page.getByLabel('Capital budget / USD',{exact:true}).fill('0.000005');await page.getByLabel('Assumed total fee reserve / USD',{exact:true}).fill('0');await page.getByRole('button',{name:'Calculate alternatives ↗',exact:true}).click();
  const plot=page.getByRole('group',{name:/Scatter chart/}),positive=plot.getByRole('button',{name:/cost <\$0\.01/});await expect(positive.first()).toBeVisible();await positive.first().press('Enter');await expect(page.locator('.frontierSelected strong')).toHaveText('<$0.01 capital used');
  await expect(page.getByLabel('Alternative',{exact:true}).locator('option:checked')).toContainText('<$0.01');await expect(page.locator('.planComparison')).toContainText(/(?:Repay|Supply) <0\.0001/);const selected=page.locator('.alternative[data-selected="true"]');await expect(selected.getByRole('heading')).toContainText('<0.0001');await selected.getByRole('button',{name:'Preview action →',exact:true}).click();
  // Navigation mounts the transaction form before its draft-prefill effect runs.
  // Assert the settled value, rather than synchronously reading the empty initial field.
  await expect.poll(async()=>Number(await page.getByLabel('Token amount',{exact:true}).inputValue())).toBeGreaterThan(0);
+ }finally{console.info('PRECISION_CHART_INTERACTION_EVIDENCE '+JSON.stringify(await page.evaluate(()=>({events:(window as any).__chartInteractionEvidence,scrollBehavior:getComputedStyle(document.documentElement).scrollBehavior,resultPanels:document.querySelectorAll('.planComparison').length,errors:Array.from(document.querySelectorAll('.defiWorkspace [role=alert]')).map(element=>element.textContent)})).catch(()=>({diagnosticUnavailable:true}))))}
 });

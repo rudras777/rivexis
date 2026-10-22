@@ -50,6 +50,16 @@ test('Escape cancels an uncommitted hover opening',async({page})=>{
  await expect(risk).toHaveAttribute('aria-expanded','false');await expect(nav.getByRole('link',{name:'LiquidationGuard',exact:true})).toBeHidden();
 });
 
+test('workspace page alignment settles immediately while public scrolling keeps its motion',async({page})=>{
+ await setup(page);await page.emulateMedia({reducedMotion:'no-preference'});await page.setViewportSize({width:1600,height:400});
+ await page.goto('/workspace/contracts',{waitUntil:'domcontentloaded'});await expect(page.getByRole('heading',{name:'Contracts',level:1,exact:true})).toBeVisible();
+ const workspace=await page.evaluate(()=>{window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'});const before=scrollY;window.scrollTo({top:0});return {before,after:scrollY}});
+ expect(workspace.before).toBeGreaterThan(100);expect(workspace.after).toBe(0);
+ await page.getByRole('link',{name:'Rivexis home',exact:true}).click();await expect(page).toHaveURL(/\/$/);await expect(page.getByRole('heading',{level:1})).toBeVisible();
+ const publicPage=await page.evaluate(()=>{window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'});const before=scrollY;window.scrollTo({top:0});return {before,after:scrollY}});
+ expect(publicPage.before).toBeGreaterThan(100);expect(publicPage.after).toBeGreaterThan(0);await expect.poll(()=>page.evaluate(()=>scrollY)).toBe(0);
+});
+
 const menuCases=[
  ['Risk Intelligence','/workspace'],['Transaction Intelligence','/workspace/transactions'],['Decision Intelligence','/workspace/frontier'],['On-Chain','/workspace/contracts'],['Research & Monitoring','/workspace/reports'],
 ] as const;
