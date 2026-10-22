@@ -1,0 +1,529 @@
+{
+  "release": {
+    "recordedAtUTC": "2026-10-22T17:36:54.575707+00:00",
+    "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+    "source": "4ec652976805455979f80cbd3537603a994ad55a",
+    "production": "643de5a2d2aad9ca05caee32131685f0bc2f5d50",
+    "tree": "7c1d4ef4437a2b8c96a4cda34973431b56bb8afe",
+    "pr": 104,
+    "precedingPR": 103,
+    "workerVersion": "b5f973a6-b683-413b-8bcc-c39d8fbed0d5",
+    "allocationPercent": 100,
+    "deployment": "a47f428d-9d1d-4a64-ad0c-8d0c00b51f2b",
+    "nativeBuild": "93aa29ad-d811-49c5-a8b0-85d3e156c080",
+    "allGates": "PASS",
+    "gates": {
+      "sourceCI": {
+        "id": 39820545164,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39820545164",
+        "conclusion": "success",
+        "headSha": "4ec652976805455979f80cbd3537603a994ad55a",
+        "status": "completed"
+      },
+      "prCI": {
+        "id": 39820588974,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39820588974",
+        "conclusion": "success",
+        "headSha": "4ec652976805455979f80cbd3537603a994ad55a",
+        "status": "completed"
+      },
+      "workerCI": {
+        "id": 39820589053,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39820589053",
+        "conclusion": "success",
+        "headSha": "4ec652976805455979f80cbd3537603a994ad55a",
+        "status": "completed"
+      },
+      "fixtureCompatibilityCI": {
+        "id": 39820589119,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39820589119",
+        "conclusion": "success",
+        "headSha": "4ec652976805455979f80cbd3537603a994ad55a",
+        "status": "completed"
+      },
+      "mainCI": {
+        "id": 39822245795,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39822245795",
+        "conclusion": "success",
+        "headSha": "643de5a2d2aad9ca05caee32131685f0bc2f5d50",
+        "status": "completed"
+      },
+      "mainWorkerCI": {
+        "id": 39822245668,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39822245668",
+        "conclusion": "success",
+        "headSha": "643de5a2d2aad9ca05caee32131685f0bc2f5d50",
+        "status": "completed"
+      },
+      "publicCompatibilityCI": {
+        "id": 39822464022,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39822464022",
+        "conclusion": "success",
+        "headSha": "643de5a2d2aad9ca05caee32131685f0bc2f5d50",
+        "status": "completed"
+      }
+    },
+    "fixtureCasesPerEngine": 325,
+    "publicCasesPerEngine": 30,
+    "localCases": 27,
+    "newNavigationProfiles": 16,
+    "timerRegressionFailuresBefore": 3,
+    "financialAuthCases": 295,
+    "apiEdgeCases": 30,
+    "marketUnitCases": 33,
+    "finalSkippedFlakyUnexpected": 0,
+    "finalDriverRecoveries": 0,
+    "authenticatedGroups": 5,
+    "financialAndBackendSourceUnchanged": true,
+    "rollback": {
+      "production": "99eee482686be6bb99a79f9c99127dc18a97ab0d",
+      "workerVersion": "0c9491a8-d8b1-41ef-88aa-316434b8919c"
+    },
+    "newRecurringServiceCostUSD": 0,
+    "accountWideBillingCertified": false,
+    "institutionalLaunchReady": false,
+    "priorImmutableHashesVerified": 72
+  },
+  "fixtureBrowsers": {
+    "firefox": {
+      "browser": "firefox",
+      "driverNavigationReleaseAttempts": 0,
+      "stats": {
+        "startTime": "2026-10-22T17:13:09.612Z",
+        "duration": 497682.89300000004,
+        "expected": 325,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": []
+    },
+    "webkit": {
+      "browser": "webkit",
+      "driverNavigationReleaseAttempts": 0,
+      "stats": {
+        "startTime": "2026-10-22T17:13:28.280Z",
+        "duration": 538049.309,
+        "expected": 325,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": []
+    }
+  },
+  "publicBrowsers": {
+    "firefox": {
+      "browser": "firefox",
+      "driverNavigationReleaseAttempts": 0,
+      "stats": {
+        "startTime": "2026-10-22T17:26:05.761Z",
+        "duration": 70274.51699999999,
+        "expected": 30,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": []
+    },
+    "webkit": {
+      "browser": "webkit",
+      "driverNavigationReleaseAttempts": 0,
+      "stats": {
+        "startTime": "2026-10-22T17:26:12.455Z",
+        "duration": 79107.23999999999,
+        "expected": 30,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": []
+    }
+  },
+  "publicChromiumStats": {
+    "startTime": "2026-10-22T17:25:25.175Z",
+    "duration": 127710.599,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "scope": "Navigation correction, existing same-Worker rollout and genuine existing-session desktop menu checks. Mobile geometry is controlled fixture evidence. Prior live financial/recovery evidence remains dated. Original failed/superseded runs remain retained; no independent institutional assurance, signing, email sending or new financial simulation is claimed.",
+  "files": [
+    {
+      "name": "institution-readiness-performance-20261021.json",
+      "sha256": "5e3a956532079fe8483f5f2b544518743b7ac2f2e5cbf09e56ad9b0702140def",
+      "bytes": 92386
+    },
+    {
+      "name": "institution-readiness-performance-20261021.log",
+      "sha256": "a06aab7379993685a06e6343b67cfdec140827b4b1e6a8d9b7a69cdaa9da87a1",
+      "bytes": 1664
+    },
+    {
+      "name": "menu-clipping-after-20261022.json",
+      "sha256": "cb3ad1bc48e9c65608b97bc6a034d5041ceb5565b7c8179a4f12398854f65f13",
+      "bytes": 29923
+    },
+    {
+      "name": "menu-clipping-after-20261022.log",
+      "sha256": "863c7f301b9545896d51ba640d5285d0194cadba7f362758ffe911cd923f4a8d",
+      "bytes": 4020
+    },
+    {
+      "name": "menu-clipping-ast-20261022.log",
+      "sha256": "a71a1b5829f88dd015caa22748a3a4566a0cd4a74eb1d654fd92a07f232e01c0",
+      "bytes": 1250
+    },
+    {
+      "name": "menu-clipping-ast-final-20261022.log",
+      "sha256": "df0904d3f5cfca8270ad3805e1eb073a8375571b16e080a6b5e1967b29b39011",
+      "bytes": 270
+    },
+    {
+      "name": "menu-clipping-authenticated-live-20261022.json",
+      "sha256": "64230648eff19d798c4dc4c173b9241f4f7c55ba6b60e8fb8df391b06beb1d5b",
+      "bytes": 3553
+    },
+    {
+      "name": "menu-clipping-b24-compatibility-20261022.log",
+      "sha256": "61cd74b047cb272a2d815749145ca56aaeeaca57e1ba9159fd5bda7e6aead230",
+      "bytes": 578881
+    },
+    {
+      "name": "menu-clipping-before-20261022.json",
+      "sha256": "e8c15619ecc0c84d5a2220b2aab3ddfbbdda416ecb2334ecf1a448aa4ccfd58c",
+      "bytes": 95852
+    },
+    {
+      "name": "menu-clipping-before-20261022.log",
+      "sha256": "e92a695012b199b66988db2cb981cffc599c98c2a8bb22790b0a42ee01aafcca",
+      "bytes": 53421
+    },
+    {
+      "name": "menu-clipping-before-corrected-fixture-20261022.json",
+      "sha256": "5c4c1cfa811a6a96fbc2f3bc88ed907863aa4c2219ec4dea91b25625255d0b80",
+      "bytes": 64494
+    },
+    {
+      "name": "menu-clipping-before-corrected-fixture-20261022.log",
+      "sha256": "3aef27fddaa21d6ba6d902007a5ce558c629698ca6028d763e1d559e37453747",
+      "bytes": 33568
+    },
+    {
+      "name": "menu-clipping-build-20261022.log",
+      "sha256": "aad9f12f813f202f66c274b86ec699af3fdb77d0d150fe3771ee37dbf0136b0f",
+      "bytes": 2501
+    },
+    {
+      "name": "menu-clipping-build-final-20261022.log",
+      "sha256": "f9d27e85d200afbd13f7a1d060061e8f80d55d3420825167a14f7273c913f406",
+      "bytes": 2078
+    },
+    {
+      "name": "menu-clipping-final-ast-20261022.log",
+      "sha256": "5a04db228ef43b85175835b9a78e123708063c6f7a4d0361d4480bd5c99acfdf",
+      "bytes": 338
+    },
+    {
+      "name": "menu-clipping-final-firefox-initial-20261022.log",
+      "sha256": "301c79cfd8b82635659744e5330e5ab6a48248f479fd53c87444ae7ef5f2409b",
+      "bytes": 158933
+    },
+    {
+      "name": "menu-clipping-final-local-20261022.json",
+      "sha256": "b26715f9aca7c5ac07142c66c746d3cda1be8b72f1f9ee895a679ccce8a9c75a",
+      "bytes": 58982
+    },
+    {
+      "name": "menu-clipping-final-local-20261022.log",
+      "sha256": "59ed2e4ca2dd3966628aba76571f8fe74d4788cba97392c6b3d33d494b63eadd",
+      "bytes": 8059
+    },
+    {
+      "name": "menu-clipping-final-pr-ci-20261022.log",
+      "sha256": "007890047ec9a02cf2be02199135f3a99f6e8c09826e9567a2c2095df671587b",
+      "bytes": 518556
+    },
+    {
+      "name": "menu-clipping-final-source-ci-20261022.log",
+      "sha256": "8ab33e0ece0e72f4a4a77a9530bb7e138c5c7e27ed48d086a568b48d0eedfa28",
+      "bytes": 512056
+    },
+    {
+      "name": "menu-clipping-final-worker-ci-20261022.log",
+      "sha256": "a975d64c18445a623d9168888ec3896a36a1824f450e70183c26116c92d9c4e7",
+      "bytes": 398100
+    },
+    {
+      "name": "menu-clipping-firefox-initial-20261022.log",
+      "sha256": "4c0b415c3b32720b02be38118d3de8f01c8e1abf7d6327af645af17aeab7f634",
+      "bytes": 216451
+    },
+    {
+      "name": "menu-clipping-firefox-local-before-20261022.json",
+      "sha256": "686898229cef340230aa44fa660042519208835363e2ddcf46b3ce0a7d8097d7",
+      "bytes": 15404
+    },
+    {
+      "name": "menu-clipping-firefox-local-before-20261022.log",
+      "sha256": "86174f16c0b6e2aae110b493b5e8b3a4a7915c8e81d7f15984ae354220091f89",
+      "bytes": 6067
+    },
+    {
+      "name": "menu-clipping-intermediate-public-compatibility-20261022.log",
+      "sha256": "edf42e4028fca8c492eaea2b183f9d5ee0f51db2be51c9c4389c6820acabc8c4",
+      "bytes": 201911
+    },
+    {
+      "name": "menu-clipping-keyboard-build-20261022.log",
+      "sha256": "fb85e3dc272b2cbd3a643aecdcf991c54d44cbf816b41db5007bcb876511e65e",
+      "bytes": 2078
+    },
+    {
+      "name": "menu-clipping-live-before-20261022.json",
+      "sha256": "d925bb164759d7644824284a5ac197cee7a7605e936c9cc290ce70ab454cfdae",
+      "bytes": 365
+    },
+    {
+      "name": "menu-clipping-live-before-20261022.png",
+      "sha256": "71516752cc385c091bb9d202a1443b669781459d5da6cda36bda285d10ea72fc",
+      "bytes": 45292
+    },
+    {
+      "name": "menu-clipping-live-chromium-20261022.json",
+      "sha256": "6bd0750fcccecb2bd928ab89a4cf31651fbb9a51fa73570177f6b32b125c23cd",
+      "bytes": 36274
+    },
+    {
+      "name": "menu-clipping-live-chromium-20261022.log",
+      "sha256": "090deca060fb56529ee0706cb58ae5308bcef9340a313826ccc80fa0885a80f1",
+      "bytes": 4196
+    },
+    {
+      "name": "menu-clipping-live-contracts-20261022.png",
+      "sha256": "29f2d09af539849649957261262e3218d54a7aee1171c20133135aecf72bf883",
+      "bytes": 66349
+    },
+    {
+      "name": "menu-clipping-live-liquidationguard-20261022.png",
+      "sha256": "073a0dab10e332caa38400673faf2ed5b7db57651b7bf428900ee84757467376",
+      "bytes": 67329
+    },
+    {
+      "name": "menu-clipping-main-ci-20261022.log",
+      "sha256": "f790ba09b5b0ccf1c3c366803f24c76e24b6e17903e3e31fb116e9fdbf70c0a9",
+      "bytes": 514005
+    },
+    {
+      "name": "menu-clipping-main-worker-ci-20261022.log",
+      "sha256": "351a113d6ee79bc1a006cf668ea61b1147766fd2825806f4067e72524aa9db22",
+      "bytes": 394345
+    },
+    {
+      "name": "menu-clipping-native-rollout-20261022.txt",
+      "sha256": "9df1ee484563274a51113912373089029ba3e7aa828f8b88533b79eb061de39f",
+      "bytes": 3187
+    },
+    {
+      "name": "menu-clipping-pr-ci-20261022.log",
+      "sha256": "de5210b06c4e422bdf62086f968d10fc781bc60bf021673a157dd5dcb59c5fa2",
+      "bytes": 519855
+    },
+    {
+      "name": "menu-clipping-preliminary-compatibility-20261022.log",
+      "sha256": "e5805904084e676b7029b5dc9dedb99c9822f9e6eb1fd342d922655b10339bf6",
+      "bytes": 668549
+    },
+    {
+      "name": "menu-clipping-production-http-20261022.json",
+      "sha256": "287d2a78731690057b57375429a57268b7f6509ac29ebd0ceabdb206a26a1469",
+      "bytes": 950
+    },
+    {
+      "name": "menu-clipping-production-http-20261022.log",
+      "sha256": "c934a22c0fc5191aa11bde9f59155dd35b28ade00e6ba9c28038bfbf90869bda",
+      "bytes": 733
+    },
+    {
+      "name": "menu-clipping-provider-health-20261022.json",
+      "sha256": "3b1f72abb95fcb65943ed09edb724ddb59ba9eb2adb10c7167f6d92c873d8cc3",
+      "bytes": 1445
+    },
+    {
+      "name": "menu-clipping-release-compatibility-20261022.log",
+      "sha256": "318171cab204ba810b2e20604e1795581b412275a3394cc1eceb774f3dceb55b",
+      "bytes": 438244
+    },
+    {
+      "name": "menu-clipping-release-pr-ci-20261022.log",
+      "sha256": "100ef672c8586f00e4699fe455cc8e2f7d32d506f1f02a63c9f9d73a4ae56abf",
+      "bytes": 409748
+    },
+    {
+      "name": "menu-clipping-release-source-ci-20261022.log",
+      "sha256": "1ebe37a9e37e556e0d5526aee8d96f844016afab8400693b0a645d3f28229d85",
+      "bytes": 407916
+    },
+    {
+      "name": "menu-clipping-release-worker-ci-20261022.log",
+      "sha256": "3f6b8ab52d68bb6d5b23072c803226b636170f3cdef8cf082cac1b2f5c66c628",
+      "bytes": 351865
+    },
+    {
+      "name": "menu-clipping-save-diagnostic-20261022.log",
+      "sha256": "83f238920e994bfbe10faa229c3edb51972f1dec3eeea5055998f7170d664b6e",
+      "bytes": 109326
+    },
+    {
+      "name": "menu-clipping-save-diagnostic-final-20261022.log",
+      "sha256": "5be7a049b90dc68ff7ee027107379b5c768e05e907fad55c41bb681b28ffbb04",
+      "bytes": 112437
+    },
+    {
+      "name": "menu-clipping-source-ci-20261022.log",
+      "sha256": "236712cfbbd1b94939d4dcf89c66cfe1d20169d40fc146bd79748268670b63c2",
+      "bytes": 514367
+    },
+    {
+      "name": "menu-clipping-types-final-20261022.log",
+      "sha256": "12fb64ccfd9938e53e0b0080ea0dc1fb5fadbfecd72e7f9f8d3bef7133508be6",
+      "bytes": 119
+    },
+    {
+      "name": "menu-clipping-worker-ci-20261022.log",
+      "sha256": "5d613c39b91930610e2f61a64735512e2e1948b34ba40494244834b921186a04",
+      "bytes": 397558
+    },
+    {
+      "name": "menu-clipping-worker-health-20261022.json",
+      "sha256": "79d32de4979d47c67eab9eb76773157705421104657b16fd3abd6af16b670a05",
+      "bytes": 1819
+    },
+    {
+      "name": "menu-intent-after-20261022.json",
+      "sha256": "fc7ff2305007273af74b382e264a33f85ece0bc34469dd2d681837eae3bc8e7c",
+      "bytes": 33143
+    },
+    {
+      "name": "menu-intent-after-20261022.log",
+      "sha256": "ac3096f7212c7a6733af5dbad19c6918672ebfbaee43e7d14d62de3ee61bc923",
+      "bytes": 4423
+    },
+    {
+      "name": "menu-intent-ast-20261022.log",
+      "sha256": "5a04db228ef43b85175835b9a78e123708063c6f7a4d0361d4480bd5c99acfdf",
+      "bytes": 338
+    },
+    {
+      "name": "menu-intent-authenticated-live-20261022.json",
+      "sha256": "aa8e5a5de315758f72e165f32fa08af2a5920be18a05c68379783393afa6d642",
+      "bytes": 3711
+    },
+    {
+      "name": "menu-intent-before-20261022.json",
+      "sha256": "3c2d11252da534126739ab852bcf8ea239c58e1c48b55720dfe8bbb7a5fd145f",
+      "bytes": 30853
+    },
+    {
+      "name": "menu-intent-before-20261022.log",
+      "sha256": "591af950505859885b7d97225a1c91fbccf30dfe2e7228e11a271ad5ac78acb4",
+      "bytes": 14208
+    },
+    {
+      "name": "menu-intent-build-20261022.log",
+      "sha256": "6305847cdc7e128cd1260b5ecb8653f51ba9aa0045fcb7a7c18c740011b4ad63",
+      "bytes": 2078
+    },
+    {
+      "name": "menu-intent-compatibility-20261022.log",
+      "sha256": "0bad4eb3394ce3be0186a98e4a77e6a5958c8d9004821d4ba0459a26ee740f7f",
+      "bytes": 534232
+    },
+    {
+      "name": "menu-intent-exact-head-gates-20261022.json",
+      "sha256": "442ec56cb86f9390e8715e6848299d1735400e606b7b5fb53b8adc9b966b8c9f",
+      "bytes": 871
+    },
+    {
+      "name": "menu-intent-live-chromium-20261022.json",
+      "sha256": "e8dfc6a06ef1e44555b4a1c6380aa5cde529e74faf1284f8cc24c5a5b2c9da0d",
+      "bytes": 36262
+    },
+    {
+      "name": "menu-intent-live-chromium-20261022.log",
+      "sha256": "578c477b91223c339cfde325496a0a0744edfab8da8732c8f15f4f52ff5255ce",
+      "bytes": 4195
+    },
+    {
+      "name": "menu-intent-live-compatibility-20261022.log",
+      "sha256": "7b0ab4cab9b849af514d49f5d6bc3079c76dad8558b3ae1527dcf8b31704db2f",
+      "bytes": 355610
+    },
+    {
+      "name": "menu-intent-live-liquidationguard-detail-20261022.png",
+      "sha256": "1550b888d1e3e934c0e0362e72f7751f96f69f77841d9dcfdd8b710a2a4d4531",
+      "bytes": 11087
+    },
+    {
+      "name": "menu-intent-live-liquidationguard-full-20261022.png",
+      "sha256": "d1e06774e3c44cf2fdb6eb95e0a404de07f0ec7f36ce80e305c8951f90da183f",
+      "bytes": 77940
+    },
+    {
+      "name": "menu-intent-main-ci-20261022.log",
+      "sha256": "a8430e60921415d5deb5cb266cbff916a20a1b5b43141aa132c77f511906a216",
+      "bytes": 514086
+    },
+    {
+      "name": "menu-intent-main-worker-ci-20261022.log",
+      "sha256": "b9eb30da19e3d832f2c3dc8b6da4a3869afa8d8e59c8440026792e55a577b79a",
+      "bytes": 394363
+    },
+    {
+      "name": "menu-intent-native-rollout-20261022.txt",
+      "sha256": "33dd04ff21f3ab03ff3ec5f7b373e5bf948d9b97ca9604fbed8f07f1620e6279",
+      "bytes": 3181
+    },
+    {
+      "name": "menu-intent-pr-ci-20261022.log",
+      "sha256": "e5de3137bb6a1e5d56cbd1721e8c122cbe743e05a56532d4046e832df61312f2",
+      "bytes": 518456
+    },
+    {
+      "name": "menu-intent-production-http-20261022.json",
+      "sha256": "40a050c1682d0d9f2ec2ee192127221eed604be912175f3f42df985f736b5ed3",
+      "bytes": 949
+    },
+    {
+      "name": "menu-intent-production-http-20261022.log",
+      "sha256": "a524046f38018436e5b16a2885f312a5af0044ce3a83b81be729edaeefd55492",
+      "bytes": 732
+    },
+    {
+      "name": "menu-intent-retained-source-identity-20261022.json",
+      "sha256": "08d581aec9f61d4eb12477eac5ccde52ea25aca8587635399b3ee86d480d40c9",
+      "bytes": 2268
+    },
+    {
+      "name": "menu-intent-security-advisories-final-20261022.json",
+      "sha256": "9319665aed3077046f809a263213d27404011ad399efe3ec176fdf7503eed909",
+      "bytes": 1055
+    },
+    {
+      "name": "menu-intent-source-ci-20261022.log",
+      "sha256": "fece945b0d9a6eb5c8d4d265d7e00180065f720fc63a1a9160aa46edb0affe4e",
+      "bytes": 514650
+    },
+    {
+      "name": "menu-intent-worker-ci-20261022.log",
+      "sha256": "062acf69c35a123b82473057fc3ee3bb34fa5429137404259da7773c1d51934f",
+      "bytes": 397910
+    },
+    {
+      "name": "menu-intent-worker-rollout-summary-20261022.json",
+      "sha256": "97dc135ddb57738023b5921a7fd49b376c12e326f90c2c0db7f91bd917af3cda",
+      "bytes": 347
+    }
+  ]
+}
