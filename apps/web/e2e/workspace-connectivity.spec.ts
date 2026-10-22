@@ -28,6 +28,28 @@ test('clicking a hover-open category keeps destinations available until a second
  await trigger.focus();await page.keyboard.press('ArrowDown');await expect(destination).toBeFocused();await page.keyboard.press('Escape');await expect(trigger).toBeFocused();await expect(trigger).toHaveAttribute('aria-expanded','false');
 });
 
+test('a pending hover close cannot dismiss a different keyboard-opened category',async({page})=>{
+ await setup(page);await page.setViewportSize({width:1920,height:1000});await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});
+ const nav=page.getByRole('navigation',{name:'Workspace',exact:true});await expect(nav).toBeVisible();await page.clock.install();
+ const risk=nav.getByRole('button',{name:'Risk Intelligence',exact:true}),decision=nav.getByRole('button',{name:'Decision Intelligence',exact:true});
+ await risk.hover();await page.clock.runFor(160);await expect(risk).toHaveAttribute('aria-expanded','true');
+ await page.mouse.move(0,700);await decision.focus();await page.keyboard.press('ArrowDown');await page.clock.runFor(320);
+ await expect(decision).toHaveAttribute('aria-expanded','true');await expect(nav.getByRole('link',{name:'Defense Planner',exact:true})).toBeFocused();
+});
+test('a clicked category stays available after the pointer leaves until dismissed',async({page})=>{
+ await setup(page);await page.setViewportSize({width:1920,height:1000});await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});
+ const nav=page.getByRole('navigation',{name:'Workspace',exact:true});await expect(nav).toBeVisible();await page.clock.install();
+ const decision=nav.getByRole('button',{name:'Decision Intelligence',exact:true});await decision.hover();await page.clock.runFor(160);await decision.click();
+ await page.mouse.move(0,700);await page.clock.runFor(320);await expect(decision).toHaveAttribute('aria-expanded','true');await expect(nav.getByRole('link',{name:'Defense Planner',exact:true})).toBeVisible();
+ await page.getByRole('heading',{name:'Overview',exact:true}).click();await expect(decision).toHaveAttribute('aria-expanded','false');
+});
+test('Escape cancels an uncommitted hover opening',async({page})=>{
+ await setup(page);await page.setViewportSize({width:1920,height:1000});await page.goto('/workspace/overview',{waitUntil:'domcontentloaded'});
+ const nav=page.getByRole('navigation',{name:'Workspace',exact:true});await expect(nav).toBeVisible();await page.clock.install();
+ const risk=nav.getByRole('button',{name:'Risk Intelligence',exact:true});await risk.hover();await risk.press('Escape');await page.clock.runFor(320);
+ await expect(risk).toHaveAttribute('aria-expanded','false');await expect(nav.getByRole('link',{name:'LiquidationGuard',exact:true})).toBeHidden();
+});
+
 const menuCases=[
  ['Risk Intelligence','/workspace'],['Transaction Intelligence','/workspace/transactions'],['Decision Intelligence','/workspace/frontier'],['On-Chain','/workspace/contracts'],['Research & Monitoring','/workspace/reports'],
 ] as const;
