@@ -1,6 +1,6 @@
 {
-  "recordedAtUTC": "2026-10-23T13:13:13.726174+00:00",
-  "scope": "Storage/provider/security/performance follow-up only; no runtime deployment or financial-model change",
+  "recordedAtUTC": "2026-10-23T13:28:05.431022+00:00",
+  "scope": "Approved storage/provider/security/performance follow-up and standard CI ephemeral runner repair; no application/backend/dependency change or runtime deployment",
   "production": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
   "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
   "priorRuntimeEvidence": "next-security-release-20261023.json",
@@ -200,6 +200,62 @@
       "name": "post-closeout-public-identity-20261023.json",
       "bytes": 404,
       "sha256": "8da66ad13798e0a74835f0784391063eeb5d094adfb31101ba2224988c9a6bc7"
+    },
+    {
+      "name": "launch-audit-ci-azure-setup-20261023.json",
+      "bytes": 2798,
+      "sha256": "4fc0c8fe34677a098900da64bae6a306f41864f537541fdb13b5635a0815ee60"
+    },
+    {
+      "name": "launch-audit-ci-original-20261023.log",
+      "bytes": 425010,
+      "sha256": "b04e45488bd00efd3448b45aaf7beae0fc549c8f5ee830fae1df668c5e891584"
+    },
+    {
+      "name": "launch-audit-ci-original-20261023.json",
+      "bytes": 12731,
+      "sha256": "1ee061f2535094097a31ab706412067764bb861eb41e9eecffc53dd5d828288b"
+    },
+    {
+      "name": "launch-gates-runner-validation-20261023.json",
+      "bytes": 418,
+      "sha256": "ead2a317b884e2de875f8943582f66503197d15dac141039ac013f24a799ec27"
+    },
+    {
+      "name": "launch-gates-final-ci-20261023.log",
+      "bytes": 521735,
+      "sha256": "fc542960babd59067ae94f1a7c1bc4f73308eb042df279e4b041b1d189444a8b"
+    },
+    {
+      "name": "launch-gates-final-ci-20261023.json",
+      "bytes": 12924,
+      "sha256": "39d32c7fa77feb513b047a9e22ccf37a345b6293e79599fd931325e91222a597"
+    },
+    {
+      "name": "launch-gates-final-public-identity-20261023.json",
+      "bytes": 392,
+      "sha256": "eed08ab8f09785088a7d85a3539b3b6bf2a81b932d2bb448227d3b3b2a2adfcd"
     }
-  ]
+  ],
+  "standardCIRunnerFollowup": {
+    "source": "e8fb5eb46488f5aac9bea57fa4e4ebe3d6238180",
+    "branch": "ci/runner-https-archive-20261023",
+    "run": 39960270119,
+    "url": "https://github.com/rudras777/rivexis/actions/runs/39960270119",
+    "conclusion": "success",
+    "allFourJobsPassed": true,
+    "chromiumCases": 326,
+    "financialAuthCases": 295,
+    "browserDependenciesSeconds": 28,
+    "workflowAddedLines": 8,
+    "testAndSecurityVerificationUnchanged": true,
+    "applicationBackendDependencyTreesMatchProduction": true,
+    "mergedToMain": false,
+    "runtimeDeployed": false,
+    "supersededRun": 39959487683,
+    "supersededConclusion": "cancelled",
+    "supersededThreeJobsPassed": true,
+    "supersededBrowserTestsStarted": false,
+    "supersededCause": "Retained actual live UI log stalls on Azure HTTP Ubuntu package downloads; cancelled to avoid duplicate work"
+  }
 }
