@@ -1,6 +1,6 @@
 # RIVEXIS production readiness
 
-Last updated: 2026-10-23 (Asia/Calcutta). PASS applies only to the stated supported scope, never unrestricted institutional certification. **GO for the controlled24 October public beta:** [BETA_LAUNCH_20261024.md](BETA_LAUNCH_20261024.md) records fresh genuine financial/account acceptance and the owner's explicit current-sender choice. Storage/provider/security/performance follow-up: [LAUNCH_GATES_REVIEW_20261023.md](LAUNCH_GATES_REVIEW_20261023.md). Runtime release remains `NEXT_SECURITY_CLOSEOUT_20261023.md`. Dated evidence retains its separate scope.
+Last updated: 2026-10-23 (Asia/Calcutta). PASS applies only to the stated supported scope, never unrestricted institutional certification. **GO for the controlled24 October public beta:** [BETA_LAUNCH_20261024.md](BETA_LAUNCH_20261024.md) records fresh genuine financial/account acceptance and the owner's explicit current-sender choice. Storage/provider/security/performance follow-up: [LAUNCH_GATES_REVIEW_20261023.md](LAUNCH_GATES_REVIEW_20261023.md). Latest promotion and live identity: [BETA_RELEASE_CLOSEOUT_20261023.md](BETA_RELEASE_CLOSEOUT_20261023.md), deployed63049e1/PR106 with unchanged application models and design. Prior runtime security patch: `NEXT_SECURITY_CLOSEOUT_20261023.md`. Dated evidence retains its separate scope.
 
 Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 

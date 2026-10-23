@@ -1,0 +1,284 @@
+{
+  "recordedAtUTC": "2026-10-23T14:50:20.852114+00:00",
+  "decision": "GO controlled supported beta; not unrestricted institutional certification",
+  "launchDate": "2026-10-24 Asia/Calcutta",
+  "ownerSenderDecision": "Keep the current sender for the limited beta",
+  "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+  "pr": 106,
+  "source": "34d0f1687696db5b992487d5e142daa759027c34",
+  "production": "63049e1b04eba6f03c3ee503a13de0d2f861ca0b",
+  "mergeSourceTree": "06050528a229d417fcd37e6eb50fabc6fd2914ca",
+  "workerVersionPrefix": "6beb786b",
+  "workerFullUUIDCollected": false,
+  "nativeBuild": "a8f9f2f4-2df8-4e4d-b7b8-2f1c6e477847",
+  "nativeReadySeconds": 42,
+  "allocationPercent": 100,
+  "nativeAllocationEvidence": "Actual dashboard accessibility row at100%; screenshot retains Ready/version/build association",
+  "rollback": {
+    "production": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
+    "worker": "c63e2bcd-64e0-44b8-914a-41e2103d3484"
+  },
+  "appBackendAuthModelDependencySchemaDesignChanged": false,
+  "runtimeObjectsMatchPrior": {
+    "apps": "9f8984c67fdf9957f7b46237b4002509a5a0cc13",
+    "supabase": "252e39bead4da66a577cf0175f4afd2133053acf",
+    "packages": "f9fef39b46031c582eacb86761f43c75b8e6491a",
+    "package.json": "c4a925b2d36225bba81fd3061c814abf334d508e",
+    "package-lock.json": "dbbde51654288f1d00c0f6f890a29f4247100336"
+  },
+  "newRecurringServiceCostUSD": 0,
+  "schemaOrBackendDeployed": false,
+  "gates": {
+    "39968967259": {
+      "headSha": "34d0f1687696db5b992487d5e142daa759027c34",
+      "conclusion": "success",
+      "url": "https://github.com/rudras777/rivexis/actions/runs/39968967259"
+    },
+    "39969050560": {
+      "headSha": "34d0f1687696db5b992487d5e142daa759027c34",
+      "conclusion": "success",
+      "url": "https://github.com/rudras777/rivexis/actions/runs/39969050560"
+    },
+    "39969050503": {
+      "headSha": "34d0f1687696db5b992487d5e142daa759027c34",
+      "conclusion": "success",
+      "url": "https://github.com/rudras777/rivexis/actions/runs/39969050503"
+    },
+    "39969050597": {
+      "headSha": "34d0f1687696db5b992487d5e142daa759027c34",
+      "conclusion": "success",
+      "url": "https://github.com/rudras777/rivexis/actions/runs/39969050597"
+    },
+    "39971037273": {
+      "headSha": "63049e1b04eba6f03c3ee503a13de0d2f861ca0b",
+      "conclusion": "success",
+      "url": "https://github.com/rudras777/rivexis/actions/runs/39971037273"
+    },
+    "39971037212": {
+      "headSha": "63049e1b04eba6f03c3ee503a13de0d2f861ca0b",
+      "conclusion": "success",
+      "url": "https://github.com/rudras777/rivexis/actions/runs/39971037212"
+    },
+    "39971347806": {
+      "headSha": "63049e1b04eba6f03c3ee503a13de0d2f861ca0b",
+      "conclusion": "success",
+      "url": "https://github.com/rudras777/rivexis/actions/runs/39971347806"
+    }
+  },
+  "fixturesPerEngine": 326,
+  "publicPerEngine": 30,
+  "financialAuth": 295,
+  "fixtureFirefoxDriverGETReleases": 1,
+  "fixtureReleaseEvidence": {
+    "completedDocumentHTTP": 200,
+    "pending": 0,
+    "pageErrors": 0,
+    "resourceFailures": 0,
+    "serverFailures": 0,
+    "allAssertionsExecuted": true
+  },
+  "publicDriverGETReleases": 0,
+  "skippedFlakyUnexpectedCases": 0,
+  "publicRetries": 0,
+  "normalVerifiedSession": true,
+  "menuGroupsFullyContained": 5,
+  "privateReportsLoaded": 6,
+  "settingsSectionsRendered": 10,
+  "appearancePreserved": [
+    "dark",
+    "comfortable",
+    "system"
+  ],
+  "finalSettingsWrites": false,
+  "marketBlocks": [
+    26255976,
+    26256010
+  ],
+  "observedETHBTCPoints": [
+    8,
+    7
+  ],
+  "feePointsBeforeAfter": [
+    4,
+    24
+  ],
+  "browserCapturedErrors": 0,
+  "preliminaryPythonHTTP": 403,
+  "preliminaryPythonCause": "Unestablished; subsequent NodeHTTPS/public browsers pass",
+  "institutionalReady": false,
+  "remaining": [
+    "Native installed-wallet permission UX",
+    "Owned-domain/inbox assurance; existing sender accepted for beta",
+    "Independent key custody/second-machine/full-service restore and RPO/RTO",
+    "Sustained field/load/provider availability and independent security/operating assurance",
+    "Existing Braces/Supabase advisories"
+  ],
+  "rawEvidencePublished": false,
+  "evidence": [
+    {
+      "file": "beta-promotion-39968967259-20261023.json",
+      "bytes": 12924,
+      "sha256": "f25a2366a82781610762b44a66e3df0557dd5d3926b8e60649bbca4248a7d6f7"
+    },
+    {
+      "file": "beta-promotion-39968967259-20261023.log",
+      "bytes": 521028,
+      "sha256": "35bcc60023a443cddf83babf043a561f2a2ffafabd1f37f26c55e96d59157fed"
+    },
+    {
+      "file": "beta-promotion-39969050560-20261023.json",
+      "bytes": 12924,
+      "sha256": "54a7a34a61484543554af51f796596942bee08ef22269ba30f9e45cee9f55d9d"
+    },
+    {
+      "file": "beta-promotion-39969050560-20261023.log",
+      "bytes": 526700,
+      "sha256": "6238a3269be0ca557d467826c04ffe4fc35bb85757d2c76608a39d19e9d60c65"
+    },
+    {
+      "file": "beta-promotion-39969050503-20261023.json",
+      "bytes": 4050,
+      "sha256": "791b83aaf3da58e00de7ade9101d3278f9ab7d712b80b8228950ea1d811c4e8c"
+    },
+    {
+      "file": "beta-promotion-39969050503-20261023.log",
+      "bytes": 397973,
+      "sha256": "4a39fd7ebbe4a10168e1304ad92c3aa8f4546572aaca0d810505da9daa7fc47d"
+    },
+    {
+      "file": "beta-promotion-39969050597-20261023.json",
+      "bytes": 6088,
+      "sha256": "becd916c6989d564d1e71e5c9d20648cf73cbdb60b2b147d727bfeb76d06d2f2"
+    },
+    {
+      "file": "beta-promotion-39969050597-20261023.log",
+      "bytes": 549856,
+      "sha256": "1e13c941a42b9426570fde095b5e915fb9664051f4e8a9f4c0ac3a1bf49044ee"
+    },
+    {
+      "file": "beta-promotion-39971037273-20261023.json",
+      "bytes": 12911,
+      "sha256": "a0a77f7e3c1364a2e44f9078ba56ebc7a7d9a113f257b226d20e8de786420534"
+    },
+    {
+      "file": "beta-promotion-39971037273-20261023.log",
+      "bytes": 520032,
+      "sha256": "d1c850e5a791efa49b966e6ce0aba47f0dde86f5864cf92d55c71b96ea44edea"
+    },
+    {
+      "file": "beta-promotion-39971037212-20261023.json",
+      "bytes": 4037,
+      "sha256": "20a74ae5732a6bfe6d7923629f7af32aeda2fe8a28d34cfd8a92b613b0d6d15a"
+    },
+    {
+      "file": "beta-promotion-39971037212-20261023.log",
+      "bytes": 394568,
+      "sha256": "9c518a8bc6e4ae2f7996aee750936890b3be31e0171793bcdd08e1f6d958f63d"
+    },
+    {
+      "file": "beta-promotion-39971347806-20261023.json",
+      "bytes": 5843,
+      "sha256": "c14b55670a7d56f0ba84446b74c86b0467aebaf17f98e5e59236ba38e353a487"
+    },
+    {
+      "file": "beta-promotion-39971347806-20261023.log",
+      "bytes": 365604,
+      "sha256": "db07528b0792a7b9c941b279aa5cc4257d85c4b1a5364aa2668bade58a9fd4d1"
+    },
+    {
+      "file": "beta-promotion-scope-review-20261023.json",
+      "bytes": 855,
+      "sha256": "e1719ab35a536f76d0f1e271ce5c127e7cc650c6615b0399756c546412f46797"
+    },
+    {
+      "file": "beta-promotion-runtime-trees-20261023.json",
+      "bytes": 1382,
+      "sha256": "de14a0606b6c5e72f9ffd67a9b36820945cc747d17c279318c9d9e0da519d300"
+    },
+    {
+      "file": "beta-promotion-public-headers-20261023.json",
+      "bytes": 498,
+      "sha256": "fc5a9c8af87088740274a5cc450685b5ef9c1f7f8d21131798a8f9545e5fd638"
+    },
+    {
+      "file": "beta-promotion-native-before-20261023.json",
+      "bytes": 932,
+      "sha256": "215c558062e4f68945a8f58e9baf3fe5cf1179326b9a4616f32bb062b99fbcf6"
+    },
+    {
+      "file": "beta-promotion-browser-counts-20261023.json",
+      "bytes": 1400,
+      "sha256": "e22289c853403b6225a276cf9f8b1172c3dc34c0747b7cd810f1fe09ab4d1544"
+    },
+    {
+      "file": "beta-promotion-chromium-20261023.log",
+      "bytes": 4415,
+      "sha256": "1a2136dfd20c90de886273469b58e49c5e9a1728cf62a4029cef52b1f4ce95a0"
+    },
+    {
+      "file": "beta-promotion-chromium-20261023.json",
+      "bytes": 37490,
+      "sha256": "705865fda2a8e2912176af53dd7ce4dec549af1b67d67aaa79f36eb721ece919"
+    },
+    {
+      "file": "beta-promotion-marker-20261023.json",
+      "bytes": 629,
+      "sha256": "a807e4f6ce54c89c55c48caad6db80efbcdb4c5027265a566af38e95408f6e74"
+    },
+    {
+      "file": "beta-promotion-native-build-20261023.txt",
+      "bytes": 4044,
+      "sha256": "e8ec444f40229c1aafb1bf810b9588238ed783ac2c458a96d82f0cb1d21b2d22"
+    },
+    {
+      "file": "beta-promotion-native-row-20261023.json",
+      "bytes": 817,
+      "sha256": "cb86b9daeb6b6a0ddcb959dbc6614b6888265e6cd6a82572b932711a3201b98c"
+    },
+    {
+      "file": "beta-promotion-menu-geometry-20261023.json",
+      "bytes": 9317,
+      "sha256": "db6105650698de538ee78dffedd98a0c8121152bb3dce512d0dd146cfa3dde76"
+    },
+    {
+      "file": "beta-promotion-reports-20261023.json",
+      "bytes": 207,
+      "sha256": "bba77c608066fde543581fba18167192b959b692c10274b8a4187b7dc8c5ff99"
+    },
+    {
+      "file": "beta-promotion-settings-20261023.json",
+      "bytes": 1083,
+      "sha256": "8d219fe444309c201060296cd47a8cac8ebe9930a31c4fede101b1ff15c690d4"
+    },
+    {
+      "file": "beta-promotion-overview-20261023.json",
+      "bytes": 2479,
+      "sha256": "d2da994bb3610628f2ac7474e408a95d4a7917381940c9da2d9f83ba82edb510"
+    },
+    {
+      "file": "beta-promotion-authenticated-final-20261023.json",
+      "bytes": 2474,
+      "sha256": "d688714dbba0ab87c294547277da35c44b6c42b9d32aceec09b70b9e7570c7d4"
+    },
+    {
+      "file": "beta-promotion-live-overview-20261023.png",
+      "bytes": 56328,
+      "sha256": "fb04dde422b76d1d9021967dd3085992e35de81a933c0c44f322d88bb8069b14"
+    },
+    {
+      "file": "beta-promotion-live-charts-20261023.png",
+      "bytes": 68128,
+      "sha256": "03c9281eb4d41e60a0a755df19ccdbe139d7359975decf832d70b6d8f70796d1"
+    },
+    {
+      "file": "beta-promotion-live-menu-20261023.png",
+      "bytes": 59726,
+      "sha256": "73cb2e942fd18619af5fddc5ccad7a79d68b6f432f5622bda84dce54f3067ada"
+    },
+    {
+      "file": "beta-promotion-native-rollout-20261023.png",
+      "bytes": 108068,
+      "sha256": "c690c9bf2f806ea7dbf54a48a3a45533238004e4c9730b22c043d297e54fda39"
+    }
+  ]
+}
