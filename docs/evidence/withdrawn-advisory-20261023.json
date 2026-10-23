@@ -1,0 +1,76 @@
+{
+  "recordedAtUTC": "2026-10-23T15:22:47.463517+00:00",
+  "advisory": "GHSA-vfj7-8cjw-p6xm",
+  "officialSource": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+  "withdrawnAtUTC": "2026-10-23T12:53:02Z",
+  "registryFindings": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "reportedDependencies": 371,
+  "beforeTests": {
+    "pass": 27,
+    "fail": 2
+  },
+  "afterTests": {
+    "pass": 29,
+    "fail": 0
+  },
+  "realUpdatedGate": "PASS no High/Critical findings",
+  "highCriticalExceptions": 0,
+  "unchangedProduction": "63049e1b04eba6f03c3ee503a13de0d2f861ca0b",
+  "unchangedRuntimeAndWorkflowObjects": {
+    "apps": "9f8984c67fdf9957f7b46237b4002509a5a0cc13",
+    "supabase": "252e39bead4da66a577cf0175f4afd2133053acf",
+    "packages": "f9fef39b46031c582eacb86761f43c75b8e6491a",
+    "package.json": "c4a925b2d36225bba81fd3061c814abf334d508e",
+    "package-lock.json": "dbbde51654288f1d00c0f6f890a29f4247100336",
+    ".github/workflows": "d21aa9de1419f45810db2959e0c4c341311a4124"
+  },
+  "remoteReleaseGates": "Recorded after execution in release PR/checkpoint; local evidence does not predeclare success",
+  "newRecurringServiceCostUSD": 0,
+  "sqlWritesOrEmailDispatches": false,
+  "institutionalCertification": false,
+  "rawEvidencePublished": false,
+  "evidence": [
+    {
+      "file": "withdrawn-braces-advisory-20261023.json",
+      "bytes": 475,
+      "sha256": "59eb05f53a2765deedd170cc2aaa333de7680edc374bc8823d7fa111a9995bb1"
+    },
+    {
+      "file": "beta-followup-audit-20261023.json",
+      "bytes": 388,
+      "sha256": "428b9c6438b8ba99a51d6acded5b5ca86706b136bd3c44f40411d1d850deecdf"
+    },
+    {
+      "file": "beta-followup-20261023-public.json",
+      "bytes": 175,
+      "sha256": "be93c1f70bcd418347a6bd3017813b650414d84f65348e300e5cc8451b85a2fb"
+    },
+    {
+      "file": "beta-followup-operations-20261023.json",
+      "bytes": 1249,
+      "sha256": "f129ea8d069d2d71503f857399a8b282fb3247440f8257e8c6820f3d0defdc71"
+    },
+    {
+      "file": "retire-audit-exception-before-20261023.log",
+      "bytes": 4258,
+      "sha256": "f34e64d28f72c07a06960070b426576b4e873fb5755a24d2e0737eae49be2f8b"
+    },
+    {
+      "file": "retire-audit-exception-after-20261023.log",
+      "bytes": 1826,
+      "sha256": "d6701256400801b770d5b3dd19893587b7f056f911148a4081295b44e59f0f57"
+    },
+    {
+      "file": "retire-audit-exception-real-20261023.log",
+      "bytes": 60,
+      "sha256": "cd30f202c65fa992bfa581a3184d3b4a21dd0a91bac4193f41889b4e5aa2d015"
+    }
+  ]
+}

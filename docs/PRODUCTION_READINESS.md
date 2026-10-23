@@ -2,6 +2,8 @@
 
 Last updated: 2026-10-23 (Asia/Calcutta). PASS applies only to the stated supported scope, never unrestricted institutional certification. **GO for the controlled24 October public beta:** [BETA_LAUNCH_20261024.md](BETA_LAUNCH_20261024.md) records fresh genuine financial/account acceptance and the owner's explicit current-sender choice. Storage/provider/security/performance follow-up: [LAUNCH_GATES_REVIEW_20261023.md](LAUNCH_GATES_REVIEW_20261023.md). Latest promotion and live identity: [BETA_RELEASE_CLOSEOUT_20261023.md](BETA_RELEASE_CLOSEOUT_20261023.md), deployed63049e1/PR106 with unchanged application models and design. Prior runtime security patch: `NEXT_SECURITY_CLOSEOUT_20261023.md`. Dated evidence retains its separate scope.
 
+**Dependency status follow-up23 October:** The earlier Braces advisory was withdrawn upstream; the current real npm audit reports zero findings. The obsolete High exception is removed and29 local gate scenarios pass. Remote release results are recorded separately in the release PR/checkpoint. [Strict policy and evidence](WITHDRAWN_ADVISORY_CLOSEOUT_20261023.md). This supersedes the historical Braces classification below; Supabase and independent institutional assurance limits remain.
+
 Allowed states: **PASS, FAIL, BLOCKED, NOT STARTED, NOT APPLICABLE**.
 
 | Area | State | Verified scope / remaining constraint |
