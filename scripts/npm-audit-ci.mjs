@@ -1,15 +1,5 @@
 import {spawnSync} from "node:child_process";
 
-const ADVISORY_ID="GHSA-vfj7-8cjw-p6xm";
-const ALLOWED_CHAIN=new Set([
-  "braces",
-  "micromatch",
-  "fast-glob",
-  "vite-plugin-dynamic-import",
-  "vite-plugin-commonjs",
-  "vinext",
-  "@vinext/cloudflare",
-]);
 const SEVERE=new Set(["high","critical"]);
 const LEVELS=["info","low","moderate","high","critical"];
 const isRecord=value=>value!==null&&typeof value==="object"&&!Array.isArray(value);
@@ -62,43 +52,8 @@ if(severe.length===0){
   process.exit(0);
 }
 
-const unexpected=[];
-let expectedDirectAdvisory=false;
-for(const [name,value] of severe){
-  if(!ALLOWED_CHAIN.has(name)){
-    unexpected.push(`${name}: unexpected ${value?.severity??"unknown"} vulnerability`);
-    continue;
-  }
-  if(value?.severity==="critical"){
-    unexpected.push(`${name}: critical severity is never excepted`);
-  }
-  for(const via of value?.via??[]){
-    if(typeof via==="string"){
-      if(!ALLOWED_CHAIN.has(via))unexpected.push(`${name}: unexpected vulnerable dependency ${via}`);
-      continue;
-    }
-    if(!via||!SEVERE.has(via.severity))continue;
-    if(name==="braces"&&via.name==="braces"&&via.dependency==="braces"&&via.severity==="high"&&via.url===`https://github.com/advisories/${ADVISORY_ID}`){
-      expectedDirectAdvisory=true;
-    }else{
-      unexpected.push(`${name}: unexpected advisory ${via.url??via.title??via.source??"unknown"}`);
-    }
-  }
-}
-
-if(!expectedDirectAdvisory){
-  unexpected.push(`expected direct advisory ${ADVISORY_ID} was not present on braces`);
-}
-
-if(unexpected.length){
-  console.error("npm audit gate: FAIL");
-  for(const item of unexpected)console.error(`- ${item}`);
-  process.exit(1);
-}
-
-console.warn(
-  `npm audit gate: TEMPORARY EXCEPTION for ${ADVISORY_ID} only. `+
-  "The advisory currently has no patched braces release and is reached through the Vinext build-tool chain. " +
-  "Any different high/critical advisory still fails CI."
-);
-process.exit(0);
+// The former Braces advisory was withdrawn. Retain evidence validation above,
+// but no package, dependency chain or advisory may bypass this severity gate.
+console.error("npm audit gate: FAIL (high or critical vulnerabilities are not excepted)");
+for(const [name,value] of severe)console.error(`- ${name}: ${value.severity}`);
+process.exit(1);

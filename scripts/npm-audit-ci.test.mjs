@@ -15,6 +15,7 @@ function report(vulnerabilities={}){
  return {auditReportVersion:2,vulnerabilities,metadata:{vulnerabilities:counts}};
 }
 const known=()=>report({braces:entry('braces','high',[{...advisory}]),micromatch:entry('micromatch','high',['braces'])});
+const formerChain=()=>report({braces:entry('braces','high',[{...advisory}]),micromatch:entry('micromatch','high',['braces']),'fast-glob':entry('fast-glob','high',['micromatch']),'vite-plugin-dynamic-import':entry('vite-plugin-dynamic-import','high',['fast-glob']),'vite-plugin-commonjs':entry('vite-plugin-commonjs','high',['vite-plugin-dynamic-import']),vinext:entry('vinext','high',['vite-plugin-commonjs']),'@vinext/cloudflare':entry('@vinext/cloudflare','high',['vinext'])});
 function runAuditFixture({data,raw,status=0}){
  // Run the real CLI gate with an isolated npm executable, without network or lockfile changes.
  const dir=mkdtempSync(join(tmpdir(),'rivexis-audit-gate-'));
@@ -39,7 +40,8 @@ function runAuditFixture({data,raw,status=0}){
 const scenarios=[
  ['clean valid report',{data:report()},true],
  ['moderate-only report',{data:report({example:entry('example','moderate',[{...advisory,name:'example',severity:'moderate'}])}),status:1},true],
- ['exact temporary exception',{data:known(),status:1},true],
+ ['retired advisory must no longer bypass the gate',{data:known(),status:1},false],
+ ['entire former seven-package exception must fail',{data:formerChain(),status:1},false],
  ['registry error JSON',{data:{error:{code:'E500',summary:'registry unavailable'}},status:1},false],
  ['error embedded in otherwise valid report',{data:{...report(),error:{code:'EAUDITNOLOCK'}},status:1},false],
  ['unexpected npm exit code with clean JSON',{data:report(),status:2},false],
@@ -69,6 +71,7 @@ const scenarios=[
 for(const [name,fixture,allowed] of scenarios)test(`audit gate: ${name}`,()=>{
  const result=runAuditFixture(fixture);
  assert.equal(result.status,allowed?0:1,`${name}: ${result.stdout}\n${result.stderr}`);
- if(allowed)assert.match(result.stdout+result.stderr,/PASS|TEMPORARY EXCEPTION/);
+ if(allowed)assert.match(result.stdout+result.stderr,/PASS/);
  else assert.doesNotMatch(result.stdout,/PASS/);
+ assert.doesNotMatch(result.stdout+result.stderr,/TEMPORARY EXCEPTION/);
 });
