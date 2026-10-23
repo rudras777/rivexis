@@ -1,0 +1,261 @@
+{
+  "recordedAtUTC": "2026-10-23T13:28:05.431022+00:00",
+  "scope": "Approved storage/provider/security/performance follow-up and standard CI ephemeral runner repair; no application/backend/dependency change or runtime deployment",
+  "production": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
+  "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+  "priorRuntimeEvidence": "next-security-release-20261023.json",
+  "offsiteRecovery": {
+    "recordedAtUTC": "2026-10-23T13:09:52Z",
+    "authorization": {
+      "response": "Approve the encrypted backup copy",
+      "scope": "Copy the verified 804,514-byte encrypted 20 October recovery archive to the existing owner-only RIVEXIS Recovery folder; keep decryption key local and sharing unchanged."
+    },
+    "snapshotDate": "2026-10-20",
+    "copyDate": "2026-10-23",
+    "fileName": "RIVEXIS-recovery-20261020.rvxenc",
+    "encryptedBytes": 804514,
+    "encryptedSHA256": "fedbd8db3ea05414587fcc79989cdaad1cbf8f5314c52ac3e53dc3561f2d4724",
+    "status": "PASS uploaded, metadata readback and independent downloaded-ciphertext checksum",
+    "folderOwnerOnly": true,
+    "fileOwnerOnly": true,
+    "parentMatchesVerifiedExistingFolder": true,
+    "permissionChanges": false,
+    "roundtrip": {
+      "downloadedBytes": 804514,
+      "sha256Matches": true,
+      "downloadedFromNewOffsiteFile": true,
+      "decrypted": false
+    },
+    "original17OctoberCopyPreserved": true,
+    "actualDriveFolderShowsBothDatedFiles": true,
+    "decryptionKeyRead": false,
+    "decryptionKeyUploaded": false,
+    "plaintextTransferred": false,
+    "databaseMutation": false,
+    "newDatabaseExport": false,
+    "newCredentials": false,
+    "newServiceOrPaidUpgrade": false,
+    "limits": [
+      "This is the 20 October pre-upgrade snapshot, not a new 23 October database export.",
+      "Earlier authenticated decrypt/restore evidence is dated 20 October; this action checks byte-identical ciphertext and permissions without decrypting.",
+      "Independent second-machine recovery, key custody, retention policy, RPO/RTO and full provider/service reconstruction remain unverified."
+    ],
+    "privateIdentifiersExcluded": true
+  },
+  "currentPublicHealth": "PASS HTTP200/exact production and /health200 ready",
+  "currentNormalSessionAndSelectedMenu": "PASS",
+  "currentMarket": {
+    "beforeBlock": 26255373,
+    "afterBlock": 26255377,
+    "oraclePointsPerAsset": 7,
+    "feePointsBefore": 4,
+    "feePointsAfter": 8,
+    "insufficient24HourCoverageExplicit": true
+  },
+  "security": {
+    "critical": 0,
+    "nextFindings": 0,
+    "highPackageEntries": 7,
+    "exception": "Existing unpatched Braces only",
+    "supabaseWarnings": [
+      "extension_in_public",
+      "auth_leaked_password_protection"
+    ],
+    "rlsWithoutPolicyInfo": 19,
+    "unusedIndexInfo": 114,
+    "pgNetVersion": "0.20.4",
+    "pgNetRelocatable": false,
+    "pgNetMemberRoutines": 12,
+    "pgNetMemberRoutinesInPublic": 0
+  },
+  "resources": {
+    "workersPlanObserved": "Workers Free",
+    "brevoDailyFreeAllowanceObserved": 300,
+    "cloudflareExistingAccountDomainsEmpty": true,
+    "brevoVerifiedSenderDomain": "gmail.com",
+    "brevoDKIM": "Default",
+    "brevoSendingDomainsConfigured": false,
+    "ownerDomainOrBetaSenderChoice": "PENDING",
+    "addedRecurringCostUSD": 0,
+    "totalAccountBillingCertified": false
+  },
+  "performance": {
+    "scope": "3 serial fresh guest Chromium contexts,4xCPU,trace/video off; no field/load certification",
+    "lcpMs": [
+      4236,
+      1108,
+      1608
+    ],
+    "cls": [
+      2.695520136745542e-05,
+      0,
+      0.0011565003697273663
+    ],
+    "firstSamplePreDNSMs": 2705,
+    "firstSampleRequestStartMs": 3056.5,
+    "firstSampleRequestToFirstByteMs": 363.9,
+    "causeOfPreDNSDelay": "unestablished",
+    "pageRequestHTTPFailures": 0,
+    "localIllustrationBenchmarkCalls": 30,
+    "localIllustrationMedianMs": 0.7102,
+    "localIllustrationMaxMs": 4.0684
+  },
+  "priorDocumentationCI": {
+    "headSha": "c3d466bc6c70b3c2d75a9f72b7b9ca16acb8f10b",
+    "run": 39837162541,
+    "conclusion": "success"
+  },
+  "ciOnlyMirrorCI": {
+    "headSha": "ec857ccbd0b31ab879b1484d0d4c7f791d5a3ec9",
+    "run": 39836206866,
+    "conclusion": "success"
+  },
+  "retainedObservation": "Initial Overview heading wait deadline missed; same navigation arrived without repeated click/reload; no causal claim",
+  "institutionalLaunchReady": false,
+  "remaining": [
+    "Real installed-wallet permission UI",
+    "Owner domain-or-beta-sender decision and email delivery assurance",
+    "Independent recovery key custody, second-machine/full-service restore, retention/RPO/RTO",
+    "Sustained field/load/availability and independent security/operating assurance",
+    "Existing disclosed Braces/Supabase advisories"
+  ],
+  "privateIdentifiersKeysAndRawRecoveryExcluded": true,
+  "files": [
+    {
+      "name": "offsite-recovery-copy-20261023.json",
+      "bytes": 1660,
+      "sha256": "324e4c50a6281682f840ea2928111d32cc4c7ead9b9343e633e1611f3350f729"
+    },
+    {
+      "name": "offsite-recovery-copy-20261023.png",
+      "bytes": 67932,
+      "sha256": "5dd5117231c84baf9fffd940b70fd3ed7f65d4e268040b0a597c8fc7b453bb02"
+    },
+    {
+      "name": "launch-advisor-recovery-review-20261023.json",
+      "bytes": 2176,
+      "sha256": "57e3ff512bddfc79a0aabc243b5957124e9fb0b5117d3a92641a4bd4a168ca1e"
+    },
+    {
+      "name": "launch-sender-domain-review-20261023.json",
+      "bytes": 1003,
+      "sha256": "b89836a981656637177b5c0865e54c6457cc8e046716b4794d84910b321909e4"
+    },
+    {
+      "name": "launch-performance-diagnosis-20261023.mjs",
+      "bytes": 4859,
+      "sha256": "4faecc68996375670ac464fdb6cc547ad015c248c0df8c49b69f8df3de4ef84b"
+    },
+    {
+      "name": "launch-performance-diagnosis-20261023.json",
+      "bytes": 49206,
+      "sha256": "3b61e25cf4159b74e8a729ba4ba16c511d6c7b6114010598c49228a1ac280c87"
+    },
+    {
+      "name": "launch-performance-diagnosis-20261023.log",
+      "bytes": 938,
+      "sha256": "09e88cc92e9b338614bba8a7064fce1d6c51bf18ca4502135d4245710aa1352e"
+    },
+    {
+      "name": "POST_CLOSEOUT_VERIFICATION_20261023.json",
+      "bytes": 2530,
+      "sha256": "7b2d89d64af6a86277b035bf3a136e6312996098c133a72d8f41f6e9c6197a20"
+    },
+    {
+      "name": "documentation-security-ci-final-20261023.log",
+      "bytes": 408695,
+      "sha256": "8a0cc387c183fb84fface01410aca1dce8ec1df13a3c221f531b62e427dcaa94"
+    },
+    {
+      "name": "runner-https-ci-20261023.log",
+      "bytes": 515126,
+      "sha256": "adc8fb45b92badcdd46b02dcc2ab71c548cb88244f7949d6ef6075f931ba4c0d"
+    },
+    {
+      "name": "post-closeout-audit-20261023.json",
+      "bytes": 4005,
+      "sha256": "25ee7f454d24cacaee981803d6c3f3ffc2b0ecd9fb8efa300cea05f0d7df1281"
+    },
+    {
+      "name": "post-closeout-audit-gate-20261023.log",
+      "bytes": 225,
+      "sha256": "bc9a35a00089ac77124cf6f4f135db58343f6826c1d41186cc18f2203427257e"
+    },
+    {
+      "name": "post-closeout-market-20261023.json",
+      "bytes": 4204,
+      "sha256": "209444025235ca32f6c5fea99b76f5f0057c2599ab910e5565eb16f52089a1e5"
+    },
+    {
+      "name": "post-closeout-menu-20261023.json",
+      "bytes": 2073,
+      "sha256": "46c2b2c547292def6b557606f7408417806f53f9aab0bee3ad0edb7f929ae022"
+    },
+    {
+      "name": "post-closeout-menu-20261023.png",
+      "bytes": 11786,
+      "sha256": "c3a87571e5bfcb4ed9dc04ff780eca518e099c513d7f6fa74d93a86b1c6bb7cd"
+    },
+    {
+      "name": "post-closeout-public-identity-20261023.json",
+      "bytes": 404,
+      "sha256": "8da66ad13798e0a74835f0784391063eeb5d094adfb31101ba2224988c9a6bc7"
+    },
+    {
+      "name": "launch-audit-ci-azure-setup-20261023.json",
+      "bytes": 2798,
+      "sha256": "4fc0c8fe34677a098900da64bae6a306f41864f537541fdb13b5635a0815ee60"
+    },
+    {
+      "name": "launch-audit-ci-original-20261023.log",
+      "bytes": 425010,
+      "sha256": "b04e45488bd00efd3448b45aaf7beae0fc549c8f5ee830fae1df668c5e891584"
+    },
+    {
+      "name": "launch-audit-ci-original-20261023.json",
+      "bytes": 12731,
+      "sha256": "1ee061f2535094097a31ab706412067764bb861eb41e9eecffc53dd5d828288b"
+    },
+    {
+      "name": "launch-gates-runner-validation-20261023.json",
+      "bytes": 418,
+      "sha256": "ead2a317b884e2de875f8943582f66503197d15dac141039ac013f24a799ec27"
+    },
+    {
+      "name": "launch-gates-final-ci-20261023.log",
+      "bytes": 521735,
+      "sha256": "fc542960babd59067ae94f1a7c1bc4f73308eb042df279e4b041b1d189444a8b"
+    },
+    {
+      "name": "launch-gates-final-ci-20261023.json",
+      "bytes": 12924,
+      "sha256": "39d32c7fa77feb513b047a9e22ccf37a345b6293e79599fd931325e91222a597"
+    },
+    {
+      "name": "launch-gates-final-public-identity-20261023.json",
+      "bytes": 392,
+      "sha256": "eed08ab8f09785088a7d85a3539b3b6bf2a81b932d2bb448227d3b3b2a2adfcd"
+    }
+  ],
+  "standardCIRunnerFollowup": {
+    "source": "e8fb5eb46488f5aac9bea57fa4e4ebe3d6238180",
+    "branch": "ci/runner-https-archive-20261023",
+    "run": 39960270119,
+    "url": "https://github.com/rudras777/rivexis/actions/runs/39960270119",
+    "conclusion": "success",
+    "allFourJobsPassed": true,
+    "chromiumCases": 326,
+    "financialAuthCases": 295,
+    "browserDependenciesSeconds": 28,
+    "workflowAddedLines": 8,
+    "testAndSecurityVerificationUnchanged": true,
+    "applicationBackendDependencyTreesMatchProduction": true,
+    "mergedToMain": false,
+    "runtimeDeployed": false,
+    "supersededRun": 39959487683,
+    "supersededConclusion": "cancelled",
+    "supersededThreeJobsPassed": true,
+    "supersededBrowserTestsStarted": false,
+    "supersededCause": "Retained actual live UI log stalls on Azure HTTP Ubuntu package downloads; cancelled to avoid duplicate work"
+  }
+}

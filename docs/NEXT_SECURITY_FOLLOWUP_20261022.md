@@ -1,5 +1,7 @@
 # Next.js security follow-up — 22 October 2026
 
+**Closed23October:** PR105 is merged and deployed as37d03fd, same Workerc63e2bcd at100%. All seven exact-head release gates,326 fixtures and30 actual-public cases per engine PASS; fresh audit has zero critical/Next findings. See [final scoped release](NEXT_SECURITY_CLOSEOUT_20261023.md). The following paragraphs preserve earlier checkpoints and pending states as history.
+
 The documentation closeout CI39824683538 failed at17:40:59UTC because the live npm advisory feed newly identified an unexpected critical Next.js finding. The preceding navigation source/PR/main gates passed at their recorded times; their evidence remains historical. The gate correctly refused the new finding. Do not claim a new release is complete until the security update and exact-head release/public checks pass.
 
 Installed Next.js16.3.8 is in the reported ranges for [image-optimization RCE](https://github.com/advisories/GHSA-2464-fhr4-w9xw) and [App Router Server Actions denial of service](https://github.com/advisories/GHSA-p3m5-59mp-jv5r). Both official advisories identify16.4.1 as patched. The RCE description specifies glibc-based Linux/image optimization and a fixed sharp library; the DoS description requires a Server Action. Package-range detection is not proof of an exploitable production route or a compromise. No exploit payload is sent to production for this review.

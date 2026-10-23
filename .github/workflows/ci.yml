@@ -43,6 +43,14 @@ jobs:
       - run: npm run build:web
       - run: npm --workspace @rivexis/web run build:vinext
       - run: node scripts/npm-audit-ci.mjs
+      - name: Use official Ubuntu HTTPS archives for browser dependencies
+        # Keep package verification and browser versions; avoid the stalled Azure HTTP mirror.
+        run: |
+          test -f /etc/apt/apt-mirrors.txt
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt
+          if test -f /etc/apt/apt-security-mirrors.txt; then
+            printf '%s\n' 'https://security.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-security-mirrors.txt
+          fi
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
   invariants:

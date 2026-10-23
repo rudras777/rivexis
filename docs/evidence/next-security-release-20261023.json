@@ -1,0 +1,437 @@
+{
+  "release": {
+    "recordedAtUTC": "2026-10-22T19:05:21.067349+00:00",
+    "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+    "source": "2b1cd762d2cbccf34bba913e4b2967bc9c1741a8",
+    "production": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
+    "tree": "1be7166500aebc0b3df9457bd15f9efb7d9b071c",
+    "pr": 105,
+    "workerVersion": "c63e2bcd-64e0-44b8-914a-41e2103d3484",
+    "allocationPercent": 100,
+    "deployment": "d3a58268-88c5-4f7a-8ec7-ef55478bd033",
+    "nativeBuild": "ba158a6e-9d3f-4705-ab21-8ec0592353c5",
+    "nextVersion": "16.4.2",
+    "allGates": "PASS",
+    "gates": {
+      "sourceCI": {
+        "id": 39829699348,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39829699348",
+        "conclusion": "success",
+        "headSha": "2b1cd762d2cbccf34bba913e4b2967bc9c1741a8",
+        "status": "completed"
+      },
+      "prCI": {
+        "id": 39829706096,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39829706096",
+        "conclusion": "success",
+        "headSha": "2b1cd762d2cbccf34bba913e4b2967bc9c1741a8",
+        "status": "completed"
+      },
+      "workerCI": {
+        "id": 39829706018,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39829706018",
+        "conclusion": "success",
+        "headSha": "2b1cd762d2cbccf34bba913e4b2967bc9c1741a8",
+        "status": "completed"
+      },
+      "fixtureCompatibilityCI": {
+        "id": 39829706262,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39829706262",
+        "conclusion": "success",
+        "headSha": "2b1cd762d2cbccf34bba913e4b2967bc9c1741a8",
+        "status": "completed"
+      },
+      "mainCI": {
+        "id": 39832416739,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39832416739",
+        "conclusion": "success",
+        "headSha": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
+        "status": "completed"
+      },
+      "mainWorkerCI": {
+        "id": 39832416713,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39832416713",
+        "conclusion": "success",
+        "headSha": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
+        "status": "completed"
+      },
+      "publicCompatibilityCI": {
+        "id": 39836207489,
+        "url": "https://github.com/rudras777/rivexis/actions/runs/39836207489",
+        "conclusion": "success",
+        "headSha": "ec857ccbd0b31ab879b1484d0d4c7f791d5a3ec9",
+        "status": "completed"
+      }
+    },
+    "fixtureCasesPerEngine": 326,
+    "publicCasesPerEngine": 30,
+    "localNavigationPrecisionCases": 42,
+    "auditPolicyCases": 28,
+    "financialAuthCases": 295,
+    "apiEdgeCases": 30,
+    "marketUnitCases": 33,
+    "finalSkippedFlakyUnexpected": 0,
+    "finalDriverRecoveries": 0,
+    "publicBrowserJobReruns": 1,
+    "publicBrowserSetupRetry": "Attempt1 WebKit cancelled at20-minute runner limit while downloading Ubuntu dependencies; no WebKit application test results produced. Same-head failed-job rerun retained separately; Firefox30 passed attempt1.",
+    "authenticatedGroups": 5,
+    "authenticatedSettingsSectionsRead": 10,
+    "npmCritical": 0,
+    "npmNextFindings": 0,
+    "existingBracesExceptionUnchanged": true,
+    "sourceIdentitiesUnchanged": 13,
+    "newRecurringServiceCostUSD": 0,
+    "accountWideBillingCertified": false,
+    "institutionalLaunchReady": false,
+    "priorEvidenceHashesRechecked": {
+      "workspace-navigation-release-20261022.json": 75,
+      "authenticated-workflows-release-20261021.json": 72
+    },
+    "rollback": {
+      "production": "643de5a2d2aad9ca05caee32131685f0bc2f5d50",
+      "workerVersion": "b5f973a6-b683-413b-8bcc-c39d8fbed0d5",
+      "securityLimitation": "Restores affected Next package range; patched roll-forward required, not a secure permanent rollback."
+    },
+    "publicWorkflowSource": "ec857ccbd0b31ab879b1484d0d4c7f791d5a3ec9",
+    "publicExpectedProductionBuild": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
+    "publicRunnerFallback": "Workflow39836207489 uses official Ubuntu HTTPS archives on an ephemeral runner. Only workflow file differs; web/API/database/dependency/test trees match production exactly. Both browsers rerun all30 actual-public cases; original cancelled/setup-delayed runs retained, no gate/test/assertion waived.",
+    "supersededPublicWorkflow": 39832590075
+  },
+  "fixtureBrowsers": {
+    "webkit": {
+      "browser": "webkit",
+      "driverNavigationReleaseAttempts": 0,
+      "stats": {
+        "startTime": "2026-10-22T18:16:22.690Z",
+        "duration": 677955.8350000001,
+        "expected": 326,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": []
+    },
+    "firefox": {
+      "browser": "firefox",
+      "driverNavigationReleaseAttempts": 0,
+      "stats": {
+        "startTime": "2026-10-22T18:16:26.121Z",
+        "duration": 472227.253,
+        "expected": 326,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": []
+    }
+  },
+  "publicBrowsers": {
+    "webkit": {
+      "browser": "webkit",
+      "driverNavigationReleaseAttempts": 0,
+      "stats": {
+        "startTime": "2026-10-22T19:01:38.592Z",
+        "duration": 76584.988,
+        "expected": 30,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": []
+    },
+    "firefox": {
+      "browser": "firefox",
+      "driverNavigationReleaseAttempts": 0,
+      "stats": {
+        "startTime": "2026-10-22T19:00:50.495Z",
+        "duration": 63213.86,
+        "expected": 30,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "errors": []
+    }
+  },
+  "publicChromiumStats": {
+    "startTime": "2026-10-22T18:36:32.872Z",
+    "duration": 117324.26299999999,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "scope": "Same existing Worker security update; genuine existing-session desktop navigation/Settings read and private report loading. Financial reconciliation/recovery evidence remains dated21October. Mobile evidence is controlled. No wallet signing, data deletion, account reset, new paid service or independent institutional certification.",
+  "files": [
+    {
+      "name": "security-next-audit-after-20261022.json",
+      "bytes": 4005,
+      "sha256": "25ee7f454d24cacaee981803d6c3f3ffc2b0ecd9fb8efa300cea05f0d7df1281"
+    },
+    {
+      "name": "security-next-audit-before-20261022.json",
+      "bytes": 5389,
+      "sha256": "4cc6dd675c817838f5b0d12c00629470767bc11ebaca3b725f4b5a05c8d5a7a0"
+    },
+    {
+      "name": "security-next-audit-final-20261023.json",
+      "bytes": 4005,
+      "sha256": "25ee7f454d24cacaee981803d6c3f3ffc2b0ecd9fb8efa300cea05f0d7df1281"
+    },
+    {
+      "name": "security-next-audit-final-gate-20261023.log",
+      "bytes": 225,
+      "sha256": "bc9a35a00089ac77124cf6f4f135db58343f6826c1d41186cc18f2203427257e"
+    },
+    {
+      "name": "security-next-audit-gate-20261022.log",
+      "bytes": 225,
+      "sha256": "bc9a35a00089ac77124cf6f4f135db58343f6826c1d41186cc18f2203427257e"
+    },
+    {
+      "name": "security-next-audit-policy-tests-20261022.log",
+      "bytes": 1753,
+      "sha256": "a3d1b7ac12b390c854cad633ad4330fe88a69f40252a03eafad655a9fe185518"
+    },
+    {
+      "name": "security-next-authenticated-live-20261022.json",
+      "bytes": 4885,
+      "sha256": "701f568cc80aa8730caa6767e11973f6b5f5ad7e047752bf816232c18b09825c"
+    },
+    {
+      "name": "security-next-available-versions-20261022.json",
+      "bytes": 595,
+      "sha256": "8606c7fcd555da82d6a45f3653a447fe107bd25a9f3ce86b9813f554a0587adf"
+    },
+    {
+      "name": "security-next-build-20261022.log",
+      "bytes": 2078,
+      "sha256": "9e7ada8c6268f9bff898ef862154323c3cf8ba5e44b33012d8b0368bead58896"
+    },
+    {
+      "name": "security-next-exact-head-gates-20261022.json",
+      "bytes": 757,
+      "sha256": "1a86cfdefeaf142954cd629ba77555412f021ef7ad5188d19dead98e6df0ba00"
+    },
+    {
+      "name": "security-next-final-compatibility-20261022.log",
+      "bytes": 545707,
+      "sha256": "d5c03f8b0ebedf56f19bd571d81a4b537d08d93f455b7b0c55ddea768974b9ee"
+    },
+    {
+      "name": "security-next-final-firefox-20261022.log",
+      "bytes": 130856,
+      "sha256": "6f21523568e24e0cf9a6f96e894b22933207a197f8f96a35a90f55e2071e8985"
+    },
+    {
+      "name": "security-next-final-pr-ci-20261022.log",
+      "bytes": 521963,
+      "sha256": "39c39c929378e9b638dd6f43a1da544b9f9652d996fe6d45f0742d201341e96e"
+    },
+    {
+      "name": "security-next-final-source-ci-20261022.log",
+      "bytes": 513275,
+      "sha256": "eed3df7b0f3aefc1da0638590dedc1d0618d330af30378fa3fdc85ec34cdf17b"
+    },
+    {
+      "name": "security-next-final-source-identity-20261023.json",
+      "bytes": 2202,
+      "sha256": "0fe63c1d3f842ef918b6f9c1c7dd7644383c28104292dd0e4fb9d8da9de0f5da"
+    },
+    {
+      "name": "security-next-final-worker-ci-20261022.log",
+      "bytes": 397742,
+      "sha256": "b21a5b2c96c3e38897a6b1d52d0d5f44129211e2b8e2f4925c04de0e7eb8eb4c"
+    },
+    {
+      "name": "security-next-firefox-first-20261022.log",
+      "bytes": 147891,
+      "sha256": "c21d84d9d368ee687b45d6b4a49132e8e1791bcf0de9b20983492f5ea25b672c"
+    },
+    {
+      "name": "security-next-install-20261022.log",
+      "bytes": 275,
+      "sha256": "3b1c3f3e334e80f1b5215164a186d89588bdfda94836843f857b3065cb27739d"
+    },
+    {
+      "name": "security-next-installed-tree-20261022.log",
+      "bytes": 976,
+      "sha256": "b8cb57110aa1683c0328155abdd1723db3c261d3bf4c66f692ded36ac028ccdf"
+    },
+    {
+      "name": "security-next-installed-tree-root-20261022.log",
+      "bytes": 1309,
+      "sha256": "cc489527cb671eb03a7df7e0df4cd0a8afc0d40b502be20eb4f4f04fe7fdea48"
+    },
+    {
+      "name": "security-next-live-chromium-20261022.json",
+      "bytes": 36274,
+      "sha256": "db301074d662b1e8a1ce4cae9c6781ad10637708b388c2346864695faea6b9f0"
+    },
+    {
+      "name": "security-next-live-chromium-20261022.log",
+      "bytes": 4196,
+      "sha256": "700ed301119fb969640a11c12bd6ba7590e89feaded9989502465d29ae7c443a"
+    },
+    {
+      "name": "security-next-live-compatibility-20261023.log",
+      "bytes": 364717,
+      "sha256": "2030466c88e3b76db428aba8214bf310f943b60be54a79d52a7e1f6e90cb7db2"
+    },
+    {
+      "name": "security-next-live-liquidationguard-detail-20261022.png",
+      "bytes": 11087,
+      "sha256": "1550b888d1e3e934c0e0362e72f7751f96f69f77841d9dcfdd8b710a2a4d4531"
+    },
+    {
+      "name": "security-next-live-liquidationguard-full-20261022.png",
+      "bytes": 66745,
+      "sha256": "91681259117b8a00c3a0509623f2741565f1b9bc3d8b8780c27c27dc81ad7edb"
+    },
+    {
+      "name": "security-next-live-market-20261023.json",
+      "bytes": 4813,
+      "sha256": "9b32f90ebdb38788137bdfff84c9fdf37697c8f41f7c7f6f4bf210d418f5cf2f"
+    },
+    {
+      "name": "security-next-live-overview-20261023.png",
+      "bytes": 82476,
+      "sha256": "ed56365788264a90c1f3826a8bd8fba4dd0077747c806d20162ec903724b5048"
+    },
+    {
+      "name": "security-next-main-ci-20261022.log",
+      "bytes": 515532,
+      "sha256": "0de7a855adc1d7011b849596a0cea2e1f85e24910cdd9a115dfb26777735a8ce"
+    },
+    {
+      "name": "security-next-main-worker-ci-20261022.log",
+      "bytes": 393416,
+      "sha256": "e71894e93290e30aec96af4b63f995838560ba824f6a080610c879072b1e3980"
+    },
+    {
+      "name": "security-next-native-rollout-20261022.txt",
+      "bytes": 3152,
+      "sha256": "c4ec15a35f5c78190362c8e818a0f2d0e22e9899a3f82f1a5c074bb973ae035d"
+    },
+    {
+      "name": "security-next-navigation-20261022.json",
+      "bytes": 33153,
+      "sha256": "5cdefc8e0ad09ecafa0792da4b1f89756989fa14b1348d5417642776f76b64af"
+    },
+    {
+      "name": "security-next-navigation-20261022.log",
+      "bytes": 4425,
+      "sha256": "e22421c8b6150e010f7d4242021bfcca9dffe4da98b0e8e8cb90a1d061b05a45"
+    },
+    {
+      "name": "security-next-preliminary-compatibility-20261022.log",
+      "bytes": 569206,
+      "sha256": "682de0be52bb846a647b4da7efa7dc37928f957d69073a66f80f4302a707ba99"
+    },
+    {
+      "name": "security-next-preliminary-pr-ci-20261022.log",
+      "bytes": 521333,
+      "sha256": "6637eae1581338657eae9b56a5b0adee099cc60176fd3aaebee625a13f7dee79"
+    },
+    {
+      "name": "security-next-preliminary-source-ci-20261022.log",
+      "bytes": 506851,
+      "sha256": "5898b4bb56a7047e2f2d578b9f489dde3b489bb37cdf0b6c7fc35735f096e2b5"
+    },
+    {
+      "name": "security-next-premerge-audit-20261022.log",
+      "bytes": 225,
+      "sha256": "bc9a35a00089ac77124cf6f4f135db58343f6826c1d41186cc18f2203427257e"
+    },
+    {
+      "name": "security-next-production-http-20261022.json",
+      "bytes": 947,
+      "sha256": "1f44f3fcd7a8ac2636bfc6a087298fa0f96b8e928760c5aa4983e7d72bbaa349"
+    },
+    {
+      "name": "security-next-production-http-20261022.log",
+      "bytes": 730,
+      "sha256": "42e3cfbef940e872ec57fbb9feef365d06d5a1bcd87277459daf28998a7cc189"
+    },
+    {
+      "name": "security-next-public-attempt1-20261023.log",
+      "bytes": 197989,
+      "sha256": "05bce0c49d4647ae5e5c746fc33e85bdc93032d9044dcef13e36f94b389f01e4"
+    },
+    {
+      "name": "security-next-public-attempt1-status-20261023.json",
+      "bytes": 5368,
+      "sha256": "6dbb405ba4be59c58b0bee764996ffe1a8b64e7359a330baca02e1eadd3f849a"
+    },
+    {
+      "name": "security-next-public-attempt2-20261023.log",
+      "bytes": 165694,
+      "sha256": "35db00c4da1ecb72188c1bf933fbb4aeed81c505c6504ba3264e2e7b601ef174"
+    },
+    {
+      "name": "security-next-public-attempt2-status-20261023.json",
+      "bytes": 5368,
+      "sha256": "cf28721791271bd1fc9a3280fb550f90b003170a16feb36135d87eb4dff719c8"
+    },
+    {
+      "name": "security-next-public-https-result-20261023.json",
+      "bytes": 5760,
+      "sha256": "af70ea56468c2e41d54b1c52b1f14ee4366748b556da0e5fdcee3ad8a0987c68"
+    },
+    {
+      "name": "security-next-public-runner-source-20261023.json",
+      "bytes": 1170,
+      "sha256": "8cd9eb9e0ef5beaecf9bf1b615c7df97d999dd7146a78334bd8d9ebf8b5a26ac"
+    },
+    {
+      "name": "security-next-retained-source-identity-20261022.json",
+      "bytes": 1849,
+      "sha256": "1a0e30537618940571e01e0e2251894326cd7376fca2564ece5a814c784708e3"
+    },
+    {
+      "name": "security-next-scroll-after-20261022.json",
+      "bytes": 51551,
+      "sha256": "124ef353c2903a477ff6dc5fe0acd445f60a14aa301bb3ef7c117182c55b0ff5"
+    },
+    {
+      "name": "security-next-scroll-after-20261022.log",
+      "bytes": 8234,
+      "sha256": "cfa8c94005a16c8612763f1a68260d08d90c7956eb43a0603e9a65b119fb4b57"
+    },
+    {
+      "name": "security-next-scroll-ast-20261022.log",
+      "bytes": 338,
+      "sha256": "5a04db228ef43b85175835b9a78e123708063c6f7a4d0361d4480bd5c99acfdf"
+    },
+    {
+      "name": "security-next-scroll-before-20261022.json",
+      "bytes": 11041,
+      "sha256": "f948ba329472523f5dd1be55f8a68f5111835c53283f37007ad7a7bc8c706e0c"
+    },
+    {
+      "name": "security-next-scroll-before-20261022.log",
+      "bytes": 4606,
+      "sha256": "87f13203dfa026bd3e930190bf579bda554a205b491667523692651fffc1e98a"
+    },
+    {
+      "name": "security-next-scroll-build-20261022.log",
+      "bytes": 2077,
+      "sha256": "623bd87684ab8a274296de0cd28857baddaf6a346ba8d9b5892da22ea62aa9b8"
+    },
+    {
+      "name": "security-next-vinext-build-20261022.log",
+      "bytes": 6250,
+      "sha256": "273246b710768fbbc35e0c6bc4617b186f40a5d24e7f110ba48e765fc7e016f6"
+    },
+    {
+      "name": "security-next-worker-dry-run-20261022.log",
+      "bytes": 110491,
+      "sha256": "0e07e20712d6d3eeb212339f7084f5feedf30cec92a194cdbe38c06e36f2221c"
+    },
+    {
+      "name": "security-next-worker-rollout-summary-20261022.json",
+      "bytes": 347,
+      "sha256": "edf25ac17100601e00fd52efc2293c5b54a2ae7f8494ead4fc038ce78d238f4f"
+    }
+  ]
+}

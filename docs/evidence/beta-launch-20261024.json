@@ -1,0 +1,318 @@
+{
+  "recordedAtUTC": "2026-10-23T14:05:09.730733+00:00",
+  "launchDate": "2026-10-24 Asia/Calcutta",
+  "decision": "GO controlled public beta in stated supported scope; not unrestricted institutional certification",
+  "ownerDecision": "Keep the current sender for the limited beta",
+  "production": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
+  "url": "https://rivexis-web.rudrasingh0718.workers.dev/",
+  "runtimeChanged": false,
+  "appBackendAuthModelDependencySchemaDesignChanged": false,
+  "normalVerifiedSessionUsed": true,
+  "responseInterceptionOrClockOverride": false,
+  "privateKeySigningOrSubmission": false,
+  "publicReferenceOwnershipClaimed": false,
+  "freshAcceptance": {
+    "marketResumeBlock": 26255662,
+    "morphoPlanner": {
+      "block": 26255670,
+      "allocations": 59,
+      "alternativesIndependentlyReconciled": 6,
+      "targetMet": false
+    },
+    "morphoSequence": {
+      "parent": 26255680,
+      "next": 26255681,
+      "successfulSteps": 6,
+      "nativeAccounting": "EXACT_MATCH",
+      "stateOrBlockOverrides": false
+    },
+    "gasguard": {
+      "block": 26255684,
+      "gasRaw": "152507",
+      "feeReserveWei": "63356907995456",
+      "simulation": "SUCCEEDED_AT_BLOCK",
+      "blockers": 0,
+      "arithmetic": "EXACT_MATCH"
+    },
+    "aavePlanner": {
+      "block": 26255692,
+      "wethShockBps": -2000,
+      "alternativesIndependentlyReconciled": 1,
+      "targetMet": false,
+      "walletNowHasUSDTUnlikeEarlierDatedZeroBalanceState": true
+    },
+    "aaveSequence": {
+      "parent": 26255697,
+      "next": 26255698,
+      "successfulSteps": 3,
+      "nativeAccounting": "EXACT_MATCH",
+      "stateOrBlockOverrides": false
+    },
+    "reports": {
+      "newServerBlock": 26255715,
+      "before": 5,
+      "afterReload": 6,
+      "allFiveEarlierRecordsPreserved": true,
+      "freshSavedArithmetic": "EXACT_MATCH",
+      "historicalSafeguards": true,
+      "reportsDeleted": false
+    },
+    "monitoring": {
+      "previous": 26255715,
+      "current": 26255727,
+      "checksPerformed": 1,
+      "explicitStop": true,
+      "remainingFourNotClaimed": true
+    },
+    "settings": {
+      "sections": 10,
+      "densitySavedAndReloaded": true,
+      "originalPreferencesRestoredAndReloaded": true,
+      "securitySessionOrEmailMutation": false
+    },
+    "contract": {
+      "observedBlock": 26255749,
+      "codeBytes": 3124,
+      "viewReadBlock": 26255751,
+      "decimals": "18",
+      "sourceOrABIVerified": false,
+      "savedIdentityChanged": false
+    },
+    "networkBlock": 26255754,
+    "wallet": {
+      "zeroAddressRejected": true,
+      "noInjectedProviderTruthfullyDisclosed": true,
+      "escapeDismissal": true,
+      "watchListChanged": false,
+      "nativePermissionCertified": false
+    },
+    "fiveNavigationGroupsExercised": true,
+    "capturedBrowserErrors": 0,
+    "homepageHealthAndPrivateGuestDenial": {
+      "recordedAtUTC": "2026-10-23T14:03:19.581Z",
+      "homepageHTTP": 200,
+      "healthHTTP": 200,
+      "health": "ready",
+      "production": "37d03fd3c539085538cbbca48ea2f29b91a581fb",
+      "guestPrivateReportsHTTP": 401,
+      "guestPrivateReportError": "Authentication required",
+      "cookiesSupplied": false
+    }
+  },
+  "installedQuotaChecks": {
+    "global_300_per_utc_day": true,
+    "wallet_four_per_minute": true,
+    "twenty_reports_per_account": true,
+    "anon_can_call_quota": false,
+    "client_can_call_quota": false,
+    "service_can_call_quota": true,
+    "consumed_global_today": 11
+  },
+  "priorReleaseEvidence": "next-security-release-20261023.json",
+  "priorFinalCI": {
+    "run": 39961525060,
+    "source": "5c981567c04fa90d6318b8c63f4d311128f61628",
+    "conclusion": "success",
+    "allFourJobsPassed": true,
+    "chromiumCases": 326
+  },
+  "tenOrMoreScenarioCoverage": "../WORKFLOW_SCENARIO_COVERAGE.md",
+  "automatedFixtureFailuresNotPortrayedAsRealProductionEvents": true,
+  "browserQAVerdict": {
+    "score": 4,
+    "outOf": 5,
+    "scope": "Qualitative tested-workflow QA, not financial safety/security/SLA certification",
+    "remainingGap": "Native-wallet permission and wider delivery/provider/field/operating assurance"
+  },
+  "addedRecurringServiceCostUSD": 0,
+  "remainingInstitutionalAssurance": [
+    "Native installed-wallet approval UX",
+    "Owned-domain authentication/inbox assurance",
+    "Independent key custody/second-machine/full-service recovery/retention/RPO/RTO",
+    "Sustained field/load/provider availability and independent security/operating assurance",
+    "Existing disclosed Braces and Supabase configuration advisories"
+  ],
+  "retainedObservations": [
+    "Stale save correctly disabled; refresh and recalculation required before save",
+    "Open report routes to historical frontier; monitoring lookup during prior-route transition found no element",
+    "Account native disclosure did not match button-role lookup; visible-text selector succeeded"
+  ],
+  "privateIDsCredentialsAccountExportsAndRecoveryMaterialExcluded": true,
+  "files": [
+    {
+      "name": "aave-plan.json",
+      "bytes": 12395,
+      "sha256": "89f24b07ec44c79e57c88d8c826317e8db3a334091f9438c9050dbe0ff0ed958"
+    },
+    {
+      "name": "aave-reconciliation.json",
+      "bytes": 1085,
+      "sha256": "551d37a58e8e40cf612117e9b17b64485c26f20d8699928fbad5cdf6bb5def08"
+    },
+    {
+      "name": "aave-saved-report-reconciliation.json",
+      "bytes": 1085,
+      "sha256": "009da070ffe2a41f396198064c356d4b1fb5f0665ac51b3388497d6f25d9c885"
+    },
+    {
+      "name": "aave-saved-report.json",
+      "bytes": 9700,
+      "sha256": "5da8d95f18bc0a3f4914d3036264157e7d2c54c3121c7d5798f31ba28ab290a4"
+    },
+    {
+      "name": "aave-sequence-reconciliation.json",
+      "bytes": 762,
+      "sha256": "6a94cddc530d7df3aae6c8774ee7ead64797747b762859cebe6c486fb93ba240"
+    },
+    {
+      "name": "aave-sequence.json",
+      "bytes": 3761,
+      "sha256": "7b6668d640aea10c4b2f43eff5c4d1ec43e6247a3294fae1eb2825b5a299af97"
+    },
+    {
+      "name": "aave-sequence.png",
+      "bytes": 60427,
+      "sha256": "0d15fdd4d37977e98fc3338aabc31db522bc3139100cc308fe89168f1b335410"
+    },
+    {
+      "name": "aave-stress-browser.json",
+      "bytes": 6968,
+      "sha256": "ceffa1d72c2fe9ed03fa37379ffd8440be42a751bd223c5a4d54c28a232882f2"
+    },
+    {
+      "name": "browser-errors.json",
+      "bytes": 180,
+      "sha256": "4c60f58ae64a13489470f3c25822df96aa6a5a1a476fec4d31eaa6828bdd79f0"
+    },
+    {
+      "name": "check_aave_math.py",
+      "bytes": 4358,
+      "sha256": "1949550b14f303e1d1f6aac82f5305aab3bb09265d31a617e3b8131fc3ab2c2e"
+    },
+    {
+      "name": "check_aave_saved_report.py",
+      "bytes": 4451,
+      "sha256": "3ecd8598bd8faa90e6bdd387af8e84d38c8de15407ed991d4a39f7aec46f9fe4"
+    },
+    {
+      "name": "check_aave_sequence.py",
+      "bytes": 2237,
+      "sha256": "e9f0d6cdb9acd4c92234f9cad52149493f33434f2a153da6dec21b070d0d2526"
+    },
+    {
+      "name": "check_morpho_gasguard.py",
+      "bytes": 1816,
+      "sha256": "695b8a1ee8374e9e56c270c5c16b026b7ffae5f7d409f1f69d2a01959e8ef22a"
+    },
+    {
+      "name": "check_morpho_math.py",
+      "bytes": 5452,
+      "sha256": "fe811939f3f68fcfe38298e5dbd6443b20cd9342917276d89686bb67aab360a9"
+    },
+    {
+      "name": "check_morpho_sequence.mjs",
+      "bytes": 2803,
+      "sha256": "a87dccf95da200b851df665c9348507280e04c57030b9515b4bb59a1a0c0f848"
+    },
+    {
+      "name": "contract-view.json",
+      "bytes": 1466,
+      "sha256": "b2ea8c09dcfd297bd172007ffba79b11a5577240d3da5c4f8b0fadfa30b2c797"
+    },
+    {
+      "name": "final-overview.png",
+      "bytes": 56218,
+      "sha256": "9c7278a5291b86b3d503f247a88d3c681c993a3ff88e0bde8fb025fd3724d826"
+    },
+    {
+      "name": "finalize_beta_evidence.py",
+      "bytes": 6846,
+      "sha256": "66236448d435ecac7fc9349884f580014a17938bd6318c7cbb5d1b29221570ef"
+    },
+    {
+      "name": "market-resume.json",
+      "bytes": 2501,
+      "sha256": "f0249693122be28c5f78d2006f5445db337c0ad7107fe6f6c9475f69d2fc8004"
+    },
+    {
+      "name": "monitoring-stop.json",
+      "bytes": 1940,
+      "sha256": "04e37f66720f6c0b168c3e066ad784c2a33d23d43c347067aff04f0f35eae4ec"
+    },
+    {
+      "name": "morpho-gasguard-reconciliation.json",
+      "bytes": 716,
+      "sha256": "c02c751c959f9d861190cdc21532caf1a91b3c584e489454a5ffe79633eeea21"
+    },
+    {
+      "name": "morpho-gasguard.json",
+      "bytes": 3278,
+      "sha256": "6a87bed5264e01220fee10d794b39b101ff08d4ac3d8fc642534b7f8004cfc8f"
+    },
+    {
+      "name": "morpho-plan.json",
+      "bytes": 25063,
+      "sha256": "8aa2018741609cf96195b1fba5b86ee0ac473212a8b02c523b16509e20dcc751"
+    },
+    {
+      "name": "morpho-portfolio.json",
+      "bytes": 4126,
+      "sha256": "f9d168f36c1fdb504d2e095138d37a3ff327eb5785eaafee87e252d18a8e8478"
+    },
+    {
+      "name": "morpho-reconciliation.json",
+      "bytes": 1900,
+      "sha256": "51da42abcea863812dbfc18de52eaf699e3fdac6ce50cd6216339a9562007ded"
+    },
+    {
+      "name": "morpho-sequence-reconciliation.json",
+      "bytes": 799,
+      "sha256": "bb23190edef75facdf3acaca51412893c98d543f93d88d7ecdbf24fba9f035eb"
+    },
+    {
+      "name": "morpho-sequence.json",
+      "bytes": 10288,
+      "sha256": "d1e39981f3eb2c7375d5f60c1d8dd6e093b0dcdf8f37d5e358f7daf886c1c856"
+    },
+    {
+      "name": "morpho-sequence.png",
+      "bytes": 69843,
+      "sha256": "f700dc05407857ec4110503600099630861e84c2a6585b8ad4db8799c6be9575"
+    },
+    {
+      "name": "network.json",
+      "bytes": 1202,
+      "sha256": "361f2baf3dcfaa5d9a3eba983925e330cf190891fc0908be75f8001f39309798"
+    },
+    {
+      "name": "public-identity-auth.json",
+      "bytes": 293,
+      "sha256": "e85c654a21facb5145392ae3c4f3ce46947f6d16a0227e66581aef7e35d63230"
+    },
+    {
+      "name": "quotas.json",
+      "bytes": 485,
+      "sha256": "a9a7623dab5e9f7b46980d577d93bcb5e6a6b2fa685e05b1958761dc45349f07"
+    },
+    {
+      "name": "reports-persistence.json",
+      "bytes": 449,
+      "sha256": "164f8e5b23bf5425a121cfdbb2e6fcb928a573081c8ade91ed69a27579d97db6"
+    },
+    {
+      "name": "research-navigation.json",
+      "bytes": 119,
+      "sha256": "f503bef92214e85b7a7cf2aa340213e10548ce2a8d0f0665dc85f46e9c3d5d1e"
+    },
+    {
+      "name": "settings.json",
+      "bytes": 1862,
+      "sha256": "8979b6b577b6d6d7d1346bdbd4fede7c794ee19c450787a7cbfab3b94f8a30f4"
+    },
+    {
+      "name": "wallet-entry.json",
+      "bytes": 1316,
+      "sha256": "c1dd8b11cf008bf34c22b079c3c21d299e42c1076c6ca2aaf2e95f3f829f38fc"
+    }
+  ]
+}
