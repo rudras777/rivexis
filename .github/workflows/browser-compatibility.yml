@@ -37,6 +37,14 @@ jobs:
       - run: npm ci
       - run: node --test apps/web/e2e/navigation-driver-policy.test.mjs
       - run: npm run build:web
+      - name: Use official Ubuntu HTTPS archives for browser dependencies
+        # Preserve package verification and exact browsers; avoid the stalled Azure HTTP mirror.
+        run: |
+          test -f /etc/apt/apt-mirrors.txt
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt
+          if test -f /etc/apt/apt-security-mirrors.txt; then
+            printf '%s\n' 'https://security.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-security-mirrors.txt
+          fi
       - run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: apps/web
       - run: npm run test:compatibility -- --project=${{ matrix.browser }}
@@ -70,6 +78,14 @@ jobs:
         with: {node-version: '24', cache: 'npm'}
       - run: npm ci
       - run: node --test apps/web/e2e/navigation-driver-policy.test.mjs
+      - name: Use official Ubuntu HTTPS archives for browser dependencies
+        # Same verified archive setup as fixtures; no package/browser/test-policy change.
+        run: |
+          test -f /etc/apt/apt-mirrors.txt
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt
+          if test -f /etc/apt/apt-security-mirrors.txt; then
+            printf '%s\n' 'https://security.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-security-mirrors.txt
+          fi
       - run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: apps/web
       - run: npx playwright test --config playwright.live-compatibility.config.ts --project=${{ matrix.browser }}
