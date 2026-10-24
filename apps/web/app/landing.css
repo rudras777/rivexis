@@ -7,3 +7,22 @@
 @media(max-width:759px){.composedHome .continuousHero.folioHero{padding-top:32px;min-height:650px}.composedHome .continuousHero h1{font-size:clamp(37px,7.8vw,55px)}.composedHome .continuousHero .folioLead{font-size:13px}}
 
 .composedHome .continuousHero .folioHeroCopy{margin:0 auto}
+
+/* Three static, original explanatory assets; financial examples stay in HTML. */
+.composedHome .featureDiagram{display:block;width:100%;max-width:480px;height:auto;margin:24px auto 38px;contain:layout paint}
+.composedHome .gasDiagram{max-width:880px;margin:0 auto 32px;padding:8px 0 24px;text-align:center;border-block:1px solid var(--border-strong)}
+.composedHome .gasDiagram figcaption{color:var(--secondary);font-size:10px;letter-spacing:.12em;line-height:1.8}
+.landingFooter.productFooter{position:relative;z-index:1;display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,1.8fr);gap:40px 64px;background:color-mix(in srgb,var(--bg) 96%,transparent)}
+.landingFooterIdentity{max-width:330px}
+.landingFooterIdentity small{display:block;line-height:1.9}
+.landingFooter.productFooter nav{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:32px;min-width:0}
+.landingFooterGroup{display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0}
+.landingFooterGroup h2{font-size:12px;font-weight:500;letter-spacing:.04em;line-height:1.5;margin:0 0 6px;color:var(--text)}
+.landingFooterGroup>a{min-height:32px;display:inline-flex;align-items:center;gap:8px;line-height:1.6}
+.landingFooterGroup>a:focus-visible{outline:2px solid var(--soft);outline-offset:5px}
+.landingFooterGroup .publicMotionPreferences{width:100%;max-width:280px}
+.landingFooterGroup .publicMotionPreferences summary{min-height:32px;line-height:1.6;padding-block:6px}
+.landingFooterGroup .publicMotionPreferences p{line-height:1.9;font-size:12px;margin-top:12px}
+.landingFooterNote{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px 32px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:22px;font-size:11px;line-height:1.8;color:var(--secondary)}
+@media(max-width:1000px){.landingFooter.productFooter{grid-template-columns:1fr;gap:32px}.landingFooter.productFooter nav{grid-template-columns:1fr 1fr 1.25fr}.landingFooterIdentity{max-width:none}}
+@media(max-width:600px){.composedHome .featureDiagram{max-width:400px;margin-block:22px 30px}.composedHome .gasDiagram figcaption{font-size:9px;letter-spacing:.08em}.landingFooter.productFooter nav{grid-template-columns:1fr 1fr;gap:28px 20px}.landingFooterTrust{grid-column:1/-1}.landingFooterGroup h2{font-size:12px}.landingFooterGroup>a,.landingFooterGroup summary{font-size:13px}.landingFooterNote{display:grid;font-size:11px;gap:6px}}
