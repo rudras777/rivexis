@@ -23,3 +23,18 @@ test('login responses protect confirmation query credentials before hydration',a
   const response=await request.get('/login?access_token=SYNTHETIC_HEADER_PROBE');
   expect(response.status()).toBe(200);expect(response.headers()['referrer-policy']).toBe('no-referrer');
 });
+
+test('cross-site login is rejected before authentication or cookie creation',async({request})=>{
+  const response=await request.post('/api/v1/auth/web/login',{headers:{origin:'https://untrusted.example','sec-fetch-site':'cross-site'},data:{}});
+  expect(response.status()).toBe(403);expect(response.headers()['set-cookie']).toBeUndefined();expect(response.headers()['cache-control']).toBe('no-store');
+});
+
+test('origin mismatch is denied independently of fetch metadata',async({request})=>{
+  const response=await request.patch('/api/v1/account/settings',{headers:{origin:'https://untrusted.example','sec-fetch-site':'same-origin'},data:{}});
+  expect(response.status()).toBe(403);expect(response.headers()['set-cookie']).toBeUndefined();
+});
+
+test('oversized body is rejected before upstream authentication',async({request})=>{
+  const response=await request.post('/api/v1/auth/web/login',{data:'x'.repeat(131073)});
+  expect(response.status()).toBe(413);expect(response.headers()['set-cookie']).toBeUndefined();expect(response.headers()['cache-control']).toBe('no-store');
+});

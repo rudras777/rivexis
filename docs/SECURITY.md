@@ -1,36 +1,29 @@
-# Security
+# RIVEXIS security boundaries
 
-Implemented controls include scrypt password hashing, expiring signed tokens, server-side token-version revocation, organization RBAC (`OWNER`/`ADMIN`/`ANALYST`/`VIEWER`), workspace-scoped authorization, request IDs, security headers, strict validation, audit records, no-private-key/seed handling, static secret-pattern scanning and PostgreSQL RLS preparation/identity propagation.
+Current deployed architecture: the existing Cloudflare website proxies to the existing Supabase Edge functions, Supabase Auth and private database. Brevo delivers authentication mail. The optional Python API and its scrypt, Redis, commercial-provider and legacy-engine controls are separate repository components; they are not evidence that those services are deployed on the current website.
 
-Provider/runtime controls include workspace-scoped budgets, retry/backoff, circuit breaking, concurrent request coalescing, persistent request/cost telemetry and PostgreSQL or Redis distribution for budget/circuit state. These are defense-in-depth controls, not substitutes for provider-side quotas or an edge WAF.
+## Supported website controls
 
-Background-service logging is data-minimized: the cross-tenant alert worker never serializes alert records, workspace/alert identifiers, tenant payload evidence, webhook bodies or free-form delivery/database errors into stdout. Its cycle logs contain aggregate counters only.
+- Identity is verified server-side with Supabase Auth. User-editable metadata cannot substitute for confirmed email ownership or organization membership. Browser access/refresh credentials stay in HttpOnly, Secure, SameSite=Lax cookies; private API responses use no-store. Logout discloses unconfirmed provider revocation and access-token expiry limits truthfully.
+- Authenticated writes require a matching session CSRF header. The 25 October proxy patch additionally rejects explicit foreign/null origins and cross-site browser metadata before forwarding any write, including login/signup/recovery before a session exists. Origin-less non-browser clients still face upstream identity, verification and CSRF checks. This is a browser request-boundary control, not authentication by Origin.
+- The proxy buffers at most128KiB per request, checks declared and streamed bytes and rejects unreadable bodies without forwarding. Existing endpoint-specific smaller limits remain. This size cap is not a network timeout or unlimited denial-of-service protection.
+- Workspaces, organization membership, Settings and private reports derive their actor from the verified identity. Owner filters and database routines enforce access; client-selected actor IDs cannot grant access. All61 live public tables have RLS enabled. Legacy/server-only tables deny direct client reads, and no live public SECURITY DEFINER routine is executable by anon/authenticated roles as of the dated audit.
+- RPC endpoints and supported chains/protocols are server-selected. Address/calldata/ABI and return sizes are bounded. Block identity, reorg, stale oracle and unsupported-mode checks remain explicit. Wallet integration never requests a private key or silently signs/submits a transaction. Contract inspection does not certify source or ABI verification.
+- Shared analysis quotas are300/day globally and four per wallet/minute; reports are capped at20/account. Browser monitoring and history are bounded. These limits support a small beta and are not an availability SLA.
+- Browser security headers include framing/object/base/form restrictions, nosniff, HSTS and recovery/login no-referrer behavior. This is a baseline CSP, not a claim of nonce-based script isolation. Stronger CSP needs separate framework/Worker compatibility validation.
+- Exact pinned dependencies, lockfile, strict npm audit validation, Python dependency audit, financial/auth tests, migration/RLS checks, browser checks and source secret-pattern scanning run in CI. Pattern scanning is not complete secret detection or independent penetration testing.
 
-Outbound alert delivery is fail-closed in production: configured receivers must use HTTPS and HMAC-SHA256 authentication. URL userinfo/fragments are forbidden, free-form transport exceptions are not persisted, and local `last_delivery_error` diagnostics are excluded from outbound retry bodies. Development may use unsigned HTTP only when the environment is explicitly non-production.
+## Live platform findings and operating limits
 
-## P5 external-integration controls
+The25October read-only audit reconfirms Supabase ACTIVE_HEALTHY/PostgreSQL17.11.0.003 and unchanged API36/reports4/alerts5/dispatch3/recovery-relay3. Npm reports zero findings. Supabase retains two WARN findings:
 
-- Blockaid/Nansen/Arkham keys remain backend-only.
-- Arkham requires `RIVEXIS_ARKHAM_LICENSE_APPROVED=true` in addition to credentials.
-- Hypernative forwarding uses a separate `HYPERNATIVE_WEBHOOK_SECRET` and `X-Rivexis-Webhook-Secret`; comparison is constant-time.
-- Hypernative forwarded events must reference an existing monitor in the supplied workspace; raw provider payload is capped at 64 KiB; workspace/provider/external-event keys are persistently unique so replayed events reuse the original alert.
-- The forwarding endpoint explicitly reports that provider-native signature verification was not performed. A deployment must implement the actual customer/provider signing contract when available rather than infer one.
+- [pg_net extension in public](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public): installed0.20.4 is nonrelocatable; its12 routines live in net, not public. Do not drop/recreate or edit extension catalogs to silence the advisor. Preserve the current Data API exposure boundary and review dependencies before an approved platform migration.
+- [Leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) is disabled and requires Pro or above. No plan upgrade is authorized. Existing password/session controls remain; this paid platform warning is not resolved by local validation.
 
-Production still requires managed identity/SSO as applicable, non-superuser PostgreSQL RLS and distributed-control certification, managed secret rotation, dependency/browser audits, provider credential/license certification, backup/restore validation and incident-response procedures. Redis certification is required only when Redis is selected instead of the Supabase PostgreSQL backend.
-Production startup is fail-closed for application authentication: `RIVEXIS_AUTH_SECRET` must be a non-placeholder secret of at least 32 characters and `ENABLE_DEMO_ADAPTER` must be false. Provider inventory, status, individual-provider health and resolution/deep-probe endpoints require bearer authentication so anonymous callers cannot inspect operational provider state or consume configured provider/RPC quota.
+Nineteen RLS-without-policy INFO findings intentionally deny client access. Do not add policies merely to clear notices. Native wallet existing-grant/chain-change acceptance is dated24October; fresh native permission/rejection/account-change/disconnect paths remain uncertified. The owner accepts the current verified email sender for a limited beta; owned-domain authentication/inbox placement remains uncertified.
 
-## P35 observability, diagnostics and authentication-abuse hardening
+## Recovery and incident handling
 
-P35 treats telemetry as an external data boundary. Provider/RPC URLs may contain credentials and concrete HTTP paths may contain tenant/resource identifiers, so exported spans contain sanitized provider provenance and FastAPI route templates only. Rivexis tracing helpers no longer export arbitrary exception messages or stack traces; exception telemetry is reduced to the exception type/class plus ERROR status. Remote production OTLP collectors must use HTTPS, while HTTP is accepted only for loopback sidecars. OTLP endpoint userinfo, query strings and fragments are rejected.
+Retain tested patched Worker versions for application rollback. A frontend failure does not authorize database restoration, deleting users, widening grants or resetting credentials. The20October logical backup/local restore and approved23October owner-only encrypted off-device copy are dated recovery evidence. Keep the decryption key separate; independent key custody, second-machine and full-service recovery/RPO/RTO remain unverified.
 
-Authenticated provider diagnostics remain available for shallow operational state, but production tenant API calls cannot trigger `deep=true` provider probes because those probes consume GLOBAL provider/RPC control-plane capacity. Controlled release certification calls provider adapters directly instead.
-
-P35 also adds a distributed global authentication-attempt budget before login/signup scrypt work. This complements—not replaces—the per-account budget and prevents rotating random identifiers from bypassing all shared CPU-abuse controls. Production validates a bounded global budget and fails closed when the configured PostgreSQL or Redis backend is unavailable.
-
-## P34 production trust-boundary hardening
-
-P34 makes current organization membership—not workspace creator lineage—the authority for organization workspaces at both application and PostgreSQL RLS layers. Browser credentials move to HttpOnly cookies with CSRF protection; API bearer tokens remain supported for non-browser clients. Production login throttling and provider controls require a PostgreSQL or Redis distributed backend so horizontal replicas share abuse/rate state.
-
-Provider/RPC endpoint strings are secret-bearing and must never be emitted verbatim to telemetry/evidence. P34 sanitizes provenance and converts arbitrary upstream/transport failures into stable public messages. Hypernative ingress uses monitor-scoped credentials; outbound alert HMAC signatures bind a timestamp and body. The single global production alert sink must be explicitly scoped as a Rivexis-controlled `internal_gateway`, never a tenant/customer-specific receiver.
-
-Rivexis does not claim that account email ownership is cryptographically verified. Production direct-add-by-email is disabled for new members. Administrators accepting an organization membership claim must verify the intended recipient through an independent channel until a verified-email/invitation system is connected.
+Use [supported-beta operations](SUPPORTED_BETA_OPERATIONS_20261020.md) and the [current readiness record](PRODUCTION_READINESS.md). Sustained load/field availability and independent security/operating review remain open. The supported site has bounded-beta acceptance; no document certifies absolute security, arbitrary protocol support or unrestricted institutional operation.

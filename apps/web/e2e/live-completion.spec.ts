@@ -1,7 +1,8 @@
 import {test,expect,type Page} from './browser-test';
 import AxeBuilder from '@axe-core/playwright';
 import path from 'node:path';
-const output=path.resolve('../../../../outputs');
+// Keep each release's screenshots immutable instead of overwriting prior evidence.
+const output=path.resolve('../../../../outputs',`public-${process.env.RIVEXIS_EXPECTED_BUILD_SHA}`);
 async function capturePortraits(page:Page,mode:'desktop'|'mobile'){
  await expect(page.locator('.productVisual')).toHaveCount(3);
  for(const [index,name] of ['liquidation','gasguard','defense'].entries()){

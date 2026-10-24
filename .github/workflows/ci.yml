@@ -36,6 +36,7 @@ jobs:
       - run: node --test scripts/certify_aave_sequence_rpc.test.mjs
       - run: node --test apps/web/lib/market-feed.test.mjs
       - run: node --test apps/web/lib/api.test.mjs
+      - run: node --test apps/web/lib/edge-api-proxy.test.mjs
       - run: node --test apps/web/lib/wallet-access.test.mjs
       - run: node --test apps/web/e2e/navigation-driver-policy.test.mjs
       - run: npm run lint:web
