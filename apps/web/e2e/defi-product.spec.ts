@@ -40,7 +40,40 @@ test('saved reports can load without a wallet snapshot while new calculations st
   await page.goto('/workspace',{waitUntil:'domcontentloaded'});await openWorkspaceView(page,'reports');
   await expect(page.getByRole('button',{name:'Save comparison to account',exact:true})).toBeDisabled();
   await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect(page.getByText('TEST_OWNER_REPORT',{exact:true})).toBeVisible();
+  await expect(page.getByRole('status').filter({hasText:'1 saved comparison loaded.'})).toBeVisible();
   expect(snapshotRequests).toBe(0);expect(reportRequests).toBe(1);
+});
+
+test('an empty report list has explicit accessible feedback and repeat loads do not inspect a wallet',async({page})=>{
+ let reportRequests=0,snapshotRequests=0;
+ await page.route('**/api/v1/defi/snapshot',r=>{snapshotRequests++;return r.fulfill({status:503,json:{detail:'Not needed'}})});
+ await page.route('**/api/v1/defi-reports',r=>{reportRequests++;return r.fulfill({json:{items:[]}})});
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});
+ await expect(page.getByText(/No saved comparisons yet/)).toHaveCount(0);
+ const load=page.getByRole('button',{name:'Load saved reports',exact:true});await load.focus();await page.keyboard.press('Enter');
+ await expect(page.getByRole('status').filter({hasText:'No saved comparisons yet.'})).toContainText('Calculate a Defense Frontier comparison');
+ await load.click();await expect.poll(()=>reportRequests).toBe(2);await expect(page.getByRole('status').filter({hasText:'No saved comparisons yet.'})).toBeVisible();
+ expect(snapshotRequests).toBe(0);await expect(page.getByRole('button',{name:'Save comparison to account',exact:true})).toBeDisabled();
+});
+
+test('a failed report refresh retains prior comparisons and labels them as previously loaded',async({page})=>{
+ let reads=0;await page.route('**/api/v1/defi-reports',r=>++reads===1?r.fulfill({json:{items:[{id:'RETAINED_REPORT',created_at:'2026-10-09T00:00:00Z',receipt:{}}]}}):r.fulfill({status:503,json:{detail:'Provider unavailable'}}));
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});const load=page.getByRole('button',{name:'Load saved reports',exact:true});await load.click();await expect(page.getByText('RETAINED_REPORT',{exact:true})).toBeVisible();
+ await load.click();await expect(page.locator('.defiWorkspace [role=alert]')).toHaveText('Saved reports could not load.');
+ await expect(page.getByRole('status').filter({hasText:'Previously loaded comparisons are shown.'})).toContainText('could not be refreshed');
+ await expect(page.getByText('RETAINED_REPORT',{exact:true})).toBeVisible();await expect(page.getByText(/No saved comparisons yet/)).toHaveCount(0);await expect(load).toBeEnabled();expect(reads).toBe(2);
+});
+
+test('a successful empty refresh clears previous report cards and replaces the loaded count',async({page})=>{
+ let reads=0;await page.route('**/api/v1/defi-reports',r=>r.fulfill({json:{items:++reads===1?['FIRST_REPORT','SECOND_REPORT'].map(id=>({id,created_at:'2026-10-09T00:00:00Z',receipt:{}})):[]}}));
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});const load=page.getByRole('button',{name:'Load saved reports',exact:true});await load.click();await expect(page.getByRole('status').filter({hasText:'2 saved comparisons loaded.'})).toBeVisible();
+ await load.click();await expect(page.getByRole('status').filter({hasText:'No saved comparisons yet.'})).toBeVisible();await expect(page.getByText('FIRST_REPORT',{exact:true})).toHaveCount(0);await expect(page.getByText('SECOND_REPORT',{exact:true})).toHaveCount(0);expect(reads).toBe(2);
+});
+
+for(const [label,body] of [['missing items',{}],['non-array items',{items:{}}],['invalid row',{items:[{id:{invalid:true},created_at:'2026-10-09T00:00:00Z',receipt:{}}]}]] as const)test(`malformed saved reports (${label}) fail explicitly without an empty-success message`,async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.route('**/api/v1/defi-reports',r=>r.fulfill({json:body}));
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect(page.locator('.defiWorkspace [role=alert]')).toHaveText('Saved reports could not load.');
+ await expect(page.getByRole('status').filter({hasText:'Report list unavailable.'})).toBeVisible();await expect(page.getByText(/No saved comparisons yet/)).toHaveCount(0);await expect(page.getByRole('button',{name:'Load saved reports',exact:true})).toBeEnabled();expect(errors).toEqual([]);
 });
 
 test('explicit Morpho coverage keeps protocol positions, scenario assets and transaction routing distinct',async({page})=>{

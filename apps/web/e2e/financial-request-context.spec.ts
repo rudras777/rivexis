@@ -46,7 +46,16 @@ test('an obsolete report load cannot replace the current list or unlock its requ
  const pending:Route[]=[];await page.route('**/api/v1/defi-reports',r=>{pending.push(r)});await page.goto('/workspace',{waitUntil:'domcontentloaded'});await openWorkspaceView(page,'reports');await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>pending.length).toBe(1);
  await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await openWorkspaceView(page,'reports');await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>pending.length).toBe(2);
  const response=page.waitForResponse('**/api/v1/defi-reports');await pending[0].fulfill({json:{items:[{id:'OBSOLETE_REPORT',created_at:new Date().toISOString(),receipt:{}}]}});await response;await expect(page.getByText('OBSOLETE_REPORT',{exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Loading saved reports…',exact:true})).toBeDisabled();
- await pending[1].fulfill({json:{items:[{id:'CURRENT_REPORT',created_at:new Date().toISOString(),receipt:{}}]}});await expect(page.getByText('CURRENT_REPORT',{exact:true})).toBeVisible();
+ await pending[1].fulfill({json:{items:[{id:'CURRENT_REPORT',created_at:new Date().toISOString(),receipt:{}}]}});await expect(page.getByText('CURRENT_REPORT',{exact:true})).toBeVisible();await expect(page.getByRole('status').filter({hasText:'1 saved comparison loaded.'})).toBeVisible();
+});
+
+test('a late empty report response cannot erase a newer loaded list or its success status',async({page})=>{
+ const pending:Route[]=[];await page.route('**/api/v1/defi-reports',r=>{pending.push(r)});
+ await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>pending.length).toBe(1);
+ await page.getByRole('button',{name:'Explore a hypothetical sample'}).click();await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>pending.length).toBe(2);
+ await pending[1].fulfill({json:{items:[{id:'NEWER_REPORT',created_at:new Date().toISOString(),receipt:{}}]}});await expect(page.getByRole('status').filter({hasText:'1 saved comparison loaded.'})).toBeVisible();
+ const response=page.waitForResponse('**/api/v1/defi-reports');await pending[0].fulfill({json:{items:[]}});await response;
+ await expect(page.getByText('NEWER_REPORT',{exact:true})).toBeVisible();await expect(page.getByRole('status').filter({hasText:'1 saved comparison loaded.'})).toBeVisible();await expect(page.getByText(/No saved comparisons yet/)).toHaveCount(0);
 });
 
 test('a stale save completion does not announce success for a replaced comparison',async({page})=>{
