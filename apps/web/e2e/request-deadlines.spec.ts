@@ -20,5 +20,5 @@ test('stalled reports stop loading and allow an explicit successful retry',async
  await page.route('**/api/v1/defi-reports',r=>{requests++;if(healthy)return r.fulfill({json:{items:[]}})});
  await page.goto('/workspace/reports',{waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>requests).toBe(1);await page.clock.fastForward(35_100);
  await expect(page.locator('.defiWorkspace [role=alert]')).toContainText('Saved reports could not load');await expect(page.getByRole('button',{name:'Load saved reports',exact:true})).toBeEnabled();expect(requests).toBe(1);
- healthy=true;await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>requests).toBe(2);await expect(page.locator('.defiWorkspace [role=alert]')).toHaveCount(0);
+ healthy=true;await page.getByRole('button',{name:'Load saved reports',exact:true}).click();await expect.poll(()=>requests).toBe(2);await expect(page.locator('.defiWorkspace [role=alert]')).toHaveCount(0);await expect(page.getByRole('status').filter({hasText:'No saved comparisons yet.'})).toBeVisible();
 });

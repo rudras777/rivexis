@@ -1,0 +1,11 @@
+# Saved-report loading feedback — 24 October 2026
+
+Ordinary verified Chrome acceptance on production1baf266 completed the saved-report GET with no visible error and no cards, but gave no result message. This was an empty account result, not evidence that another account's reports were lost. The previously accepted six-report account retains its separately dated evidence.
+
+The existing Reports panel now announces loading, a genuine empty result with the next step, or the singular/plural loaded count. Failed refreshes retain prior cards and explicitly label them as previously loaded. A failure without cards says the list is unavailable, never that it is empty. The existing error alert and explicit retry remain. Feedback uses a polite atomic status region; no new visual layout, theme or financial numbers are introduced.
+
+The list envelope and required row identity/date/receipt fields are checked before committing UI state. Malformed JSON shapes cannot crash the page or be presented as empty success. Receipt contents remain opaque for their existing export/restore path; this is not a new financial model or historical-data migration. Existing request epochs continue to reject obsolete results, errors and completion handlers.
+
+Verification covers empty/repeated keyboard loads without wallet RPC, one/multiple saved counts, retained cards on provider failure, successful empty refresh, three malformed shapes, late/out-of-order results and stalled-request recovery. They are isolated local fixtures, not fabricated production evidence. Exact-head CI, Worker/browser gates and a genuine ordinary signed-in same-URL empty-report check are required before calling the follow-up deployed. The final release PR and checkpoint record actual candidate/merge/Worker identities and outcomes rather than assuming a local build is production.
+
+Only the shared report UI, its browser regressions and this operating record change. No calculation/kernel/backend/auth handler, schema/user data, asset/style/branding/background, dependency, workflow, plan or deployment configuration changes. Existing GitHub/Cloudflare/Supabase/Brevo infrastructure and production URL remain; added recurring service costUSD0. Keep the [current handoff](LAUNCH_HANDOFF_20261024.md) and PR108's independent institutional assurance limits.
