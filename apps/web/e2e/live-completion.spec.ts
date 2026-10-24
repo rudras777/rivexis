@@ -8,7 +8,7 @@ async function capturePortraits(page:Page,mode:'desktop'|'mobile'){
   const figure=page.locator('.productVisual').nth(index),image=figure.locator('.featureDiagram');
   await image.scrollIntoViewIfNeeded();await expect(image).toHaveJSProperty('complete',true);await expect(image).toHaveJSProperty('naturalWidth',600);
   const box=await image.boundingBox();expect(box!.height).toBeGreaterThan(box!.width);
-  await figure.screenshot({path:path.join(output,`portrait-live-${mode}-${name}.png`)});
+  await figure.screenshot({path:path.join(output,`fluid-live-${mode}-${name}.png`)});
  }
 }
 test('the existing production URL serves the intended exact build and continuous visual',async({page})=>{
@@ -17,6 +17,7 @@ test('the existing production URL serves the intended exact build and continuous
  await page.setViewportSize({width:1440,height:900});await page.screenshot({path:path.join(output,'completion-live-guest-desktop.png')});
  const illustration=page.locator('.thresholdPlate');await expect(illustration.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);await expect(illustration.locator('.healthAxis')).toHaveAttribute('aria-label',/threshold 1.000, baseline 1.333, scenario 1.066/);await expect(illustration).toContainText('Hypothetical inputs; no live oracle or execution evidence');await illustration.screenshot({path:path.join(output,'completion-live-liquidation-illustration.png')});
  await capturePortraits(page,'desktop');
+ await page.setViewportSize({width:1440,height:1600});
  for(const name of ['liquidation','gas','defense']){const section=page.locator(`.${name}Showcase`),box=await section.boundingBox();expect(box!.width).toBeGreaterThan(1440*.98);await section.screenshot({path:path.join(output,`fluid-live-desktop-${name}-section.png`)})}
 });
 test('real guest session status is unauthenticated',async({request})=>{
