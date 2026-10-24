@@ -1,8 +1,7 @@
 export function GasIllustration(){return <figure className="gasDiagram productVisual gasVisual">
-  <figcaption>TRANSACTION ASSESSMENT / WORKFLOW ILLUSTRATION</figcaption>
   <div className="visualCanvas"><img className="featureDiagram" src="/diagrams/transaction-assessment.svg" width="600" height="720" loading="lazy" decoding="async" alt="An architectural contract illustration connects a proposed protocol call with a layered assessment of prerequisites and modeled position effects. This is not a live simulation result."/>
     <div className="compositionCard proposedCall"><div className="visualCardHeading"><span className="visualGlyph" aria-hidden="true">≡</span><span>Proposed transaction<small>A supported protocol call</small></span></div><p>Repay · Supply · Withdraw · Borrow</p></div>
     <div className="compositionCard assessmentLedger"><div className="visualCardHeading"><span className="visualSignal" aria-hidden="true"/><span>Assessment scope<small>Evidence before execution</small></span></div><ol className="transactionSequence transactionLedger" aria-label="Supported transaction assessment workflow"><li><h3>Proposed action</h3><p>Repay, supply, withdraw or borrow within validated coverage.</p></li><li><h3>Check constraints</h3><p>Token balance, allowance and native ETH needed for fees.</p></li><li><h3>Contract assessment</h3><p>Contract call and gas estimation at the observed block.</p></li><li><h3>Position effects</h3><p>Protocol-specific before-and-after modeled exposure.</p></li></ol></div>
-    <span className="visualMarginalia" aria-hidden="true">CALL / PREREQUISITES / POSITION EFFECT</span>
   </div>
+  <figcaption>Workflow example. No transaction has been simulated or submitted.</figcaption>
 </figure>}

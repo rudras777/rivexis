@@ -33,7 +33,7 @@ test('liquidation illustration matches independent example arithmetic and aligns
   const figure=page.locator('.thresholdPlate');
   // Independent reference: 10*3000*.8/18000; after shock, 10*2400*.8/18000.
   await expect(figure.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);
-  await expect(figure).toContainText('NOT LIVE DATA');
+  await expect(figure.locator('figcaption')).toContainText('Hypothetical inputs');
   await expect(figure).toContainText('Hypothetical inputs; no live oracle or execution evidence');
   await expect(figure.locator('.healthAxisRange span')).toHaveText(['0.800','1.500']);
   const positions=await figure.locator('.healthAxisTrack').evaluate(track=>{

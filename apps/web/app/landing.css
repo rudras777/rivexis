@@ -23,11 +23,11 @@
 }
 
 /* Portrait product artwork and model-derived evidence form one composition. */
-.composedHome .productVisual{position:relative;width:100%;max-width:640px;margin:44px auto 0;padding:0;text-align:left;border:1px solid var(--border-strong);border-radius:16px;overflow:hidden;background:var(--surface);box-shadow:0 24px 72px #00000018}
-.composedHome .productVisual>figcaption{position:relative;z-index:2;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 18px;margin:0;padding:22px 28px;border-bottom:1px solid var(--border);font-size:10px;line-height:1.7;letter-spacing:.09em;color:var(--secondary);text-align:left;background:var(--surface)}
-.productVisual .visualCanvas{position:relative;min-height:700px;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 28% 45%,color-mix(in srgb,var(--brand) 13%,transparent),transparent 68%)}
-.composedHome .productVisual .featureDiagram{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;object-fit:cover;margin:0;pointer-events:none;z-index:0}
-.productVisual .compositionCard{position:absolute;z-index:1;padding:26px;border:1px solid var(--border-strong);border-radius:12px;background:var(--bg);box-shadow:0 18px 36px #00000025;min-width:0}
+.composedHome .productVisual{position:relative;width:100%;max-width:640px;margin:44px auto 0;padding:0;text-align:left;border:0;border-radius:0;overflow:visible;background:transparent;box-shadow:none}
+.composedHome .productVisual>figcaption{position:relative;margin:0;padding:20px 28px;font-size:10px;line-height:1.9;letter-spacing:normal;color:var(--text-muted);text-align:left;background:transparent;border:0}
+.productVisual .visualCanvas{position:relative;min-height:700px;isolation:isolate;overflow:visible;background:transparent}
+.composedHome .productVisual .featureDiagram{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;object-fit:cover;margin:0;pointer-events:none;z-index:0;opacity:.65;mask-image:radial-gradient(ellipse at center,#000 15%,#0009 48%,transparent 74%)}
+.productVisual .compositionCard{position:absolute;z-index:1;padding:26px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--bg) 92%,transparent);box-shadow:0 12px 32px #00000012;min-width:0}
 .visualCardHeading{display:flex;gap:14px;align-items:center;color:var(--text);font-size:15px;line-height:1.5}
 .visualCardHeading small{display:block;font-size:11px;color:var(--secondary);font-weight:400;margin-top:3px}
 .visualGlyph{display:grid;place-items:center;flex-shrink:0;width:34px;height:34px;border:1px solid var(--border-strong);border-radius:8px;color:var(--soft);font-size:22px}
@@ -44,7 +44,7 @@
 .composedHome .liquidationVisual .healthAxis{margin:38px 36px 20px}
 .composedHome .liquidationVisual>p{padding-inline:28px;font-size:12px;line-height:1.9;margin:20px auto}
 .composedHome .liquidationVisual .evidenceLine{padding:0 28px;gap:10px 20px;font-size:10px}
-.composedHome .liquidationVisual .illustrationEvidence{padding:0 28px 22px;margin-bottom:0}
+.composedHome .liquidationVisual .illustrationEvidence{padding:20px 28px;margin:0}
 .gasVisual .proposedCall{top:40px;left:30px;width:65%}.gasVisual .proposedCall p{margin:20px 0 0;font-size:12px;color:var(--secondary);line-height:1.8}
 .gasVisual .assessmentLedger{top:230px;right:30px;width:77%;padding:24px 28px}
 .composedHome .gasVisual .transactionLedger{display:block;margin:20px 0 0;padding:0;border:0;max-width:none}
@@ -60,7 +60,7 @@
 .composedHome .defenseVisual .comparisonColumns>div>span:last-of-type{font-size:11px;color:var(--secondary)}
 .composedHome .defenseVisual .comparisonColumns p{font-size:12px;line-height:1.8;margin:16px 0 0}
 .visualModelLabel{display:block;margin-top:17px;padding-top:14px;border-top:1px solid var(--border);font-size:9px!important;letter-spacing:.12em;color:var(--soft)!important}
-.composedHome .defenseVisual .comparisonConstraints{margin:0;padding:22px 20px;gap:32px;background:var(--bg);font-size:11px}.composedHome .defenseVisual .comparisonConstraints dd{font-size:18px}
+.composedHome .defenseVisual .comparisonConstraints{margin:0;padding:22px 20px;gap:32px;background:transparent;font-size:11px}.composedHome .defenseVisual .comparisonConstraints dd{font-size:18px}
 .composedHome .defenseVisual .folioDisclaimer{margin:0;padding:22px 28px;font-size:11px;line-height:1.9;text-align:left}
 @media(max-width:600px){.composedHome .productVisual{margin-top:30px;border-radius:12px}.composedHome .productVisual>figcaption{padding:18px 20px;font-size:9px}.productVisual .compositionCard{padding:20px}.visualCardHeading{gap:10px;font-size:13px}.visualCardHeading small{font-size:10px}.visualGlyph{width:30px;height:30px}.visualFacts{font-size:11px;margin-top:18px}.visualFacts>div{padding:10px 0;gap:8px}.liquidationVisual .positionLedger{top:30px;right:16px;width:83%}.liquidationVisual .stressEvidence{top:330px;left:16px;width:86%}.composedHome .liquidationVisual .thresholdHeadline>strong:nth-child(2),.composedHome .liquidationVisual .thresholdHeadline>strong:nth-child(4){font-size:clamp(32px,8vw,46px)}.composedHome .liquidationVisual .thresholdHeadline{gap:7px 10px}.composedHome .liquidationVisual .thresholdHeadline>span:last-child{font-size:11px}.productVisual .visualMarginalia{left:20px;right:20px;bottom:22px;font-size:8px}.productVisual .visualCanvas{min-height:600px}.composedHome .liquidationVisual .healthAxis{margin-inline:20px}.composedHome .liquidationVisual>p{padding-inline:20px;font-size:11px}.composedHome .liquidationVisual .evidenceLine{padding-inline:20px;gap:8px 14px}.gasVisual .proposedCall{top:28px;left:16px;width:86%}.gasVisual .proposedCall p{font-size:11px}.gasVisual .assessmentLedger{top:230px;right:16px;width:86%;padding:20px}.gasVisual .visualCanvas{min-height:800px}.composedHome .gasVisual .transactionLedger h3{font-size:13px}.composedHome .gasVisual .transactionLedger p{font-size:12px;line-height:1.7}.composedHome .defenseVisual .comparisonColumns{height:660px}.defenseVisual .currentEvidence{top:28px;left:16px;width:83%}.defenseVisual .alternativeEvidence{top:326px;right:16px;width:86%}.composedHome .defenseVisual .comparisonColumns>div{padding:22px}.composedHome .defenseVisual .comparisonColumns strong{font-size:48px}.composedHome .defenseVisual .comparisonColumns p{font-size:11px}.composedHome .defenseVisual .comparisonConstraints{gap:15px;font-size:9px;padding-inline:14px}.composedHome .defenseVisual .comparisonConstraints dd{font-size:16px}.composedHome .defenseVisual .folioDisclaimer{padding:20px;font-size:10px}}
 .landingFooter.productFooter{position:relative;z-index:1;display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,1.8fr);gap:40px 64px;background:color-mix(in srgb,var(--bg) 96%,transparent)}
