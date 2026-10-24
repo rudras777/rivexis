@@ -8,6 +8,7 @@ async function capturePortraits(page:Page,mode:'desktop'|'mobile'){
   const figure=page.locator('.productVisual').nth(index),image=figure.locator('.featureDiagram');
   await image.scrollIntoViewIfNeeded();await expect(image).toHaveJSProperty('complete',true);await expect(image).toHaveJSProperty('naturalWidth',600);
   const box=await image.boundingBox();expect(box!.height).toBeGreaterThan(box!.width);
+  for(const card of await figure.locator('.compositionCard').all())expect(await card.evaluate(el=>{const s=getComputedStyle(el);return{background:s.backgroundColor,border:s.borderTopWidth,shadow:s.boxShadow}})).toEqual({background:'rgba(0, 0, 0, 0)',border:'0px',shadow:'none'});
   await figure.screenshot({path:path.join(output,`footerless-live-${mode}-${name}.png`)});
  }
 }
