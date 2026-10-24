@@ -43,3 +43,8 @@ html:has(.appShell){scroll-behavior:auto}
 @media(max-width:1120px){.workspaceScope{top:74px}}
 
 .concentrationLegend{display:flex;gap:20px;flex-wrap:wrap;margin-top:16px;font-size:12px}.concentrationLegend span:first-child{color:var(--soft)}.concentrationLegend span:last-child{color:var(--bronze)}
+
+/* Align workspace content with the header instead of a narrow centered shell. */
+.appShell>.workspaceMain,.workspaceScope{width:100%;max-width:none}
+.appShell>.workspaceMain .connectionPanel,.appShell>.workspaceMain .settingsPage{width:100%;max-width:none}
+@media(min-width:1200px){.appShell>.workspaceMain,.workspaceScope{padding-inline:clamp(32px,3vw,80px)}}
