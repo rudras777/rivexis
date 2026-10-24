@@ -2,19 +2,21 @@ import {test,expect,type Page} from './browser-test';
 import AxeBuilder from '@axe-core/playwright';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 const workspace={id:'ENTRY_TEST_WORKSPACE',name:'Entry test workspace',role:'Individual',access_role:'OWNER'};
-test('landing diagrams and grouped resources remain legible across ten viewport and theme combinations',async({page,request})=>{
+test('landing diagrams and grouped resources remain legible across fourteen viewport and theme combinations',async({page,request})=>{
   test.setTimeout(90000);await setup(page);await page.emulateMedia({reducedMotion:'reduce'});
   const assets=['liquidation-inputs.svg','transaction-assessment.svg','defense-branches.svg'];
   let bytes=0;
   for(const asset of assets){const response=await request.get('/diagrams/'+asset);expect(response.ok()).toBe(true);expect(response.headers()['content-type']).toContain('image/svg+xml');const svg=await response.text();bytes+=Buffer.byteLength(svg);expect(svg).toContain('<title');expect(svg).toContain('<desc');expect(svg).not.toMatch(/<script|<foreignObject|<image|(?:href|src)\s*=|\bon\w+=/i);}
   expect(bytes).toBeLessThan(25000);
-  for(const theme of ['dark','light'])for(const width of [320,390,768,1024,1440]){
+  for(const theme of ['dark','light'])for(const width of [320,390,768,1024,1440,1920,2560]){
     await page.setViewportSize({width,height:1000});await page.addInitScript(t=>localStorage.setItem('rivexis_theme',t),theme);await page.goto('/',{waitUntil:'domcontentloaded'});
     await expect(page.locator('.featureDiagram')).toHaveCount(3);
     for(const image of await page.locator('.featureDiagram').all()){await image.scrollIntoViewIfNeeded();await expect(image).toHaveJSProperty('complete',true);await expect(image).toHaveJSProperty('naturalWidth',600);expect((await image.getAttribute('alt'))!.length).toBeGreaterThan(40);const box=await image.boundingBox();expect(box!.height).toBeGreaterThan(box!.width);expect(box!.width).toBeGreaterThanOrEqual(270);expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width);}
     for(const figure of await page.locator('.productVisual').all()){const frame=await figure.boundingBox(),canvas=await figure.locator('.visualCanvas').boundingBox();for(const card of await figure.locator('.compositionCard').all()){const box=await card.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(frame!.x);expect(box!.x+box!.width).toBeLessThanOrEqual(frame!.x+frame!.width);expect(box!.y+box!.height,`${theme} ${width}px ${await card.getAttribute('class')} caption clearance`).toBeLessThanOrEqual(canvas!.y+canvas!.height-32);}}
+    for(const figure of await page.locator('.productVisual').all()){const style=await figure.evaluate(el=>{const s=getComputedStyle(el);return{background:s.backgroundColor,border:s.borderTopWidth,shadow:s.boxShadow,last:el.lastElementChild?.tagName}});expect(style).toEqual({background:'rgba(0, 0, 0, 0)',border:'0px',shadow:'none',last:'FIGCAPTION'});const canvas=await figure.locator('.visualCanvas').boundingBox(),caption=await figure.locator('figcaption').boundingBox();expect(caption!.y+.5,'caption follows canvas within half a CSS pixel of fractional-coordinate rounding').toBeGreaterThanOrEqual(canvas!.y+canvas!.height);}
     const footer=page.getByRole('contentinfo');await expect(footer.getByRole('heading')).toHaveText(['Resources','Company','Trust & preferences']);await expect(footer.locator('a[href*="linkedin"]')).toHaveCount(0);await expect(footer.getByRole('link',{name:'GitHub source'})).toHaveAttribute('href','https://github.com/rudras777/rivexis');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${theme} ${width}`).toBe(true);
+    if(width>=1200)for(const selector of ['.showcaseLayout','.gasLayout','.defenseLayout']){const layout=page.locator(selector),frame=await layout.boundingBox(),copy=await layout.locator(':scope>div').first().boundingBox(),art=await layout.locator(':scope>.productVisual').boundingBox();expect(frame!.width,`${selector} uses desktop width`).toBeGreaterThan(width*.88);expect(frame!.x).toBeLessThanOrEqual(width*.05);expect(copy!.x).toBeLessThan(art!.x);expect(copy!.x+copy!.width).toBeLessThan(art!.x);expect(art!.x+art!.width).toBeGreaterThan(width*.94);}
     await expect(page.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);await expect(page.locator('.comparisonColumns strong')).toHaveText(['1.333','1.509']);
     if(theme==='dark'&&[390,1440].includes(width))for(const [index,figure] of (await page.locator('.productVisual').all()).entries())await figure.screenshot({path:test.info().outputPath(`portrait-${width}-${index}.png`)});
   }

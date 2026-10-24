@@ -12,6 +12,20 @@ async function setup(page:Page){
  await page.route('**/api/v1/workspaces',r=>r.fulfill({status:200,json:{items:[{id:'COMPLETION_WORKSPACE',name:'Test workspace',role:'Individual',access_role:'OWNER'}]}}));
  await page.route('**/api/v1/account/settings',r=>r.fulfill({json:{profile:{displayName:'Test analyst',email:'qa@example.invalid',emailVerified:true},preferences:DEFAULT_PREFERENCES}}));
 }
+
+test('desktop workspace content uses the viewport across overview, contracts and settings',async({page})=>{
+ test.setTimeout(60000);await setup(page);
+ for(const width of [1200,1440,1920,2560])for(const route of ['/workspace/overview','/workspace/contracts','/workspace/settings']){
+  await page.setViewportSize({width,height:1000});await page.goto(route,{waitUntil:'domcontentloaded'});
+  const main=page.locator('.workspaceMain');await expect(main).toBeVisible();
+  const content=main.locator(route.endsWith('/settings')?'.settingsPage':'.connectionPanel');
+  await expect(content).toBeVisible();
+  const {bounds,box}=await content.evaluate(el=>({bounds:el.closest('.workspaceMain')!.getBoundingClientRect().toJSON(),box:el.getBoundingClientRect().toJSON()}));
+  expect(bounds.width).toBeGreaterThan(width*.98);expect(box.width,`${route} ${width}px`).toBeGreaterThan(width*.89);
+  expect(box.x-bounds.x).toBeLessThanOrEqual(width*.035);expect(bounds.x+bounds.width-box.x-box.width).toBeLessThanOrEqual(width*.035);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ }
+});
 test('liquidation illustration matches independent example arithmetic and aligns labels to their health-factor markers',async({page})=>{
  await setup(page);
  for(const width of [320,390,1440]){
@@ -19,7 +33,7 @@ test('liquidation illustration matches independent example arithmetic and aligns
   const figure=page.locator('.thresholdPlate');
   // Independent reference: 10*3000*.8/18000; after shock, 10*2400*.8/18000.
   await expect(figure.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);
-  await expect(figure).toContainText('NOT LIVE DATA');
+  await expect(figure.locator('figcaption')).toContainText('Hypothetical inputs');
   await expect(figure).toContainText('Hypothetical inputs; no live oracle or execution evidence');
   await expect(figure.locator('.healthAxisRange span')).toHaveText(['0.800','1.500']);
   const positions=await figure.locator('.healthAxisTrack').evaluate(track=>{
