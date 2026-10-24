@@ -7,14 +7,16 @@ test('landing diagrams and grouped resources remain legible across ten viewport 
   const assets=['liquidation-inputs.svg','transaction-assessment.svg','defense-branches.svg'];
   let bytes=0;
   for(const asset of assets){const response=await request.get('/diagrams/'+asset);expect(response.ok()).toBe(true);expect(response.headers()['content-type']).toContain('image/svg+xml');const svg=await response.text();bytes+=Buffer.byteLength(svg);expect(svg).toContain('<title');expect(svg).toContain('<desc');expect(svg).not.toMatch(/<script|<foreignObject|<image|(?:href|src)\s*=|\bon\w+=/i);}
-  expect(bytes).toBeLessThan(10000);
+  expect(bytes).toBeLessThan(25000);
   for(const theme of ['dark','light'])for(const width of [320,390,768,1024,1440]){
     await page.setViewportSize({width,height:1000});await page.addInitScript(t=>localStorage.setItem('rivexis_theme',t),theme);await page.goto('/',{waitUntil:'domcontentloaded'});
     await expect(page.locator('.featureDiagram')).toHaveCount(3);
-    for(const image of await page.locator('.featureDiagram').all()){await image.scrollIntoViewIfNeeded();await expect(image).toHaveJSProperty('complete',true);await expect(image).toHaveJSProperty('naturalWidth',480);expect((await image.getAttribute('alt'))!.length).toBeGreaterThan(40);const box=await image.boundingBox();expect(box!.width).toBeGreaterThanOrEqual(270);expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width);}
+    for(const image of await page.locator('.featureDiagram').all()){await image.scrollIntoViewIfNeeded();await expect(image).toHaveJSProperty('complete',true);await expect(image).toHaveJSProperty('naturalWidth',600);expect((await image.getAttribute('alt'))!.length).toBeGreaterThan(40);const box=await image.boundingBox();expect(box!.height).toBeGreaterThan(box!.width);expect(box!.width).toBeGreaterThanOrEqual(270);expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width);}
+    for(const figure of await page.locator('.productVisual').all()){const frame=await figure.boundingBox(),canvas=await figure.locator('.visualCanvas').boundingBox();for(const card of await figure.locator('.compositionCard').all()){const box=await card.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(frame!.x);expect(box!.x+box!.width).toBeLessThanOrEqual(frame!.x+frame!.width);expect(box!.y+box!.height,`${theme} ${width}px ${await card.getAttribute('class')} caption clearance`).toBeLessThanOrEqual(canvas!.y+canvas!.height-32);}}
     const footer=page.getByRole('contentinfo');await expect(footer.getByRole('heading')).toHaveText(['Resources','Company','Trust & preferences']);await expect(footer.locator('a[href*="linkedin"]')).toHaveCount(0);await expect(footer.getByRole('link',{name:'GitHub source'})).toHaveAttribute('href','https://github.com/rudras777/rivexis');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${theme} ${width}`).toBe(true);
     await expect(page.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);await expect(page.locator('.comparisonColumns strong')).toHaveText(['1.333','1.509']);
+    if(theme==='dark'&&[390,1440].includes(width))for(const [index,figure] of (await page.locator('.productVisual').all()).entries())await figure.screenshot({path:test.info().outputPath(`portrait-${width}-${index}.png`)});
   }
 });
 test('landing footer resources resolve and keyboard motion controls preserve device preferences',async({page,request})=>{

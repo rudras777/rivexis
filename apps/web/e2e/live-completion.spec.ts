@@ -1,11 +1,22 @@
-import {test,expect} from './browser-test';
+import {test,expect,type Page} from './browser-test';
 import AxeBuilder from '@axe-core/playwright';
 import path from 'node:path';
 const output=path.resolve('../../../../outputs');
+async function capturePortraits(page:Page,mode:'desktop'|'mobile'){
+ await expect(page.locator('.productVisual')).toHaveCount(3);
+ for(const [index,name] of ['liquidation','gasguard','defense'].entries()){
+  const figure=page.locator('.productVisual').nth(index),image=figure.locator('.featureDiagram');
+  await image.scrollIntoViewIfNeeded();await expect(image).toHaveJSProperty('complete',true);await expect(image).toHaveJSProperty('naturalWidth',600);
+  const box=await image.boundingBox();expect(box!.height).toBeGreaterThan(box!.width);
+  await figure.screenshot({path:path.join(output,`portrait-live-${mode}-${name}.png`)});
+ }
+}
 test('the existing production URL serves the intended exact build and continuous visual',async({page})=>{
+ test.setTimeout(60000);
  await page.goto('/',{waitUntil:'domcontentloaded'});await expect(page.locator('meta[name="rivexis-build"]')).toHaveAttribute('content',process.env.RIVEXIS_EXPECTED_BUILD_SHA!);await expect(page.locator('.signatureRiskField,.riskAtlas,canvas')).toHaveCount(0);await expect(page.locator('.blockchainBackground')).toHaveCount(1);await expect(page.locator('.heroFolioWrap')).toHaveCount(0);await expect(page.getByRole('slider')).toHaveCount(0);await expect(page.getByRole('button',{name:/Switch to .* mode/})).toHaveCount(0);
  await page.setViewportSize({width:1440,height:900});await page.screenshot({path:path.join(output,'completion-live-guest-desktop.png')});
  const illustration=page.locator('.thresholdPlate');await expect(illustration.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);await expect(illustration.locator('.healthAxis')).toHaveAttribute('aria-label',/threshold 1.000, baseline 1.333, scenario 1.066/);await expect(illustration).toContainText('Hypothetical inputs; no live oracle or execution evidence');await illustration.screenshot({path:path.join(output,'completion-live-liquidation-illustration.png')});
+ await capturePortraits(page,'desktop');
 });
 test('real guest session status is unauthenticated',async({request})=>{
  const status=await request.get('/api/v1/auth/session-status');expect(await status.json()).toEqual({authenticated:false,email_verified:false});
@@ -31,7 +42,7 @@ for(const route of ['/api/v1/workspaces','/api/v1/defi-reports','/api/v1/account
 });
 test('deployed mobile themes retain accessible navigation, native motion fallback and no overflow',async({page})=>{
  test.setTimeout(60000);await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:390,height:844});
- for(const theme of ['dark','light']){await page.addInitScript(t=>localStorage.setItem('rivexis_theme',t),theme);await page.goto('/',{waitUntil:'domcontentloaded'});await expect(page.getByRole('link',{name:'Sign up',exact:false}).first()).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);expect(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');await page.screenshot({path:path.join(output,`completion-live-guest-mobile-${theme}.png`)});await page.getByLabel('Menu — open navigation',{exact:true}).click();await expect(page.getByRole('navigation',{name:'Mobile navigation'})).toBeVisible()}
+ for(const theme of ['dark','light']){await page.addInitScript(t=>localStorage.setItem('rivexis_theme',t),theme);await page.goto('/',{waitUntil:'domcontentloaded'});await expect(page.getByRole('link',{name:'Sign up',exact:false}).first()).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);const scan=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();expect(scan.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);expect(await page.evaluate(()=>getComputedStyle(document.documentElement).scrollBehavior)).toBe('auto');await page.screenshot({path:path.join(output,`completion-live-guest-mobile-${theme}.png`)});if(theme==='dark')await capturePortraits(page,'mobile');await page.getByLabel('Menu — open navigation',{exact:true}).click();await expect(page.getByRole('navigation',{name:'Mobile navigation'})).toBeVisible()}
 });
 test('deployed shared background pauses and respects reduced motion',async({page})=>{
  await page.setViewportSize({width:1440,height:900});
