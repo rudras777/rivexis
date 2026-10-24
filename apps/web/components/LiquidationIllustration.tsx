@@ -17,6 +17,7 @@ export function LiquidationIllustration(){
   const baseLabel=format(baseline,18,3),scenarioLabel=format(stressed,18,3);
   return <figure className="thresholdPlate">
     <figcaption>ILLUSTRATIVE AAVE POSITION / NOT LIVE DATA</figcaption>
+    <img className="featureDiagram" src="/diagrams/liquidation-inputs.svg" width="480" height="300" loading="lazy" decoding="async" alt="Aave lending inputs: collateral weighted by its liquidation threshold (LT), divided by debt, determine the health factor."/>
     <div className="thresholdHeadline"><span>Baseline health</span><strong>{baseLabel}</strong><span aria-hidden="true">→</span><strong>{scenarioLabel}</strong><span>After a 20% collateral price decrease</span></div>
     <div className="healthAxis" style={axis} role="img" aria-label={`Illustrative health factor axis: liquidation threshold 1.000, baseline ${baseLabel}, scenario ${scenarioLabel}. Below 1.000 is liquidatable under these assumptions.`}>
       <div className="healthAxisTrack"><span className="healthAxisRisk"/>

@@ -2,6 +2,27 @@ import {test,expect,type Page} from './browser-test';
 import AxeBuilder from '@axe-core/playwright';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 const workspace={id:'ENTRY_TEST_WORKSPACE',name:'Entry test workspace',role:'Individual',access_role:'OWNER'};
+test('landing diagrams and grouped resources remain legible across ten viewport and theme combinations',async({page,request})=>{
+  test.setTimeout(90000);await setup(page);await page.emulateMedia({reducedMotion:'reduce'});
+  const assets=['liquidation-inputs.svg','transaction-assessment.svg','defense-branches.svg'];
+  let bytes=0;
+  for(const asset of assets){const response=await request.get('/diagrams/'+asset);expect(response.ok()).toBe(true);expect(response.headers()['content-type']).toContain('image/svg+xml');const svg=await response.text();bytes+=Buffer.byteLength(svg);expect(svg).toContain('<title');expect(svg).toContain('<desc');expect(svg).not.toMatch(/<script|<foreignObject|<image|(?:href|src)\s*=|\bon\w+=/i);}
+  expect(bytes).toBeLessThan(10000);
+  for(const theme of ['dark','light'])for(const width of [320,390,768,1024,1440]){
+    await page.setViewportSize({width,height:1000});await page.addInitScript(t=>localStorage.setItem('rivexis_theme',t),theme);await page.goto('/',{waitUntil:'domcontentloaded'});
+    await expect(page.locator('.featureDiagram')).toHaveCount(3);
+    for(const image of await page.locator('.featureDiagram').all()){await image.scrollIntoViewIfNeeded();await expect(image).toHaveJSProperty('complete',true);await expect(image).toHaveJSProperty('naturalWidth',480);expect((await image.getAttribute('alt'))!.length).toBeGreaterThan(40);const box=await image.boundingBox();expect(box!.width).toBeGreaterThanOrEqual(270);expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width);}
+    const footer=page.getByRole('contentinfo');await expect(footer.getByRole('heading')).toHaveText(['Resources','Company','Trust & preferences']);await expect(footer.locator('a[href*="linkedin"]')).toHaveCount(0);await expect(footer.getByRole('link',{name:'GitHub source'})).toHaveAttribute('href','https://github.com/rudras777/rivexis');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${theme} ${width}`).toBe(true);
+    await expect(page.locator('.thresholdHeadline strong')).toHaveText(['1.333','1.066']);await expect(page.locator('.comparisonColumns strong')).toHaveText(['1.333','1.509']);
+  }
+});
+test('landing footer resources resolve and keyboard motion controls preserve device preferences',async({page,request})=>{
+  await setup(page);await page.goto('/',{waitUntil:'domcontentloaded'});const footer=page.getByRole('contentinfo');
+  for(const href of ['/methodology','/docs','/about','/security','/demo']){await expect(footer.locator(`a[href="${href}"]`)).toHaveCount(1);expect((await request.get(href)).ok()).toBe(true);}
+  const summary=footer.getByText('Motion preferences',{exact:true});await summary.focus();await summary.press('Enter');const pause=footer.getByRole('button',{name:'Pause background motion',exact:true});await expect(pause).toBeEnabled();await pause.focus();await pause.press('Enter');await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','false');
+  await page.reload();await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','false');await summary.click();await footer.getByRole('button',{name:'Resume background motion',exact:true}).click();await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','true');await page.emulateMedia({reducedMotion:'reduce'});await expect(page.locator('.blockchainBackground')).toHaveAttribute('data-moving','false');await expect(page.locator('.backgroundMotionButton')).toHaveCount(0);
+});
 async function setup(page:Page,member=false){
   await page.route('**/health',r=>r.fulfill({status:200,json:{status:'ready'}}));
   await page.route('**/api/v1/auth/session-status',r=>r.fulfill({status:200,json:{authenticated:member,email_verified:member}}));

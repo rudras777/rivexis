@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300" viewBox="0 0 480 300" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Compare defensive alternatives within a capital budget</title>
+  <rect width="480" height="300" fill="#141B1D"/>
+  <desc id="desc">One budget branches into repayment, collateral addition and combined alternatives. Feasibility depends on balances, fees and protocol constraints. No branch is guaranteed safe or executable.</desc>
+  <defs><linearGradient id="flow" x1="76" y1="73" x2="404" y2="253" gradientUnits="userSpaceOnUse"><stop stop-color="#B5A383"/><stop offset="1" stop-color="#80AAA1"/></linearGradient></defs>
+  <path d="M24 53H456M24 283H456" stroke="#303E40"/>
+  <g stroke="url(#flow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="240" cy="84" r="18"/><path d="M232 84h16m-8-8v16M240 102v33M240 135c-66 0-164 0-164 47v17m164-64v64m0-64c66 0 164 0 164 47v17"/>
+    <circle cx="76" cy="211" r="12"/><circle cx="240" cy="211" r="12"/><circle cx="404" cy="211" r="12"/><path d="M71 211h10m154 0h10m-5-5v10m159-8 10 6m-10 0 10-6"/>
+  </g>
+  <g fill="#E9EBE7" font-family="Arial, sans-serif" font-size="26" text-anchor="middle"><text x="240" y="32" fill="#B5A383">Capital budget</text><text x="76" y="254">Repay</text><text x="240" y="254">Add collateral</text><text x="404" y="254">Combine</text></g>
+</svg>
