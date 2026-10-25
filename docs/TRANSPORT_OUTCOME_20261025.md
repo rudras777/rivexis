@@ -1,0 +1,17 @@
+# Unconfirmed write responses — 25 October 2026
+
+## Reproduced problem and change
+
+An isolated fault fixture against PR116/2ef7632170f8a8d6675907f53eec8511b19b58d0 made the upstream connection fail after a write began. The proxy threw an unhandled TypeError. The browser API also passed through a raw network error without advising that the server could already have committed. This fixture makes no production request or write; it demonstrates a failure-handling gap, not a claim that a production record was duplicated.
+
+The proxy now returns sanitized JSON502/no-store without a new cookie when fetch fails before a response. Reads offer an availability retry message; writes explicitly say their outcome is unconfirmed and to check existing records/settings before retrying. The client API applies the same guidance to transport failures, malformed successful JSON, failed binary transfers and5xx errors after a write starts. Validated server explanations/statuses remain, without duplicating the guidance. Explicit4xx rejections, caller cancellation and failed CSRF acquisition retain their previous semantics. The35-second client deadline remains unchanged. There are no automatic retries, rollbacks or invented successes.
+
+The [Fetch Standard](https://fetch.spec.whatwg.org/#fetch-method) specifies rejection for network failures and body processing errors; such a response failure is not application evidence of transaction rollback. Installed Next16.4.2 Route Handler/fetch documentation was inspected before implementation. The fix does not add server-side timeout claims or change response streaming, successful cookie forwarding, ownership/CSRF validation, financial math, market data, Supabase functions, schema, dependencies or design.
+
+## Validation and release conditions
+
+Local63 API/proxy cases pass, including connection failure for all four write verbs, malformed200 confirmation, binary transfer failure, four5xx statuses, explicit4xx statuses, CSRF failure before a write, caller cancellation and unchanged routing/cookie/body/security behavior. Five focused Chromium cases pass: two existing deadline/retry cases and three new comparison-save fixtures. Each new fixture models a committed record followed by a lost response, malformed200 or502; the UI shows unconfirmed-outcome guidance, no false save success and no replay, and an explicit report-list read locates the existing record with exactly one write.
+
+Next and Worker production builds, TypeScript and frontend AST checks pass locally. These are controlled fixtures, not live provider failures or independent penetration testing. Source/main CI, Firefox/WebKit acceptance, protected normal merge, actual Cloudflare native build/version/traffic, exact live source identity and public checks remain required before describing this candidate as deployed. Final outcomes and exact identities belong to the release PR and task evidence manifest/checkpoint; do not infer them from these local results.
+
+Preserve PR116 as rollback, the existing Supabase/Brevo/infrastructure, protected recovery material and all user records. Added recurring service costUSD0. Platform warnings, accepted beta sender limitations, fresh native wallet permission/events, independent recovery/key custody, sustained field/load evidence and independent security review remain separate institutional assurance requirements. This narrow error-recovery correction does not close them.

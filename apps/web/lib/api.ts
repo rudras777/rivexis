@@ -42,6 +42,7 @@ async function responseError(r:Response):Promise<ApiError>{
 // One deadline covers CSRF recovery, response headers and the entire body.
 // Writes are never retried: a lost response cannot prove the server did not save.
 export const API_REQUEST_TIMEOUT_MS=35_000;
+const UNCONFIRMED_WRITE="The request outcome could not be confirmed. Check the saved record or current settings before retrying.";
 async function boundedRequest<T>(init:RequestInit,run:(signal:AbortSignal,markWrite:()=>void)=>Promise<T>):Promise<T>{
  const controller=new AbortController();
  const cancel=()=>controller.abort(init.signal?.reason);
@@ -55,6 +56,12 @@ async function boundedRequest<T>(init:RequestInit,run:(signal:AbortSignal,markWr
   if(controller.signal.aborted&&controller.signal.reason?.name==="TimeoutError")throw new ApiError(504,writeStarted
    ?"The request timed out and its outcome could not be confirmed. Check the saved record or current settings before retrying."
    :"The request timed out. Try again when the service is available.");
+  // A lost connection, broken success body or server error can follow a commit.
+  // Keep cancellation and explicit validation/auth failures intact; never retry.
+  if(writeStarted&&!controller.signal.aborted){
+   if(!(cause instanceof ApiError))throw new ApiError(502,UNCONFIRMED_WRITE);
+   if(cause.status>=500&&!cause.message.includes("Check the saved record"))throw new ApiError(cause.status,`${cause.message} ${UNCONFIRMED_WRITE}`);
+  }
   throw cause;
  }finally{clearTimeout(timer);init.signal?.removeEventListener("abort",cancel)}
 }
