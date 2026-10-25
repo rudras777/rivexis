@@ -57,11 +57,8 @@ async function boundedRequest<T>(init:RequestInit,run:(signal:AbortSignal,markWr
    ?"The request timed out and its outcome could not be confirmed. Check the saved record or current settings before retrying."
    :"The request timed out. Try again when the service is available.");
   // A lost connection, broken success body or server error can follow a commit.
-  // Keep cancellation and explicit validation/auth failures intact; never retry.
-  if(writeStarted&&!controller.signal.aborted){
-   if(!(cause instanceof ApiError))throw new ApiError(502,UNCONFIRMED_WRITE);
-   if(cause.status>=500&&!cause.message.includes("Check the saved record"))throw new ApiError(cause.status,`${cause.message} ${UNCONFIRMED_WRITE}`);
-  }
+  // Keep cancellation and authoritative HTTP errors intact; never retry.
+  if(writeStarted&&!controller.signal.aborted&&!(cause instanceof ApiError))throw new ApiError(502,UNCONFIRMED_WRITE);
   throw cause;
  }finally{clearTimeout(timer);init.signal?.removeEventListener("abort",cancel)}
 }

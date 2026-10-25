@@ -77,9 +77,9 @@ test('binary write body transfer failure also discloses an unknown outcome',asyn
  await assert.rejects(apiBlob('/export',{method:'POST',body:'{}'}),e=>e.status===502&&/Check the saved record/.test(e.message));assert.equal(calls,1);
 });
 
-for(const status of [500,502,503,504])test(`HTTP ${status} after a write retains its explanation and warns before retry`,async()=>{
+for(const status of [500,502,503,504])test(`HTTP ${status} after a write preserves the authoritative server explanation`,async()=>{
  setCsrfToken('csrf');let calls=0;globalThis.fetch=async()=>{calls++;return Response.json({detail:'Provider unavailable'},{status})};
- await assert.rejects(api('/settings',{method:'PATCH',body:'{}'}),e=>e.status===status&&e.message.startsWith('Provider unavailable')&&/Check the saved record/.test(e.message));assert.equal(calls,1);
+ await assert.rejects(api('/settings',{method:'PATCH',body:'{}'}),e=>e.status===status&&e.message==='Provider unavailable');assert.equal(calls,1);
 });
 
 test('proxy unknown-outcome guidance is not duplicated by the browser client',async()=>{
