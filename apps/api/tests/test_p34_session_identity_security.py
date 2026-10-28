@@ -189,8 +189,11 @@ def test_frontend_contains_no_persistent_bearer_token_storage_and_has_security_h
     shell = (root / "apps/web/components/AppShell.tsx").read_text()
     assert '/api/v1/auth/logout' in shell
     assert 'setCsrfToken(null)' in shell
-    assert "Strict-Transport-Security" in next_config
-    assert "Content-Security-Policy" in next_config
+    security_headers = (root / "apps/web/lib/security-headers.mjs").read_text()
+    assert 'import {BASE_SECURITY_HEADERS} from "./lib/security-headers.mjs"' in next_config
+    assert "headers:Object.entries(BASE_SECURITY_HEADERS)" in next_config
+    assert "Strict-Transport-Security" in security_headers
+    assert "Content-Security-Policy" in security_headers
 
 
 def test_hypernative_production_uses_monitor_scoped_credentials(client, monkeypatch):

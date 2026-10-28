@@ -75,3 +75,20 @@ test('local E2E blockade remains fail-closed after request validation',async()=>
 test('report routing, query parameters and no-redirect behavior are retained',async()=>{
  const calls=harness();await proxyEdgeApi(new Request(origin+'/api/v1/history?limit=20'),'/api/v1/history');assert.equal(calls[0].url,'https://ivszvufdonfgwjpfgwii.supabase.co/functions/v1/rivexis-decision-reports/api/v1/history?limit=20');
 });
+
+for(const method of ['POST','PUT','PATCH','DELETE'])test(`${method}: upstream transport failure is a sanitized unconfirmed outcome, never a replay`,async()=>{
+ let calls=0;globalThis.fetch=async()=>{calls++;throw new TypeError('internal upstream credential or address')};
+ const result=await proxyEdgeApi(request({method}),'/api/v1/account/settings');
+ assert.equal(result.status,502);assert.equal(result.headers.get('cache-control'),'no-store');assert.equal(result.headers.get('set-cookie'),null);
+ const {detail}=await result.json();assert.match(detail,/Check the saved record/);assert.doesNotMatch(detail,/credential|internal/);assert.equal(calls,1);
+});
+
+test('upstream read transport failure gives an honest retry message, with no session cookie',async()=>{
+ let calls=0;globalThis.fetch=async()=>{calls++;throw new TypeError('internal detail')};
+ const result=await proxyEdgeApi(request({method:'GET'}),'/api/v1/account/settings');assert.equal(result.status,502);assert.equal(result.headers.get('set-cookie'),null);assert.equal(result.headers.get('cache-control'),'no-store');assert.equal((await result.json()).detail,'The service could not be reached. Try again when it is available.');assert.equal(calls,1);
+});
+
+test('an actual upstream status, body and cookie remain authoritative',async()=>{
+ let calls=0;globalThis.fetch=async()=>{calls++;return Response.json({detail:'Session unavailable'},{status:503,headers:{'set-cookie':'test-only-provider-cookie'}})};
+ const result=await proxyEdgeApi(request(),'/api/v1/auth/web/login');assert.equal(result.status,503);assert.deepEqual(await result.json(),{detail:'Session unavailable'});assert.equal(result.headers.get('set-cookie'),'test-only-provider-cookie');assert.equal(calls,1);
+});

@@ -96,7 +96,15 @@ export async function proxyEdgeApi(request:Request,path:string){
   headers.delete("host");
   headers.delete("content-length");
   headers.set("x-rivexis-forwarded-origin",source.origin);
-  const upstream=await fetch(target,{method,headers,body,redirect:"manual"});
+  let upstream:Response;
+  try{upstream=await fetch(target,{method,headers,body,redirect:"manual"})}
+  catch{
+    // A transport failure does not prove that an upstream write was rolled back.
+    // Do not expose internal errors, invent a success or retry a possible commit.
+    return rejection(502,WRITE_METHODS.has(method)
+      ?"The request outcome could not be confirmed. Check the saved record or current settings before retrying."
+      :"The service could not be reached. Try again when it is available.");
+  }
   const responseHeaders=new Headers(upstream.headers);
   responseHeaders.delete("content-length");
   responseHeaders.delete("content-encoding");

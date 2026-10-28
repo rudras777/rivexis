@@ -61,3 +61,46 @@ test('204 and binary success complete without timeout failures',async()=>{
  globalThis.fetch=async()=>new Response(null,{status:204});assert.equal(await api('/empty'),undefined);
  globalThis.fetch=async()=>new Response('receipt');assert.equal(await (await apiBlob('/export')).text(),'receipt');
 });
+
+for(const method of ['POST','PUT','PATCH','DELETE'])test(`${method}: lost response warns of an unconfirmed write without retrying`,async()=>{
+ setCsrfToken('csrf');let calls=0;globalThis.fetch=async()=>{calls++;throw new TypeError('test-only internal address')};
+ await assert.rejects(api('/settings',{method,body:'{}'}),e=>e instanceof ApiError&&e.status===502&&/Check the saved record/.test(e.message)&&!e.message.includes('internal address'));assert.equal(calls,1);
+});
+
+test('a malformed successful write response is not confirmation or a reason to replay',async()=>{
+ setCsrfToken('csrf');let calls=0;globalThis.fetch=async()=>{calls++;return new Response('{',{headers:{'content-type':'application/json'}})};
+ await assert.rejects(api('/reports',{method:'POST',body:'{}'}),e=>e.status===502&&/outcome could not be confirmed/.test(e.message));assert.equal(calls,1);
+});
+
+test('binary write body transfer failure also discloses an unknown outcome',async()=>{
+ setCsrfToken('csrf');let calls=0;globalThis.fetch=async()=>{calls++;return {ok:true,status:200,blob:async()=>{throw new TypeError('truncated download')}}};
+ await assert.rejects(apiBlob('/export',{method:'POST',body:'{}'}),e=>e.status===502&&/Check the saved record/.test(e.message));assert.equal(calls,1);
+});
+
+for(const status of [500,502,503,504])test(`HTTP ${status} after a write preserves the authoritative server explanation`,async()=>{
+ setCsrfToken('csrf');let calls=0;globalThis.fetch=async()=>{calls++;return Response.json({detail:'Provider unavailable'},{status})};
+ await assert.rejects(api('/settings',{method:'PATCH',body:'{}'}),e=>e.status===status&&e.message==='Provider unavailable');assert.equal(calls,1);
+});
+
+test('proxy unknown-outcome guidance is not duplicated by the browser client',async()=>{
+ setCsrfToken('csrf');const detail='The request outcome could not be confirmed. Check the saved record or current settings before retrying.';
+ globalThis.fetch=async()=>Response.json({detail},{status:502});await assert.rejects(api('/settings',{method:'PATCH',body:'{}'}),e=>e.status===502&&e.message===detail);
+});
+
+for(const status of [400,401,403,409,422,429])test(`HTTP ${status} remains an explicit write rejection`,async()=>{
+ setCsrfToken('csrf');globalThis.fetch=async()=>Response.json({detail:'Explicit rejection'},{status});
+ await assert.rejects(api('/settings',{method:'PATCH',body:'{}'}),e=>e.status===status&&e.message==='Explicit rejection');
+});
+
+test('CSRF transport failure never starts a write or falsely warns that one was sent',async()=>{
+ let calls=0;globalThis.fetch=async()=>{calls++;throw new TypeError('CSRF connection lost')};await assert.rejects(api('/settings',{method:'PATCH',body:'{}'}),e=>e instanceof TypeError&&e.message==='CSRF connection lost');assert.equal(calls,1);
+});
+
+test('read transport failure is not misreported as an uncertain save',async()=>{
+ globalThis.fetch=async()=>{throw new TypeError('read connection lost')};await assert.rejects(api('/settings'),e=>e instanceof TypeError&&e.message==='read connection lost');
+});
+
+test('caller cancellation after a write starts remains cancellation without a retry',async()=>{
+ setCsrfToken('csrf');let calls=0;globalThis.fetch=(_,init)=>{calls++;return pending(init.signal)};
+ const controller=new AbortController();const result=assert.rejects(api('/settings',{method:'PATCH',body:'{}',signal:controller.signal}),e=>e.name==='AbortError');await settle();controller.abort();await result;assert.equal(calls,1);
+});
