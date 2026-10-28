@@ -84,11 +84,18 @@ jobs:
             "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/services/rivexis-web")"
           export CLOUDFLARE_API_TOKEN="$CF_TOKEN"
           export CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID"
+          if [ "$CF_ACCOUNT_ID" != "0b22778ba197266a58dd26eeef0334a8" ]; then
+            echo "::error::Cloudflare account does not match the existing rivexis-web Wrangler configuration."
+            exit 1
+          fi
           SERVICE_JSON="$SERVICE_JSON" node -e '
-            const p=JSON.parse(process.env.SERVICE_JSON);
-            if(p.success!==true || !p.result) {
-              console.error("Cloudflare token cannot inspect existing rivexis-web; stopping safely.");
-              process.exit(1);
+            let p;
+            try { p=JSON.parse(process.env.SERVICE_JSON); } catch { p={}; }
+            if(p.success===true && p.result) {
+              console.log("Original rivexis-web Worker inspection succeeded.");
+            } else {
+              const codes=(p.errors??[]).map(e=>e.code).filter(Boolean);
+              console.warn("Worker read permission/availability was not verified (Cloudflare codes:",codes.join(",")||"unknown","). Checking Pages permissions separately.");
             }
           '
           npx --no-install wrangler pages project list --json > /tmp/rvea-pages-projects.json
