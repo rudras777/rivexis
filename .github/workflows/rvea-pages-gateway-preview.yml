@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/infra/rvea-pages-gateway-20261029'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
