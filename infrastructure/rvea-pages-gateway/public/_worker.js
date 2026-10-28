@@ -20,7 +20,7 @@ export default {
     const url = new URL(request.url);
     const hostname = url.hostname.toLowerCase();
     const production = hostname === PRODUCTION_HOST && url.protocol === "https:";
-    const preview = hostname === PREVIEW_HOST && url.protocol === "https:";
+    const preview = url.protocol === "https:" && (hostname === PREVIEW_HOST || hostname.endsWith("." + PREVIEW_HOST));
     const ready = typeof env?.RIVEXIS_WEB?.fetch === "function";
 
     if ((production || preview) && request.method === "GET" && url.pathname === HEALTH_PATH) {
