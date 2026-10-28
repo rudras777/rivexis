@@ -93,3 +93,20 @@ The earlier existing branch `infra/rvea-domain-20261028` (root `RVEA_DOMAIN_INFR
 - Account-level workaround options considered in the earlier branch (Cloudflare partial/child-zone products) require paid tiers that have not been authorized. Do not adopt them silently.
 
 **Current blocker:** Wix support must provide and/or enable a supported way to keep the Wix-registered domain assigned to its unchanged portfolio when authoritative DNS is managed externally, or the user must explicitly choose a different approved architecture. Until then, keep Wix's restored assignment/nameservers intact. The custom RIVEXIS hostname is not production-ready.
+
+## 29 October alternative: Wix-authoritative Pages ingress and live blocker
+
+Official Cloudflare Pages documentation confirms that a **subdomain** can use an externally authoritative DNS provider, with a CNAME to an associated Cloudflare Pages project. This is distinct from Cloudflare **Workers Custom Domains**, which require an active Cloudflare zone. A Cloudflare Pages Function can use a Service Binding to the existing Worker `rivexis-web` without duplicating its application code.
+
+A standalone candidate implementation with strict-host Pages ingress, read-only Pages previews, service binding, six Node regression tests and fail-closed behavior is [draft PR #120](https://github.com/rudras777/rivexis/pull/120). Corresponding origin/callback/email compatibility code is [draft PR #119](https://github.com/rudras777/rivexis/pull/119).
+
+**Test evidence:** six of six gateway unit tests passed. A real preview deployment was attempted through GitHub Actions but failed at the Cloudflare token layer: Cloudflare API authentication code **9106** and invalid Authorization-header codes **6003/6111** in [run 40761845636](https://github.com/rudras777/rivexis/actions/runs/40761845636). Credential-format normalization and an independent Pages permissions check did not resolve it. There is **no verified created Pages project, Pages custom domain, or Wix CNAME**. The user must correct the GitHub repository secret `CLOUDFLARE_API_TOKEN` through the secure GitHub Settings UI; do not paste tokens into any chat or repository file.
+
+Wix's full account DNS zone read on 29 October again showed Wix nameservers, the same three apex A values and the `www` CNAME, with no `rivexis` record. Existing Wix portfolio and public Worker remain unaffected. Supabase project continues `ACTIVE_HEALTHY`. Brevo account tools still return internal errors; email changes and final authentication acceptance remain blocked.
+
+If the Cloudflare Pages project and service binding become active, **first attach the Pages custom domain through Cloudflare**, then add only `rivexis.rvea.info` CNAME at Wix, preserving apex, WWW and nameservers. Run full TLS/public/auth/mobile tests, then update protected app and email-origin settings. Cloudflare documentation warns that CNAME-before-association can yield a 522 error. Never repeat Wix domain unassignment/nameserver cutover.
+
+References:
+- https://developers.cloudflare.com/pages/configuration/custom-domains/
+- https://developers.cloudflare.com/pages/functions/bindings/#service-bindings
+- https://developers.cloudflare.com/api/resources/pages/subresources/projects/subresources/domains/methods/create/
