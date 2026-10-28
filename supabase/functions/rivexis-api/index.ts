@@ -21,6 +21,13 @@ const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY=Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LIVE_ORIGIN="https://rivexis-web.rudrasingh0718.workers.dev";
+const RVEA_ORIGIN="https://rivexis.rvea.info";
+const PUBLIC_ORIGINS=new Set([LIVE_ORIGIN,RVEA_ORIGIN]);
+// Only a trusted first-party origin may control the destination of auth emails.
+function authEmailOrigin(req:Request):string{
+  const origin=req.headers.get("origin");
+  return origin!==null&&PUBLIC_ORIGINS.has(origin)?origin:LIVE_ORIGIN;
+}
 const COOKIE="rvx_session";
 const ORG_ROLES=new Set(["OWNER","ADMIN","ANALYST","VIEWER"]);
 const ENGINE_PATHS:Record<string,string>={
@@ -57,7 +64,7 @@ async function membershipBridge(action:string,userId:string,payload:Json={}):Pro
 
 function cors(req:Request){
   const origin=req.headers.get("origin");
-  const allowed=origin===LIVE_ORIGIN||origin?.startsWith("http://localhost:")||origin?.startsWith("http://127.0.0.1:");
+  const allowed=(origin!==null&&PUBLIC_ORIGINS.has(origin))||origin?.startsWith("http://localhost:")||origin?.startsWith("http://127.0.0.1:");
   return {
     "access-control-allow-origin":allowed?origin!:LIVE_ORIGIN,
     "access-control-allow-credentials":"true",
@@ -213,7 +220,7 @@ async function handleAuth(req:Request,path:string){
     const password=typeof input.password==="string"?input.password:"";
     const userRole=parseRole(input.role);
     if(!email||password.length<8||!userRole)return error(req,422,"Check your email, password, and role, then try again");
-    const {data,error:signUpError}=await authClient.auth.signUp({email,password,options:{data:{role:userRole},emailRedirectTo:`${LIVE_ORIGIN}/login?verified=1`}});
+    const {data,error:signUpError}=await authClient.auth.signUp({email,password,options:{data:{role:userRole},emailRedirectTo:`${authEmailOrigin(req)}/login?verified=1`}});
     if(signUpError)return error(req,signUpError.status===429?429:409,"Unable to create account with those details");
     if(data.user?.email_confirmed_at&&data.session){
       const appUser=await ensureAppUser(data.user);
@@ -224,7 +231,7 @@ async function handleAuth(req:Request,path:string){
   }
   if(path==="/api/v1/auth/email-verification/request"){
     const email=typeof input.email==="string"?input.email.trim().toLowerCase():"";
-    if(email)await authClient.auth.resend({type:"signup",email,options:{emailRedirectTo:`${LIVE_ORIGIN}/login?verified=1`}});
+    if(email)await authClient.auth.resend({type:"signup",email,options:{emailRedirectTo:`${authEmailOrigin(req)}/login?verified=1`}});
     return json(req,{status:"accepted"},202);
   }
   if(path==="/api/v1/auth/email-verification/confirm"){
@@ -242,7 +249,7 @@ async function handleAuth(req:Request,path:string){
   }
   if(path==="/api/v1/auth/password-reset/request"){
     const email=typeof input.email==="string"?input.email.trim().toLowerCase():"";
-    if(email)await authClient.auth.resetPasswordForEmail(email,{redirectTo:`${LIVE_ORIGIN}/reset-password`});
+    if(email)await authClient.auth.resetPasswordForEmail(email,{redirectTo:`${authEmailOrigin(req)}/reset-password`});
     return json(req,{status:"accepted"},202);
   }
   if(path==="/api/v1/auth/password-reset/confirm"){
