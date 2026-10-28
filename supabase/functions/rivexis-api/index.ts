@@ -12,6 +12,7 @@ import {liquidationAnalysis} from "./defi-liquidation.mjs";
 import {accountSettings} from "./defi-account-settings.mjs";
 import {handleOnChain} from "./onchain-http.mjs";
 import {sampleSnapshot} from "./defi-sample.mjs";
+import {LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin} from "./public-origin.mjs";
 
 type Json=Record<string,unknown>;
 type SessionCookie={access_token:string;refresh_token:string;csrf:string};
@@ -20,14 +21,6 @@ type AuthContext={user:User;appUser:Json;session:SessionCookie;cookie?:string};
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY=Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LIVE_ORIGIN="https://rivexis-web.rudrasingh0718.workers.dev";
-const RVEA_ORIGIN="https://rivexis.rvea.info";
-const PUBLIC_ORIGINS=new Set([LIVE_ORIGIN,RVEA_ORIGIN]);
-// Only a trusted first-party origin may control the destination of auth emails.
-function authEmailOrigin(req:Request):string{
-  const origin=req.headers.get("origin");
-  return origin!==null&&PUBLIC_ORIGINS.has(origin)?origin:LIVE_ORIGIN;
-}
 const COOKIE="rvx_session";
 const ORG_ROLES=new Set(["OWNER","ADMIN","ANALYST","VIEWER"]);
 const ENGINE_PATHS:Record<string,string>={
