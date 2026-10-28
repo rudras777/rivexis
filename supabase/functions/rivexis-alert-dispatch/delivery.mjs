@@ -34,7 +34,10 @@ function evidenceMode(payload){
   return typeof payload?.evidence_mode==="string"&&payload.evidence_mode?payload.evidence_mode:"PERSISTED_ALERT_RECORD";
 }
 
-export function alertEmail(alert){
+export function alertEmail(alert,requestedOrigin="https://rivexis-web.rudrasingh0718.workers.dev"){
+  const emailOrigin=["https://rivexis-web.rudrasingh0718.workers.dev","https://rivexis.rvea.info"].includes(requestedOrigin)
+    ?requestedOrigin
+    :"https://rivexis-web.rudrasingh0718.workers.dev";
   const severity=String(alert?.severity??"unknown").toUpperCase();
   const status=String(alert?.status??"open").toUpperCase();
   const workspace=String(alert?.workspace_name??"Workspace");
@@ -62,7 +65,7 @@ export function alertEmail(alert){
   ].filter(Boolean).join("\n");
   const html=`<!doctype html><html><body style="font-family:Arial,sans-serif;background:#F3F2EC;color:#202B2D;padding:28px">
     <div style="max-width:640px;margin:auto;background:#F3F2EC;padding:28px;border-top:3px solid #326C6A">
-      <img src="https://rivexis-web.rudrasingh0718.workers.dev/brand/rivexis-wordmark-light.png" alt="RIVEXIS" width="220" style="display:block;width:220px;max-width:100%;height:auto;margin-bottom:28px"/>
+      <img src="${emailOrigin}/brand/rivexis-wordmark-light.png" alt="RIVEXIS" width="220" style="display:block;width:220px;max-width:100%;height:auto;margin-bottom:28px"/>
       <div style="font-size:12px;letter-spacing:.14em;color:#596A69">RIVEXIS · EVIDENCE ALERT</div>
       <h1 style="font-size:24px;margin:14px 0">${escapeHtml(severity)} alert</h1>
       <p style="color:#596A69">${escapeHtml(workspace)}</p>
@@ -74,7 +77,7 @@ export function alertEmail(alert){
       </table>
       <p style="margin-top:22px;padding-top:18px;border-top:1px solid #D9DFD7">${escapeHtml(truth)}</p>
       <p style="font-size:12px;color:#596A69">Reference: ${escapeHtml(reference)}</p>
-      <p><a href="https://rivexis-web.rudrasingh0718.workers.dev/workspace/alerts" style="color:#326C6A">Review canonical alert record</a></p>
+      <p><a href="${emailOrigin}/workspace/alerts" style="color:#326C6A">Review canonical alert record</a></p>
     </div>
   </body></html>`;
   return {subject,text,html,synthetic};
