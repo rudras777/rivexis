@@ -57,5 +57,6 @@ test.describe("public production regressions",()=>{
 test('public landing uses this build document while private account responses remain uncached',async({request})=>{
  const root=await request.get('/');expect(root.status()).toBe(200);expect(root.headers()['x-rivexis-document']).toBe('build');expect(root.headers()['set-cookie']).toBeUndefined();
  const html=await root.text();expect(html).toContain(`name="rivexis-build" content="${process.env.RIVEXIS_EXPECTED_BUILD_SHA}"`);expect(html.endsWith('</html>')).toBe(true);
+ const artifact=await request.head('/_rivexis-public/landing.html');expect(artifact.status()).toBe(200);expect(artifact.headers()['x-frame-options']).toBe('DENY');expect(artifact.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
  const privateResponse=await request.get('/api/v1/account/settings');expect(privateResponse.status()).toBe(401);expect(privateResponse.headers()['cache-control']).toBe('no-store');expect(privateResponse.headers()['x-rivexis-document']).toBeUndefined();
 });

@@ -46,6 +46,12 @@ try{
   await fs.access(filename);
  }
  await fs.mkdir(path.dirname(asset),{recursive:true});await fs.writeFile(asset,html);
+ // Direct requests to the public artifact must retain the same framing/CSP
+ // protections as the canonical document, including extensionless asset URLs.
+ const headerFile=path.join(client,'_headers');
+ const rule='\n/_rivexis-public/*\n'+Object.entries({...BASE_SECURITY_HEADERS,'Cache-Control':'public, max-age=0, must-revalidate'}).map(([name,value])=>`  ${name}: ${value}`).join('\n')+'\n';
+ await fs.appendFile(headerFile,rule);
+
  const manifest={build,bytes,sha256:crypto.createHash('sha256').update(html).digest('hex'),source:'Existing compiled Worker, local anonymous GET /',headersVerified:true,anonymous:true};
  await fs.writeFile(path.join(root,'dist/server/rivexis-public-document.json'),JSON.stringify(manifest,null,2)+'\n');
  console.log('Public document build: PASS '+JSON.stringify(manifest));
