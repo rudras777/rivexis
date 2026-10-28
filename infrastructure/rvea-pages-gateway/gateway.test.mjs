@@ -95,3 +95,32 @@ test("healthy ingress reports binding readiness without leaking secrets", async 
   });
   assert.equal(upstream.calls.length, 0);
 });
+
+test("binding transport failures are sanitized and never retried", async () => {
+  for (const method of ["GET", "POST"]) {
+    let calls = 0;
+    const env = { RIVEXIS_WEB: { async fetch() {
+      calls++;
+      throw new Error("provider diagnostic with private credentials");
+    } } };
+    const result = await gateway.fetch(new Request(live + "/workspace", {method}), env);
+    assert.equal(result.status, 502);
+    assert.equal(result.headers.get("cache-control"), "no-store");
+    const body = await result.text();
+    assert.doesNotMatch(body, /provider|credentials|diagnostic/);
+    if (method === "POST") assert.match(body, /outcome could not be confirmed/);
+    assert.equal(calls, 1);
+  }
+});
+
+test("upstream application errors remain unchanged", async () => {
+  for (const status of [401, 403, 422, 429, 503]) {
+    const env = { RIVEXIS_WEB: { async fetch() {
+      return new Response("Original application error", {status, headers:{"retry-after":"30"}});
+    } } };
+    const result = await gateway.fetch(new Request(live + "/api/v1/account"), env);
+    assert.equal(result.status, status);
+    assert.equal(result.headers.get("retry-after"), "30");
+    assert.equal(await result.text(), "Original application error");
+  }
+});

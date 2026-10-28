@@ -58,6 +58,15 @@ export default {
     // The Fetcher binding invokes the ORIGINAL rivexis-web Worker directly.
     // Request URL, method, body, cookies and Set-Cookie stay intact, so
     // same-origin browser interactions remain on rivexis.rvea.info.
-    return env.RIVEXIS_WEB.fetch(request);
+    try {
+      return await env.RIVEXIS_WEB.fetch(request);
+    } catch {
+      // A failed transport can occur after an upstream write committed. Never
+      // retry here, and never expose provider diagnostics or request details.
+      const read = ["GET", "HEAD", "OPTIONS"].includes(request.method);
+      return response(read
+        ? "RIVEXIS is temporarily unavailable. Please try again later."
+        : "The request outcome could not be confirmed. Check your account before trying again.", 502);
+    }
   }
 };

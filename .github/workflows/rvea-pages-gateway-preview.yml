@@ -2,7 +2,7 @@ name: rvea-pages-gateway-preview
 
 on:
   push:
-    branches: ["infra/rvea-pages-gateway-20261029"]
+    branches: ["main", "infra/rvea-pages-gateway-20261029"]
     paths:
       - "infrastructure/rvea-pages-gateway/**"
       - ".github/workflows/rvea-pages-gateway-preview.yml"
@@ -12,11 +12,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: rvea-pages-gateway-preview
+  group: rvea-pages-gateway
   cancel-in-progress: false
 
 jobs:
-  preview:
+  deploy:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -31,84 +31,43 @@ jobs:
         run: npm ci
       - name: Run ingress tests before using Cloudflare credentials
         run: node --test infrastructure/rvea-pages-gateway/gateway.test.mjs
-      - name: Check existing Worker and deploy isolated Pages preview
+      - name: Verify existing Worker and deploy Pages gateway
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 0b22778ba197266a58dd26eeef0334a8
           RVEA_PAGES_PROJECT: rvea-rivexis-gateway
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
-            echo "::error::Cloudflare Pages preview cannot run without configured GitHub Actions Cloudflare secrets."
-            exit 1
-          fi
-          # Reuse the production deploy workflow's sanitized Cloudflare credential format.
-          CF_TOKEN="$(python - <<'PY'
-          import os,re
-          value=os.environ.get('CLOUDFLARE_API_TOKEN','').strip()
-          for quote in ('"', "'"):
-              if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
-                  value=value[1:-1].strip()
-          for prefix in ('CLOUDFLARE_API_TOKEN=','CF_API_TOKEN='):
-              if value.upper().startswith(prefix):
-                  value=value[len(prefix):].strip()
-          bearer=re.search(r'(?i)Bearer\s+([^\s"\']+)',value)
-          if bearer:
-              value=bearer.group(1).strip()
-          prefixed=re.search(r'(cf(?:ut|at)_[A-Za-z0-9_-]+)',value)
-          if prefixed:
-              value=prefixed.group(1)
-          print(value.strip().strip('"\'`;,') ,end='')
-          PY
-          )"
-          CF_ACCOUNT_ID="$(python - <<'PY'
-          import os,re
-          value=os.environ.get('CLOUDFLARE_ACCOUNT_ID','').strip()
-          for quote in ('"', "'"):
-              if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
-                  value=value[1:-1].strip()
-          for prefix in ('CLOUDFLARE_ACCOUNT_ID=','CF_ACCOUNT_ID='):
-              if value.upper().startswith(prefix):
-                  value=value[len(prefix):].strip()
-          match=re.search(r'\b[0-9a-fA-F]{32}\b',value)
-          if match:
-              value=match.group(0)
-          print(value.strip().strip('"\'`;,') ,end='')
-          PY
-          )"
-          test -n "$CF_TOKEN" && test -n "$CF_ACCOUNT_ID"
-          echo "::add-mask::$CF_TOKEN"
-          echo "::add-mask::$CF_ACCOUNT_ID"
-          SERVICE_JSON="$(curl -sS --max-time 20 -H "Authorization: Bearer ${CF_TOKEN}" \
-            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/services/rivexis-web")"
-          export CLOUDFLARE_API_TOKEN="$CF_TOKEN"
-          export CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID"
-          if [ "$CF_ACCOUNT_ID" != "0b22778ba197266a58dd26eeef0334a8" ]; then
-            echo "::error::Cloudflare account does not match the existing rivexis-web Wrangler configuration."
-            exit 1
-          fi
+          node -e '
+            const token=process.env.CLOUDFLARE_API_TOKEN??"";
+            if(!/^[A-Za-z0-9_-]{40,}$/.test(token)) {
+              console.error("::error::CLOUDFLARE_PAGES_API_TOKEN must contain only the raw scoped token, without quotes, prefixes or whitespace.");
+              process.exit(1);
+            }
+          '
+          SERVICE_JSON="$(curl -sS --max-time 20 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/services/rivexis-web")"
           SERVICE_JSON="$SERVICE_JSON" node -e '
             let p;
             try { p=JSON.parse(process.env.SERVICE_JSON); } catch { p={}; }
-            if(p.success===true && p.result) {
-              console.log("Original rivexis-web Worker inspection succeeded.");
-            } else {
-              const codes=(p.errors??[]).map(e=>e.code).filter(Boolean);
-              console.warn("Worker read permission/availability was not verified (Cloudflare codes:",codes.join(",")||"unknown","). Checking Pages permissions separately.");
+            if(p.success!==true || !p.result) {
+              console.error("::error::Original Worker inspection failed; Cloudflare codes:", (p.errors??[]).map(e=>e.code).join(",")||"unknown");
+              process.exit(1);
             }
+            console.log("Original rivexis-web Worker inspection succeeded.");
           '
           npx --no-install wrangler pages project list --json > /tmp/rvea-pages-projects.json
           EXISTS="$(node -e '
             const data=JSON.parse(require("fs").readFileSync("/tmp/rvea-pages-projects.json","utf8"));
-            const arr=Array.isArray(data)?data:(Array.isArray(data.result)?data.result:[]);
-            if(!Array.isArray(arr))process.exit(1);
-            process.stdout.write(String(arr.some(p=>p.name===process.env.RVEA_PAGES_PROJECT)));
+            if(!Array.isArray(data)) throw new Error("Unexpected Pages project inventory");
+            process.stdout.write(String(data.some(p=>p.name===process.env.RVEA_PAGES_PROJECT)));
           ')"
           if [ "$EXISTS" = "false" ]; then
             npx --no-install wrangler pages project create "${RVEA_PAGES_PROJECT}" --production-branch main
           fi
           npx --no-install wrangler pages deploy \
             --cwd infrastructure/rvea-pages-gateway \
-            --branch infra/rvea-pages-gateway-20261029
-          echo "Isolated preview submitted; no custom-domain or Wix DNS mutation was attempted."
+            --branch "${GITHUB_REF_NAME}" \
+            --commit-hash "${GITHUB_SHA}"
+          echo "Pages deployment submitted; no custom-domain or Wix DNS mutation was attempted."
