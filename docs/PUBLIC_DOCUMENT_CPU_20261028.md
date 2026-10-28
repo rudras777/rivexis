@@ -1,0 +1,21 @@
+# Landing document CPU reduction — 28 October 2026
+
+## Evidence and scope
+
+The25October Cloudflare native Metrics UI showed47 CPU-limit errors on Worker63992662-f828-48ea-bbc3-39226a1d3861/PR116. One invocation independently identifiedGET / at11:47:40.017UTC with10ms CPU/13ms wall time. Error events cluster in a short burst. This is a genuine resource-limit category; its cause is not the deliberate401/403 security checks. The requester and traffic source are not established. No visitor identifiers or credentials are retained in this report.
+
+Ordinary public landing HTML was being server-rendered repeatedly despite containing no server-side identity or private data. The candidate renders that same compiled Worker anonymously once during the build and packages its complete landing document alongside existing static assets. The existing Worker serves that asset for ordinaryGET/HEAD / without React rendering. It preserves the source document, logo, colors, typography, layout, background, buttons, JavaScript assets and hydration. A shared constant keeps existing framework and document security headers equal.
+
+Only the public landing document is shared. API, authenticated pages, authentication/recovery routes, writes and Flight/router navigation retain the existing framework handler. Cookies/authorization/visitor headers never enter the artifact request. No cookie is emitted from it; no account data is captured. Missing artifacts return an honest503/no-store instead of repeatedly falling back to expensive rendering. The local renderer binding is passed only to the temporary loopback Worker process and is prohibited in deployment variables. Request headers cannot enable it.
+
+## Build and acceptance
+
+The build uses installed Vinext/Wrangler, the same existing Worker output and a temporary local process. It verifies complete200 HTML, expected build identity, security headers, no session cookie and referenced assets before accepting the artifact. The process is scoped and terminated after capture. No new service, account, project, cache namespace, paid plan or dependency upgrade is introduced. Worker/account/production URL remain the existing ones; only the source entry wraps the existing handler. Root and app deployment commands both use this build.
+
+Local23 routing/security unit cases, real local Worker document/HEAD/Flight checks, build, TypeScript and frontend AST pass. A missingMJS type declaration was corrected with a specific typed declaration. The first local build hit an agent preview's Windows dist lock; after scoped cleanup the build passed. An earlier installed all-route prerender attempt rejected cloudflare: imports; it is not used. All original diagnostics are retained, not counted as acceptance.
+
+Before promotion require exact-head standard/Worker/browser gates, a normal protected merge without bypass, actual same-Worker native deployment/traffic proof, full live browser checks including the build-document/private no-store assertion, and fresh CPU observations. A passing local build does not prove production CPU performance. The old47 errors must remain preserved and excluded from claims about the new version. Measure the deployed version explicitly; no sustained load/SLA or zero-error guarantee is implied. Flight, account-page SSR and other dynamic routes still use the free CPU allowance.
+
+Cloudflare's [CPU limits](https://developers.cloudflare.com/workers/platform/limits/) and [static asset routing](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/) were checked alongside the installed framework sources. No paid CPU-limit increase is authorized. Added recurring service costUSD0, subject to existing bounded-beta quotas; account-wide billing and unrestricted scale are not certified.
+
+Financial models/backend functions/schema/authentication/user data and independent institutional assurance requirements are unchanged. Final source/merge, native build/version/traffic, test results and screenshots belong to PR117 and the task active/release evidence checkpoint.

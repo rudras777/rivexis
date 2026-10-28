@@ -52,3 +52,10 @@ test.describe("public production regressions",()=>{
     }
   });
 });
+
+
+test('public landing uses this build document while private account responses remain uncached',async({request})=>{
+ const root=await request.get('/');expect(root.status()).toBe(200);expect(root.headers()['x-rivexis-document']).toBe('build');expect(root.headers()['set-cookie']).toBeUndefined();
+ const html=await root.text();expect(html).toContain(`name="rivexis-build" content="${process.env.RIVEXIS_EXPECTED_BUILD_SHA}"`);expect(html.endsWith('</html>')).toBe(true);
+ const privateResponse=await request.get('/api/v1/account/settings');expect(privateResponse.status()).toBe(401);expect(privateResponse.headers()['cache-control']).toBe('no-store');expect(privateResponse.headers()['x-rivexis-document']).toBeUndefined();
+});
