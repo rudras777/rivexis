@@ -61,13 +61,15 @@ jobs:
           EXISTS="$(node -e '
             const data=JSON.parse(require("fs").readFileSync("/tmp/rvea-pages-projects.json","utf8"));
             if(!Array.isArray(data)) throw new Error("Unexpected Pages project inventory");
-            process.stdout.write(String(data.some(p=>p.name===process.env.RVEA_PAGES_PROJECT)));
+            process.stdout.write(String(data.some(p=>p["Project Name"]===process.env.RVEA_PAGES_PROJECT)));
           ')"
           if [ "$EXISTS" = "false" ]; then
-            npx --no-install wrangler pages project create "${RVEA_PAGES_PROJECT}" --production-branch main
+            # Wrangler 4.148.0 --force selects Pages instead of automatic Workers delegation.
+            npx --no-install wrangler pages project create "${RVEA_PAGES_PROJECT}" --production-branch main --force
           fi
           npx --no-install wrangler pages deploy \
             --cwd infrastructure/rvea-pages-gateway \
             --branch "${GITHUB_REF_NAME}" \
-            --commit-hash "${GITHUB_SHA}"
+            --commit-hash "${GITHUB_SHA}" \
+            --force
           echo "Pages deployment submitted; no custom-domain or Wix DNS mutation was attempted."
