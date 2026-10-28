@@ -39,7 +39,7 @@ Audit each consumer and deployed binding before changes. Do not globally replace
 
 ## Exact next steps
 
-1. Restore a working Wix domain management page; export full authoritative records and confirm registrar, expiry, renewal, DNSSEC and contact verification. Complete verification through the authorized owner flow before its deadline.
+1. Restore a working Wix domain management page; export full authoritative records and confirm registrar, expiry, renewal, DNSSEC and contact verification. Contact verification was completed by the owner and confirmed in the Wix success page on 28 October; no further contact-verification action is needed.
 2. Confirm exact site-specific external-DNS pointing instructions and continued portfolio assignment. Current Wix custom nameserver documentation requires unassigning first and warns of SSL renewal effects. This conflicts with the explicit requirement not to disconnect the portfolio: do not unassign or assume existing DNS alone guarantees continuing Wix service. Resolve supported connection method with Wix before migration; obtain approval if temporary disconnection is unavoidable.
 3. Reconcile complete source zone with staged Cloudflare records, including mail, verification, CAA and selectors. Keep Wix records DNS Only. Capture rollback and resolve any registrar DS before authority change.
 4. Only after preservation and supported Wix mapping are verified, change registrar nameservers to the exact assigned Cloudflare pair. Check authoritative and recursive answers and zone Active; do not confuse pending status with propagation completion.
@@ -62,3 +62,7 @@ Choose lowercase exact slug; check conflicts; identify its host/owner; deploy to
 - https://support.wix.com/en/article/changing-nameserver-ns-records-for-a-wix-domain
 
 Completion status: staged DNS safety correction and audit completed; authority/custom-domain/authentication migration NOT completed. Added recurring service cost: USD 0.
+
+## Follow-up verification
+
+Owner contact verification confirmed on 28 October: Wix displays Your Contact Information is Confirmed / No further action is needed. Reopened signed-in Chrome Domains page still spins; embedded-frame read timed out, with no error-level console entries available. Cloudflare overview still shows Pending and the same assigned nameservers. No nameserver, Worker route, Auth, database or mail change in this follow-up. Existing 31 proxy regression cases were rerun with rivexis.rvea.info as the request origin: 31 passed, zero failed/skipped/cancelled. This is an isolated stubbed-upstream test, NOT live custom-host authentication or DNS acceptance. Test output saved in task outputs/rvea-domain-20261028-custom-origin-proxy.log. Python console printing initially failed encoding Unicode test marks after the test finished; retained log confirms pass counts.
