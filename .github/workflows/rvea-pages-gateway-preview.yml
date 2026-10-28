@@ -43,8 +43,47 @@ jobs:
             echo "::error::Cloudflare Pages preview cannot run without configured GitHub Actions Cloudflare secrets."
             exit 1
           fi
-          SERVICE_JSON="$(curl -fsS --retry 1 --max-time 20 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/services/rivexis-web")"
+          # Reuse the production deploy workflow's sanitized Cloudflare credential format.
+          CF_TOKEN="$(python - <<'PY'
+          import os,re
+          value=os.environ.get('CLOUDFLARE_API_TOKEN','').strip()
+          for quote in ('"', "'"):
+              if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
+                  value=value[1:-1].strip()
+          for prefix in ('CLOUDFLARE_API_TOKEN=','CF_API_TOKEN='):
+              if value.upper().startswith(prefix):
+                  value=value[len(prefix):].strip()
+          bearer=re.search(r'(?i)Bearer\s+([^\s"\']+)',value)
+          if bearer:
+              value=bearer.group(1).strip()
+          prefixed=re.search(r'(cf(?:ut|at)_[A-Za-z0-9_-]+)',value)
+          if prefixed:
+              value=prefixed.group(1)
+          print(value.strip().strip('"\'`;,') ,end='')
+          PY
+          )"
+          CF_ACCOUNT_ID="$(python - <<'PY'
+          import os,re
+          value=os.environ.get('CLOUDFLARE_ACCOUNT_ID','').strip()
+          for quote in ('"', "'"):
+              if len(value)>=2 and value.startswith(quote) and value.endswith(quote):
+                  value=value[1:-1].strip()
+          for prefix in ('CLOUDFLARE_ACCOUNT_ID=','CF_ACCOUNT_ID='):
+              if value.upper().startswith(prefix):
+                  value=value[len(prefix):].strip()
+          match=re.search(r'\b[0-9a-fA-F]{32}\b',value)
+          if match:
+              value=match.group(0)
+          print(value.strip().strip('"\'`;,') ,end='')
+          PY
+          )"
+          test -n "$CF_TOKEN" && test -n "$CF_ACCOUNT_ID"
+          echo "::add-mask::$CF_TOKEN"
+          echo "::add-mask::$CF_ACCOUNT_ID"
+          SERVICE_JSON="$(curl -sS --max-time 20 -H "Authorization: Bearer ${CF_TOKEN}" \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/services/rivexis-web")"
+          export CLOUDFLARE_API_TOKEN="$CF_TOKEN"
+          export CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT_ID"
           SERVICE_JSON="$SERVICE_JSON" node -e '
             const p=JSON.parse(process.env.SERVICE_JSON);
             if(p.success!==true || !p.result) {
