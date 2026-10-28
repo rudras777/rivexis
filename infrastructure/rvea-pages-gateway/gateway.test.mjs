@@ -55,12 +55,13 @@ test("POST and body are forwarded on the official RVEA hostname", async () => {
 test("Pages preview permits public reads but rejects account changes", async () => {
   const upstream = service();
   assert.equal((await gateway.fetch(new Request(preview + "/"), upstream.env)).status, 200);
+  assert.equal((await gateway.fetch(new Request("https://infra-rvea-pages-gateway-20261029.rvea-rivexis-gateway.pages.dev/", {method: "GET"}), upstream.env)).status, 200);
   assert.equal((await gateway.fetch(new Request(preview + "/login", {method: "POST"}), upstream.env)).status, 403);
   assert.equal((await gateway.fetch(new Request(preview + "/api/v1/account"), upstream.env)).status, 403);
   assert.equal((await gateway.fetch(new Request(preview + "/workspace", {
     headers: {cookie: "rvx_session=sensitive"}
   }), upstream.env)).status, 403);
-  assert.equal(upstream.calls.length, 1);
+  assert.equal(upstream.calls.length, 2);
 });
 
 test("rejects all unapproved hostnames and insecure production requests", async () => {
