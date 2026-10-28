@@ -67,7 +67,7 @@ async function mark(token:string,alert:ClaimedAlert,success:boolean,errorCode=""
 }
 async function brevoSend(alert:ClaimedAlert,cfg:ReturnType<typeof brevoConfig>){
   if(!validEmail(alert.recipient_email??""))return {ok:false,error_code:"recipient_email_invalid"};
-  const content=alertEmail(alert);
+  const content=alertEmail(alert,Deno.env.get("RIVEXIS_PUBLIC_WEB_URL")??undefined);
   const idempotencyKey=await idempotencyUuid(alert.id);
   const body={
     sender:{email:cfg.senderEmail,name:cfg.senderName},
