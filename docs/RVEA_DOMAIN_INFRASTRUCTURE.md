@@ -1,5 +1,5 @@
 # RVEA Domain Infrastructure — Migration Inventory and Release Gate
-_Observed 2026-10-29 (Asia/Kolkata). This is a **read-only audit checkpoint**, not a completed deployment certificate._
+_Observed 2026-10-29 (Asia/Kolkata). This is a **read-only audit checkpoint**, not a completed deployment certificate. **The separate prior branch `infra/rvea-domain-20261028` contains actual Wix/Cloudflare cutover-and-rollback evidence and supersedes earlier uncertainties below.**_
 
 ## Approved public namespace
 
@@ -27,7 +27,7 @@ Do **not** migrate/rebuild Wix, create another Worker, rename projects, purchase
 
 Not yet verified: registrar nameserver delegation, Wix current connection method, Cloudflare zone activation and assigned nameservers, complete `A/AAAA/CNAME/MX/TXT/CAA/SRV/NS/DS` records, SPF/DKIM/DMARC, Wix-specific pointing values, root/WWW canonical behavior, active redirects and certificates.
 
-1. Domain owner confirms registrant verification is complete via their registrar/Wix account.
+1. **Completed in the prior verified Wix browser session (28 October):** owner contact verification shows confirmed. No repeated verification is requested.
 2. Export or record the **full current authoritative DNS zone** and domain connection settings. Include DNSSEC/DS and all email/verification records.
 3. Inspect Wix's exact current A/CNAME pointing instructions for the existing site. Do not fabricate values.
 4. Confirm whether Cloudflare is already authoritative. Cloudflare custom domains require an **active zone**.
@@ -79,3 +79,17 @@ For each future project: choose a unique lowercase slug, deploy to its own exist
 This audit had working GitHub and Supabase read access, but no authenticated Wix/Cloudflare DNS dashboard control and no verified public DNS/HTTPS response; Brevo account inspection returned a connector error. Therefore **no nameserver/DNS, Worker custom-domain, Supabase Auth, Brevo sender, or production code modification is asserted**.
 
 Next authorized implementation must first obtain the registrar/Wix and Cloudflare zone record inventories; then proceed with the exact verified configuration above, run actual application end-to-end tests, and update this file with explicit evidence and final status. 
+
+## Cross-check against existing 28 October migration attempt (authoritative prior work)
+
+The earlier existing branch `infra/rvea-domain-20261028` (root `RVEA_DOMAIN_INFRASTRUCTURE.md`) documents real Wix, DNS and Cloudflare browser evidence. **Read it before any infrastructure actions**; the earlier branch is not merged to `main` and this branch must not supersede it without reconciliation.
+
+- Wix was authoritative and the domain stayed registered at Wix. Public NS: `ns4.wixdns.net`, `ns5.wixdns.net`. The captured Wix apex A values were `185.230.63.107`, `185.230.63.171`, `185.230.63.186`; `www` CNAME `cdn3.wixdns.net`. These are an **October 28 observation**, not a guarantee they remain current.
+- The staged Cloudflare Full zone was pending. Assigned pair `melody.ns.cloudflare.com` / `wilson.ns.cloudflare.com`; the four imported Wix records were put into DNS Only status without changing public authority.
+- Wix's UI required **unassigning** the domain before switching nameservers, and prevented reassigning it to the same Wix site while external nameservers were active. A controlled cutover was previously owner-approved, attempted, and caused Wix pages to return **404**.
+- The earlier execution **rolled back** to original Wix nameservers and reassigned the same portfolio; subsequent direct HTTPS tests returned 200. No custom Worker hostname was brought online.
+- The Wix domain registration contact verification **was confirmed complete** by the owner on 28 October. Registration renewal was shown as 27 October 2027.
+- A Wix support question was prepared at `docs/RVEA_WIX_SUPPORT_QUESTION.md` on the prior branch. Provider guidance is necessary for a supported no-portfolio-outage Wix assignment with external authoritative DNS. Do not repeat the failed cutover with the same procedure.
+- Account-level workaround options considered in the earlier branch (Cloudflare partial/child-zone products) require paid tiers that have not been authorized. Do not adopt them silently.
+
+**Current blocker:** Wix support must provide and/or enable a supported way to keep the Wix-registered domain assigned to its unchanged portfolio when authoritative DNS is managed externally, or the user must explicitly choose a different approved architecture. Until then, keep Wix's restored assignment/nameservers intact. The custom RIVEXIS hostname is not production-ready.
