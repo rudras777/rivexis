@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin} from './public-origin.mjs';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 import {webcrypto} from 'node:crypto';
@@ -29,7 +30,7 @@ function harness({verified=true,refresh=false,otpError=false,otpSession=true,upd
       signOut:async(input)=>{if(!established)return {error:{message:'Auth session missing'}};revocations.push(input.scope);return {error:revokeError?{message:'provider failed'}:null}},
     }};
   };
-  const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,handleDefi,handleOnChain,accountSettings,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
+  const context=vm.createContext({LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin,Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,handleDefi,handleOnChain,accountSettings,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
   new vm.Script(compiled).runInContext(context);
   const cookie=(access='test-access')=>'rvx_session='+Buffer.from(JSON.stringify({access_token:access,refresh_token:'test-refresh',csrf})).toString('base64url');
   const request=(path,{authenticated=false,token=csrf,access='test-access',method='POST',body={wallet}}={})=>new Request('https://example.com'+path,{method,headers:{...(authenticated?{cookie:cookie(access)}:{}),...(token?{'x-rivexis-csrf':token}:{})},...(method==='POST'?{body:JSON.stringify(body)}:{})});
