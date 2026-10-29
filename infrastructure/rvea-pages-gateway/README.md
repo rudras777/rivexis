@@ -40,4 +40,4 @@ Cloudflare official references:
 
 Delete **only** the Wix `rivexis` CNAME, once documented, or detach the Pages custom-domain mapping; do not touch root/www Wix DNS. Restore previous exact auth redirect/canonical settings if previously changed. Original `https://rivexis-web.rudrasingh0718.workers.dev` remains available throughout.
 
-**Status:** source only until actual Pages project, domain mapping, DNS, auth and end-to-end production smoke tests are observed.
+**Production checkpoint:** the gateway, custom domain and application have been deployed and verified. See the [production runbook](../../docs/RVEA_PRODUCTION_RUNBOOK.md) for exact release IDs, live configuration, completed acceptance, remaining product limits and rollback.
