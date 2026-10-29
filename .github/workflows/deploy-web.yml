@@ -196,7 +196,8 @@ jobs:
           verified=0
           for attempt in $(seq 1 12); do
             body="$(curl -fsS --max-time 25 -H 'Cache-Control: no-cache' "$url" || true)"
-            if printf '%s' "$body" | grep -Fq 'rivexis-build' && printf '%s' "$body" | grep -Fq "$DEPLOY_SHA"; then
+            # Builtin matching reads the full body without grep -q closing a pipe early.
+            if [[ "$body" == *'rivexis-build'* && "$body" == *"$DEPLOY_SHA"* ]]; then
               verified=1
               break
             fi
@@ -206,5 +207,5 @@ jobs:
             echo "::error::The public Worker did not expose the expected build SHA ${DEPLOY_SHA}."
             exit 1
           fi
-          printf '%s' "$body" | grep -Fq 'Understand the risk'
+          [[ "$body" == *'Understand the risk'* ]]
           echo "Verified ${DEPLOY_SHA} on the authoritative public Worker." >> "$GITHUB_STEP_SUMMARY"
