@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin} from './public-origin.mjs';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 import {webcrypto} from 'node:crypto';
@@ -18,7 +19,7 @@ function harness({read=validRead,refresh=validRefresh,databaseFailure=false}={})
  const sdk={getUser:async()=>{reads++;return await read()},refreshSession:async()=>{refreshes++;return await refresh()}};
  const admin={rpc:async(_name,args)=>{dbCalls++;if(databaseFailure)return {data:null,error:{message:'fixture database unavailable'}};return {data:args?.p_action==='list_workspaces'?{items:[]}:{role:'Individual'},error:null}}};
  const createClient=()=>({...admin,auth:sdk});
- const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console:{error:()=>{}}});
+ const context=vm.createContext({LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin,Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console:{error:()=>{}}});
  new vm.Script(compiled).runInContext(context);
  const request=(path='/api/v1/auth/session-status',session={access_token:'fixture-access',refresh_token:'fixture-refresh',csrf:'fixture-csrf'})=>new Request('https://example.invalid'+path,{headers:session?{cookie:'rvx_session='+Buffer.from(JSON.stringify(session)).toString('base64url')}:{}});
  return {handler,request,calls:()=>({reads,refreshes,dbCalls})};
@@ -102,7 +103,7 @@ for(const [service,path] of [['rivexis-decision-reports','/api/v1/history'],['ri
  function isolated({read=validRead,refresh=validRefresh,session={access_token:'fixture-access',refresh_token:'fixture-refresh',csrf:'fixture-csrf'}}={}){
   let handler,reads=0,refreshes=0,dbCalls=0;const actors=[];
   const createClient=()=>({auth:{getUser:async()=>{reads++;return await read()},refreshSession:async()=>{refreshes++;return await refresh()}},rpc:async(_name,args)=>{dbCalls++;if(args?.p_actor_user_id)actors.push(args.p_actor_user_id);return {data:{items:[]},error:null}}});
-  const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,atob,btoa,console:{error:()=>{}}});
+  const context=vm.createContext({LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin,Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,atob,btoa,console:{error:()=>{}}});
   new vm.Script(source).runInContext(context);
   return {actors,send:()=>handler(new Request('https://example.invalid'+path,{headers:session?{cookie:'rvx_session='+Buffer.from(JSON.stringify(session)).toString('base64url')}:{}})),calls:()=>({reads,refreshes,dbCalls})};
  }

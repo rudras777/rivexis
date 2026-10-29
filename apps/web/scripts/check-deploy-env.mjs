@@ -1,3 +1,11 @@
+const publicWebOrigin = process.env.NEXT_PUBLIC_RIVEXIS_PUBLIC_WEB_URL;
+if (publicWebOrigin && ![
+  "https://rivexis-web.rudrasingh0718.workers.dev",
+  "https://rivexis.rvea.info",
+].includes(publicWebOrigin)) {
+  throw new Error("NEXT_PUBLIC_RIVEXIS_PUBLIC_WEB_URL must be an exact approved RIVEXIS production origin.");
+}
+
 const value = process.env.NEXT_PUBLIC_RIVEXIS_API_URL;
 
 if (!value) {

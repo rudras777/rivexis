@@ -40,6 +40,27 @@ test('foreign-origin GET does not become a local authorization bypass',async()=>
 test('same-origin local development uses the actual request origin',async()=>{
  const calls=harness();await proxyEdgeApi(new Request('http://127.0.0.1:3019/api/v1/auth/web/login',{method:'POST',headers:{origin:'http://127.0.0.1:3019'},body:'{}'}),'/api/v1/auth/web/login');assert.equal(calls.length,1);
 });
+test('RVEA same-origin auth preserves origin, body and cookie semantics',async()=>{
+ const calls=harness(),rvea='https://rivexis.rvea.info';
+ const result=await proxyEdgeApi(new Request(rvea+'/api/v1/auth/web/login',{
+  method:'POST',headers:{origin:rvea,'x-rivexis-csrf':'test-csrf',cookie:'test-only-session'},body:'{"test":"rvea"}',
+ }),'/api/v1/auth/web/login');
+ assert.equal(result.status,200);assert.equal(calls.length,1);
+ assert.equal(calls[0].init.headers.get('origin'),rvea);
+ assert.equal(calls[0].init.headers.get('x-rivexis-forwarded-origin'),rvea);
+ assert.equal(calls[0].init.headers.get('cookie'),'test-only-session');
+ assert.equal(new TextDecoder().decode(calls[0].init.body),'{"test":"rvea"}');
+ assert.equal(result.headers.get('set-cookie'),'test-only-cookie');
+});
+
+test('legacy Worker origin cannot authorize a browser write to the separate RVEA hostname',async()=>{
+ const calls=harness();
+ const result=await proxyEdgeApi(new Request('https://rivexis.rvea.info/api/v1/auth/web/login',{
+  method:'POST',headers:{origin},body:'{}',
+ }),'/api/v1/auth/web/login');
+ assert.equal(result.status,403);assert.equal(calls.length,0);
+});
+
 test('declared oversized body is refused without forwarding',async()=>{
  const calls=harness();assert.equal((await proxyEdgeApi(request({headers:{'content-length':'131073'}}),'/api/v1/auth/web/login')).status,413);assert.equal(calls.length,0);
 });

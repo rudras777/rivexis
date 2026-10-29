@@ -13,10 +13,16 @@ import {GeistSans} from "geist/font/sans";
 import {Providers} from "@/components/Providers";
 import {ServiceAvailability} from "@/components/ServiceAvailability";
 
+// Keep the last working public hostname canonical until the new domain is live and enabled at build time.
+const configuredCanonical=process.env.NEXT_PUBLIC_RIVEXIS_PUBLIC_WEB_URL;
+const canonicalOrigin=configuredCanonical==="https://rivexis.rvea.info"
+  ?configuredCanonical
+  :"https://rivexis-web.rudrasingh0718.workers.dev";
+
 export const metadata:Metadata={
   title:{default:"RIVEXIS — DeFi Risk & Decision Intelligence",template:"%s | RIVEXIS"},
   description:"Understand DeFi exposure, stress-test lending positions and compare capital-constrained defensive alternatives with evidence.",
-  metadataBase:new URL("https://rivexis-web.rudrasingh0718.workers.dev"),
+  metadataBase:new URL(canonicalOrigin),
   icons:{
     icon:[{url:"/brand/rivexis-symbol.svg",type:"image/svg+xml"},{url:"/favicon.ico",type:"image/x-icon"}],
     apple:[{url:"/brand/apple-touch-icon.png",type:"image/png",sizes:"180x180"}],

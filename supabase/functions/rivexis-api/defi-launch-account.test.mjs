@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin} from './public-origin.mjs';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 import {webcrypto} from 'node:crypto';
@@ -21,7 +22,7 @@ function harness(options={}){
  const query={select:()=>query,eq:(key,value)=>{calls.push({key,value});return query},order:()=>query,limit:async()=>options.dbFail?{error:{}}:{data:[{id:'OWN_REPORT',receipt:{sample:true}}]}};
  const admin={from:()=>query,rpc:async(name,args)=>{calls.push({name,args});if(name==='rivexis_defi_quota'){if(options.quotaThrow)throw Error('private provider detail');return options.quotaFail?{error:{}}:{data:options.quotaMissing?null:!options.quotaDenied}}if(name==='rivexis_defi_save_report'){if(options.saveThrow)throw Error('private provider detail');return options.saveCap?{error:{code:'P0001',message:'Report limit reached: 20 per account'}}:options.saveFail?{error:{code:'08006',message:'private database detail'}}:{data:options.saveMissing?null:options.saveInvalid?'invalid-id':'11111111-1111-4111-8111-111111111111'}}return {data:{role:'Individual'}}}};
  const createClient=()=>({...admin,auth:{getUser:async(token)=>({data:{user:token==='ACCESS_A'?user:null},error:token==='ACCESS_A'?null:{status:401,code:'bad_jwt'}}),refreshSession:async()=>({data:{},error:{status:400,code:'refresh_token_not_found'}}),setSession:async()=>{if(options.establishThrow)throw Error('provider outage');return options.establishFail?{error:{}}:{data:{session:{access_token:'ACCESS_A'}}}},signOut:async(input)=>{calls.push({signOut:input});if(options.revokeThrow)throw Error('provider outage');return {error:options.revokeFail?{}:null}}}});
- const context=vm.createContext({Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,handleDefi,handleOnChain,accountSettings,parseRole,roleOrDefault,validWallet,readRequestText,frontier,validateSnapshot,liquidationAnalysis,sampleSnapshot,COVERAGE:['aave','morpho'],snapshot:async()=>{calls.push({snapshot:true});if(options.state)return options.state;throw Error('private RPC detail')},client:()=>({}),Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
+ const context=vm.createContext({LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin,Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,handleDefi,handleOnChain,accountSettings,parseRole,roleOrDefault,validWallet,readRequestText,frontier,validateSnapshot,liquidationAnalysis,sampleSnapshot,COVERAGE:['aave','morpho'],snapshot:async()=>{calls.push({snapshot:true});if(options.state)return options.state;throw Error('private RPC detail')},client:()=>({}),Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
  new vm.Script(compiled).runInContext(context);
  const request=(path,{method='GET',body,guest=false,token=csrf,access='ACCESS_A',raw}={})=>new Request('https://example.invalid'+path,{method,headers:{...(guest?{}:{cookie:'rvx_session='+Buffer.from(JSON.stringify({access_token:access,refresh_token:'REFRESH_A',csrf})).toString('base64url')}),'x-rivexis-csrf':token},...(method==='GET'?{}:{body:raw??JSON.stringify(body??{})})});
  return {handler,request,calls};

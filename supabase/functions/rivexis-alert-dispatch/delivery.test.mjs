@@ -43,3 +43,19 @@ test("email and HTML helpers reject unsafe basics",()=>{
   assert.equal(validEmail("not-an-email"),false);
   assert.equal(escapeHtml(`<script>"x"</script>`),"&lt;script&gt;&quot;x&quot;&lt;/script&gt;");
 });
+
+
+test("alert email links stay on the previously working Worker without a cutover override",()=>{
+  const mail=alertEmail({id:"alert-1",workspace_name:"Risk",severity:"high",status:"open"});
+  assert.match(mail.html,/href="https:\/\/rivexis-web\.rudrasingh0718\.workers\.dev\/workspace\/alerts"/);
+});
+
+test("alert email uses only the exact approved RVEA origin after deployment cutover",()=>{
+  const alert={id:"alert-1",workspace_name:"Risk",severity:"high",status:"open"};
+  const newHost=alertEmail(alert,"https://rivexis.rvea.info");
+  assert.match(newHost.html,/href="https:\/\/rivexis\.rvea\.info\/workspace\/alerts"/);
+  assert.match(newHost.html,/src="https:\/\/rivexis\.rvea\.info\/brand\/rivexis-wordmark-light\.png"/);
+  const untrusted=alertEmail(alert,"https://phishing.example");
+  assert.doesNotMatch(untrusted.html,/phishing\.example/);
+  assert.match(untrusted.html,/rivexis-web\.rudrasingh0718\.workers\.dev\/workspace\/alerts/);
+});

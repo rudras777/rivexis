@@ -20,6 +20,8 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       NEXT_PUBLIC_RIVEXIS_API_URL: same-origin
       NEXT_PUBLIC_RIVEXIS_BUILD_SHA: ${{ github.sha }}
+      # Set this repository variable only after the custom hostname passes DNS/TLS checks.
+      NEXT_PUBLIC_RIVEXIS_PUBLIC_WEB_URL: ${{ vars.RIVEXIS_PUBLIC_WEB_URL || 'https://rivexis-web.rudrasingh0718.workers.dev' }}
     steps:
       - name: Check out certified source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -32,6 +34,9 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+
+      - name: Validate public web origins before building
+        run: node apps/web/scripts/check-deploy-env.mjs
 
       - name: Preflight Cloudflare deployment authority
         shell: bash

@@ -11,6 +11,8 @@ const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY=Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LIVE_ORIGIN="https://rivexis-web.rudrasingh0718.workers.dev";
+const RVEA_ORIGIN="https://rivexis.rvea.info";
+const PUBLIC_ORIGINS=new Set([LIVE_ORIGIN,RVEA_ORIGIN]);
 const COOKIE="rvx_session";
 const admin=createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 
@@ -22,7 +24,7 @@ async function decisionBridge(action:string,userId:string,payload:Json={}):Promi
 
 function cors(req:Request){
   const origin=req.headers.get("origin");
-  const allowed=origin===LIVE_ORIGIN||origin?.startsWith("http://localhost:")||origin?.startsWith("http://127.0.0.1:");
+  const allowed=(origin!==null&&PUBLIC_ORIGINS.has(origin))||origin?.startsWith("http://localhost:")||origin?.startsWith("http://127.0.0.1:");
   return {
     "access-control-allow-origin":allowed?origin!:LIVE_ORIGIN,
     "access-control-allow-credentials":"true",
