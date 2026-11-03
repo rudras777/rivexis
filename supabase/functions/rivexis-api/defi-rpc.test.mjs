@@ -8,7 +8,7 @@ import {gasguard as portfolioGasguard} from './defi-portfolio-rpc.mjs';
 
 const wallet='0x'+'1'.repeat(40),asset='0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 // A synthetic WETH-only account; no live provider or claimed production holdings.
-function rpcFixture({reorgOnNonce=false,reorgOnBalance=false}={}){
+function rpcFixture({reorgOnNonce=false,reorgOnBalance=false,mutateRound=round=>round}={}){
   const block={number:100n,hash:'0x'+'a'.repeat(64),timestamp:BigInt(Math.floor(Date.now()/1000))};
   let changed=false;const reads=[];
   const result=contract=>{
@@ -26,7 +26,7 @@ function rpcFixture({reorgOnNonce=false,reorgOnBalance=false}={}){
       case 'getSourceOfAsset':return '0x5424384b256154046e9667ddfaaa5e550145215e';
       case 'symbol':return 'WETH';
       case 'balanceOf':case 'allowance':return 10n**18n;
-      case 'latestRoundData':return [1n,300000000000n,block.timestamp,block.timestamp,1n];
+      case 'latestRoundData':return mutateRound([1n,300000000000n,block.timestamp,block.timestamp,1n]);
       default:throw new Error('Unexpected fixture contract read');
     }
   };
@@ -44,6 +44,15 @@ function rpcFixture({reorgOnNonce=false,reorgOnBalance=false}={}){
   };
   return {rpc,reads};
 }
+
+for(const [name,mutateRound] of [
+  ['zero start',r=>[r[0],r[1],0n,r[3],r[4]]],
+  ['start after update',r=>[r[0],r[1],r[3]+1n,r[3],r[4]]],
+])test(`Aave snapshot withholds modeling for oracle ${name}`,async()=>{
+  const s=await snapshot(wallet,rpcFixture({mutateRound}).rpc);
+  assert.equal(s.status,'UNSUPPORTED');
+  assert.equal(s.positions[0].reserves[0].oracleState,'UNVALIDATED');
+});
 test('pinned Aave snapshot rejects a reorganization during the balance read',async()=>{
   await assert.rejects(snapshot(wallet,rpcFixture({reorgOnBalance:true}).rpc),/Block changed/);
 });

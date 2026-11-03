@@ -1,8 +1,29 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {WBTC_ORACLE as o,validateWbtcOracle} from './defi-oracles.mjs';
+import {WBTC_ORACLE as o,validateWbtcOracle,validateOracleRound} from './defi-oracles.mjs';
 import {readFileSync} from 'node:fs';import {metrics} from './defi-model.mjs';
 // Independently captured same-block production evidence, block 26155556.
 const fixture=()=>({source:o.source,codeHash:o.codeHash,baseFeed:o.baseFeed,ratioFeed:o.ratioFeed,baseDecimals:8,ratioDecimals:8,decimals:8,denominator:10000000000000000n,blockTimestamp:1791557363n,price:8286613348460n,baseRound:[36893488147419121564n,8298322530501n,1791555441n,1791555455n,36893488147419121564n],ratioRound:[36893488147419104056n,99858897n,1791494505n,1791494519n,36893488147419104056n]});
+
+for(const [name,round,timestamp,maxAge,expected] of [
+  ['valid round',[2n,100n,90n,95n,2n],100n,10,true],
+  ['inclusive age',[2n,100n,90n,90n,2n],100n,10,true],
+  ['stale',[2n,100n,89n,89n,2n],100n,10,false],
+  ['future update',[2n,100n,90n,101n,2n],100n,10,false],
+  ['missing start',[2n,100n,0n,95n,2n],100n,10,false],
+  ['negative start',[2n,100n,-1n,95n,2n],100n,10,false],
+  ['start after update',[2n,100n,96n,95n,2n],100n,10,false],
+  ['zero answer',[2n,0n,90n,95n,2n],100n,10,false],
+  ['negative answer',[2n,-1n,90n,95n,2n],100n,10,false],
+  ['incomplete round',[2n,100n,90n,95n,1n],100n,10,false],
+  ['zero round',[0n,100n,90n,95n,2n],100n,10,false],
+  ['missing round',null,100n,10,false],
+  ['malformed round',[2n,100n,90n,95n],100n,10,false],
+  ['noninteger response',[2n,100n,90,95n,2n],100n,10,false],
+  ['invalid clock',[2n,100n,90n,95n,2n],100,10,false],
+  ['unvalidated heartbeat',[2n,100n,90n,95n,2n],100n,undefined,false],
+])test(`timestamped oracle validation: ${name}`,()=>{
+  assert.equal(validateOracleRound(round,timestamp,maxAge),expected);
+});
 test('WBTC composite reconciles integer price and both component timestamps',()=>{
   assert.equal(validateWbtcOracle(fixture()),true);
   const e=fixture();e.price++;assert.equal(validateWbtcOracle(e),false);

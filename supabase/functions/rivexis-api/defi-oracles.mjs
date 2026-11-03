@@ -9,8 +9,9 @@ export const WBTC_ORACLE = Object.freeze({
   // Explicit beta freshness bounds, not a promise about feed update timing.
   baseMaxAge:4200, ratioMaxAge:90000,
 });
-function fresh(round, timestamp, maxAge){
-  return Array.isArray(round)&&round.length===5&&round.every(v=>typeof v==='bigint')&&
+export function validateOracleRound(round, timestamp, maxAge){
+  return typeof timestamp==='bigint'&&timestamp>0n&&Number.isSafeInteger(maxAge)&&maxAge>0&&
+    Array.isArray(round)&&round.length===5&&round.every(v=>typeof v==='bigint')&&
     round[0]>0n&&round[4]>=round[0]&&round[1]>0n&&round[2]>0n&&round[2]<=round[3]&&
     round[3]>0n&&round[3]<=timestamp&&timestamp-round[3]<=BigInt(maxAge);
 }
@@ -19,7 +20,7 @@ export function validateWbtcOracle(evidence){
   const identity=source?.toLowerCase()===WBTC_ORACLE.source&&codeHash===WBTC_ORACLE.codeHash&&
     baseFeed?.toLowerCase()===WBTC_ORACLE.baseFeed&&ratioFeed?.toLowerCase()===WBTC_ORACLE.ratioFeed;
   const units=baseDecimals===8&&ratioDecimals===8&&decimals===8&&denominator===10n**16n;
-  const timestamps=typeof blockTimestamp==='bigint'&&fresh(baseRound,blockTimestamp,WBTC_ORACLE.baseMaxAge)&&fresh(ratioRound,blockTimestamp,WBTC_ORACLE.ratioMaxAge);
+  const timestamps=validateOracleRound(baseRound,blockTimestamp,WBTC_ORACLE.baseMaxAge)&&validateOracleRound(ratioRound,blockTimestamp,WBTC_ORACLE.ratioMaxAge);
   const formula=Boolean(timestamps&&units&&typeof price==='bigint'&&price>0n&&baseRound[1]*ratioRound[1]*10n**8n/denominator===price);
   return Boolean(identity&&units&&timestamps&&formula);
 }

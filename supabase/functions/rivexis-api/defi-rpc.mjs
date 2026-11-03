@@ -1,7 +1,7 @@
 import {createPublicClient, http, parseAbi, encodeFunctionData, isAddress, getAddress, keccak256} from 'viem';
 import {mainnet} from 'viem/chains';
 import {MODEL, WAD, metrics, integer, decimal, validateSnapshot} from './defi-model.mjs';
-import {WBTC_ORACLE,validateWbtcOracle} from './defi-oracles.mjs';
+import {WBTC_ORACLE,validateWbtcOracle,validateOracleRound} from './defi-oracles.mjs';
 
 export const POOL = '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
 export const ORACLE = '0x54586bE62E3c3580375aE3723C145253060Ca0C2';
@@ -89,7 +89,7 @@ export async function snapshot(wallet, rpc=client(), pinnedBlock=null) {
     const {round,feed,cap,valid,composite,codeHash,components}=oracleEvidence[i],age=FRESHNESS[asset.toLowerCase()];
     const directSource=asset.toLowerCase()==='0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'&&sources[i].toLowerCase()==='0x5424384b256154046e9667ddfaaa5e550145215e'&&round&&round[1]===price;
     const stableSource=STABLE_SOURCES[asset.toLowerCase()]===sources[i].toLowerCase();
-    const fresh=Boolean(composite?valid:(directSource||stableSource)&&valid&&age&&round&&round[0]>0n&&round[4]>=round[0]&&round[1]>0n&&round[3]>0n&&round[3]<=block.timestamp&&block.timestamp-round[3]<=BigInt(age));
+    const fresh=Boolean(composite?valid:(directSource||stableSource)&&valid&&validateOracleRound(round,block.timestamp,age));
     if(!fresh)warnings.push(`${good(details[i*6+3])}: oracle timestamp/heartbeat adapter is unvalidated or stale`);
     if(debtCeiling>0n)warnings.push('Isolation collateral requires a separately validated adapter');
     if(user[1]>0n)warnings.push('Stable debt is unsupported in this model');
