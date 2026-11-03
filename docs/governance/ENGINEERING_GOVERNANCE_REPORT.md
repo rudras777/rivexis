@@ -1,6 +1,6 @@
 # RIVEXIS â€” Engineering Governance & Platform Readiness Report
 
-Checkpoint: 3 November 2026, Asia/Calcutta. **Consolidation is partially complete.** This is an engineering evidence/status record, not a compliance certificate or an acquisition-ready declaration. The live discovery baseline was PR124 / `a5b8753`, Worker version `d4fd53ce-a317-400b-9fb1-b47b1b4a8df6`, API version 39.
+Checkpoint: 3 November 2026, Asia/Calcutta. **Consolidation is partially complete.** This is an engineering evidence/status record, not a compliance certificate or an acquisition-ready declaration. PR125 is released at `1d309aebda7a67dd0b15e4a61d338412188d8af9`, Worker `fe82ed68-bc6f-4357-ab6f-d72e6c802285`, API version 40. The preceding discovery baseline was PR124 / `a5b8753`, Worker `d4fd53ce-a317-400b-9fb1-b47b1b4a8df6`, API 39. A subsequent dependency-security candidate remains separate until its own gates and deployment pass.
 
 ## 1. Executive summary
 
@@ -22,13 +22,14 @@ Develoop is specifically identified as the installed skills-only development bun
 |---|---|---|
 | Native GitHub secret scanning and push protection | Verified | Repository API readback: enabled; no paid Advanced Security purchase |
 | Private vulnerability reporting | Verified | Existing repository endpoint readback enabled |
-| Malformed on-chain quota handling | Implemented, not yet verified in production | Seven red regressions before fix;14/14 focused tests pass afterward; no provider call on ambiguous acknowledgment |
+| Malformed on-chain quota handling | Verified | Seven red regressions before fix; 14/14 focused tests pass; API40's 25 files exactly match the intended bundle; real authenticated contract inspection at block 26335554 |
 | Tracked-source secret scanner | Verified locally | Four regressions: untracked recovery exclusion, safe findings, supported key formats, optimized-Python failure gate; CI hook added |
 | Safe local web preview | Verified on Windows | Landing/login200; account GET/login POST503 from local block; loopback-only process stopped after test |
-| Static landing retained in manual build | Verified locally; release pending | Raw rebuild reproduced artifact loss; corrected controlled build retained the artifact with matching SHA-256 manifest; root Worker dry-run passed |
-| Main-only manual deployment; no duplicate feature push CI | Implemented, not yet verified on GitHub | Workflow changes preserve PR/main checks and protected merge |
-| Retired relay source under version control | Implemented, not yet verified by release | Exact observed410 stub copied; no deployment/settings change |
+| Static landing retained in manual build | Verified | Raw rebuild reproduced artifact loss; corrected build retained matching static manifest; Worker dry-run and actual release passed; public artifact exposes the intended commit in Chrome |
+| Main-only manual deployment; no duplicate feature push CI | Verified | Six required checks preserved; actual non-main run skipped the job with zero steps; main deployment passed |
+| Retired relay source under version control | Verified source preservation | Exact observed 410 stub committed and Deno-checked; historical deployed function unchanged |
 | Canonical docs, founder handbook and standards | Implemented, not yet verified as a full handover | Root entrypoints plus requested durable guide/standards paths |
+| Account-form initialization | Implemented; candidate release pending | Compiled-Worker trace reproduced premature native submission; six delayed-JavaScript cases failed before correction. Controls now wait for form readiness; full release gates remain required |
 
 ## 4. Naming standardization
 
@@ -46,7 +47,9 @@ Inherited Supabase warnings remain: nonrelocatable `pg_net` registration and Fre
 
 ## 7. Deployment verification
 
-The existing frontend is traceable to a real provider build and full SHA. Protected PR123/124 and genuine production acceptance remain dated evidence. The current governance source has **not yet been released**. Local checks passed: 320 financial/adapter tests, 42 API tests, four secret-scanner regressions, web production build/types/lint/AST checks, API type checking, Deno checking of all five functions, controlled Worker build/static manifest and Worker dry-run. The isolated Chromium suite is running; required GitHub checks, actual deployment and affected API source readback are still required. Main-only manual deployment must be independently checked before promotion. See [DEPLOYMENT.md](../../DEPLOYMENT.md).
+PR125 passed all six required checks, plus 343 isolated fixture tests each in Chromium, Firefox and WebKit, with zero skipped, unexpected or flaky outcomes. Firefox used one documented driver-navigation release attempt; this is recorded separately from test retries. Local checks also passed: 320 financial/adapter tests, 42 API tests, four secret-scanner regressions, web build/types/lint/AST checks, API types, Deno checks for all five functions, static manifest and Worker dry-run. Required CI independently passed the retained Python/API audit and real PostgreSQL migration/fixture-restore gates; these do not constitute full Supabase production reconstruction.
+
+Actual main deployment run [41677909822](https://github.com/rudras777/rivexis/actions/runs/41677909822) published Worker `fe82ed68-bc6f-4357-ab6f-d72e6c802285`. Chrome read the exact merged SHA on the custom domain and original-origin public artifact; 37 live custom-domain browser checks passed without submitting real credentials. The plain Python HTTP probe was denied with Cloudflare error 1010 and is retained as a failed verification method, not a product outage or a pass. No protection was disabled. API40 readback matched all 25 intended files, changing only `onchain-http.mjs`; real Aave pool inspection returned code/proxy evidence at block 26335554 without saving an identity or signing. Non-main probe [41677165366](https://github.com/rudras777/rivexis/actions/runs/41677165366) skipped the deployment job with zero steps. See [DEPLOYMENT.md](../../DEPLOYMENT.md).
 
 ## 8. Database and authentication
 
@@ -78,8 +81,9 @@ Current authenticated owner/session, preference save/reload, report persistence 
 | Priority | Finding / impact | Required remediation and acceptance |
 |---|---|---|
 | High | Production database not fully reproducible from repository | Supported confidential schema capture, role/managed-service reconciliation, sanitized baseline and disposable full restore; never reset production to fit source |
-| High | Latent manual build can lose CPU-saving public artifact | Correct wrapper, build/dry-run manifest verification, protected release; do not attribute an actual outage without logs |
-| Medium | Manual workflow previously accepts arbitrary branches | Main-only condition and actual non-main skipped-run evidence; preserve all protected checks |
+| Resolved | Latent manual build could lose CPU-saving public artifact | Correct wrapper, matching manifest, dry-run, protected release and actual public artifact verified; no prior outage inferred |
+| Resolved | Manual workflow previously accepted arbitrary branches | Main-only condition, actual non-main zero-step skipped run and successful main release verified |
+| Medium | Dependency-security follow-up | Initial npm audit had three moderate entries from one Satori SVG-escaping advisory. A compatible stable Vinext/renderer upgrade and patched compression dependency are under validation; production findings are not declared resolved until its release passes |
 | Medium | Native npm SBOM generation fails on intentional security overrides and missing optional-platform graph edges | Preserve patched pins; publish honest lock metadata inventory; independently validate a standard SBOM/license review before transfer |
 | Medium | Python dependencies are ranged, and full cross-platform backend bootstrap is unverified | Reproducible reviewed constraints/environment validation without silently changing current production |
 | Medium | Full account IAM, subscriptions, settings and current complete recovery remain unverified | Finish authenticated provider inventory, separate access transition and fresh full-service recovery drill |
@@ -97,8 +101,8 @@ Scores measure equal-weight **evidence coverage**, not software quality, safety,
 | Code Maintainability | Source map V; focused defect regressions V; complete unused-code review P; all dependency reproducibility P |75|
 | Security | Auth/RLS evidence V; repository protections V; all known risks closed B; independent assurance B |50|
 | Infrastructure Governance | Critical identities V; deployment traceability V; full account inventory P; independent IAM/billing verification B |63|
-| Testing | Deterministic financial coverage V; genuine core acceptance V; current governance full release checks unverified; all-service recovery B |50|
-| Documentation | Canonical index P; founder guide/local workflow V; incident/handover procedures P; provider-transfer detail P |63|
+| Testing | Deterministic financial coverage V; genuine core acceptance V; PR125 release checks V; all-service recovery B |75|
+| Documentation | Canonical index V; founder guide/local workflow V; incident/handover procedures P; provider-transfer detail P |75|
 | Operational Reliability | Actual deployed baseline V; fail-closed provider tests V; full recovery/RPO B; sustained operations B |50|
 | Founder Maintainability | Windows safe preview V; source/task map V; fresh macOS B; full local backend B |50|
 | Organizational Transfer Readiness | Asset boundary V; access procedure P; legal/license clearance B; independent operator recovery B |38|
@@ -107,4 +111,4 @@ V=Verified, P=Partially complete, B=Blocked. Other implemented-but-unverified wo
 
 ## 14. Change register
 
-Baseline: PR123 oracle fix/API39 and PR124 authenticated evidence; existing Worker version stated above. Current branch: `feature/engineering-governance`; commit/PR/release identifiers are pending. Local logs are preserved under task outputs `governance-*`; confidential recovery material is excluded. Safe changes and remaining phases are recorded in [the completion checkpoint](../../RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md). No production mutation is claimed for a local implementation.
+Baseline: PR123 oracle fix/API39 and PR124 authenticated evidence. [PR125](https://github.com/rudras777/rivexis/pull/125) merged to `1d309aebda7a67dd0b15e4a61d338412188d8af9`; required CI run `41674510705`, browser compatibility run `41674510621`, main deployment and skip-only probe are linked above. API40 bundle SHA-256: `d4c768cd2260380b4c5f355a1f4a117614baad6b826a206f92cbb017a17d0238`. The API39 source remains captured outside Git for rollback. A follow-up dependency-security branch is not yet a production claim. Local logs are preserved under task outputs `governance-*`; confidential recovery material is excluded. Safe changes and remaining phases are recorded in [the completion checkpoint](../../RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md).

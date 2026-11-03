@@ -16,7 +16,7 @@ import {removeDeviceHint} from "@/lib/browser-storage.mjs";
 type Form={email:string;password:string};
 
 export default function Login(){
-  const {register,handleSubmit,formState:{isSubmitting}}=useForm<Form>();
+  const {register,handleSubmit,formState:{isSubmitting,isReady}}=useForm<Form>();
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const [showPassword,setShowPassword]=useState(false);
@@ -62,11 +62,11 @@ export default function Login(){
       <h1>Log in</h1>
       <p>Access your Rivexis workspace.</p>
       {notice&&<div className="success" role="status">{notice}</div>}
-      <form className="form" method="post" onSubmit={handleSubmit(submit)}>
-        <label className="field">Email<input type="email" autoComplete="email" required {...register("email")}/></label>
-        <div className="passwordField"><label className="field">Password<input type={showPassword?"text":"password"} autoComplete="current-password" required minLength={8} {...register("password")}/></label><button className="passwordReveal" type="button" aria-label={showPassword?"Hide password":"Show password"} aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword?"Hide":"Show"}</button></div>
+      <form className="form" method="post" aria-busy={!isReady||isSubmitting} onSubmit={handleSubmit(submit)}>
+        <label className="field">Email<input type="email" autoComplete="email" required {...register("email")} disabled={!isReady}/></label>
+        <div className="passwordField"><label className="field">Password<input type={showPassword?"text":"password"} autoComplete="current-password" required minLength={8} {...register("password")} disabled={!isReady}/></label><button className="passwordReveal" type="button" disabled={!isReady} aria-label={showPassword?"Hide password":"Show password"} aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword?"Hide":"Show"}</button></div>
         {error&&<div className="error" role="alert">{error}</div>}
-        <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Logging in…":"Log in"}</button>
+        <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Logging in…":"Log in"}</button>
       </form>
       <p className="authNote"><Link href="/forgot-password">Forgot your password?</Link> <Link href="/verify-email">Verify an existing account</Link>. Need an account? <Link href={authHref("/signup",destination)}>Create one</Link>.</p>
   </AuthFrame>;

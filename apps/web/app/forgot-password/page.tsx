@@ -9,7 +9,7 @@ import {api} from "@/lib/api";
 type Form={email:string};
 
 export default function ForgotPassword(){
-  const {register,handleSubmit,formState:{isSubmitting}}=useForm<Form>();
+  const {register,handleSubmit,formState:{isSubmitting,isReady}}=useForm<Form>();
   const [error,setError]=useState("");
   const [accepted,setAccepted]=useState(false);
 
@@ -29,10 +29,10 @@ export default function ForgotPassword(){
   return <AuthFrame mode="recovery">
       <h1>Reset password</h1>
       <p>Request a one-time recovery link. The response is identical whether or not the address is registered.</p>
-      {accepted?<div className="success" role="status">Recovery request received. If an eligible account exists, check your inbox for a reset link. Delivery may take a few minutes; check your spam folder too.</div>:<form className="form" method="post" onSubmit={handleSubmit(submit)}>
-        <label className="field">Email<input type="email" autoComplete="email" required {...register("email")}/></label>
+      {accepted?<div className="success" role="status">Recovery request received. If an eligible account exists, check your inbox for a reset link. Delivery may take a few minutes; check your spam folder too.</div>:<form className="form" method="post" aria-busy={!isReady||isSubmitting} onSubmit={handleSubmit(submit)}>
+        <label className="field">Email<input type="email" autoComplete="email" required {...register("email")} disabled={!isReady}/></label>
         {error&&<div className="error" role="alert">{error}</div>}
-        <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Requesting…":"Send reset link"}</button>
+        <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Requesting…":"Send reset link"}</button>
       </form>}
       <p className="authNote"><Link href="/login">Return to login</Link>.</p>
   </AuthFrame>;

@@ -48,7 +48,7 @@ if (typeof ts.createSourceFile === "function") {
   }
 } else {
   const packageRoot = path.dirname(require.resolve("typescript/package.json"));
-  const result = spawnSync(process.execPath,[path.join(packageRoot,"bin","tsc"),"--noEmit","-p",path.join(root,"tsconfig.json")],{encoding:"utf8"});
+  const result = spawnSync(process.execPath,[path.join(packageRoot,"bin","tsc"),"--noEmit","--incremental","false","-p",path.join(root,"tsconfig.json")],{encoding:"utf8"});
   if (result.status !== 0) errors.push((result.stdout || result.stderr || "TypeScript syntax check failed.").trim());
 }
 

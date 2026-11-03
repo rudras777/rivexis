@@ -12,7 +12,7 @@ Verified inventory checkpoint: 3 November 2026. No resource was renamed, deleted
 | Original Worker URL | Recovery/compatibility application origin | Same Worker | Retain existing auth/session boundary; never copy cookies between origins |
 | GitHub Pages `main:/` | Historical redirect | Repository owner | Root HTML redirects to original Worker; not a second backend. Retain until redirect cleanup is reviewed |
 | Supabase `ivszvufdonfgwjpfgwii` | One visible Rivexis project / production | Organization `ygqzbykzuaegubxxgiey`, Rivexis | Free plan, ap-south-1, ACTIVE_HEALTHY, PostgreSQL 17.11.0.003; organization IAM ownership transition not certified |
-| `rivexis-api` | Core API / production | Existing Supabase project | Version 39 at discovery; application auth remains enforced with gateway verify_jwt=false |
+| `rivexis-api` | Core API / production | Existing Supabase project | Version 40 released/read back after PR125; version 39 retained for rollback. Application auth remains enforced with gateway verify_jwt=false |
 | `rivexis-decision-reports` | Retained historical decision/report API | Same project | Version 6; preserve owner/tenant controls |
 | `rivexis-alerts` | Retained alert management | Same project | Version 7; does not imply continuous DeFi risk monitoring |
 | `rivexis-alert-dispatch` | Existing legacy dispatch integration | Same project | Version 5; integration/credential dependencies must be reviewed before retirement |

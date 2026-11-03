@@ -15,6 +15,8 @@ Open `http://localhost:3000` (or your selected port). The server binds to loopba
 
 For another port: `npm run dev:web -- --port 3016`. Stop the process with Ctrl+C. Do not copy a production `.env`, customer database, session cookie or service-role key into this preview.
 
+For retained Python/backend checks, use an isolated environment with Python 3.13, matching CI. On Windows, create it with `py -3.13 -m venv .venv` and activate `.venv\Scripts\Activate.ps1`; on macOS/Linux use `python3.13 -m venv .venv` and `source .venv/bin/activate`. Then run `python -m pip install -e "./apps/api[dev,full]"`, `python scripts/check_migrations.py` and `npm run test:api`. These commands install ranged Python dependencies and validate the retained backend; they do not reconstruct the current Supabase project or migrate production. The default Python 3.11 on the audited Windows host lacked Alembic/SQLAlchemy; the dependency-installed Python 3.13 CI migration/API checks passed. Fresh macOS installation remains unverified.
+
 ## Find the right file
 
 | Change | Start here |
@@ -62,6 +64,8 @@ npm run build
 ```
 
 The browser suite starts its isolated local server with external upstream blocked. Fixture data must remain labeled hypothetical. The Worker build generates the static landing artifact/manifest; do not replace it with a raw framework rebuild before deployment. Firefox/WebKit compatibility uses the existing `test:compatibility` workspace command and pinned Playwright browsers. Linux browser system packages may require the supported Playwright installation step used in CI.
+
+`npm run typecheck:web` regenerates Next route declarations and runs a fresh compiler check, avoiding stale incremental diagnostics after dependency/compiler changes. Keep custom framework declarations in `apps/web/types/vinext.d.ts`; `next-env.d.ts` and `.next` are generated outputs. Do not hand-edit or commit them to repair a stale cache. Dependency-security scope and the unused Node image-rendering limitation are recorded in [the dependency follow-up](../governance/DEPENDENCY_SECURITY_20261103.md).
 
 ## Database and email administration
 

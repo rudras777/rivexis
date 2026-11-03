@@ -17,6 +17,8 @@ type CodeForm={token:string};
 export default function VerifyEmail(){
   const emailForm=useForm<EmailForm>();
   const codeForm=useForm<CodeForm>();
+  const {isReady:emailReady,isSubmitting:emailSubmitting}=emailForm.formState;
+  const {isReady:codeReady,isSubmitting:codeSubmitting}=codeForm.formState;
   const [notice,setNotice]=useState("");
   const [error,setError]=useState("");
   const [destination,setDestination]=useState("/workspace");
@@ -65,14 +67,14 @@ export default function VerifyEmail(){
       <p>Open the confirmation link in your Rivexis email, then return to log in. Check your spam folder too. Never share a verification link or code.</p>
       <p className="authNote"><Link href={authHref("/login",destination)}>Continue to login</Link>.</p>
       {notice&&<div className="success" role="status">{notice}</div>}
-      <form className="form" method="post" onSubmit={codeForm.handleSubmit(confirm)}>
-        <label className="field">Verification code<input type="text" autoComplete="one-time-code" required aria-describedby="verification-code-help" {...codeForm.register("token")}/></label>
+      <form className="form" method="post" aria-busy={!codeReady||!emailReady||codeSubmitting} onSubmit={codeForm.handleSubmit(confirm)}>
+        <label className="field">Verification code<input type="text" autoComplete="one-time-code" required aria-describedby="verification-code-help" {...codeForm.register("token")} disabled={!codeReady||!emailReady}/></label>
         <p id="verification-code-help" className="authNote">Use this only if your email includes a code. A confirmation link works without entering a code here.</p>
-        <button className="button" type="submit" disabled={codeForm.formState.isSubmitting}>{codeForm.formState.isSubmitting?"Verifying…":"Verify account"}</button>
+        <button className="button" type="submit" disabled={!codeReady||!emailReady||codeSubmitting}>{codeSubmitting?"Verifying…":"Verify account"}</button>
       </form>
-      <form className="form secondaryForm" method="post" onSubmit={emailForm.handleSubmit(resend)}>
-        <label className="field">Email<input type="email" autoComplete="email" required {...emailForm.register("email")}/></label>
-        <button className="ghost" type="submit" disabled={emailForm.formState.isSubmitting}>{emailForm.formState.isSubmitting?"Sending…":"Send verification email"}</button>
+      <form className="form secondaryForm" method="post" aria-busy={!emailReady||emailSubmitting} onSubmit={emailForm.handleSubmit(resend)}>
+        <label className="field">Email<input type="email" autoComplete="email" required {...emailForm.register("email")} disabled={!emailReady}/></label>
+        <button className="ghost" type="submit" disabled={!emailReady||emailSubmitting}>{emailSubmitting?"Sending…":"Send verification email"}</button>
       </form>
       {error&&<div className="error authFlowError" role="alert">{error}</div>}
       <p className="authNote"><Link href="/login">Return to login</Link>.</p>
