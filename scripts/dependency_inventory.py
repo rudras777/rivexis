@@ -12,7 +12,7 @@ for location, package in sorted(lock["packages"].items()):
     components.append({"location": location, "name": name, "version": package.get("version"), "licenseMetadata": package.get("license", "UNSPECIFIED"), "development": package.get("dev", False), "optional": package.get("optional", False)})
 print(json.dumps({
     "source": "package-lock.json", "lockfileVersion": lock["lockfileVersion"],
-    "scope": "Declared npm lock metadata, including optional platform packages; not an installed-tree or validated SPDX SBOM", 
+    "scope": "Declared npm lock metadata, including optional platform packages; not an installed-tree or validated SPDX SBOM",
     "limitations": ["License labels are upstream package metadata, not a legal review", "Native npm SBOM generation currently rejects override/optional-platform graph inconsistencies", "Python ranged dependencies and Deno lock require separate inventory", "No project license or IP assignment is inferred"],
     "componentCount": len(components), "components": components,
 }, indent=2))
