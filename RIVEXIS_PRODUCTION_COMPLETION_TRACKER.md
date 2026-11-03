@@ -1,5 +1,7 @@
 # RIVEXIS production completion checkpoint
 
+**3 November oracle validation:** [Regression fix and release checkpoint](docs/ORACLE_ROUND_VALIDATION_20261103.md). Direct/capped feeds now reject invalid round starts consistently with WBTC. 313 DeFi and 42 API tests, API TypeScript and four-function Deno checks pass. Fresh supported four-asset Aave reference snapshot reconciles at block26333520. Production API v38 preserved; protected review/CI and API deployment/readback remain pending. No UI, database or plan changes.
+
 Updated 25 October 2026, Asia/Calcutta. Current resumable record. Preserve dated evidence and protected recovery material; do not repeat completed release work.
 
 **28 October landing CPU remedy:** PR117 now also addresses observed47 CPU-limit errors on existing63992662, independently traced toGET / at10ms. The existing compiled landing is generated anonymously at build time and served by the same Worker from static assets for ordinary landingGET/HEAD. API/account/auth/Flight/writes remain on the framework; existing security headers are shared. No design/model/backend/schema/dependency-version/paid-plan change. Local build,23 unit cases and actual Worker document/HEAD/Flight checks pass; final browser/CI/deployment/CPU checks remain required. [Scope and acceptance](docs/PUBLIC_DOCUMENT_CPU_20261028.md). Preserve all baseline errors and release evidence; do not claim production remediation from local results.
