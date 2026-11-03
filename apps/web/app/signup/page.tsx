@@ -17,7 +17,7 @@ type Form={email:string;password:string;role:string};
 type SignupResponse={csrf_token?:string;verification_required?:boolean;email_status?:string};
 
 export default function Signup(){
-  const {register,handleSubmit,formState:{isSubmitting}}=useForm<Form>({defaultValues:{role:"Individual"}});
+  const {register,handleSubmit,formState:{isSubmitting,isReady}}=useForm<Form>({defaultValues:{role:"Individual"}});
   const [error,setError]=useState("");
   const [showPassword,setShowPassword]=useState(false);
   const router=useRouter();
@@ -54,12 +54,12 @@ export default function Signup(){
   return <AuthFrame mode="signup">
       <h1>Create an account</h1>
       <p>Save your risk comparisons and retain your decision evidence.</p>
-      <form className="form" method="post" onSubmit={handleSubmit(submit)}>
-        <label className="field">Email<input type="email" autoComplete="email" required {...register("email")}/></label>
-        <div className="passwordField"><label className="field">Password<input type={showPassword?"text":"password"} autoComplete="new-password" required minLength={8} {...register("password")}/></label><button className="passwordReveal" type="button" aria-label={showPassword?"Hide password":"Show password"} aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword?"Hide":"Show"}</button></div>
+      <form className="form" method="post" aria-busy={!isReady||isSubmitting} onSubmit={handleSubmit(submit)}>
+        <label className="field">Email<input type="email" autoComplete="email" required {...register("email")} disabled={!isReady}/></label>
+        <div className="passwordField"><label className="field">Password<input type={showPassword?"text":"password"} autoComplete="new-password" required minLength={8} {...register("password")} disabled={!isReady}/></label><button className="passwordReveal" type="button" disabled={!isReady} aria-label={showPassword?"Hide password":"Show password"} aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword?"Hide":"Show"}</button></div>
         <input type="hidden" value="Individual" {...register("role")}/>
         {error&&<div className="error" role="alert">{error}</div>}
-        <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Creating account…":"Continue"}</button>
+        <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Creating account…":"Continue"}</button>
       </form>
       <p className="authNote">We verify new accounts before workspace access. Already registered? <Link href={authHref("/login",destination)}>Log in</Link>.</p>
   </AuthFrame>;

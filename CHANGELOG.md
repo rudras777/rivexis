@@ -8,6 +8,7 @@ Dates identify evidence; provider counters and commit hashes are technical histo
 - Native GitHub secret scanning, push protection and private vulnerability reporting enabled and read back on 3 November 2026.
 - Released malformed on-chain quota handling, tracked-source scanning, isolated preview, retained landing build and main-only deployment. Actual API40 source readback/contract inspection and the PR125 frontend release passed.
 - Follow-up under validation: compatible stable Vinext/rendering dependency pins, patched compression dependency and deterministic generated-type checks. The candidate's locked install/audit found zero known npm vulnerabilities; production promotion remains gated.
+- Compiled-Worker acceptance reproduced pre-initialization account submissions; login/signup/recovery/verification controls now wait for form readiness, with six delayed-JavaScript regressions and an accurate no-JavaScript disclosure. Candidate release verification remains required.
 - Production migration reconstruction, complete provider inventory and license/SBOM constraints remain explicit work.
 
 ## 3 November 2026

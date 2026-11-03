@@ -9,7 +9,7 @@ import {api} from "@/lib/api";
 type Form={token:string;email:string;password:string;confirmPassword:string};
 
 export default function ResetPassword(){
-  const {register,handleSubmit,setValue,setError:flagError,formState:{errors,isSubmitting}}=useForm<Form>();
+  const {register,handleSubmit,setValue,setError:flagError,formState:{errors,isSubmitting,isReady}}=useForm<Form>();
   const [error,setError]=useState("");
   const [complete,setComplete]=useState(false);
   const [sessionsRevoked,setSessionsRevoked]=useState(false);
@@ -63,14 +63,14 @@ export default function ResetPassword(){
   return <AuthFrame mode="recovery">
       <h1>Choose a new password</h1>
       <p>Recovery ends refresh sessions. Existing access tokens may remain valid until expiry.</p>
-      {complete?<div className="success" role="status">Password updated. {sessionsRevoked?"Refresh sessions ended. Existing access tokens may remain valid until expiry.":"Session revocation could not be confirmed. After logging in, use Settings → Sessions to end other refresh sessions."} <Link href="/login">Log in with your new password</Link>.</div>:<form className="form" method="post" onSubmit={handleSubmit(submit)}>
-        {!hasRecoverySession&&<label className="field">Recovery token<input type="text" autoComplete="one-time-code" required {...register("token")}/></label>}
-        {!hasRecoverySession&&<label className="field">Email<input type="email" autoComplete="email" {...register("email")}/></label>}
-        <label className="field">New password<input type="password" autoComplete="new-password" required minLength={8} {...register("password")}/></label>
-        <label className="field">Confirm new password<input type="password" autoComplete="new-password" required minLength={8} {...register("confirmPassword")}/></label>
+      {complete?<div className="success" role="status">Password updated. {sessionsRevoked?"Refresh sessions ended. Existing access tokens may remain valid until expiry.":"Session revocation could not be confirmed. After logging in, use Settings → Sessions to end other refresh sessions."} <Link href="/login">Log in with your new password</Link>.</div>:<form className="form" method="post" aria-busy={!isReady||isSubmitting} onSubmit={handleSubmit(submit)}>
+        {!hasRecoverySession&&<label className="field">Recovery token<input type="text" autoComplete="one-time-code" required {...register("token")} disabled={!isReady}/></label>}
+        {!hasRecoverySession&&<label className="field">Email<input type="email" autoComplete="email" {...register("email")} disabled={!isReady}/></label>}
+        <label className="field">New password<input type="password" autoComplete="new-password" required minLength={8} {...register("password")} disabled={!isReady}/></label>
+        <label className="field">Confirm new password<input type="password" autoComplete="new-password" required minLength={8} {...register("confirmPassword")} disabled={!isReady}/></label>
         {errors.confirmPassword?.message&&<div className="error" role="alert">{errors.confirmPassword.message}</div>}
         {error&&<div className="error" role="alert">{error}</div>}
-        <button className="button" type="submit" disabled={isSubmitting}>{isSubmitting?"Updating…":"Update password"}</button>
+        <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Updating…":"Update password"}</button>
       </form>}
       <p className="authNote"><Link href="/forgot-password">Request a new recovery link</Link>.</p>
   </AuthFrame>;

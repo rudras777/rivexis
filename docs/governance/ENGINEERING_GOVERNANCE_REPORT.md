@@ -29,6 +29,7 @@ Develoop is specifically identified as the installed skills-only development bun
 | Main-only manual deployment; no duplicate feature push CI | Verified | Six required checks preserved; actual non-main run skipped the job with zero steps; main deployment passed |
 | Retired relay source under version control | Verified source preservation | Exact observed 410 stub committed and Deno-checked; historical deployed function unchanged |
 | Canonical docs, founder handbook and standards | Implemented, not yet verified as a full handover | Root entrypoints plus requested durable guide/standards paths |
+| Account-form initialization | Implemented; candidate release pending | Compiled-Worker trace reproduced premature native submission; six delayed-JavaScript cases failed before correction. Controls now wait for form readiness; full release gates remain required |
 
 ## 4. Naming standardization
 
