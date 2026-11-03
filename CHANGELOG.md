@@ -2,13 +2,13 @@
 
 Dates identify evidence; provider counters and commit hashes are technical history, not product branding.
 
-## Governance consolidation — PR125 released; dependency follow-up in progress
+## Governance consolidation — PR125 and PR126 released
 
 - Canonical engineering documentation, founder workflow and durable standards.
 - Native GitHub secret scanning, push protection and private vulnerability reporting enabled and read back on 3 November 2026.
 - Released malformed on-chain quota handling, tracked-source scanning, isolated preview, retained landing build and main-only deployment. Actual API40 source readback/contract inspection and the PR125 frontend release passed.
-- Follow-up under validation: compatible stable Vinext/rendering dependency pins, patched compression dependency and deterministic generated-type checks. The candidate's locked install/audit found zero known npm vulnerabilities; production promotion remains gated.
-- Compiled-Worker acceptance reproduced pre-initialization account submissions; login/signup/recovery/verification controls now wait for form readiness, with six delayed-JavaScript regressions and an accurate no-JavaScript disclosure. Candidate release verification remains required.
+- PR126 released compatible stable rendering dependencies, patched compression and deterministic type checks; locked install/full npm audit found zero known findings. Existing design and financial models were preserved.
+- Fixed pre-initialization account submissions with six delayed-JavaScript regressions and an accurate no-JavaScript disclosure. All six required checks, 349 fixtures per browser, 98 compiled-Worker cases and 74 live public checks passed. [Acceptance](docs/governance/RELEASE_ACCEPTANCE_20261103.md).
 - Production migration reconstruction, complete provider inventory and license/SBOM constraints remain explicit work.
 
 ## 3 November 2026

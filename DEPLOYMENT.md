@@ -8,7 +8,7 @@ Use current `main`, a reviewed short branch and the existing protected pull requ
 
 `npm run build` creates the Worker locally. The controlled `build:vinext` wrapper also generates the anonymous static landing document and its manifest. A subsequent raw `vinext build` removes that artifact; the manual deployment command now calls the controlled wrapper instead. Keep root, application and generated Wrangler files in their documented roles; do not delete them as duplicate services.
 
-The existing `deploy-web` GitHub workflow is the main-only manual recovery/release path. Inspect the intended SHA and successful checks first. PR125 was released through run `41677909822`, Worker version `fe82ed68-bc6f-4357-ab6f-d72e6c802285`; non-main probe run `41677165366` skipped the deployment job with zero steps:
+The existing `deploy-web` GitHub workflow is the main-only manual recovery/release path. Inspect the intended SHA and successful checks first. PR126 was released through run `41691268003`, Worker version `02442078-81d5-45f5-a4c7-5f3d5f936c42`; non-main probe run `41677165366` skipped the deployment job with zero steps. Documentation-only acceptance records do not require another application deployment:
 
 ```sh
 gh pr checks <pull-request-number>
@@ -36,7 +36,7 @@ Database changes follow [the migration procedure](DATABASE.md); there is no veri
 ## Incident rollback checklist
 
 1. Stop further deployment/retries; distinguish frontend, Edge, origin/Auth, database and provider failure.
-2. Select the last accepted compatible version of the affected layer only. Frontend version `fe82ed68-bc6f-4357-ab6f-d72e6c802285` and API version 40 are the accepted PR125 release. The preceding discovery baseline was frontend `d4fd53ce-a317-400b-9fb1-b47b1b4a8df6` / API 39. Recheck the latest accepted release before rollback.
+2. Select the last accepted compatible version of the affected layer only. Current frontend is `02442078-81d5-45f5-a4c7-5f3d5f936c42` / API40 (PR126); preceding accepted frontend is `fe82ed68-bc6f-4357-ab6f-d72e6c802285` / API40 (PR125). Discovery baseline was `d4fd53ce-a317-400b-9fb1-b47b1b4a8df6` / API39. Recheck the latest accepted release before rollback.
 3. Use the existing provider's version rollback or securely captured reviewed Edge sources/settings. Do not restore customer data for an application routing error.
 4. Preserve Wix nameservers, root/WWW routing, gateway binding, custom hostname and existing users. DNS or credential changes require separate impact review/approval.
 5. Verify the exact restored identity, authentication and affected workflows; record unresolved outcomes. Never retry a possibly committed write without checking its record.

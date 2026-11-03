@@ -18,4 +18,4 @@ Production migration history is not fully reconstructible from the tracked Supab
 
 Full wallet consent/denial/account-switch lifecycle, sustained load/operating assurance, independent recovery-key custody and current sender-domain/inbox assurance remain separate acceptance items. No institutional, regulatory or third-party audit certification is asserted.
 
-The [dependency-security follow-up](docs/governance/DEPENDENCY_SECURITY_20261103.md) records the SVG/compression dependency candidate, actual registry-audit scope and the unsupported direct Node ESM image-rendering path. A zero-finding registry scan is not a blanket security certification or authorization to expose a new rendering endpoint.
+The released [dependency-security follow-up](docs/governance/DEPENDENCY_SECURITY_20261103.md) records the patched SVG/compression graph, actual registry-audit scope and the unsupported direct Node ESM image-rendering path. [Production acceptance](docs/governance/RELEASE_ACCEPTANCE_20261103.md) includes startup-safe account forms. A zero-finding registry scan is not a blanket security certification or authorization to expose a new rendering endpoint.

@@ -1,6 +1,6 @@
 # RIVEXIS â€” Engineering Governance & Platform Readiness Report
 
-Checkpoint: 3 November 2026, Asia/Calcutta. **Consolidation is partially complete.** This is an engineering evidence/status record, not a compliance certificate or an acquisition-ready declaration. PR125 is released at `1d309aebda7a67dd0b15e4a61d338412188d8af9`, Worker `fe82ed68-bc6f-4357-ab6f-d72e6c802285`, API version 40. The preceding discovery baseline was PR124 / `a5b8753`, Worker `d4fd53ce-a317-400b-9fb1-b47b1b4a8df6`, API 39. A subsequent dependency-security candidate remains separate until its own gates and deployment pass.
+Checkpoint: 4 November 2026, Asia/Calcutta; product release evidence is dated 3 November. **Consolidation is partially complete; the supported bounded beta release is verified.** This is an evidence/status record, not a compliance certificate or acquisition-ready declaration. Latest application: PR126 / `e4a23c1e528ff053ba10f443d9ffe34f7461fc64`, Worker `02442078-81d5-45f5-a4c7-5f3d5f936c42`, unchanged API40. Prior compatible release was PR125 / `1d309ae`, Worker `fe82ed68-bc6f-4357-ab6f-d72e6c802285` / API40; discovery baseline was PR124 / `a5b8753`, Worker `d4fd53ce-a317-400b-9fb1-b47b1b4a8df6` / API39. [Latest acceptance](RELEASE_ACCEPTANCE_20261103.md).
 
 ## 1. Executive summary
 
@@ -12,7 +12,7 @@ Current work preserves the design, mathematical models, identities, customer rec
 
 [INFRASTRUCTURE.md](../../INFRASTRUCTURE.md) is the current inventory/dependency map. Authenticated discovery confirmed the public `rudras777/rivexis` repository and sole listed admin collaborator, one visible Rivexis Supabase project/Free organization, the existing Worker and one Pages gateway. The fifth Edge deployment is a retired fixed 410 recovery stub, not an active recovery service. The GitHub Pages site is a redirect, not a duplicate financial backend.
 
-Cloudflare account-wide dashboard-only inventory remains pending sign-in; CLI account/deployment/Pages metadata is verified. Brevo browser access is verified after owner-confirmed Google sign-in despite connector errors. Current sender is verified freemail, no domain is configured, two transactional templates are active, and the dashboard shows the existing 300/day allowance. Delivery logs show confirmation/recovery Delivered events from 29 October; no new message was sent in this audit.
+Cloudflare account-wide dashboard-only inventory remains pending sign-in; CLI account/deployment/Pages metadata is verified. Supabase console access was restored on 4 November after specific sign-in approval: one listed Owner, Free plan/spend cap, Auth URL/providers/session/SMTP configuration and absent managed backups were inspected. [Separate dated console audit](SUPABASE_CONSOLE_AUDIT_20261104.md). Brevo browser access is verified after owner-confirmed Google sign-in despite connector errors. Current sender is verified freemail, no domain is configured, two transactional templates are active, and the dashboard shows the existing 300/day allowance. Delivery logs show confirmation/recovery Delivered events from 29 October; no new message was sent in this audit.
 
 Develoop is specifically identified as the installed skills-only development bundle 0.1.3, publisher Changkyun Kim, repository `comfuture/agent-skills`. It supplies optional issue/PR/review/refactoring guidance. No Rivexis runtime import or deployment ownership was found; the project remains maintainable without it. Its own license does not assign a license to Rivexis.
 
@@ -29,7 +29,7 @@ Develoop is specifically identified as the installed skills-only development bun
 | Main-only manual deployment; no duplicate feature push CI | Verified | Six required checks preserved; actual non-main run skipped the job with zero steps; main deployment passed |
 | Retired relay source under version control | Verified source preservation | Exact observed 410 stub committed and Deno-checked; historical deployed function unchanged |
 | Canonical docs, founder handbook and standards | Implemented, not yet verified as a full handover | Root entrypoints plus requested durable guide/standards paths |
-| Account-form initialization | Implemented; candidate release pending | Compiled-Worker trace reproduced premature native submission; six delayed-JavaScript cases failed before correction. Controls now wait for form readiness; full release gates remain required |
+| Account-form initialization | Verified within release scope | Six delayed-JavaScript regressions failed before correction; all 98 compiled-Worker cases and 349 fixtures per browser passed afterward. Actual deployment and 74 live public checks passed |
 
 ## 4. Naming standardization
 
@@ -46,6 +46,10 @@ Fresh catalog evidence: 61 public tables, zero without RLS, zero client-callable
 Inherited Supabase warnings remain: nonrelocatable `pg_net` registration and Free-plan leaked-password protection. The [security policy](../../SECURITY.md) gives reporting and limitations. No active credential exposure is inferred from a historical sensitive-statement pattern. No credential value, user row, recovery key or migration SQL containing potential credentials is published.
 
 ## 7. Deployment verification
+
+Latest PR126 reviewed source `967576a` passed all six required checks and 349 fixtures each in Chromium, Firefox and WebKit, zero skipped, unexpected or flaky outcomes; Firefox recorded zero navigation-release attempts. An additional 98 fixtures against the actual compiled Worker passed with retries disabled. Deployment [41691268003](https://github.com/rudras777/rivexis/actions/runs/41691268003) published the existing Worker version `02442078-81d5-45f5-a4c7-5f3d5f936c42`. The reviewed and merged source trees match. Each real production hostname passed 37 live guest checks against the intended full SHA, and the existing authenticated owner session performed a real Aave contract inspection at block 26336010. API40's accepted 25-file bundle remained unchanged. [Structured evidence and limits](RELEASE_ACCEPTANCE_20261103.md).
+
+The following PR125 observations remain dated baseline evidence:
 
 PR125 passed all six required checks, plus 343 isolated fixture tests each in Chromium, Firefox and WebKit, with zero skipped, unexpected or flaky outcomes. Firefox used one documented driver-navigation release attempt; this is recorded separately from test retries. Local checks also passed: 320 financial/adapter tests, 42 API tests, four secret-scanner regressions, web build/types/lint/AST checks, API types, Deno checks for all five functions, static manifest and Worker dry-run. Required CI independently passed the retained Python/API audit and real PostgreSQL migration/fixture-restore gates; these do not constitute full Supabase production reconstruction.
 
@@ -83,7 +87,7 @@ Current authenticated owner/session, preference save/reload, report persistence 
 | High | Production database not fully reproducible from repository | Supported confidential schema capture, role/managed-service reconciliation, sanitized baseline and disposable full restore; never reset production to fit source |
 | Resolved | Latent manual build could lose CPU-saving public artifact | Correct wrapper, matching manifest, dry-run, protected release and actual public artifact verified; no prior outage inferred |
 | Resolved | Manual workflow previously accepted arbitrary branches | Main-only condition, actual non-main zero-step skipped run and successful main release verified |
-| Medium | Dependency-security follow-up | Initial npm audit had three moderate entries from one Satori SVG-escaping advisory. A compatible stable Vinext/renderer upgrade and patched compression dependency are under validation; production findings are not declared resolved until its release passes |
+| Resolved within registry scope | SVG/compression dependency advisories and premature account submissions | PR126 patched the graph, passed full npm audit with zero known findings, repaired initialization and passed actual release gates. Unused direct Node ESM image rendering remains unsupported; no all-service certification is inferred |
 | Medium | Native npm SBOM generation fails on intentional security overrides and missing optional-platform graph edges | Preserve patched pins; publish honest lock metadata inventory; independently validate a standard SBOM/license review before transfer |
 | Medium | Python dependencies are ranged, and full cross-platform backend bootstrap is unverified | Reproducible reviewed constraints/environment validation without silently changing current production |
 | Medium | Full account IAM, subscriptions, settings and current complete recovery remain unverified | Finish authenticated provider inventory, separate access transition and fresh full-service recovery drill |
@@ -101,7 +105,7 @@ Scores measure equal-weight **evidence coverage**, not software quality, safety,
 | Code Maintainability | Source map V; focused defect regressions V; complete unused-code review P; all dependency reproducibility P |75|
 | Security | Auth/RLS evidence V; repository protections V; all known risks closed B; independent assurance B |50|
 | Infrastructure Governance | Critical identities V; deployment traceability V; full account inventory P; independent IAM/billing verification B |63|
-| Testing | Deterministic financial coverage V; genuine core acceptance V; PR125 release checks V; all-service recovery B |75|
+| Testing | Deterministic financial coverage V; genuine core acceptance V; PR125/126 release checks V; all-service recovery B |75|
 | Documentation | Canonical index V; founder guide/local workflow V; incident/handover procedures P; provider-transfer detail P |75|
 | Operational Reliability | Actual deployed baseline V; fail-closed provider tests V; full recovery/RPO B; sustained operations B |50|
 | Founder Maintainability | Windows safe preview V; source/task map V; fresh macOS B; full local backend B |50|
@@ -111,4 +115,4 @@ V=Verified, P=Partially complete, B=Blocked. Other implemented-but-unverified wo
 
 ## 14. Change register
 
-Baseline: PR123 oracle fix/API39 and PR124 authenticated evidence. [PR125](https://github.com/rudras777/rivexis/pull/125) merged to `1d309aebda7a67dd0b15e4a61d338412188d8af9`; required CI run `41674510705`, browser compatibility run `41674510621`, main deployment and skip-only probe are linked above. API40 bundle SHA-256: `d4c768cd2260380b4c5f355a1f4a117614baad6b826a206f92cbb017a17d0238`. The API39 source remains captured outside Git for rollback. A follow-up dependency-security branch is not yet a production claim. Local logs are preserved under task outputs `governance-*`; confidential recovery material is excluded. Safe changes and remaining phases are recorded in [the completion checkpoint](../../RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md).
+Baseline: PR123 oracle fix/API39 and PR124 authenticated evidence. [PR125](https://github.com/rudras777/rivexis/pull/125) merged to `1d309ae`; CI `41674510705`, compatibility `41674510621`, main deployment and skip-only probe are linked above. [PR126](https://github.com/rudras777/rivexis/pull/126) merged to `e4a23c1e528ff053ba10f443d9ffe34f7461fc64`; current CI `41689064869`, compatibility `41689064647`, Worker validation `41689064711` and deployment `41691268003` passed. API40 bundle SHA-256 remains `d4c768cd2260380b4c5f355a1f4a117614baad6b826a206f92cbb017a17d0238`; API39 rollback source is captured outside Git. Local logs/screenshots remain under exact task-output `governance-*` names; confidential recovery material is excluded. The documentation-only acceptance update requires no second application deployment. Remaining work is recorded in [the checkpoint](../../RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md).
