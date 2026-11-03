@@ -15,6 +15,16 @@ test('on-chain malformed input and client-selected RPC or actor fields fail befo
 test('inspection quota exhaustion and outages cannot reach RPC',async()=>{
  for(const [result,status] of [[{data:false},429],[{error:{}},503]])assert.equal((await run({chainId:1,address},'contract',{getChainId:()=>assert.fail('no RPC')},{rpc:async()=>result})).status,status);
 });
+
+for(const [name,result] of [
+ ['null response',null],['missing response',undefined],['missing acknowledgment',{}],
+ ['null acknowledgment',{data:null}],['string acknowledgment',{data:'true'}],
+ ['numeric acknowledgment',{data:1}],['array response',[]],
+])test(`inspection quota ${name} is unavailable without calling the provider`,async()=>{
+ let calls=0;
+ const response=await handleOnChain(request({chainId:1}),'/api/v1/on-chain/network',{rpc:async()=>result},'https://rpc.invalid',()=>{calls++;throw Error('provider must remain unused')});
+ assert.equal(response.status,503);assert.match((await response.json()).detail,/Quota service unavailable/);assert.equal(calls,0);
+});
 test('contract evidence is pinned and source/ABI verification is not invented',async()=>{
  const seen=[];const provider=rpc({getCode:async args=>{seen.push(args);return '0x60006000'},readContract:async args=>{seen.push(args);return args.functionName==='name'?'Token':18n},getStorageAt:async args=>{seen.push(args);return '0x'+'0'.repeat(64)}});
  const response=await run({chainId:1,address},'contract',provider),body=await response.json();assert.equal(response.status,200);assert.equal(body.codeBytes,4);assert.equal(body.sourceVerified,false);assert.equal(body.abiVerified,false);assert.equal(body.blockHash,hash);assert.ok(seen.every(item=>item.blockNumber===42n));assert.equal(body.proxy.implementation,null);
