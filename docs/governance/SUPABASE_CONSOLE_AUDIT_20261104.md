@@ -7,7 +7,7 @@ Read-only inspection of the existing `ivszvufdonfgwjpfgwii` project in organizat
 | Area | Console evidence |
 |---|---|
 | Project | Existing production `main`, Healthy, Nano; one visible project; no repository connected in the overview |
-| Organization access | Team page lists one member, Owner. MFA assurance was not established from the displayed status; do not infer it from sign-in success |
+| Organization access | Team page lists one member, Owner. The existing account Security page explicitly shows “No authenticator apps yet”; console MFA is not enrolled |
 | Billing | Free Plan, spend cap enabled, no past invoices listed. The console warns quota exhaustion can cause unresponsiveness or read-only behavior; this is not a full account-wide cost certification |
 | Site URL | `https://rivexis.rvea.info` |
 | Allowed redirects | `https://rivexis.rvea.info/login?verified=1`, `https://rivexis.rvea.info/reset-password`, and the retained recovery origin `https://rivexis-web.rudrasingh0718.workers.dev/**` |
@@ -20,6 +20,10 @@ Read-only inspection of the existing `ivszvufdonfgwjpfgwii` project in organizat
 | SMTP | Custom SMTP enabled, `smtp-relay.brevo.com`, port 587, sender name Rivexis. Username/password values were excluded from inspection/output. This verifies configuration, not a new delivery/inbox test |
 | Managed backups | Scheduled-backup view explicitly states Free does not include project backups; no paid upgrade selected. The protected historical logical recovery kit is a separate dated artifact |
 | Access tokens | Account list showed no access tokens. A proposed 24-hour, single-project Database read-write token was prepared for review only; creation requires separate specific approval |
+
+## Owner account protection
+
+The sole listed owner account has no Supabase authenticator enrolled. This is a material administrative-access assurance gap. Enrollment requires the owner to register an authenticator and retain recovery material; no agent-generated seed or credential change was attempted. Do not confuse end-user application session protection with MFA on the infrastructure owner account. GitHub upstream protection was not re-certified from this page.
 
 ## Recovery preparation and limits
 
