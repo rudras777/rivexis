@@ -8,7 +8,7 @@
     "Python ranged dependencies and Deno lock require separate inventory",
     "No project license or IP assignment is inferred"
   ],
-  "componentCount": 369,
+  "componentCount": 370,
   "components": [
     {
       "location": "apps/api/cloudflare",
@@ -845,7 +845,7 @@
     {
       "location": "node_modules/@resvg/resvg-wasm",
       "name": "@resvg/resvg-wasm",
-      "version": "2.4.0",
+      "version": "2.4.1",
       "licenseMetadata": "MPL-2.0",
       "development": false,
       "optional": false
@@ -1389,7 +1389,7 @@
     {
       "location": "node_modules/@vercel/og",
       "name": "@vercel/og",
-      "version": "0.8.6",
+      "version": "1.0.3",
       "licenseMetadata": "MPL-2.0",
       "development": false,
       "optional": false
@@ -1405,7 +1405,7 @@
     {
       "location": "node_modules/@vinext/types",
       "name": "@vinext/types",
-      "version": "1.0.0-beta.2",
+      "version": "1.0.2",
       "licenseMetadata": "MIT",
       "development": false,
       "optional": false
@@ -1765,7 +1765,7 @@
     {
       "location": "node_modules/css-gradient-parser",
       "name": "css-gradient-parser",
-      "version": "0.0.16",
+      "version": "0.0.17",
       "licenseMetadata": "MIT",
       "development": false,
       "optional": false
@@ -1967,6 +1967,14 @@
       "name": "graceful-fs",
       "version": "4.2.11",
       "licenseMetadata": "ISC",
+      "development": false,
+      "optional": false
+    },
+    {
+      "location": "node_modules/harfbuzzjs",
+      "name": "harfbuzzjs",
+      "version": "0.10.0",
+      "licenseMetadata": "MIT",
       "development": false,
       "optional": false
     },
@@ -2493,7 +2501,7 @@
     {
       "location": "node_modules/satori",
       "name": "satori",
-      "version": "0.16.0",
+      "version": "0.33.5",
       "licenseMetadata": "MPL-2.0",
       "development": false,
       "optional": false
@@ -2725,7 +2733,7 @@
     {
       "location": "node_modules/vinext",
       "name": "vinext",
-      "version": "1.0.0-beta.11",
+      "version": "1.0.0",
       "licenseMetadata": "MIT",
       "development": false,
       "optional": false

@@ -17,3 +17,5 @@ The nonrelocatable `pg_net` extension remains registered in public; the generic 
 Production migration history is not fully reconstructible from the tracked Supabase directory. One historical migration matched a credential-related review pattern; its statements were not exported. This does not establish a currently usable leaked credential. Rotation requires dependency assessment and specific approval.
 
 Full wallet consent/denial/account-switch lifecycle, sustained load/operating assurance, independent recovery-key custody and current sender-domain/inbox assurance remain separate acceptance items. No institutional, regulatory or third-party audit certification is asserted.
+
+The [dependency-security follow-up](docs/governance/DEPENDENCY_SECURITY_20261103.md) records the SVG/compression dependency candidate, actual registry-audit scope and the unsupported direct Node ESM image-rendering path. A zero-finding registry scan is not a blanket security certification or authorization to expose a new rendering endpoint.
