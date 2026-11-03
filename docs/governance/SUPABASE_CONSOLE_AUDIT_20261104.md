@@ -19,7 +19,7 @@ Read-only inspection of the existing `ivszvufdonfgwjpfgwii` project in organizat
 | Rate limits | Refresh 150 per IP per 5 minutes; verification and signup/sign-in 30 per IP per 5 minutes; same-user email minimum interval 60 seconds. Other controls remain provider-configured; no limit was changed |
 | SMTP | Custom SMTP enabled, `smtp-relay.brevo.com`, port 587, sender name Rivexis. Username/password values were excluded from inspection/output. This verifies configuration, not a new delivery/inbox test |
 | Managed backups | Scheduled-backup view explicitly states Free does not include project backups; no paid upgrade selected. The protected historical logical recovery kit is a separate dated artifact |
-| Access tokens | Account list showed no access tokens. A proposed 24-hour, single-project Database read-write token was prepared for review only; creation requires separate specific approval |
+| Access tokens | Account list showed no access tokens. After separate specific approval, a 24-hour single-project Database read-write token was created, used only to obtain a temporary read-only login, and revoked; final list again showed no tokens |
 
 ## Owner account protection
 
@@ -29,7 +29,7 @@ The sole listed owner account has no Supabase authenticator enrolled. This is a 
 
 Production has 48 migration-ledger entries versus four tracked Supabase migrations. A metadata register is not an executable baseline. The supported temporary-login endpoint requires `database_write`, even for a requested read-only login; the prepared token therefore carries more capability than the intended read-only operation. Do not create it based on the sign-in approval, use a legacy full-account token, reset the database password or export browser credentials.
 
-If specifically approved, use only the temporary read-only role, verify returned expiry/read-only behavior and certificate validation, keep schema output confidential pending sensitive-statement review, reconcile managed roles/extensions and test in an isolated disposable target. Revoke the new token afterward. A schema-only restore is not a current user-data backup or full-service disaster recovery. The current shell has no Windows PostgreSQL/Docker command on PATH; a previous task-owned runtime was removed after its drill. Reprovisioning/verification must precede any recovery claim.
+The separately approved [confidential capture and bounded reconstruction](SCHEMA_RECONSTRUCTION_20261104.md) verified read-only access, 300-second login expiry, certificate validation, token revocation and seven matching public-schema metadata groups. Portable tools were provisioned without a Windows service. Full matching managed-extension replay and user-data/service recovery remain unfinished; this was a schema-only test. No production schema migration or original password reset occurred.
 
 Existing catalog/advisor results remain separately dated in [DATABASE.md](../../DATABASE.md) and [SECURITY.md](../../SECURITY.md). Cloudflare account-wide console inventory, independent operator recovery, key custody, transfer eligibility and broader security assurance remain outstanding. No user identities, password values, recovery keys or raw sensitive migration statements are included here.
 

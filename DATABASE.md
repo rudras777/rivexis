@@ -28,3 +28,7 @@ Existing PostgreSQL CI validates the Alembic schema, runtime controls, private l
 6. Run relevant application tests and provider advisors. Preserve failures and the actual migration/deployment identity.
 
 Full local Supabase reconstruction, production-ledger reconciliation and fresh full-service recovery remain explicit work. A script that creates only convenient tables is not a production baseline.
+
+## 4 November bounded reconstruction
+
+The specifically approved confidential schema-only capture and isolated native PostgreSQL 17.11 restore matched seven public metadata groups, including all 61 tables and RLS flags, 715 columns, 206 constraints, 201 indexes, 45 policies, 13 functions and three triggers. The test excluded 28 unavailable managed-extension entries and all table data; it is not full Supabase reconstruction, migration-ledger replay or user-data recovery. Temporary access was revoked/expired and the local server stopped. Raw schema stays outside Git pending review. [Exact evidence, failures and cleanup limits](docs/governance/SCHEMA_RECONSTRUCTION_20261104.md).

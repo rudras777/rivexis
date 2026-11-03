@@ -1,4 +1,4 @@
-# Governance release acceptance — 3 November 2026
+# Governance release acceptance â€” 3 November 2026
 
 The existing application is released at **`e4a23c1e528ff053ba10f443d9ffe34f7461fc64`**, [PR126](https://github.com/rudras777/rivexis/pull/126). The reviewed head `967576af926ccf820c8584d73599604643c0a518` and merged commit have identical source tree `bedb10facec6879a331fd5fe309a7628e631281c`.
 
@@ -9,7 +9,7 @@ The existing application is released at **`e4a23c1e528ff053ba10f443d9ffe34f7461f
 | Protected source checks | All six required checks passed; [CI](https://github.com/rudras777/rivexis/actions/runs/41689064869), [Worker validation](https://github.com/rudras777/rivexis/actions/runs/41689064711) |
 | Browser fixtures | 349 cases each in Chromium, Firefox and WebKit; zero skipped, unexpected or flaky results. Firefox recorded zero driver-navigation release attempts. [Compatibility run](https://github.com/rudras777/rivexis/actions/runs/41689064647) |
 | Compiled Worker | 98 controlled cases passed, retries disabled, zero skips/failures/flakes; external API forwarding verified blocked; owned server stopped |
-| Production deployment | Existing `rivexis-web`, version `02442078-81d5-45f5-a4c7-5f3d5f936c42`; [main-only deployment](https://github.com/rudras777/rivexis/actions/runs/41691268003) succeeded |
+| Production deployment | Existing `rivexis-web`: manual version `02442078-81d5-45f5-a4c7-5f3d5f936c42`; [main-only deployment](https://github.com/rudras777/rivexis/actions/runs/41691268003) succeeded; subsequent automatic PR126 version `2e2e1a45-b8f0-4316-aaeb-3c815c0bd147` was active before live checks began |
 | Canonical public application | `https://rivexis.rvea.info`: 37 actual guest browser checks passed against the exact intended SHA |
 | Original production URL | `https://rivexis-web.rudrasingh0718.workers.dev`: 37 actual guest browser checks passed against the same SHA |
 | Authenticated acceptance | Existing owner session restored on the updated frontend; genuine Aave pool inspection returned block 26336010, 2400 code bytes and the expected EIP-1967 implementation. Source/ABI remained explicitly unverified. No identity save, signature or transaction submission |
@@ -26,6 +26,6 @@ The supported bounded beta release is verified. **Engineering consolidation and 
 
 No user or saved record was deleted, no database schema or credential was changed, and no DNS/ownership/paid-plan change or new recurring service was introduced. Normal authenticated inspection may advance operational quota/telemetry counters. Prior compatible frontend version `fe82ed68-bc6f-4357-ab6f-d72e6c802285` and API40 remain the immediately preceding accepted compatibility combination.
 
-This acceptance update changes documentation only. It does not require a second application deployment; production code remains the accepted PR126 release. The [phase checkpoint](CONSOLIDATION_CHECKPOINT.md), [readiness report](ENGINEERING_GOVERNANCE_REPORT.md), [deployment runbook](../../DEPLOYMENT.md) and [founder guide](../development/FOUNDER_DEVELOPMENT_GUIDE.md) provide the next safe actions and ordinary maintenance workflow.
+This acceptance update changes documentation only. It needs no manual deployment dispatch; the existing automatic Workers Build watches all paths and can publish the documentation commit without changing financial/application behavior. PR126 deployment ordering was confirmed in the [4 November console audit](CLOUDFLARE_CONSOLE_AUDIT_20261104.md). The [phase checkpoint](CONSOLIDATION_CHECKPOINT.md), [readiness report](ENGINEERING_GOVERNANCE_REPORT.md), [deployment runbook](../../DEPLOYMENT.md) and [founder guide](../development/FOUNDER_DEVELOPMENT_GUIDE.md) provide the next safe actions and ordinary maintenance workflow.
 
 The separately dated [4 November Supabase console audit](SUPABASE_CONSOLE_AUDIT_20261104.md) extends account/configuration coverage without changing this product acceptance date.
