@@ -14,6 +14,8 @@ Two Aave snapshot regressions reproduced acceptance of invalid starts before the
 
 ## Release checkpoint
 
+Release completed3 November: PR123 merged as `3c4ce864edf91d22d699ec3dcd43229eb66d944e`; existing API version39 is ACTIVE, with all25 intended files matched on readback and23 unchanged deployed files preserved. Both production hostnames serve the exact merge SHA. Required CI/main CI,343 fixture cases per browser engine and37 live public cases per engine passed. The captured version38 bundle remains the rollback source. Subsequent [authenticated acceptance](AUTHENTICATED_ACCEPTANCE_20261103.md) records the genuine owner-session workflows and their limits.
+
 Existing Supabase project `ivszvufdonfgwjpfgwii`, function `rivexis-api`, version 38, verify_jwt=false, 25 files saved outside Git for rollback. Application authorization remains enforced inside the API. No database, user, RLS, authentication-provider, infrastructure-plan or UI change is required. Deploy after review/required CI; replace only the two changed runtime modules in the captured bundle and preserve every other deployed file and JWT setting. Read back the result and record the actual function version separately.
 
 Raw test logs, live snapshots and rollback bundle are saved in task outputs outside Git. No private credentials are included here. Broader limitations in the production runbook still apply; this change is not an institutional security certification.

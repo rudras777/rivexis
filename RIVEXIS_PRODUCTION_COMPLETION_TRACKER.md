@@ -1,6 +1,8 @@
 # RIVEXIS production completion checkpoint
 
-**3 November oracle validation:** [Regression fix and release checkpoint](docs/ORACLE_ROUND_VALIDATION_20261103.md). Direct/capped feeds now reject invalid round starts consistently with WBTC. 313 DeFi and 42 API tests, API TypeScript and four-function Deno checks pass. Fresh supported four-asset Aave reference snapshot reconciles at block26333520. Production API v38 preserved; protected review/CI and API deployment/readback remain pending. No UI, database or plan changes.
+**3 November production acceptance:** [Authenticated workflow evidence](docs/AUTHENTICATED_ACCEPTANCE_20261103.md). Existing verified Chrome session passed real LiquidationGuard, ten stress inputs, ten planner budgets, successful/blocked GasGuard, actual MetaMask address connection, all ten Settings sections and restored preference persistence, private report save/reload/reopen, and real contract inspection. Export-file delivery and the full native permission lifecycle remain unverified; continuous risk emails remain disabled. Exactly one private public-reference validation report was added; no existing data was removed.
+
+**3 November oracle validation deployed:** [Regression fix](docs/ORACLE_ROUND_VALIDATION_20261103.md), PR123 merged at `3c4ce864edf91d22d699ec3dcd43229eb66d944e`; existing API version39 read back all25 intended files.313 DeFi/42 API tests, four-function Deno checks,343 fixture browser cases per engine and37 live public cases per engine passed. Both production hostnames served the exact merge SHA. API version38 rollback bundle is preserved. No UI, database schema or plan change.
 
 Updated 25 October 2026, Asia/Calcutta. Current resumable record. Preserve dated evidence and protected recovery material; do not repeat completed release work.
 
