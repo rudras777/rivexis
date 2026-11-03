@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-03",
+  "releaseCommit": "e4a23c1e528ff053ba10f443d9ffe34f7461fc64",
+  "reviewedCommit": "967576af926ccf820c8584d73599604643c0a518",
+  "identicalSourceTree": "bedb10facec6879a331fd5fe309a7628e631281c",
+  "pullRequest": "https://github.com/rudras777/rivexis/pull/126",
+  "worker": {
+    "name": "rivexis-web",
+    "version": "2e2e1a45-b8f0-4316-aaeb-3c815c0bd147",
+    "manualVersion": "02442078-81d5-45f5-a4c7-5f3d5f936c42",
+    "manualDeploymentRun": "https://github.com/rudras777/rivexis/actions/runs/41691268003",
+    "automaticBuild": "https://dash.cloudflare.com/0b22778ba197266a58dd26eeef0334a8/workers/services/view/rivexis-web/production/builds/6a6f6c99-7b27-4628-b1cc-faa2ac5ed057",
+    "activeAtUtc": "2026-11-03T18:13:03.404409Z",
+    "consoleReadbackDate": "2026-11-04"
+  },
+  "api": {
+    "version": 40,
+    "files": 25,
+    "verify_jwt": false,
+    "bundleSha256": "d4c768cd2260380b4c5f355a1f4a117614baad6b826a206f92cbb017a17d0238",
+    "unchangedDuringFrontendRelease": true,
+    "applicationSessionAuthorizationPreserved": true
+  },
+  "ci": {
+    "requiredChecksPassed": 6,
+    "run": "https://github.com/rudras777/rivexis/actions/runs/41689064869",
+    "compatibilityRun": "https://github.com/rudras777/rivexis/actions/runs/41689064647",
+    "fixtureCasesPerBrowser": 349,
+    "browsers": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "firefoxDriverNavigationReleaseAttempts": 0
+  },
+  "compiledWorkerFixtures": {
+    "expected": 98,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "retries": 0,
+    "externalApiForwardingBlocked": true
+  },
+  "live": {
+    "canonical": {
+      "origin": "https://rivexis.rvea.info",
+      "scope": "actual public guest browser checks; no real credentials submitted",
+      "stats": {
+        "startTime": "2026-11-03T18:13:30.459Z",
+        "duration": 136954.572,
+        "expected": 37,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    "original": {
+      "origin": "https://rivexis-web.rudrasingh0718.workers.dev",
+      "scope": "actual public guest browser checks; no real credentials submitted",
+      "stats": {
+        "startTime": "2026-11-03T18:15:54.695Z",
+        "duration": 148628.31,
+        "expected": 37,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  },
+  "authenticatedContract": {
+    "origin": "https://rivexis-web.rudrasingh0718.workers.dev",
+    "address": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+    "block": 26336010,
+    "codeBytes": 2400,
+    "implementation": "0x728a138A4823392C2EFA55e028d434F526fE03CF",
+    "identitySaved": false,
+    "transactionSignedOrSubmitted": false,
+    "sourceOrAbiVerified": false
+  },
+  "npmAudit": {
+    "knownFindings": 0,
+    "scope": "locked npm dependency graph, not all-service security certification"
+  },
+  "additionalRecurringServiceCost": 0,
+  "remaining": [
+    "Full production migration/schema reconstruction",
+    "Fresh independent full-service recovery and key custody",
+    "Dashboard-only account/IAM/billing inventory",
+    "Sender-domain/inbox assurance",
+    "Complete native-wallet permission lifecycle",
+    "Independent institutional operating/security assurance",
+    "License/IP and transfer clearance",
+    "Unused direct Node ESM image-rendering path not certified"
+  ]
+}

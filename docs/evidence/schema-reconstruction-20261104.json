@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-04",
+  "project": "ivszvufdonfgwjpfgwii",
+  "captureUtc": {
+    "startedAt": "2026-11-03T18:54:54.361255+00:00",
+    "completedAt": "2026-11-03T18:55:03.927928+00:00"
+  },
+  "scope": "schema-only; no user-table row data",
+  "temporaryLogin": {
+    "readOnlyRequested": true,
+    "verifiedReadOnly": true,
+    "ttlSeconds": 300,
+    "expired": true,
+    "activeConnectionsAtFinalCheck": 0,
+    "newTokenRevoked": true,
+    "temporaryCredentialFilesRemoved": true
+  },
+  "tls": "verify-full with project-linked CA",
+  "archiveBytes": 642592,
+  "archiveSha256": "2cbc2a5b8440b29d0f82d2c10cd40001ca9f306a997d4297d468af2519b53184",
+  "archiveEntries": 1100,
+  "tableDataEntries": 0,
+  "protectedArchiveRoundTrip": true,
+  "protectedSqlRoundTrip": true,
+  "publicSchemaComparison": [
+    {
+      "category": "columns",
+      "objects": 715,
+      "matches": true
+    },
+    {
+      "category": "constraints",
+      "objects": 206,
+      "matches": true
+    },
+    {
+      "category": "functions",
+      "objects": 13,
+      "matches": true
+    },
+    {
+      "category": "indexes",
+      "objects": 201,
+      "matches": true
+    },
+    {
+      "category": "policies",
+      "objects": 45,
+      "matches": true
+    },
+    {
+      "category": "rls",
+      "objects": 61,
+      "matches": true
+    },
+    {
+      "category": "triggers",
+      "objects": 3,
+      "matches": true
+    }
+  ],
+  "nativeRestore": {
+    "postgresVersion": "17.11",
+    "loopbackOnly": true,
+    "excludedProviderExtensions": [
+      "pg_cron",
+      "pg_net",
+      "supabase_vault"
+    ],
+    "excludedTocEntries": 28,
+    "serverStopped": true,
+    "listenersRemaining": 0,
+    "ownedProcessesRemaining": 0
+  },
+  "matchingSupabaseContainerRestore": "Blocked: local runtime exited during three image-pull attempts; no pass claimed; owned Linux runtime/cache removed",
+  "remaining": {
+    "managedExtensionReplay": true,
+    "fullServiceRecovery": true,
+    "userDataRecoveryNotTested": true,
+    "sanitizedExecutableBaselineNotPublished": true,
+    "windowsRestoreDirectory": "Retained under owner-only ACL after automatic approval review rejected recursive cleanup; no active process or listener"
+  },
+  "productionSchemaOrUserDataChanged": false
+}
