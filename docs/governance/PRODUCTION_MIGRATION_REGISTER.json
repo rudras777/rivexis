@@ -1,0 +1,366 @@
+{
+  "checkedAt": "2026-11-03",
+  "project": "ivszvufdonfgwjpfgwii",
+  "status": "Partially complete",
+  "scope": "Observed production migration metadata only; no applied SQL or user rows. Sensitive-candidate digest intentionally excluded. Not an executable baseline.",
+  "localFileMappings": [
+    {
+      "file": "supabase/migrations/20261004123915_optimize_organization_rls_bootstrap.sql",
+      "productionVersion": "20261004123915",
+      "contentParity": "not yet certified"
+    },
+    {
+      "file": "supabase/migrations/20261004125946_support_authenticated_fastapi_organization_bootstrap.sql",
+      "productionVersion": "20261004125946",
+      "contentParity": "not yet certified"
+    },
+    {
+      "file": "supabase/migrations/20261009133430_defi_beta_budget.sql",
+      "productionVersion": "20261009135602",
+      "contentParity": "not yet certified; timestamp differs"
+    },
+    {
+      "file": "supabase/migrations/20261009145634_legacy_private_table_rls.sql",
+      "productionVersion": "20261009150456",
+      "contentParity": "not yet certified; timestamp differs"
+    }
+  ],
+  "migrations": [
+    {
+      "version": "20260922162005",
+      "name": "lock_down_public_defaults",
+      "statement_count": 1,
+      "statement_digest": "54315b5e986b8bf3b410f0c1f8705b7a",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260922162038",
+      "name": "remove_residual_public_grants",
+      "statement_count": 1,
+      "statement_digest": "bf40f74daa3b9f71c7f8f1e5dc5ca730",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260922162311",
+      "name": "create_rivexis_migrator",
+      "statement_count": 1,
+      "statement_digest": null,
+      "requires_sensitive_statement_review": true
+    },
+    {
+      "version": "20260922163529",
+      "name": "create_rivexis_app_role",
+      "statement_count": 1,
+      "statement_digest": "019a8ea0650890d2e04424d01bc812e3",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260922163613",
+      "name": "disable_temporary_migrator_login",
+      "statement_count": 1,
+      "statement_digest": "84948b2891384def53af608920c22d4f",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260922212109",
+      "name": "add_postgres_runtime_controls",
+      "statement_count": 1,
+      "statement_digest": "5169c11270098b59629381dbe1978098",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260924193901",
+      "name": "alembic_0012_postgres_performance_hardening_owner_scoped",
+      "statement_count": 1,
+      "statement_digest": "12f2e1bb9c26ea98a9b22cc632994676",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260924200623",
+      "name": "alembic_0013_auth_email_lifecycle_owner_scoped",
+      "statement_count": 1,
+      "statement_digest": "c4b7606063ecb40610f1d0153f2360a8",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260927180046",
+      "name": "create_rivexis_edge_runtime_bridge",
+      "statement_count": 1,
+      "statement_digest": "6f7f44de34c40279b8f292d013935ddd",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260927180240",
+      "name": "fix_rivexis_edge_runtime_bridge_ambiguity",
+      "statement_count": 1,
+      "statement_digest": "e4f0f840dac96abe1ff177da9f57cfd5",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260927180344",
+      "name": "grant_edge_bridge_owner_least_privileges",
+      "statement_count": 1,
+      "statement_digest": "4d4c2e0d619b7260fe41f21d0ec3581c",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260927180515",
+      "name": "recreate_edge_bridge_with_migrator_role",
+      "statement_count": 1,
+      "statement_digest": "19e9ded3f84674375e6c84c671128886",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260927181232",
+      "name": "harden_edge_bridge_and_add_protocol_workflows",
+      "statement_count": 1,
+      "statement_digest": "03d1cc78e7e2c0811520e89b17b2f2cb",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260927181447",
+      "name": "fix_investigation_disposition_and_preserve_payload",
+      "statement_count": 1,
+      "statement_digest": "e0acd4a7fd504610e95b591c3ef58469",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260927224426",
+      "name": "allow_secure_organization_bootstrap",
+      "statement_count": 1,
+      "statement_digest": "3790a4df275db70064d9806cd8869c7c",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928122336",
+      "name": "edge_saved_analysis_actions_v3",
+      "statement_count": 1,
+      "statement_digest": "5c44d663008ba33fdffc008114cf7dea",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928122401",
+      "name": "add_saved_analysis_actions",
+      "statement_count": 1,
+      "statement_digest": "5c44d663008ba33fdffc008114cf7dea",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928135246",
+      "name": "organization_membership_actions",
+      "statement_count": 1,
+      "statement_digest": "a9c5428669c12fa969e97923c5f0804d",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928135534",
+      "name": "harden_organization_membership_claim_store",
+      "statement_count": 1,
+      "statement_digest": "43c32dd137912d1a81a89853fdd87d52",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928140244",
+      "name": "fix_membership_claim_visibility",
+      "statement_count": 1,
+      "statement_digest": "180b45574ede1aaf42431ebd28116d21",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928140343",
+      "name": "fix_membership_claim_visibility",
+      "statement_count": 1,
+      "statement_digest": "180b45574ede1aaf42431ebd28116d21",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928143935",
+      "name": "edge_decision_reports",
+      "statement_count": 1,
+      "statement_digest": "3d3be52bd5699936d898b756ee20106f",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928150900",
+      "name": "edge_alert_lifecycle",
+      "statement_count": 1,
+      "statement_digest": "9d922b08202bf770751f756b4c1d8aac",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928160516",
+      "name": "edge_monitor_alert_creation",
+      "statement_count": 1,
+      "statement_digest": "99323b0f3562d1a695b138606a87d875",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928170807",
+      "name": "edge_alert_delivery_scheduler",
+      "statement_count": 1,
+      "statement_digest": "4b474b8b47ef515bd887fb57a268942f",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928170816",
+      "name": "alert_dispatcher_extensions_usage",
+      "statement_count": 1,
+      "statement_digest": "3e21a8c54047275baa3302ed25508efd",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20260928171159",
+      "name": "alert_dispatcher_object_grants",
+      "statement_count": 1,
+      "statement_digest": "584c33450ebc4f6615bdbbe4f28a4273",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004123915",
+      "name": "optimize_organization_rls_bootstrap",
+      "statement_count": 1,
+      "statement_digest": "76888d8e7bcf9870ba38641a8e38e43d",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004125946",
+      "name": "support_authenticated_fastapi_organization_bootstrap",
+      "statement_count": 1,
+      "statement_digest": "d0b83997ca89293945a8a58707ac27ae",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004141344",
+      "name": "restrict_alert_requeue_to_failed_deliveries",
+      "statement_count": 1,
+      "statement_digest": "742fae152ed08f84f322e6d0786065d6",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004142002",
+      "name": "alert_dispatch_org_owner_recipient",
+      "statement_count": 1,
+      "statement_digest": "4a82a4d8b059e402b955f97f892785c0",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004142814",
+      "name": "edge_org_workspace_create",
+      "statement_count": 1,
+      "statement_digest": "97cb9ed35057b82d1e5d369b547834b9",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004142927",
+      "name": "fix_org_workspace_membership_rls_context",
+      "statement_count": 1,
+      "statement_digest": "3a1c586d41cc4e623931194afaadecfc",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004160624",
+      "name": "alert_dispatch_org_workspace_grants",
+      "statement_count": 1,
+      "statement_digest": "2e36cc2ae45e1a378fe27123c1f31b37",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004160631",
+      "name": "lock_org_workspace_rpc_execution",
+      "statement_count": 1,
+      "statement_digest": "acab36e34237726fd94dafbc8487e89a",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004161348",
+      "name": "explicit_deny_alert_delivery_runtime_rls",
+      "statement_count": 1,
+      "statement_digest": "0f4c4cdc45e2bb9fced532d64cae423e",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004162430",
+      "name": "remove_unused_app_delete_privileges",
+      "statement_count": 1,
+      "statement_digest": "f94376e65941784bfb08dbf2bd850f87",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004162855",
+      "name": "make_audit_and_provider_telemetry_append_only",
+      "statement_count": 1,
+      "statement_digest": "ad3f46ca9f8fa5126eb79f8c94252036",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004163048",
+      "name": "remove_unsupported_tenant_deletes",
+      "statement_count": 1,
+      "statement_digest": "2a71c31e7313a6ca79c56613d5fbc7eb",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004194052",
+      "name": "harden_pg_net_browser_roles",
+      "statement_count": 1,
+      "statement_digest": "c9c35a7dd81b56a4493cd64c016cc79a",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004200146",
+      "name": "rivexis_function_default_privileges",
+      "statement_count": 1,
+      "statement_digest": "6a3fba2ddd8ddfb5149d0d00dc87a829",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004204756",
+      "name": "protocol_review_evidence_gate",
+      "statement_count": 1,
+      "statement_digest": "c65281430ef75468688eb500bf3e3a16",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261004205637",
+      "name": "investigation_review_evidence_links",
+      "statement_count": 1,
+      "statement_digest": "5f81b405b68d3a9108a413d34bb0d384",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261005195745",
+      "name": "add_locked_cloudflare_recovery_state",
+      "statement_count": 1,
+      "statement_digest": "55dcc0ce8dc496714a22fcb53693cc48",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261005195815",
+      "name": "harden_cloudflare_recovery_state_expiry",
+      "statement_count": 1,
+      "statement_digest": "e6ad7fd7dcd79c1b13b30ece1bdd2a22",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261005200628",
+      "name": "remove_cloudflare_recovery_state",
+      "statement_count": 1,
+      "statement_digest": "a9b8c1feeac76b525785baf3c0855c55",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261009135602",
+      "name": "defi_beta_budget",
+      "statement_count": 1,
+      "statement_digest": "3bdac25dc4ad357d8758f5eef2a7afd6",
+      "requires_sensitive_statement_review": false
+    },
+    {
+      "version": "20261009150456",
+      "name": "legacy_private_table_rls",
+      "statement_count": 1,
+      "statement_digest": "b96c366dd2e99ccef203f9e3342c2aaf",
+      "requires_sensitive_statement_review": false
+    }
+  ]
+}

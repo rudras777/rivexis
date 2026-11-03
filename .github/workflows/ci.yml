@@ -1,6 +1,7 @@
 name: ci
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -31,7 +32,7 @@ jobs:
       - run: node --test apps/web/scripts/check-deploy-env.test.mjs
       - run: node --test scripts/npm-audit-ci.test.mjs
       - run: npm run typecheck:api-edge
-      - run: npx --yes deno@2.9.6 check --config supabase/functions/rivexis-api/deno.json supabase/functions/rivexis-api/index.ts supabase/functions/rivexis-decision-reports/index.ts supabase/functions/rivexis-alerts/index.ts supabase/functions/rivexis-alert-dispatch/index.ts
+      - run: npx --yes deno@2.9.6 check --config supabase/functions/rivexis-api/deno.json supabase/functions/rivexis-api/index.ts supabase/functions/rivexis-decision-reports/index.ts supabase/functions/rivexis-alerts/index.ts supabase/functions/rivexis-alert-dispatch/index.ts supabase/functions/rivexis-cloudflare-recovery-relay/index.ts
       - run: npm run test:api-edge
       - run: npm run test:defi
       - run: node --test scripts/certify_aave_sequence_rpc.test.mjs
@@ -67,6 +68,7 @@ jobs:
       - run: python scripts/check_invariants.py
       - run: python scripts/check_migrations.py
       - run: python scripts/secret_scan.py
+      - run: python -m unittest scripts.test_secret_scan
       - name: Reject unsafe database restore destinations
         run: python -m unittest discover -s scripts -p test_backup_restore_guard.py
   postgres-migrations:

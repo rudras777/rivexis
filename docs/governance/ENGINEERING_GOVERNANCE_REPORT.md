@@ -1,0 +1,110 @@
+# RIVEXIS â€” Engineering Governance & Platform Readiness Report
+
+Checkpoint: 3 November 2026, Asia/Calcutta. **Consolidation is partially complete.** This is an engineering evidence/status record, not a compliance certificate or an acquisition-ready declaration. The live discovery baseline was PR124 / `a5b8753`, Worker version `d4fd53ce-a317-400b-9fb1-b47b1b4a8df6`, API version 39.
+
+## 1. Executive summary
+
+The bounded product is functioning on the existing infrastructure, with genuine authenticated financial acceptance recorded separately. The principal governance weaknesses are incomplete production migration reconstruction, stale current-entry documentation, competing/unsafe deployment shortcuts, incomplete independent environment isolation, dependency inventory limitations and founder-specific operational ownership.
+
+Current work preserves the design, mathematical models, identities, customer records and personal Wix infrastructure. It adds canonical engineering guidance and makes narrow reproducible safety corrections. No production resource rename, database reset, ownership transfer, credential rotation or paid service is included.
+
+## 2. Infrastructure inventory
+
+[INFRASTRUCTURE.md](../../INFRASTRUCTURE.md) is the current inventory/dependency map. Authenticated discovery confirmed the public `rudras777/rivexis` repository and sole listed admin collaborator, one visible Rivexis Supabase project/Free organization, the existing Worker and one Pages gateway. The fifth Edge deployment is a retired fixed 410 recovery stub, not an active recovery service. The GitHub Pages site is a redirect, not a duplicate financial backend.
+
+Cloudflare account-wide dashboard-only inventory remains pending sign-in; CLI account/deployment/Pages metadata is verified. Brevo browser access is verified after owner-confirmed Google sign-in despite connector errors. Current sender is verified freemail, no domain is configured, two transactional templates are active, and the dashboard shows the existing 300/day allowance. Delivery logs show confirmation/recovery Delivered events from 29 October; no new message was sent in this audit.
+
+Develoop is specifically identified as the installed skills-only development bundle 0.1.3, publisher Changkyun Kim, repository `comfuture/agent-skills`. It supplies optional issue/PR/review/refactoring guidance. No Rivexis runtime import or deployment ownership was found; the project remains maintainable without it. Its own license does not assign a license to Rivexis.
+
+## 3. Changes completed / under validation
+
+| Change | Status at this checkpoint | Evidence |
+|---|---|---|
+| Native GitHub secret scanning and push protection | Verified | Repository API readback: enabled; no paid Advanced Security purchase |
+| Private vulnerability reporting | Verified | Existing repository endpoint readback enabled |
+| Malformed on-chain quota handling | Implemented, not yet verified in production | Seven red regressions before fix;14/14 focused tests pass afterward; no provider call on ambiguous acknowledgment |
+| Tracked-source secret scanner | Verified locally | Four regressions: untracked recovery exclusion, safe findings, supported key formats, optimized-Python failure gate; CI hook added |
+| Safe local web preview | Verified on Windows | Landing/login200; account GET/login POST503 from local block; loopback-only process stopped after test |
+| Static landing retained in manual build | Verified locally; release pending | Raw rebuild reproduced artifact loss; corrected controlled build retained the artifact with matching SHA-256 manifest; root Worker dry-run passed |
+| Main-only manual deployment; no duplicate feature push CI | Implemented, not yet verified on GitHub | Workflow changes preserve PR/main checks and protected merge |
+| Retired relay source under version control | Implemented, not yet verified by release | Exact observed410 stub copied; no deployment/settings change |
+| Canonical docs, founder handbook and standards | Implemented, not yet verified as a full handover | Root entrypoints plus requested durable guide/standards paths |
+
+## 4. Naming standardization
+
+[Naming registry](NAMING_REGISTRY.md) records the conventions and justified compatibility exceptions. `rivexis-web`, the current gateway, immutable project IDs, historical branches/migrations and model/API versions are preserved. No aesthetic resource rename was attempted. There are161 observed remote branches and three pre-existing open PRs; merged/obsolete status requires content review, especially after squash merges. Nothing was deleted or closed based on a name.
+
+## 5. Architecture assessment
+
+[ARCHITECTURE.md](../../ARCHITECTURE.md) maps the existing modular monorepo to presentation, coordination, shared domain models, integrations and infrastructure. Wholesale directory movement/new services are not justified by the observed deployment. Retained Python/Alembic/Cloudflare API configurations are explicitly separated from the current Supabase-backed product. Full dead-code/style review and any behavior-preserving domain refactor remain scoped follow-up work, not assumed complete.
+
+## 6. Security assessment
+
+Fresh catalog evidence: 61 public tables, zero without RLS, zero client-callable public security definers, client roles cannot log in directly. Existing strict six-check branch protection/admin enforcement and no force push/deletion were preserved. Native repository secret protection and private reporting were enabled/read back. Current local scanner does not traverse untracked laptop/recovery artifacts and cannot be disabled by Python optimization.
+
+Inherited Supabase warnings remain: nonrelocatable `pg_net` registration and Free-plan leaked-password protection. The [security policy](../../SECURITY.md) gives reporting and limitations. No active credential exposure is inferred from a historical sensitive-statement pattern. No credential value, user row, recovery key or migration SQL containing potential credentials is published.
+
+## 7. Deployment verification
+
+The existing frontend is traceable to a real provider build and full SHA. Protected PR123/124 and genuine production acceptance remain dated evidence. The current governance source has **not yet been released**. Local checks passed: 320 financial/adapter tests, 42 API tests, four secret-scanner regressions, web production build/types/lint/AST checks, API type checking, Deno checking of all five functions, controlled Worker build/static manifest and Worker dry-run. The isolated Chromium suite is running; required GitHub checks, actual deployment and affected API source readback are still required. Main-only manual deployment must be independently checked before promotion. See [DEPLOYMENT.md](../../DEPLOYMENT.md).
+
+## 8. Database and authentication
+
+[DATABASE.md](../../DATABASE.md) records actual ownership, role/RLS boundaries and migration divergence. The production ledger has 48 entries versus four tracked Supabase migrations plus Alembic history. Two local timestamp identities differ from their production entries; preserve both. A metadata/digest register excludes the digest of the one sensitive-statement candidate. This is not executable baseline SQL. No live migration history or data was changed.
+
+Current authenticated owner/session, preference save/reload, report persistence and read-only financial workflows were verified in [the acceptance record](../AUTHENTICATED_ACCEPTANCE_20261103.md). Brevo/Supabase verification and recovery evidence remains dated 29 October; a fresh full email/token round trip was not repeated here. Settings Dark was restored after testing; one private public-reference validation report was retained.
+
+## 9. Product engines
+
+| Engine | Implemented contract / dependencies | Observed validation / limits |
+|---|---|---|
+| LiquidationGuard | Pinned Ethereum Aave normal-mode/four validated assets and bounded Morpho market; protocol math/oracles/RPC | Genuine four-asset acceptance and fixed-point regressions; eMode/isolation/other markets unsupported |
+| GasGuard | Supported read-only call/estimate, fee reserve, nonce, balance/allowance and modeled positions | Actual succeeded-at-block withdrawal and correctly blocked approval-dependent repayment; no signing/execution, MEV/slippage guarantees or advisory execution labels |
+| Defense Planner | Bounded repayment/collateral alternatives, budget/fee/wallet constraints and explicit shocks | Ten real-position stress inputs and ten budget cases; retained unmet-target evidence; no global optimality or safety promise |
+| Shared data | Genuine block/oracle observations, provenance, bounded retries/history and failure states | Live observation growth plus provider/reorg/freshness fixture tests; no provider uptime SLA or fabricated fallback |
+
+[API.md](../../API.md) identifies input/output/validation sources; existing adjacent model/adapter tests, methodology and scenario matrix remain authoritative for numerical details. Financial source is not rewritten for architectural appearance.
+
+## 10. Developer handover
+
+[Founder development guide](../development/FOUNDER_DEVELOPMENT_GUIDE.md) and [quick reference](../development/QUICK_REFERENCE.md) show ordinary setup, source locations, local isolation, tests, controlled deployment and troubleshooting. [Engineering standards](../architecture/ENGINEERING_STANDARDS.md) and root AGENTS provide a tool-independent maintenance contract. Fresh macOS execution and a complete independent Supabase local integration environment remain unverified.
+
+## 11. Organizational transfer readiness
+
+[HANDOVER.md](../../HANDOVER.md) separates source, IP, user data, domains, provider IAM and billing transitions. Personal apex/Wix, email accounts and unrelated products are excluded. Provider-specific transfer eligibility, a named incoming operator, independent key custody, legal/license clearance and full-service recovery require further verification/approval. No transfer occurred.
+
+## 12. Outstanding work / risk order
+
+| Priority | Finding / impact | Required remediation and acceptance |
+|---|---|---|
+| High | Production database not fully reproducible from repository | Supported confidential schema capture, role/managed-service reconciliation, sanitized baseline and disposable full restore; never reset production to fit source |
+| High | Latent manual build can lose CPU-saving public artifact | Correct wrapper, build/dry-run manifest verification, protected release; do not attribute an actual outage without logs |
+| Medium | Manual workflow previously accepts arbitrary branches | Main-only condition and actual non-main skipped-run evidence; preserve all protected checks |
+| Medium | Native npm SBOM generation fails on intentional security overrides and missing optional-platform graph edges | Preserve patched pins; publish honest lock metadata inventory; independently validate a standard SBOM/license review before transfer |
+| Medium | Python dependencies are ranged, and full cross-platform backend bootstrap is unverified | Reproducible reviewed constraints/environment validation without silently changing current production |
+| Medium | Full account IAM, subscriptions, settings and current complete recovery remain unverified | Finish authenticated provider inventory, separate access transition and fresh full-service recovery drill |
+| Medium | Freemail sender/no authenticated sending domain | Preserve owner-approved beta sender; separate approved domain/sender/DNS decision and real deliverability acceptance |
+| Medium | Existing Supabase warnings / independent assurance | Keep bounded beta limitations explicit; no unsafe extension relocation, paid upgrade or self-issued certification |
+| Low | Historical branch/document sprawl and retained deployment shortcuts | Content/reference review, archive index and approved cleanup; preserve audit history and unmerged work |
+
+## 13. Readiness scorecard
+
+Scores measure equal-weight **evidence coverage**, not software quality, safety, compliance or marketing readiness. Each row lists four criteria in order; Verified earns25, Partially complete12.5, Blocked/unverified0. Round half-points up. These provisional scores must be revised after current-release validation.
+
+| Dimension | Four criteria and current status | Score /100 |
+|---|---|---|
+| Architecture | System map V; shared models V; layer ownership V; full isolated bootstrap B |75|
+| Code Maintainability | Source map V; focused defect regressions V; complete unused-code review P; all dependency reproducibility P |75|
+| Security | Auth/RLS evidence V; repository protections V; all known risks closed B; independent assurance B |50|
+| Infrastructure Governance | Critical identities V; deployment traceability V; full account inventory P; independent IAM/billing verification B |63|
+| Testing | Deterministic financial coverage V; genuine core acceptance V; current governance full release checks unverified; all-service recovery B |50|
+| Documentation | Canonical index P; founder guide/local workflow V; incident/handover procedures P; provider-transfer detail P |63|
+| Operational Reliability | Actual deployed baseline V; fail-closed provider tests V; full recovery/RPO B; sustained operations B |50|
+| Founder Maintainability | Windows safe preview V; source/task map V; fresh macOS B; full local backend B |50|
+| Organizational Transfer Readiness | Asset boundary V; access procedure P; legal/license clearance B; independent operator recovery B |38|
+
+V=Verified, P=Partially complete, B=Blocked. Other implemented-but-unverified work earns zero until evidenced. Underlying evidence/status, rather than a rounded number, governs release decisions.
+
+## 14. Change register
+
+Baseline: PR123 oracle fix/API39 and PR124 authenticated evidence; existing Worker version stated above. Current branch: `feature/engineering-governance`; commit/PR/release identifiers are pending. Local logs are preserved under task outputs `governance-*`; confidential recovery material is excluded. Safe changes and remaining phases are recorded in [the completion checkpoint](../../RIVEXIS_PRODUCTION_COMPLETION_TRACKER.md). No production mutation is claimed for a local implementation.

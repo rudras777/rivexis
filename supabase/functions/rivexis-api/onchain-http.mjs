@@ -16,8 +16,9 @@ export async function handleOnChain(req,path,admin,rpcUrl,rpcFactory=client){
  if(read&&(typeof input.data!=='string'||!/^0x[0-9a-f]{8}(?:[0-9a-f]{2})*$/i.test(input.data)||input.data.length>4098))return respond({detail:'Read calldata must be bounded hexadecimal data with a function selector'},422);
  const address=network?'0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2':getAddress(input.address);
  let quota;try{quota=await admin.rpc('rivexis_defi_quota',{p_wallet:address.toLowerCase()})}catch{return respond({detail:'Quota service unavailable; no RPC request was made'},503)}
- if(quota.error)return respond({detail:'Quota service unavailable; no RPC request was made'},503);
- if(quota.data!==true)return respond({detail:'Beta inspection quota reached. Try later.'},429);
+ if(!quota||typeof quota!=='object'||Array.isArray(quota)||quota.error)return respond({detail:'Quota service unavailable; no RPC request was made'},503);
+ if(quota.data===false)return respond({detail:'Beta inspection quota reached. Try later.'},429);
+ if(quota.data!==true)return respond({detail:'Quota service unavailable; no RPC request was made'},503);
  try{
   const rpc=rpcFactory(rpcUrl);if(await rpc.getChainId()!==1)throw Error('Network identity mismatch');
   const block=await rpc.getBlock();if(!block.hash||block.number==null||Math.abs(Date.now()/1000-Number(block.timestamp))>180)throw Error('Stale or incomplete block evidence');
