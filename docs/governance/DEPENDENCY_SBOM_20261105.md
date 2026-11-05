@@ -26,3 +26,7 @@ Local validation passed: clean locked installation, full npm audit with zero kno
 Release results are recorded in the protected PR and current checkpoint; do not infer deployment solely from generation success. Remaining owner MFA and full managed-service reconstruction gates are independent of this repair.
 
 References: [npm SBOM command](https://docs.npmjs.com/cli/v11/commands/npm-sbom/), [official CycloneDX 1.5 schema](https://github.com/CycloneDX/specification/blob/c320fc0f0b46873864927d9d5684eea7ba439728/schema/bom-1.5.schema.json), [official artifact action v7.0.2](https://github.com/actions/upload-artifact/releases/tag/v7.0.2).
+
+## Verified release
+
+PR128 merged as `ab35d2b492cd799a686402bbb8a0824c93e9819b`. All six required source checks and main CI passed; 349 fixture cases per Chromium/Firefox/WebKit and 37 actual-public cases per hostname passed with zero failures, skips or flakes. Actual CI artifact `npm-sbom-42032657022-1` (ID13416134307, seven-day retention through 12 November) was downloaded, independently schema-validated and semantically compared with the local Windows graph. All 367 dependency components/368 graph nodes match; timestamps and document UUIDs need not match byte-for-byte. [Exact release receipt](../evidence/governance-sbom-release-20261105.json).

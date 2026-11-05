@@ -84,3 +84,7 @@ Troubleshoot the first failing layer: dependency/Node version and lockfile; synt
 ## Dependency SBOM
 
 Run `npm run --silent sbom:npm > rivexis-npm.cdx.json` from the repository root after installing the locked dependencies. The command uses a pinned npm generator; older plain `npm sbom` can misread the intentional security overrides. CI retains the complete npm CycloneDX document for seven days under the run/attempt artifact name. The artifact contains public dependency metadata, not customer data. [Scope, validation and limits](../governance/DEPENDENCY_SBOM_20261105.md).
+
+## Supabase CLI version changes
+
+Before installing or upgrading Supabase CLI, inspect the installed version and relevant command help. The [4 November CLI v3 notice](https://supabase.com/changelog/supabase-cli-v3) changes default targets, hosted-change consent and configuration precedence. Pin a reviewed version for repeatable work; verify destination/configuration before applying anything. Do not mechanically add remote/consent flags or reset production to make an old command succeed. The [matching-image schema drill](../governance/MANAGED_SCHEMA_RESTORE_20261105.md) used direct PostgreSQL tools and did not upgrade the CLI.

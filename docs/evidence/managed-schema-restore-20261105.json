@@ -1,0 +1,93 @@
+{
+  "date": "2026-11-05",
+  "scope": "schema-only; not full-service or user-data recovery",
+  "archiveEntries": 1100,
+  "tableDataEntries": 0,
+  "excludedArchiveEntries": 0,
+  "publicFingerprintGroups": [
+    {
+      "category": "columns",
+      "objects": 715,
+      "digest": "940994ce9d8a86c96db90a44010b2614"
+    },
+    {
+      "category": "constraints",
+      "objects": 206,
+      "digest": "803ce01c9f9716129785667c55a55351"
+    },
+    {
+      "category": "functions",
+      "objects": 13,
+      "digest": "edf0e97747c8a34a5b36692306ca5721"
+    },
+    {
+      "category": "indexes",
+      "objects": 201,
+      "digest": "e9c63f204d300060b652ed0c926325ad"
+    },
+    {
+      "category": "policies",
+      "objects": 45,
+      "digest": "ff0902ee9cd5e298d6100a06cda6b629"
+    },
+    {
+      "category": "rls",
+      "objects": 61,
+      "digest": "d5740b4c5e19bd210d844d438566ca74"
+    },
+    {
+      "category": "triggers",
+      "objects": 3,
+      "digest": "368722a42674e517a0dd8d3d3dd5ad3d"
+    }
+  ],
+  "allSevenGroupsMatch": true,
+  "extensions": [
+    {
+      "extname": "pg_cron",
+      "extversion": "1.6.4"
+    },
+    {
+      "extname": "pg_net",
+      "extversion": "0.20.4"
+    },
+    {
+      "extname": "pg_stat_statements",
+      "extversion": "1.11"
+    },
+    {
+      "extname": "pgcrypto",
+      "extversion": "1.3"
+    },
+    {
+      "extname": "supabase_vault",
+      "extversion": "0.3.1"
+    },
+    {
+      "extname": "uuid-ossp",
+      "extversion": "1.1"
+    }
+  ],
+  "restoredMetadata": {
+    "public_tables": 61,
+    "public_without_rls": 0,
+    "auth_users": 0,
+    "cron_jobs": 0,
+    "vault_records": 0,
+    "cron_active": "off",
+    "net_database": "rivexis_inactive_no_requests"
+  },
+  "image": "supabase/postgres@sha256:d6844e71062a3c8e2f8021d644802850760ef970a45ac163ec8c9f0171075bda",
+  "postgresVersion": "17.11",
+  "isolation": {
+    "network": "none",
+    "publishedPorts": 0,
+    "restartPolicy": "no",
+    "memoryBytes": 1073741824,
+    "cpus": 2
+  },
+  "protectedArchiveRoundTripVerified": true,
+  "redundantPlaintextArchiveRemoved": true,
+  "productionChanges": false,
+  "newCredentialCreated": false
+}
