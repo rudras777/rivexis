@@ -24,3 +24,6 @@ staging-certification.json
 *.pem
 *.key
 supabase/.temp/
+
+# Locally regenerated public npm dependency SBOM
+/rivexis-npm.cdx.json

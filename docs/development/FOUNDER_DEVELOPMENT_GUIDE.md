@@ -80,3 +80,7 @@ Normal release is protected merge followed by the existing Cloudflare integratio
 Before undoing work, inspect `git status` and the diff. Preserve uncommitted work; prefer a new corrective commit or revert of an identified change over force-push/reset. Incident rollback selects one compatible provider layer, preserving customer data. See OPERATIONS.md for diagnosis and recovery.
 
 Troubleshoot the first failing layer: dependency/Node version and lockfile; syntax/types; local server; origin/auth; quota service; provider evidence; deployment identity. Never substitute invented data to make an error disappear.
+
+## Dependency SBOM
+
+Run `npm run --silent sbom:npm > rivexis-npm.cdx.json` from the repository root after installing the locked dependencies. The command uses a pinned npm generator; older plain `npm sbom` can misread the intentional security overrides. CI retains the complete npm CycloneDX document for seven days under the run/attempt artifact name. The artifact contains public dependency metadata, not customer data. [Scope, validation and limits](../governance/DEPENDENCY_SBOM_20261105.md).
