@@ -32,3 +32,7 @@ Full local Supabase reconstruction, production-ledger reconciliation and fresh f
 ## 4 November bounded reconstruction
 
 The specifically approved confidential schema-only capture and isolated native PostgreSQL 17.11 restore matched seven public metadata groups, including all 61 tables and RLS flags, 715 columns, 206 constraints, 201 indexes, 45 policies, 13 functions and three triggers. The test excluded 28 unavailable managed-extension entries and all table data; it is not full Supabase reconstruction, migration-ledger replay or user-data recovery. Temporary access was revoked/expired and the local server stopped. Raw schema stays outside Git pending review. [Exact evidence, failures and cleanup limits](docs/governance/SCHEMA_RECONSTRUCTION_20261104.md).
+
+## 5 November matching managed-extension replay
+
+The entire confidential 1,100-entry schema-only archive now replays atomically in the pinned matching Supabase PostgreSQL image, with zero excluded entries. Six extension versions and all seven public catalog fingerprints match; 61 restored public tables have RLS enabled. This resolves the earlier missing-extension limitation, while full-service/user-data recovery, migration-ledger reconciliation and a sanitized executable baseline remain incomplete. No production SQL or user record changed. [Evidence and exact isolation/cleanup scope](docs/governance/MANAGED_SCHEMA_RESTORE_20261105.md).

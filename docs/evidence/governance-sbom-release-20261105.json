@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-05",
+  "pr": "https://github.com/rudras777/rivexis/pull/128",
+  "mergedCommit": "ab35d2b492cd799a686402bbb8a0824c93e9819b",
+  "reviewedCommit": "c23d49a811d9ae3fa64c494f588aa9954677628d",
+  "identicalReviewedMergedTree": "459c124adf808d5b58a33e4bed4bffa2ede82d49",
+  "workerVersion": "682a6708-7a43-4686-b179-bd216e98bd94",
+  "deployment": "c0af5025-e817-4bad-ab8a-854761f7d36a",
+  "trafficPercent": 100,
+  "unchangedApiVersion": 40,
+  "sourceCI": 42032657022,
+  "compatibilityCI": 42032657178,
+  "mainCI": 42036174245,
+  "mainWorkerCI": 42036174117,
+  "fixtureCasesPerBrowser": 349,
+  "financialAdapterCases": 320,
+  "liveChecks": [
+    {
+      "url": "https://rivexis.rvea.info",
+      "stats": {
+        "startTime": "2026-11-05T13:36:13.282Z",
+        "duration": 136297.163,
+        "expected": 37,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "url": "https://rivexis-web.rudrasingh0718.workers.dev",
+      "stats": {
+        "startTime": "2026-11-05T13:39:54.985Z",
+        "duration": 164197.235,
+        "expected": 37,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "sbom": {
+    "artifactId": 13416134307,
+    "artifactName": "npm-sbom-42032657022-1",
+    "expires": "2026-11-12",
+    "schemaValidation": true,
+    "matchesLocalGraph": true,
+    "components": 367,
+    "nodes": 368,
+    "coveredLockLocations": 374
+  },
+  "scope": "dependency metadata and CI tooling; no app/design/financial/auth/schema changes",
+  "fullServiceRecoveryCertified": false,
+  "institutionalReadinessCertified": false,
+  "addedRecurringInfrastructureCostUSD": 0
+}
