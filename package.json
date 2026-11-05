@@ -20,7 +20,8 @@
     "verify": "bash scripts/verify.sh",
     "check:frontend-ast": "node scripts/check_frontend_ast.js",
     "test:e2e": "npm --workspace @rivexis/web run test:e2e",
-    "test:a11y": "npm --workspace @rivexis/web run test:a11y"
+    "test:a11y": "npm --workspace @rivexis/web run test:a11y",
+    "sbom:npm": "npx --yes npm@11.21.2 sbom --package-lock-only --sbom-format=cyclonedx --sbom-type=application"
   },
   "overrides": {
     "wrangler": "4.148.0",
@@ -32,5 +33,6 @@
   },
   "devDependencies": {
     "source-map-js": "1.2.2"
-  }
+  },
+  "version": "0.1.0"
 }

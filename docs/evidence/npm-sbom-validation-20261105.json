@@ -1,0 +1,22 @@
+{
+  "schemaValid": true,
+  "schemaErrors": null,
+  "dependencyComponents": 367,
+  "dependencyNodes": 368,
+  "uniqueReferences": 368,
+  "invalidEdges": [],
+  "lockLocations": 374,
+  "uncovered": [],
+  "duplicateReferences": 0,
+  "internationalFormatsValidated": true,
+  "schemaCommit": "c320fc0f0b46873864927d9d5684eea7ba439728",
+  "date": "2026-11-05",
+  "generator": "npm 11.21.2",
+  "installedNpm": "11.13.0",
+  "existingPackageRecordsChanged": 0,
+  "existingPackageRecordsRemoved": 0,
+  "newOptionalDevelopmentRecords": 4,
+  "npmAuditKnownFindings": 0,
+  "projectRuntimeOrFinancialSourceChanged": false,
+  "scope": "Complete npm lock graph only; no Python/Deno/license or institutional certification"
+}

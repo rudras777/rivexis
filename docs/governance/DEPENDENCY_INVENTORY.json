@@ -4,11 +4,11 @@
   "scope": "Declared npm lock metadata, including optional platform packages; not an installed-tree or validated SPDX SBOM",
   "limitations": [
     "License labels are upstream package metadata, not a legal review",
-    "Native npm SBOM generation currently rejects override/optional-platform graph inconsistencies",
+    "For a standard npm CycloneDX document use npm run --silent sbom:npm with its pinned generator; this file remains a lock-location inventory",
     "Python ranged dependencies and Deno lock require separate inventory",
     "No project license or IP assignment is inferred"
   ],
-  "componentCount": 370,
+  "componentCount": 374,
   "components": [
     {
       "location": "apps/api/cloudflare",
@@ -195,11 +195,27 @@
       "optional": false
     },
     {
+      "location": "node_modules/@emnapi/core",
+      "name": "@emnapi/core",
+      "version": "1.11.3",
+      "licenseMetadata": "MIT",
+      "development": true,
+      "optional": true
+    },
+    {
       "location": "node_modules/@emnapi/runtime",
       "name": "@emnapi/runtime",
       "version": "1.11.3",
       "licenseMetadata": "MIT",
       "development": false,
+      "optional": true
+    },
+    {
+      "location": "node_modules/@emnapi/wasi-threads",
+      "name": "@emnapi/wasi-threads",
+      "version": "1.2.3",
+      "licenseMetadata": "MIT",
+      "development": true,
       "optional": true
     },
     {
@@ -673,6 +689,14 @@
       "licenseMetadata": "MIT",
       "development": false,
       "optional": false
+    },
+    {
+      "location": "node_modules/@napi-rs/wasm-runtime",
+      "name": "@napi-rs/wasm-runtime",
+      "version": "1.2.7",
+      "licenseMetadata": "MIT",
+      "development": true,
+      "optional": true
     },
     {
       "location": "node_modules/@next/env",
@@ -1169,6 +1193,14 @@
       "licenseMetadata": "MIT",
       "development": false,
       "optional": false
+    },
+    {
+      "location": "node_modules/@tybys/wasm-util",
+      "name": "@tybys/wasm-util",
+      "version": "0.10.4",
+      "licenseMetadata": "MIT",
+      "development": true,
+      "optional": true
     },
     {
       "location": "node_modules/@types/estree",

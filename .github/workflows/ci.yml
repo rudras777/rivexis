@@ -49,6 +49,15 @@ jobs:
       - name: Recheck types after the Worker compiler regenerates route declarations
         run: npm run typecheck:web
       - run: node scripts/npm-audit-ci.mjs
+      - name: Generate the complete locked npm dependency SBOM
+        run: npm run --silent sbom:npm > "$RUNNER_TEMP/rivexis-npm.cdx.json"
+      - name: Preserve the release dependency SBOM
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: npm-sbom-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/rivexis-npm.cdx.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Use official Ubuntu HTTPS archives for browser dependencies
         # Keep package verification and browser versions; avoid the stalled Azure HTTP mirror.
         run: |

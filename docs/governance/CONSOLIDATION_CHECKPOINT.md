@@ -1,6 +1,6 @@
 # Consolidation checkpoint
 
-4 November 2026, Asia/Calcutta. Product acceptance remains dated 3 November: PR126 / `e4a23c1e528ff053ba10f443d9ffe34f7461fc64`, existing Worker `2e2e1a45-b8f0-4316-aaeb-3c815c0bd147`, unchanged API40. This acceptance branch changes documentation only. [Release evidence](RELEASE_ACCEPTANCE_20261103.md), [Supabase console audit](SUPABASE_CONSOLE_AUDIT_20261104.md), [Cloudflare audit](CLOUDFLARE_CONSOLE_AUDIT_20261104.md), [schema reconstruction](SCHEMA_RECONSTRUCTION_20261104.md) and [readiness report](ENGINEERING_GOVERNANCE_REPORT.md) are authoritative for scope and limitations.
+5 November 2026, Asia/Calcutta. Last verified release is PR127 / `5426da2133ab661762b5bf2bc0780016a8ae5358`, Worker `9dfc77e5-e696-4c8c-880e-757bd426ff0d`, unchanged API40: six source checks/main CI passed, both hosts passed 37 live checks each, and authenticated Aave inspection returned block 26337518. Product/financial acceptance retains its separate dates. Current SBOM repair changes dependency metadata and CI tooling only; its release gates remain required. [Release evidence](RELEASE_ACCEPTANCE_20261103.md), [Supabase console audit](SUPABASE_CONSOLE_AUDIT_20261104.md), [Cloudflare audit](CLOUDFLARE_CONSOLE_AUDIT_20261104.md), [schema reconstruction](SCHEMA_RECONSTRUCTION_20261104.md) and [readiness report](ENGINEERING_GOVERNANCE_REPORT.md) are authoritative for scope and limitations.
 
 | Phase | Status | Evidence / remaining requirement |
 |---|---|---|
@@ -22,7 +22,7 @@
 2. Continue managed-extension reconstruction and migration reconciliation from the confidential schema capture. The approved token is revoked, its temporary login expired and local credential files removed. The bounded native restore matched all seven public metadata groups but excluded 28 provider-extension entries. Production still has 48 ledger entries versus four tracked files; do not reset/push production or publish raw confidential SQL. The stopped Windows target remains owner-only after automatic cleanup rejection; the owned Linux runtime/cache was removed.
 3. Complete isolated full-service reconstruction/recovery, current configuration coverage, independent key custody and explicit RPO/RTO evidence. Do not turn the dated 20 October restore/23 October encrypted round trip into a current certification.
 4. Complete remaining native-wallet permission lifecycle, sender-domain/inbox assurance, sustained operational and independent security acceptance. Preserve the owner-approved beta sender and free-first limits; no silent spending.
-5. Resolve the native SBOM/optional-platform graph limitations, ranged Python environment and legal/IP/provider-transfer eligibility before claiming organizational-transfer readiness. Direct Node ESM image rendering is not a supported route.
+5. Finish the [npm SBOM candidate release](DEPENDENCY_SBOM_20261105.md): root metadata and four optional WASM records now generate the complete validated CycloneDX graph, with no existing package changes. Verify CI artifact retention and protected release. Python/Deno inventory, ranged Python reproducibility and legal/IP/provider-transfer eligibility remain separate gates. Direct Node ESM image rendering is not a supported route.
 
 ## Evidence and preservation
 
