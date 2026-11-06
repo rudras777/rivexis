@@ -20,6 +20,25 @@ async function setup(page:Page){
 async function tab(page:Page,name:string){await page.getByRole('tab',{name,exact:true}).click()}
 async function save(page:Page){await page.getByRole('button',{name:'Save changes',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Account settings saved'})).toBeVisible()}
 
+test('Settings and recovery retry links open the recovery document without sending an email',async({page})=>{
+ await setup(page);let resetRequests=0;
+ await page.route('**/api/v1/auth/password-reset/request',route=>{resetRequests++;return route.abort()});
+ const openRecovery=async(name:string)=>{
+  const [response]=await Promise.all([
+   page.waitForResponse(response=>response.request().isNavigationRequest()&&new URL(response.url()).pathname==='/forgot-password'),
+   page.getByRole('link',{name,exact:true}).click(),
+  ]);
+  expect(response.status()).toBe(200);
+  await expect(page.getByRole('heading',{name:'Reset password',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Send reset link',exact:true})).toBeEnabled();
+  await expect(page.locator('form.form')).toHaveAttribute('method','post');
+ };
+ await page.goto('/workspace/settings',{waitUntil:'domcontentloaded'});await tab(page,'Security');
+ await openRecovery('Recover or change password');
+ await page.goto('/reset-password',{waitUntil:'domcontentloaded'});await openRecovery('Request a new recovery link');
+ expect(resetRequests).toBe(0);
+});
+
 const validAccount=()=>({profile:{displayName:'Recovered analyst',email:'qa@example.invalid',emailVerified:true},preferences:structuredClone(DEFAULT_PREFERENCES)});
 const malformedAccounts:[string,()=>unknown][]=[
  ['missing profile',()=>({preferences:DEFAULT_PREFERENCES})],

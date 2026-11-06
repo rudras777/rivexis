@@ -10,7 +10,7 @@ The same unchanged five-page regression passed against the isolated compiled Wor
 
 ## Resulting behavior
 
-The existing Worker serves ordinary GET/HEAD /forgot-password from the same compiled, anonymous form captured at build time. Its referenced JavaScript, CSS, logo, background, typography, layout, labels and hydration remain the original source. The login page's recovery link becomes an ordinary same-origin anchor so it requests this document directly, without speculative Flight prefetch or client-router dependence for that link. Other links/navigation remain unchanged.
+The existing Worker serves ordinary GET/HEAD /forgot-password from the same compiled, anonymous form captured at build time. Its referenced JavaScript, CSS, logo, background, typography, layout, labels and hydration remain the original source. Recovery links in login, Settings Security and the password-reset retry page become ordinary same-origin anchors so they request this document directly, without speculative Flight prefetch or client-router dependence for these links. This is full-document navigation out of the workspace; saved account records are unchanged. Other links/navigation remain unchanged.
 
 The form still waits for React Hook Form readiness and submits only to the existing password-reset POST API. No email, recovery token or credential is embedded in the artifact. Verification, delivery, enumeration-safe behavior, session/CSRF controls and server-side authentication remain in the existing API. No recovery request is sent merely by opening this page. Interactive recovery requests must be tested with isolated fixtures; do not send production email without its scoped authorization.
 
