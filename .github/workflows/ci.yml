@@ -67,6 +67,8 @@ jobs:
             printf '%s\n' 'https://security.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-security-mirrors.txt
           fi
       - run: npx playwright install --with-deps chromium
+      - name: Verify compiled anonymous documents with external API forwarding blocked
+        run: npm --workspace @rivexis/web run test:worker-public
       - run: npm run test:e2e
   invariants:
     runs-on: ubuntu-24.04

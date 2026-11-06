@@ -9,6 +9,13 @@ const authRoutes=[
 ];
 
 test.describe("public production regressions",()=>{
+  test.beforeEach(async({baseURL,request})=>{
+    if(baseURL&&new URL(baseURL).hostname==='127.0.0.1'){
+      const response=await request.get('/api/v1/account/settings');
+      expect(response.status()).toBe(503);
+      expect(await response.json()).toEqual({detail:'External API upstream disabled in local E2E'});
+    }
+  });
   test('legacy app entry redirects to the existing canonical workspace without forwarding query inputs',async({request})=>{
     const response=await request.get('/app?view=transactions',{maxRedirects:0});
     expect(response.status()).toBe(307);expect(response.headers().location).toBe('/workspace');
@@ -34,6 +41,33 @@ test.describe("public production regressions",()=>{
       await expect(form).toBeVisible();
       await expect(form).toHaveAttribute("method",/^post$/i);
     }
+  });
+
+  test('compiled recovery document and direct assets retain POST-only hydration and private response headers',async({page,request})=>{
+    test.setTimeout(45000);
+    let expectedHtml:string|undefined;
+    for(const path of ['/forgot-password','/_rivexis-public/recovery.html','/_rivexis-public/recovery']){
+      const response=await request.get(path);
+      expect(response.status(),path).toBe(200);
+      expect(response.headers()['cache-control'],path).toBe('no-store');
+      expect(response.headers()['referrer-policy'],path).toBe('no-referrer');
+      expect(response.headers()['set-cookie'],path).toBeUndefined();
+      const html=await response.text();
+      expect(html).toContain(`name="rivexis-build" content="${process.env.RIVEXIS_EXPECTED_BUILD_SHA}"`);
+      expect(html).toMatch(/<form\b[^>]*\bmethod="post"/i);
+      if(expectedHtml===undefined)expectedHtml=html;else expect(html).toBe(expectedHtml);
+    }
+    const head=await request.head('/forgot-password');
+    expect(head.status()).toBe(200);expect(head.headers()['cache-control']).toBe('no-store');expect(await head.text()).toBe('');
+    await page.goto('/login',{waitUntil:'domcontentloaded'});
+    const [navigation]=await Promise.all([
+      page.waitForResponse(response=>response.request().isNavigationRequest()&&new URL(response.url()).pathname==='/forgot-password'),
+      page.getByRole('link',{name:'Forgot your password?',exact:true}).click(),
+    ]);
+    expect(navigation.status()).toBe(200);expect(navigation.headers()['x-rivexis-document']).toBe('build');
+    await expect(page.getByRole('heading',{name:'Reset password',exact:true})).toBeVisible();
+    await expect(page.getByRole('button',{name:'Send reset link',exact:true})).toBeEnabled();
+    await expect(page.locator('form.form')).toHaveAttribute('method','post');
   });
 
   test("public pages do not overflow a 375px viewport",async({page})=>{

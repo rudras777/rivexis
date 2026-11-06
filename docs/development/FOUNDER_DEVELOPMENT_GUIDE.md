@@ -56,6 +56,8 @@ On Windows use `python` if that is the installed command. Never stage a whole ou
 
 ## Browser and Worker checks
 
+After building the Worker, run `npm --workspace @rivexis/web run test:worker-public` for compiled landing/recovery document acceptance. It requires the generated recovery manifest, starts its own loopback-only server on port3016, refuses to reuse an existing listener and verifies external API forwarding is blocked before browser actions. It sends no real recovery email and stops its owned server afterward. Use the ordinary full suite below for the broader isolated fixtures.
+
 ```sh
 npm run build:web
 npm --workspace @rivexis/web exec -- playwright install chromium
