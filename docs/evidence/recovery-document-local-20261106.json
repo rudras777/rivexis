@@ -1,19 +1,19 @@
 {
   "clientSessionDate": "2026-11-06",
   "scope": "local candidate only; not production acceptance",
-  "applicationSourceCommit": "5b331977341223167ebf144e3c4264e3c94f30da",
+  "applicationSourceCommit": "5223909d15d0d8b0a7eac074c28f96d8cde67d8f",
   "documents": [
     {
       "pathname": "/",
       "asset": "/_rivexis-public/landing.html",
       "bytes": 89422,
-      "sha256": "804b0aa01403b878baf75620f7df9e142d616c25ae4945d9e5b7994a49a59e64"
+      "sha256": "b08f01f51cc7e4b6703adb3fa3f707304dc37dc03b3803ceb5410727bc6a65ea"
     },
     {
       "pathname": "/forgot-password",
       "asset": "/_rivexis-public/recovery.html",
       "bytes": 51193,
-      "sha256": "788d28e8d4b721b63bf723dcabc3cb95d18abbae4013b34d53651b53ecb5ea30"
+      "sha256": "f74587d659514c8091d069b5907fdb6fbf981068d064735b61032c504fb3c810"
     }
   ],
   "routingBefore": {
@@ -27,9 +27,9 @@
     "failed": 0
   },
   "compiledWorkerGate": {
-    "startTime": "2026-11-06T16:01:50.372Z",
-    "duration": 31839.351,
-    "expected": 2,
+    "startTime": "2026-11-06T16:19:24.823Z",
+    "duration": 13327.182,
+    "expected": 3,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
@@ -38,5 +38,19 @@
   "realEmailSent": false,
   "productionChanged": false,
   "newPaidService": false,
-  "priorLiveFailuresPreserved": true
+  "priorLiveFailuresPreserved": true,
+  "priorApplicationSourceCommit": "5b331977341223167ebf144e3c4264e3c94f30da",
+  "recoveryEntryFixture": {
+    "beforeFailed": true,
+    "afterPassed": true,
+    "entries": [
+      "Settings Security",
+      "Password-reset retry"
+    ],
+    "automaticResetRequests": 0,
+    "realAccountUsed": false
+  },
+  "dedicatedWorkspaceOutputDirVerified": true,
+  "temporarySharedOutputDirUsedInitially": true,
+  "sharedOutputDirCleanupAttempted": false
 }

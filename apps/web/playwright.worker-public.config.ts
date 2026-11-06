@@ -8,9 +8,10 @@ if(process.env.RIVEXIS_EXPECTED_BUILD_SHA&&process.env.RIVEXIS_EXPECTED_BUILD_SH
 process.env.RIVEXIS_EXPECTED_BUILD_SHA=manifest.build;
 
 export default {...base,
-  testMatch:['production-public-regressions.spec.ts'],
-  grep:/auth and recovery forms|compiled recovery document/,
+  testMatch:['production-public-regressions.spec.ts','account-settings.spec.ts'],
+  grep:/auth and recovery forms|compiled recovery document|Settings and recovery retry links/,
   workers:1,retries:0,
+  outputDir:'test-results/worker-public',
   reporter:[['list'],['json',{outputFile:'test-results/worker-public-results.json'}]],
   use:{...base.use,baseURL:'http://127.0.0.1:3016'},
   webServer:{
