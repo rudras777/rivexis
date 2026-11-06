@@ -68,6 +68,6 @@ export default function Login(){
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Logging in…":"Log in"}</button>
       </form>
-      <p className="authNote"><Link href="/forgot-password">Forgot your password?</Link> <Link href="/verify-email">Verify an existing account</Link>. Need an account? <Link href={authHref("/signup",destination)}>Create one</Link>.</p>
+      <p className="authNote"><a href="/forgot-password">Forgot your password?</a> <Link href="/verify-email">Verify an existing account</Link>. Need an account? <Link href={authHref("/signup",destination)}>Create one</Link>.</p>
   </AuthFrame>;
 }

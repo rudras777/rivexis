@@ -22,3 +22,22 @@ for(const pathname of ['/api/v1/auth/session-status','/api/v1/account/settings',
 for(const method of ['POST','PUT','PATCH','DELETE','OPTIONS'])test(`${method} stays with the framework and upstream security controls`,async()=>{const assets=harness();assert.equal(await publicDocument(new Request(origin,{method}),assets),null);assert.equal(assets.calls.length,0)});
 for(const status of [404,500])test(`asset ${status} fails closed instead of repeatedly rendering under load`,async()=>{const r=await publicDocument(new Request(origin),harness(status));assert.equal(r.status,503);assert.equal(r.headers.get('cache-control'),'no-store');assert.equal(r.headers.get('set-cookie'),null);assert.equal(r.headers.has('x-rivexis-document'),false)});
 test('asset-provider failure is an honest unavailable response without internal details',async()=>{const r=await publicDocument(new Request(origin),{fetch:async()=>{throw new Error('private diagnostic')}});assert.equal(r.status,503);assert.doesNotMatch(await r.text(),/private diagnostic/)});
+
+for(const method of ['GET','HEAD'])test(`anonymous recovery ${method} uses the compiled form without framework rendering`,async()=>{
+ const assets=harness();const r=await publicDocument(new Request(origin+'/forgot-password',{method}),assets);
+ assert.ok(r);assert.equal(r.status,200);assert.equal(r.headers.get('x-rivexis-document'),'build');assert.equal(r.headers.get('cache-control'),'no-store');assert.equal(r.headers.get('referrer-policy'),'no-referrer');assert.equal(r.headers.get('set-cookie'),null);
+ assert.equal(new URL(assets.calls[0].url).pathname,'/_rivexis-public/recovery.html');assert.equal(assets.calls[0].method,method);assert.equal(await r.text(),method==='HEAD'?'':'<html>BUILD_ONLY</html>');
+});
+test('recovery artifact requests exclude visitor credentials, queries and conditional headers',async()=>{
+ const assets=harness();const r=await publicDocument(new Request(origin+'/forgot-password?next=%2Fworkspace&token=synthetic',{headers:{cookie:'test-only-session',authorization:'Bearer test-only-token','if-none-match':'visitor-etag'}}),assets);
+ assert.ok(r);assert.equal([...assets.calls[0].headers].length,0);assert.equal(new URL(assets.calls[0].url).search,'');
+});
+for(const [label,query,headers] of [['Flight query','?_rsc=example',{}],['RSC header','',{RSC:'1'}],['prefetch','',{'Next-Router-Prefetch':'1'}],['Flight Accept','',{accept:'text/x-component'}]])test(`recovery ${label} still retains the framework protocol`,async()=>{
+ const assets=harness();assert.equal(await publicDocument(new Request(origin+'/forgot-password'+query,{headers}),assets),null);assert.equal(assets.calls.length,0);
+});
+for(const method of ['POST','PUT','DELETE'])test(`recovery ${method} is never served as an anonymous artifact`,async()=>{
+ const assets=harness();assert.equal(await publicDocument(new Request(origin+'/forgot-password',{method}),assets),null);assert.equal(assets.calls.length,0);
+});
+for(const status of [404,500])test(`missing or failed recovery artifact ${status} returns a truthful unavailable result`,async()=>{
+ const r=await publicDocument(new Request(origin+'/forgot-password'),harness(status));assert.ok(r);assert.equal(r.status,503);assert.equal(r.headers.get('cache-control'),'no-store');assert.equal(r.headers.get('referrer-policy'),'no-referrer');assert.equal(r.headers.has('x-rivexis-document'),false);
+});

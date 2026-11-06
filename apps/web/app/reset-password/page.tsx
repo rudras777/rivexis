@@ -72,6 +72,6 @@ export default function ResetPassword(){
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Updating…":"Update password"}</button>
       </form>}
-      <p className="authNote"><Link href="/forgot-password">Request a new recovery link</Link>.</p>
+      <p className="authNote"><a href="/forgot-password">Request a new recovery link</a>.</p>
   </AuthFrame>;
 }

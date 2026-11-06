@@ -56,6 +56,8 @@ On Windows use `python` if that is the installed command. Never stage a whole ou
 
 ## Browser and Worker checks
 
+After building the Worker, run `npm --workspace @rivexis/web run test:worker-public` for compiled recovery-document and account-entry acceptance. It requires the generated recovery manifest, starts its own loopback-only server on port3016, refuses to reuse an existing listener and verifies external API forwarding is blocked before public browser actions. Synthetic Settings/recovery-link fixtures send no real recovery email. The command uses a dedicated workspace output directory and stops its owned server afterward. Use the ordinary full suite below for the broader isolated fixtures.
+
 ```sh
 npm run build:web
 npm --workspace @rivexis/web exec -- playwright install chromium
