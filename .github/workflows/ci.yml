@@ -134,6 +134,7 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -f supabase/migrations/20261009145634_legacy_private_table_rls.sql
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -f supabase/tests/legacy_private_table_rls.sql
       - name: Restore actual CI fixture into a disposable local database
+        timeout-minutes: 8
         env:
           PGPASSWORD: ci_only
           RIVEXIS_BACKUP_SOURCE_DATABASE_URL: postgresql://postgres:ci_only@127.0.0.1:5432/rivexis_ci
@@ -142,12 +143,18 @@ jobs:
         run: |
           if [ ! -x /usr/lib/postgresql/17/bin/pg_dump ]; then
             # Official signed PostgreSQL repository; Ubuntu's default client is 16.
+            # The runner's Azure HTTP mirror can stall before the restore starts.
+            test -f /etc/apt/apt-mirrors.txt
+            printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt
+            if test -f /etc/apt/apt-security-mirrors.txt; then
+              printf '%s\n' 'https://security.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-security-mirrors.txt
+            fi
             . /etc/os-release
             sudo install -d /usr/share/postgresql-common/pgdg
             sudo curl --fail --silent --show-error -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
             printf 'Types: deb\nURIs: https://apt.postgresql.org/pub/repos/apt\nSuites: %s-pgdg\nComponents: main\nSigned-By: /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc\n' "$VERSION_CODENAME" | sudo tee /etc/apt/sources.list.d/rivexis-pgdg.sources >/dev/null
-            sudo apt-get update
-            sudo apt-get install -y postgresql-client-17
+            sudo apt-get -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2 update
+            sudo apt-get -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o Acquire::Retries=2 install -y postgresql-client-17
           fi
           export PATH="/usr/lib/postgresql/17/bin:$PATH"
           pg_dump --version
