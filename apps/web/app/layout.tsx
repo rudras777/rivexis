@@ -24,17 +24,17 @@ export const metadata:Metadata={
   description:"Understand DeFi exposure, stress-test lending positions and compare capital-constrained defensive alternatives with evidence.",
   metadataBase:new URL(canonicalOrigin),
   icons:{
-    icon:[{url:"/brand/rivexis-symbol.svg",type:"image/svg+xml"},{url:"/favicon.ico",type:"image/x-icon"}],
-    apple:[{url:"/brand/apple-touch-icon.png",type:"image/png",sizes:"180x180"}],
+    icon:[{url:"/brand/rivexis-symbol.svg?brand=20261110",type:"image/svg+xml"},{url:"/favicon.ico?brand=20261110",type:"image/x-icon"}],
+    apple:[{url:"/brand/apple-touch-icon.png?brand=20261110",type:"image/png",sizes:"180x180"}],
   },
   openGraph:{
     title:"Rivexis — Evidence before execution",
     description:"Risk · Value · Execution · Analysis for institutional digital-asset decisions.",
     type:"website",
     url:"/",
-    images:[{url:"/brand/rivexis-social.png",width:1200,height:630,alt:"RIVEXIS — Risk. Value. Execution. Analysis."}],
+    images:[{url:"/brand/rivexis-social.png?brand=20261110",width:1200,height:630,alt:"RIVEXIS — Risk. Value. Execution. Analysis."}],
   },
-  twitter:{card:"summary_large_image",title:"Rivexis — Evidence before execution",description:"Risk · Value · Execution · Analysis for institutional digital-asset decisions.",images:["/brand/rivexis-social.png"]},
+  twitter:{card:"summary_large_image",title:"Rivexis — Evidence before execution",description:"Risk · Value · Execution · Analysis for institutional digital-asset decisions.",images:["/brand/rivexis-social.png?brand=20261110"]},
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}){
