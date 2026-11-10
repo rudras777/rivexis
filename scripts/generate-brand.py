@@ -26,23 +26,30 @@ left,x=outline(serif,'RIVE',18,129,.08,14)
 markX=x+2
 right,end=outline(serif,'IS',markX+120+16,129,.08,14)
 width=round(end+4);word=left+right
-# Two crossing ribbons; the separate centre bridge makes the weave legible
-# without bevels, gradients, or raster content. Geometry is hand-authored.
-ribbons=['M8 4H36L72 45Q88 63 72 82L38 122H8L51 73Q60 63 51 53Z',
-         'M84 4H112L69 53Q60 63 69 73L112 122H84L48 82Q32 63 48 45Z']
-bridge='M54 42C39 54 45 66 57 75C65 81 65 86 57 93L65 93C79 81 69 69 61 63C53 57 53 51 62 42Z'
+# Vector reconstruction of the owner-supplied 10_X_Mark_Only.png (10 November).
+# Flared terminals and two curved, interwoven ribbons; coordinates use a 128-unit
+# master, preserving the site's existing type outlines and teal/ivory palette.
+ribbons=[
+ 'M5 19C27 8 45 18 59 36L94 84C104 98 113 108 121 114C99 125 81 114 71 101L36 55C25 41 16 27 5 19Z',
+ 'M121 19C99 17 82 34 66 50L53 63C46 70 50 76 59 83L50 92C38 83 35 75 39 66C42 59 48 53 54 46L70 30C86 14 102 8 121 19Z',
+ 'M5 114C28 118 48 91 66 72C71 67 72 64 67 59L59 51L68 42L79 56C87 65 84 73 76 82L54 104C40 118 23 123 5 114Z'
+]
+bridge='M5 19C27 13 41 25 54 42L45 52C31 34 19 24 5 19ZM76 82C90 101 105 113 121 114C102 118 88 109 71 90Z'
 _,tagwidth=outline(sans,'RISK. VALUE. EXECUTION. ANALYSIS.',0,0,.016,2.0)
 tag,_=outline(sans,'RISK. VALUE. EXECUTION. ANALYSIS.',(width-tagwidth)/2,181,.016,2.0)
 out=root/'apps/web/public/brand';out.mkdir(parents=True,exist_ok=True)
 def content(ink,accent,lockup=False):
-    return f'<path fill="{ink}" d="{word}"/><g transform="translate({markX} 4)"><path fill="{accent}" d="{ribbons[0]}"/><path fill="{accent}" d="{ribbons[1]}"/><path fill="{ink}" d="{bridge}"/></g>'+ (f'<path fill="{ink}" opacity=".82" d="{tag}"/>' if lockup else '')
+    return f'<path fill="{ink}" d="{word}"/>'+mark(ink,accent,f'translate({markX} 4)')+ (f'<path fill="{ink}" opacity=".82" d="{tag}"/>' if lockup else '')
+
+def mark(ink,accent,transform):
+    return f'<g transform="{transform}"><defs><linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="1"><stop stop-color="{accent}"/><stop offset=".5" stop-color="{ink}"/><stop offset="1" stop-color="{accent}"/></linearGradient><linearGradient id="weave" x1="0" y1="1" x2="1" y2="0"><stop stop-color="{accent}"/><stop offset=".45" stop-color="{ink}"/><stop offset=".75" stop-color="{ink}"/><stop offset="1" stop-color="{accent}"/></linearGradient></defs><path fill="{accent}" d="{ribbons[0]}"/><path fill="url(#ribbon)" d="{ribbons[1]}"/><path fill="url(#weave)" d="{ribbons[2]}"/><path fill="{ink}" opacity=".22" d="{bridge}"/></g>'
 def svg(body,w=width,h=146):return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" role="img" aria-label="RIVEXIS">{body}</svg>'
 for variant,ink,accent in [('dark','#E9EBE7','#80AAA1'),('light','#202B2D','#326C6A'),('ivory','#E9EBE7','#E9EBE7'),('graphite','#202B2D','#202B2D')]:
     for lockup in [False,True]:
         name='lockup' if lockup else 'wordmark'
         (out/f'rivexis-{name}-{variant}.svg').write_text(svg(content(ink,accent,lockup),h=203 if lockup else 146),encoding='utf-8')
 # Symbol-only exports have enough negative space to survive 16px rendering.
-icon=f'<g transform="translate(20 17)"><path fill="#80AAA1" d="{ribbons[0]}"/><path fill="#80AAA1" d="{ribbons[1]}"/><path fill="#E9EBE7" d="{bridge}"/></g>'
+icon=mark('#E9EBE7','#80AAA1','translate(17 15)')
 (out/'rivexis-symbol.svg').write_text(svg('<rect width="160" height="160" rx="28" fill="#141B1D"/>'+icon,160,160),encoding='utf-8')
 (out/'rivexis-symbol-transparent.svg').write_text(svg(icon,160,160),encoding='utf-8')
 (out/'rivexis-compact.svg').write_text(svg(icon,160,160),encoding='utf-8')
@@ -59,6 +66,6 @@ class PdfPen(BasePen):
     def _endPath(self):pass
 def pdf_path(path):
     pen=PdfPen();parse_path(path,pen);return '\n'.join(pen.commands)+'\nf'
-pdf='q\n0.21 0 0 -0.21 72 768 cm\n0.12549 0.16863 0.17647 rg\n'+pdf_path(word)+'\nq\n1 0 0 1 '+str(markX)+' 4 cm\n0.19608 0.42353 0.41569 rg\n'+pdf_path(''.join(ribbons))+'\n0.12549 0.16863 0.17647 rg\n'+pdf_path(bridge)+'\nQ\n'+pdf_path(tag)+'\nQ'
+pdf='q\n0.21 0 0 -0.21 72 768 cm\n0.12549 0.16863 0.17647 rg\n'+pdf_path(word)+'\nq\n1 0 0 1 '+str(markX)+' 4 cm\n0.19608 0.42353 0.41569 rg\n'+pdf_path(ribbons[0])+'\n0.12549 0.16863 0.17647 rg\n'+pdf_path(ribbons[1])+'\n0.50196 0.66667 0.63137 rg\n'+pdf_path(ribbons[2])+'\nQ\n'+pdf_path(tag)+'\nQ'
 (root/'supabase/functions/rivexis-api/brand.mjs').write_text('// Generated from the same vector master as Brand.tsx. No remote assets or fonts.\nexport const BRAND_REPORT_SVG='+json.dumps(svg(content('#202B2D','#326C6A',True),h=203))+';\nexport const BRAND_PDF_HEADER='+json.dumps(pdf)+';\n',encoding='utf-8')
 print(f'Generated vector masters: {width} x 146; outlined lockup {width} x 203.')
