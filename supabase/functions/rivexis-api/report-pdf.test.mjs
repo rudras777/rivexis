@@ -1,11 +1,16 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {brandedPdf} from './report-pdf.mjs';
-test('vector report header preserves byte-exact PDF structure and escapes financial text',()=>{
+test('original artwork and outlined report type preserve byte-exact PDF structure and financial text escaping',()=>{
   const bytes=brandedPdf('RIVEXIS evidence',['Collateral (USD): $30,000','Source: a\\b','Unicode: →']);
   const pdf=new TextDecoder().decode(bytes);
   assert.ok(pdf.startsWith('%PDF-1.4'));
-  assert.ok(!pdf.includes('/Subtype /Image'));
+  assert.equal((pdf.match(/\/Subtype \/Image/g)||[]).length,1);
+  assert.ok(pdf.includes('/RvxX 6 0 R'));
+  assert.ok(pdf.includes('/Filter [/ASCIIHexDecode /DCTDecode]'));
+  const image=pdf.match(/\/DCTDecode\] \/Length (\d+) >> stream\n([a-f0-9]+)>\nendstream/);
+  assert.ok(image);assert.equal(image[2].length+1,Number(image[1]));
+  assert.ok(image[2].startsWith('ffd8'));assert.ok(image[2].endsWith('ffd9'));
   assert.ok(pdf.includes('0.21 0 0 -0.21 72 768 cm'));
   assert.ok(pdf.includes('(Collateral \\(USD\\): $30,000) Tj'));
   assert.ok(pdf.includes('(Source: a\\\\b) Tj'));
