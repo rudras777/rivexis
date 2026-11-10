@@ -3,6 +3,7 @@ const DECISION_REPORT_API_URL="https://ivszvufdonfgwjpfgwii.supabase.co/function
 const ALERTS_API_URL="https://ivszvufdonfgwjpfgwii.supabase.co/functions/v1/rivexis-alerts";
 const WRITE_METHODS=new Set(["POST","PUT","PATCH","DELETE"]);
 const MAX_REQUEST_BYTES=128*1024;
+const REQUEST_BODY_DEADLINE_MS=10000;
 
 function rejection(status:number,detail:string){
   return Response.json({detail},{status,headers:{"cache-control":"no-store"}});
@@ -20,19 +21,32 @@ function writeOriginAllowed(request:Request){
 async function boundedBody(request:Request):Promise<Uint8Array<ArrayBuffer>|Response|undefined>{
   const declared=request.headers.get("content-length");
   if(declared!==null&&(!/^\d+$/.test(declared)||Number(declared)>MAX_REQUEST_BYTES))return rejection(413,"Request body exceeds the supported size");
+  if(request.signal.aborted)return rejection(408,"Request body was not completed. No upstream request was sent.");
   if(!request.body)return undefined;
   const reader=request.body.getReader(),chunks:Uint8Array[]=[];
   let bytes=0;
+  // Bound the entire upload, not each chunk. This runs before upstream dispatch;
+  // it does not cancel or replay a financial operation with an unknown outcome.
+  let interrupt:(response:Response)=>void=()=>{};
+  const interrupted=new Promise<Response>(resolve=>{interrupt=resolve});
+  const stop=()=>{
+    interrupt(rejection(408,"Request body was not completed. No upstream request was sent."));
+    void reader.cancel().catch(()=>{});
+  };
+  const deadline=setTimeout(stop,REQUEST_BODY_DEADLINE_MS);
+  request.signal.addEventListener("abort",stop,{once:true});
   try{
     while(true){
-      const {done,value}=await reader.read();
+      const next=await Promise.race([reader.read(),interrupted]);
+      if(next instanceof Response)return next;
+      const {done,value}=next;
       if(done)break;
       bytes+=value.byteLength;
       if(bytes>MAX_REQUEST_BYTES){void reader.cancel().catch(()=>{});return rejection(413,"Request body exceeds the supported size")}
       chunks.push(value);
     }
   }catch{return rejection(400,"Request body could not be read")}
-  finally{reader.releaseLock()}
+  finally{clearTimeout(deadline);request.signal.removeEventListener("abort",stop);reader.releaseLock()}
   const body=new Uint8Array(bytes);let offset=0;
   for(const chunk of chunks){body.set(chunk,offset);offset+=chunk.byteLength}
   return body;

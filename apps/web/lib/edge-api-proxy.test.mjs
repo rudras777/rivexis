@@ -4,6 +4,47 @@ import {proxyEdgeApi} from './edge-api-proxy.ts';
 
 const origin='https://rivexis-web.rudrasingh0718.workers.dev';
 const realFetch=globalThis.fetch;
+for(const partial of [false,true])test(`stalled ${partial?'partial':'empty'} body expires before upstream dispatch`,{timeout:1000},async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const calls=harness();let cancelled=false;
+ const body=new ReadableStream({start(c){if(partial)c.enqueue(new TextEncoder().encode('{'))},cancel(){cancelled=true}});
+ const pending=proxyEdgeApi(request({body}),'/api/v1/account/settings');
+ await Promise.resolve();await Promise.resolve();
+ t.mock.timers.tick(9999);assert.equal(calls.length,0);
+ t.mock.timers.tick(1);
+ const result=await pending;
+ assert.equal(result.status,408);assert.equal(calls.length,0);assert.equal(cancelled,true);
+ assert.equal(result.headers.get('cache-control'),'no-store');
+});
+test('receiving another chunk does not renew the total upload deadline',{timeout:1000},async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const calls=harness();let source,cancelled=false;
+ const body=new ReadableStream({start(c){source=c;c.enqueue(new TextEncoder().encode('{'))},cancel(){cancelled=true}});
+ const pending=proxyEdgeApi(request({body}),'/api/v1/account/settings');
+ await Promise.resolve();await Promise.resolve();t.mock.timers.tick(9000);
+ source.enqueue(new TextEncoder().encode('"x":'));await Promise.resolve();await Promise.resolve();
+ t.mock.timers.tick(1000);
+ assert.equal((await pending).status,408);assert.equal(calls.length,0);assert.equal(cancelled,true);
+});
+for(const early of [false,true])test(`${early?'already':'subsequently'} aborted upload never reaches upstream`,async()=>{
+ const calls=harness(),controller=new AbortController();let cancelled=false;
+ const body=new ReadableStream({cancel(){cancelled=true}});
+ const req=new Request(origin+'/api/v1/account/settings',{method:'POST',body,duplex:'half',signal:controller.signal});
+ if(early)controller.abort();
+ const pending=proxyEdgeApi(req,'/api/v1/account/settings');
+ if(!early)controller.abort();
+ assert.equal((await pending).status,408);assert.equal(calls.length,0);
+ if(!early)assert.equal(cancelled,true);
+});
+test('completed upload removes its deadline and abort listener',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const calls=harness(),controller=new AbortController();let cancelled=false;
+ const body=new ReadableStream({start(c){c.enqueue(new TextEncoder().encode('{}'));c.close()},cancel(){cancelled=true}});
+ const req=new Request(origin+'/api/v1/account/settings',{method:'POST',body,duplex:'half',signal:controller.signal});
+ assert.equal((await proxyEdgeApi(req,'/api/v1/account/settings')).status,200);
+ t.mock.timers.tick(10000);controller.abort();await Promise.resolve();
+ assert.equal(cancelled,false);assert.equal(calls.length,1);assert.equal(new TextDecoder().decode(calls[0].init.body),'{}');
+});
 afterEach(()=>{globalThis.fetch=realFetch;delete process.env.RIVEXIS_E2E_BLOCK_EXTERNAL_UPSTREAM});
 function harness(){
  const calls=[];
@@ -66,7 +107,9 @@ test('declared oversized body is refused without forwarding',async()=>{
 });
 test('streamed size is enforced when Content-Length is absent',async()=>{
  const calls=harness();let cancelled=false;let chunks=0;
- const body=new ReadableStream({pull(c){if(chunks++<3)c.enqueue(new Uint8Array(65536));else c.close()},cancel(){cancelled=true}});
+ // Keep the oversized source open so cancellation is observable independently
+ // of stream prefetch/microtask ordering.
+ const body=new ReadableStream({pull(c){if(chunks++<3)c.enqueue(new Uint8Array(65536))},cancel(){cancelled=true}});
  const result=await proxyEdgeApi(request({body}),'/api/v1/auth/web/signup');assert.equal(result.status,413);assert.equal(calls.length,0);assert.equal(cancelled,true);
 });
 test('understated Content-Length cannot bypass the streamed byte limit',async()=>{

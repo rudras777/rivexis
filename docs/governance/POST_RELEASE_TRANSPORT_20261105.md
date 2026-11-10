@@ -1,5 +1,7 @@
 # Post-release transport checkpoint — 5 November 2026
 
+**10 November request-body hardening candidate:** A separate reproduced gap allowed an unfinished inbound API body to wait indefinitely. The proxy now bounds the entire upload to 10 seconds, cancels its reader and returns sanitized 408 before upstream dispatch. Abort signals stop uploads; completion removes its timer/listener. All 39 proxy tests pass, including six new deadline/cancellation cases; the two stalled-body cases first timed out against the old code. Existing origin/auth/size/no-replay behavior remains. Protected release is pending. This is not an upstream financial-operation timeout and does not establish the cause or resolution of the historical provider/framework failures below. PR132 separately passed 38 live checks per host on 10 November, without retries; no sustained uptime guarantee is inferred.
+
 **Partially complete. Preserve the failed live checks; do not claim universal launch or institutional readiness.** Deployed main is PR129 / `60c00fa9a805751c59f4d4e8ef61378c6ce14d7f`, existing Worker `4717400b-85a5-4495-9f72-fb7226494bda` at 100%, deployment `f2eba06c-3596-485f-bfa2-4c4869ca0fcf`, native build `55758239-c46c-4693-88f5-40cb8937d89b`. API40 remains unchanged. This diagnostic branch changes documentation only and is not a production fix.
 
 ## Completed release and recovery
