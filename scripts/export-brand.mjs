@@ -1,10 +1,26 @@
-// Preserve the supplied PNG byte-for-byte; icons/print are sized exports.
+// Preserve the supplied PNG and its geometry; apply the approved website tones.
 import sharp from 'sharp';
 import {fileURLToPath} from 'node:url';
-import {readFile,writeFile} from 'node:fs/promises';
+import {readFile,writeFile,readdir} from 'node:fs/promises';
 const root=new URL('../apps/web/public/brand/',import.meta.url);
 const read=name=>readFile(new URL(name,root));
 const original=await read('rivexis-x-original.png');
+const {width:artWidth,height:artHeight}=await sharp(original).metadata();
+// Map navy/blue into graphite/teal and silver highlights into ivory in sRGB.
+// The alpha row is identity: no tracing, blur, reshaping or new highlights.
+const matrix='0.3588235294 0.3588235294 0.1176470588 0 0.0784313725 0.2490196078 0.2490196078 0.3176470588 0 0.1058823529 0.2450980392 0.2450980392 0.3019607843 0 0.1137254902 0 0 0 1 0';
+const treatment=`<svg xmlns="http://www.w3.org/2000/svg" width="${artWidth}" height="${artHeight}"><defs><filter id="tone" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="${matrix}"/></filter></defs><image width="${artWidth}" height="${artHeight}" filter="url(#tone)" href="data:image/png;base64,${original.toString('base64')}"/></svg>`;
+const toned=await sharp(Buffer.from(treatment)).png().toBuffer();
+const inputPixels=await sharp(original).ensureAlpha().raw().toBuffer();
+const outputPixels=await sharp(toned).ensureAlpha().raw().toBuffer();
+if(inputPixels.length!==outputPixels.length)throw new Error('Logo dimensions changed');
+for(let i=3;i<inputPixels.length;i+=4)if(inputPixels[i]!==outputPixels[i])throw new Error('Logo alpha/outline changed');
+await writeFile(new URL('rivexis-x-teal.png',root),toned);
+for(const name of (await readdir(root)).filter(name=>name.endsWith('.svg'))){
+ const svg=(await read(name)).toString();
+ if(!svg.includes('href="data:image/png;base64,'))throw new Error('Missing original image in '+name);
+ await writeFile(new URL(name,root),svg.replace(/href="data:image\/png;base64,[^"]+"/g,'href="data:image/png;base64,'+toned.toString('base64')+'"'));
+}
 for(const [source,target,width] of [
  ['rivexis-wordmark-dark.svg','rivexis-wordmark.png',4096],
  ['rivexis-wordmark-light.svg','rivexis-wordmark-light.png',4096],
@@ -27,10 +43,14 @@ const share=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" v
 await writeFile(new URL('rivexis-social.svg',root),share);await sharp(Buffer.from(share)).png().toFile(fileURLToPath(new URL('rivexis-social.png',root)));
 // Reports use an appropriately sized embedded copy instead of carrying a
 // megabyte-scale original in every HTML response. The supplied geometry stays.
-const reportArt=await sharp(original).resize(320,320).png().toBuffer();
-const printArt=await sharp(original).resize(512,512).flatten({background:'#ffffff'}).jpeg({quality:100,chromaSubsampling:'4:4:4'}).toBuffer();
+const reportArt=await sharp(toned).resize(320,320).png().toBuffer();
+const printArt=await sharp(toned).resize(512,512).flatten({background:'#ffffff'}).jpeg({quality:100,chromaSubsampling:'4:4:4'}).toBuffer();
 const brandFile=new URL('../supabase/functions/rivexis-api/brand.mjs',import.meta.url);
-let brand=(await readFile(brandFile,'utf8')).replace('data:image/png;base64,'+original.toString('base64'),'data:image/png;base64,'+reportArt.toString('base64')).replace(/^export const BRAND_PDF_X_HEX=.*;\r?\n?/m,'');
+let brand=await readFile(brandFile,'utf8');
+const reportLine=brand.match(/^export const BRAND_REPORT_SVG=(.*);$/m);
+if(!reportLine)throw new Error('Generated report identity missing');
+const reportSvg=JSON.parse(reportLine[1]).replace(/href="data:image\/png;base64,[^"]+"/g,'href="data:image/png;base64,'+reportArt.toString('base64')+'"');
+brand=brand.replace(reportLine[0],'export const BRAND_REPORT_SVG='+JSON.stringify(reportSvg)+';').replace(/^export const BRAND_PDF_X_HEX=.*;\r?\n?/m,'');
 brand+='export const BRAND_PDF_X_HEX='+JSON.stringify(printArt.toString('hex'))+';\n';
 await writeFile(brandFile,brand);
-console.log('Original PNG preserved; high-resolution wordmarks, icons and embedded print artwork exported.');
+console.log('Website tones exported with identical source alpha/outline; original PNG preserved.');
