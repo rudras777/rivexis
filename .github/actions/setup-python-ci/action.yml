@@ -13,7 +13,8 @@ runs:
         echo "$RUNNER_TEMP/rivexis-api-venv/bin" >> "$GITHUB_PATH"
     - name: Install only reviewed wheels
       shell: bash
-      run: python -m pip install --index-url https://pypi.org/simple --require-hashes --force-reinstall --only-binary=:all: -r apps/api/requirements-ci-py313-linux.txt
+      run: |
+        python -m pip install --index-url https://pypi.org/simple --require-hashes --force-reinstall --only-binary=:all: -r apps/api/requirements-ci-py313-linux.txt
     - name: Install the checked-out project without resolving new dependencies
       shell: bash
       run: |
