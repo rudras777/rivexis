@@ -45,7 +45,7 @@ def verify(register: dict, root: Path = ROOT) -> dict[str, str]:
         path = root / name
         if not path.resolve().is_relative_to(root.resolve()):
             raise ValueError("Public source resolves outside repository")
-        text = path.read_text(encoding="utf-8")
+        text = path.read_bytes().decode("utf-8")
         if source_digest(text) != entry["normalizedSha256"]:
             raise ValueError(f"Public source changed; fresh comparison required: {name}")
         sources[name] = text

@@ -36,6 +36,10 @@ class MigrationProvenanceTests(unittest.TestCase):
         self.assertEqual(normalized_source(" \t\r\nSELECT 1;\r\n"), "SELECT 1;")
         self.assertNotEqual(source_digest("SELECT 'a b';"), source_digest("SELECT 'ab';"))
         self.assertNotEqual(source_digest("-- review\nSELECT 1;"), source_digest("SELECT 1;"))
+        self.assertNotEqual(source_digest("SELECT\r1;"), source_digest("SELECT\n1;"))
+        (self.root / self.file).write_bytes(b"SELECT\r'quoted value';\n")
+        with self.assertRaisesRegex(ValueError, "fresh comparison"):
+            verify(self.register, self.root)
 
     def test_modified_source_fails_closed(self):
         (self.root / self.file).write_text("SELECT 2;", encoding="utf-8")
@@ -91,6 +95,10 @@ class MigrationProvenanceTests(unittest.TestCase):
         self.assertIn("ARRAY[]::text[]", query)
         self.assertNotIn('pg_read_file', query)
         self.assertNotIn('SELECT m.statements', query)
+        text = "SELECT E'back\\\\slash'; -- 'quoted'\n"
+        (self.root / self.file).write_bytes(text.encode())
+        self.register['sourceComparison']['sources'][0]['normalizedSha256'] = source_digest(text)
+        self.assertIn("E'SELECT E''back\\\\\\\\slash''; -- ''quoted''", comparison_query(self.register, self.root))
 
     def test_sensitive_exclusion_is_explicit_and_invalid_ledger_rejected(self):
         self.register['migrations'].append({'version': '20260922162311', 'name': 'sensitive', 'statement_count': 1, 'requires_sensitive_statement_review': True})
