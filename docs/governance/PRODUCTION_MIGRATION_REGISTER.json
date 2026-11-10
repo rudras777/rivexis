@@ -7,22 +7,22 @@
     {
       "file": "supabase/migrations/20261004123915_optimize_organization_rls_bootstrap.sql",
       "productionVersion": "20261004123915",
-      "contentParity": "not yet certified"
+      "contentParity": "Verified 2026-11-11 after explicit line-ending/outer-whitespace normalization; original timestamps preserved"
     },
     {
       "file": "supabase/migrations/20261004125946_support_authenticated_fastapi_organization_bootstrap.sql",
       "productionVersion": "20261004125946",
-      "contentParity": "not yet certified"
+      "contentParity": "Verified 2026-11-11 after explicit line-ending/outer-whitespace normalization; original timestamps preserved"
     },
     {
       "file": "supabase/migrations/20261009133430_defi_beta_budget.sql",
       "productionVersion": "20261009135602",
-      "contentParity": "not yet certified; timestamp differs"
+      "contentParity": "Verified 2026-11-11 after explicit line-ending/outer-whitespace normalization; original timestamps preserved"
     },
     {
       "file": "supabase/migrations/20261009145634_legacy_private_table_rls.sql",
       "productionVersion": "20261009150456",
-      "contentParity": "not yet certified; timestamp differs"
+      "contentParity": "Verified 2026-11-11 after explicit line-ending/outer-whitespace normalization; original timestamps preserved"
     }
   ],
   "migrations": [
@@ -362,5 +362,232 @@
       "statement_digest": "b96c366dd2e99ccef203f9e3342c2aaf",
       "requires_sensitive_statement_review": false
     }
-  ]
+  ],
+  "sourceComparison": {
+    "checkedAt": "2026-11-11",
+    "method": "Read-only server-side comparison; no historical SQL or user rows returned",
+    "normalization": "CRLF to LF; trim outer space, tab, CR and LF only",
+    "sensitiveVersionsExcluded": [
+      "20260922162311"
+    ],
+    "matchedProductionEntries": 12,
+    "unreconciledProductionEntries": 36,
+    "sources": [
+      {
+        "file": "infrastructure/supabase/001_lock_down_public_defaults.sql",
+        "normalizedSha256": "c96d4a230ab2a80fc6591c861fa1973a1acf9430fae436ec2b59011c0f648500",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/002_remove_residual_public_grants.sql",
+        "normalizedSha256": "c5b5c0a47c031f4721fa85ecbd3198a2dd2d12f3d62e7b996f8b9718d5bb3182",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/003_create_app_role.sql",
+        "normalizedSha256": "8092f96611906ae3e150534b0cf09a0f1af73001f4d2f097ffc5fe8b14e64b9a",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/004_grant_operational_tables.sql",
+        "normalizedSha256": "cef5d4ec3b25a57082b8a66001093cab6cac913b6d2ccd0209567fa7079496e9",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/005_create_migrator_role.sql",
+        "normalizedSha256": "191f8b16537afe46ec9bfaac04425d921a78300f07d813ea8a58cd74f387d85e",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/006_create_edge_runtime_bridge.sql",
+        "normalizedSha256": "db848657ae563616ad86e4a1f119fd51ed66e379a8bdfeb9688ff8498e65403c",
+        "exactMatches": [
+          {
+            "name": "allow_secure_organization_bootstrap",
+            "version": "20260927224426",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "infrastructure/supabase/007_saved_analysis_actions.sql",
+        "normalizedSha256": "4fefb679888784dd5ef70630b697fab44f8af38472747d784537ea399ff9f7e3",
+        "exactMatches": [
+          {
+            "name": "edge_saved_analysis_actions_v3",
+            "version": "20260928122336",
+            "statement_count": 1
+          },
+          {
+            "name": "add_saved_analysis_actions",
+            "version": "20260928122401",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "infrastructure/supabase/008_organization_membership_actions.sql",
+        "normalizedSha256": "444cc92391cf7a78e7784606b725628176c957d34dbea33c0b7c33d5374db082",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/009_fix_membership_claim_visibility.sql",
+        "normalizedSha256": "e50d8c3891977b50102731751bed79bd545afb6d3fd4580bbe795db036af0d9d",
+        "exactMatches": [
+          {
+            "name": "fix_membership_claim_visibility",
+            "version": "20260928140244",
+            "statement_count": 1
+          },
+          {
+            "name": "fix_membership_claim_visibility",
+            "version": "20260928140343",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "infrastructure/supabase/010_edge_decision_reports.sql",
+        "normalizedSha256": "1dee1494dba3495d3fe9282e2fe344c8570c5836ffdfe81dbc9592c82c3daacc",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/011_edge_alert_lifecycle.sql",
+        "normalizedSha256": "97f4f21659fba9b1228aa8e82e94a3b583502f7aaf2b552b91b10d0fde3bcc50",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/012_edge_monitor_alert_creation.sql",
+        "normalizedSha256": "f7c123b3440e9b2083f2b992c63b8196692012ef9db315cb31702e8b8dded684",
+        "exactMatches": [
+          {
+            "name": "edge_monitor_alert_creation",
+            "version": "20260928160516",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "infrastructure/supabase/013_edge_alert_delivery_scheduler.sql",
+        "normalizedSha256": "c5fd0051aecdcb0f080c371519fe5f62b142731d77ea6ac216b418e1000af536",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/014_alert_dispatcher_extensions_usage.sql",
+        "normalizedSha256": "0da26c662c966337fa2956f65f19d8f706e4ac70dc6e458919f2794a1c65b2bb",
+        "exactMatches": [
+          {
+            "name": "alert_dispatcher_extensions_usage",
+            "version": "20260928170816",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "infrastructure/supabase/015_alert_dispatcher_object_grants.sql",
+        "normalizedSha256": "5e5077acd569b1cc52b790148e749c0878b75c531f1c6c50081e8932244f86fe",
+        "exactMatches": [
+          {
+            "name": "alert_dispatcher_object_grants",
+            "version": "20260928171159",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "infrastructure/supabase/016_restrict_alert_requeue.sql",
+        "normalizedSha256": "488e9f5268080338f7636b54405c538885c2157a0719679c346d6e55f0dc9e51",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/017_alert_dispatch_org_owner_recipient.sql",
+        "normalizedSha256": "314c1849828211971b95c2d23a81acc5b91a6a7bd56e05824bfc795074d99a05",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/018_edge_org_workspace_create.sql",
+        "normalizedSha256": "c92e8bb665406afd7c1233d4fc05ea73b57b67b8c125475abb3af1219dfa5f8a",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/019_fix_org_workspace_membership_rls_context.sql",
+        "normalizedSha256": "ac6d7b238f78f24062e153841d9a6a42a185989cd2292fb441679fe22a1b73f7",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/020_alert_dispatch_org_workspace_grants.sql",
+        "normalizedSha256": "afdbb9f551f1881b15489a2e52de8788351133b24f625492bd32803e2bdbb50d",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/021_lock_org_workspace_rpc_execution.sql",
+        "normalizedSha256": "4ee4c90d48dacafa3e6fa779bb5da12f708aae9b25b6e3a173ea9c9587c2a9fe",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/022_explicit_deny_alert_delivery_runtime_rls.sql",
+        "normalizedSha256": "8b78982226b066ec528227f8d1136205695868bd409efabae9d193d663d1e6de",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/023_remove_unused_app_delete_privileges.sql",
+        "normalizedSha256": "f667e175d249e8e08d9911755034582daaaae35b98d1fdace42083ca7cd02349",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/024_make_audit_and_provider_telemetry_append_only.sql",
+        "normalizedSha256": "0f8dc38b9f46c7e82a098fadae6b54079ace97db06d28a2808a351451c36609e",
+        "exactMatches": []
+      },
+      {
+        "file": "infrastructure/supabase/025_remove_unsupported_tenant_deletes.sql",
+        "normalizedSha256": "b2f83ec3b7d425b1f0e8dd8365b08deaae5c4bd84dbc3fa2c1052783e2a267cd",
+        "exactMatches": []
+      },
+      {
+        "file": "supabase/migrations/20261004123915_optimize_organization_rls_bootstrap.sql",
+        "normalizedSha256": "cfa0fcf3a073758fdae512a4351431a0deaacc111abda17b782f7128fd09fb08",
+        "exactMatches": [
+          {
+            "name": "optimize_organization_rls_bootstrap",
+            "version": "20261004123915",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "supabase/migrations/20261004125946_support_authenticated_fastapi_organization_bootstrap.sql",
+        "normalizedSha256": "5a80a44e40191417a36da7f24f3fc15408b36075b72034cc20f012d25605d4d8",
+        "exactMatches": [
+          {
+            "name": "support_authenticated_fastapi_organization_bootstrap",
+            "version": "20261004125946",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "supabase/migrations/20261009133430_defi_beta_budget.sql",
+        "normalizedSha256": "f042375667851af0f2446dd832271919f3611209a39f4cb2c8b3f6fdc94cb4f7",
+        "exactMatches": [
+          {
+            "name": "defi_beta_budget",
+            "version": "20261009135602",
+            "statement_count": 1
+          }
+        ]
+      },
+      {
+        "file": "supabase/migrations/20261009145634_legacy_private_table_rls.sql",
+        "normalizedSha256": "abaa1325312addd9bac07a926c7880182295015a0bc526f5c1db418535c63b88",
+        "exactMatches": [
+          {
+            "name": "legacy_private_table_rls",
+            "version": "20261009150456",
+            "statement_count": 1
+          }
+        ]
+      }
+    ]
+  }
 }

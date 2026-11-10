@@ -16,6 +16,8 @@ There are 48 observed entries in `supabase_migrations.schema_migrations`, four t
 
 Two tracked October SQL filenames have different timestamps from their production ledger entries. Preserve both truthful identities; do not rename historical applied migrations or mark unexecuted versions applied. The governance evidence contains names, statement counts and digests only. One historical migration requires sensitive-statement review; do not export its SQL into this public repository.
 
+On 11 November, read-only server-side comparisons verified all four timestamped files and six retained infrastructure files against twelve production entries. Only CRLF/LF and outer space/tab/CR/LF are normalized; comments, internal whitespace and SQL tokens remain significant. The two timestamp aliases are now content-verified, without changing either identity. Thirty-six production entries remain unreconciled, including one sensitive entry excluded from comparison. Nineteen other retained infrastructure files have no full-text match under this strict comparison; this alone does not establish a behavioral difference. [Method, coverage and reproducible check](docs/governance/MIGRATION_PROVENANCE_20261111.md).
+
 Existing PostgreSQL CI validates the Alembic schema, runtime controls, private legacy-table RLS and a disposable fixture restore. It does not certify replay of all 48 Supabase migrations or all managed Auth/storage configuration. Historical restore evidence is dated in [the recovery drill](docs/FRESH_RECOVERY_DRILL_20261020.md).
 
 ## Making a database change
