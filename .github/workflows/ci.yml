@@ -13,10 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with: {python-version: '3.13'}
-      - run: python -m pip install --upgrade pip setuptools
-      - run: cd apps/api && pip install -e '.[dev,full]'
+      - uses: ./.github/actions/setup-python-ci
       - run: cd apps/api && ruff check rivexis_api tests
       - run: cd apps/api && pytest -q
       - run: cd apps/api && pip-audit --skip-editable
@@ -43,7 +40,7 @@ jobs:
       - run: node --test apps/web/scripts/check-deploy-env.test.mjs
       - run: node --test scripts/npm-audit-ci.test.mjs
       - run: npm run typecheck:api-edge
-      - run: npx --yes deno@2.9.6 check --config supabase/functions/rivexis-api/deno.json supabase/functions/rivexis-api/index.ts supabase/functions/rivexis-decision-reports/index.ts supabase/functions/rivexis-alerts/index.ts supabase/functions/rivexis-alert-dispatch/index.ts supabase/functions/rivexis-cloudflare-recovery-relay/index.ts
+      - run: npx --yes deno@2.9.6 check --frozen-lockfile --config supabase/functions/rivexis-api/deno.json supabase/functions/rivexis-api/index.ts supabase/functions/rivexis-decision-reports/index.ts supabase/functions/rivexis-alerts/index.ts supabase/functions/rivexis-alert-dispatch/index.ts supabase/functions/rivexis-cloudflare-recovery-relay/index.ts
       - name: Generate the complete Deno lock inventory
         run: python3 scripts/release_dependency_inventory.py deno > "$RUNNER_TEMP/rivexis-deno-inventory.json"
       - name: Preserve the Deno release inventory
@@ -95,14 +92,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with: {python-version: '3.13'}
-      - run: python -m pip install -e './apps/api'
+      - uses: ./.github/actions/setup-python-ci
       - run: python scripts/check_invariants.py
       - run: python scripts/check_migrations.py
       - run: python scripts/secret_scan.py
       - run: python -m unittest scripts.test_secret_scan
       - run: python -m unittest scripts.test_release_dependency_inventory
+      - run: python -m unittest scripts.test_python_ci_lock
       - name: Reject unsafe database restore destinations
         run: python -m unittest discover -s scripts -p test_backup_restore_guard.py
   postgres-migrations:
@@ -122,9 +118,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: {persist-credentials: false}
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with: {python-version: '3.13'}
-      - run: python -m pip install -e './apps/api[postgres]'
+      - uses: ./.github/actions/setup-python-ci
       - name: Create non-bypass migration role
         env:
           PGPASSWORD: ci_only

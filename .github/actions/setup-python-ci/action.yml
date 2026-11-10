@@ -1,0 +1,22 @@
+name: Hash-verified Python CI environment
+description: Install the reviewed Linux/Python 3.13 test environment without floating dependencies
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: '3.13'
+    - name: Isolate the dependency installation
+      shell: bash
+      run: |
+        python -m venv "$RUNNER_TEMP/rivexis-api-venv"
+        echo "$RUNNER_TEMP/rivexis-api-venv/bin" >> "$GITHUB_PATH"
+    - name: Install only reviewed wheels
+      shell: bash
+      run: python -m pip install --index-url https://pypi.org/simple --require-hashes --force-reinstall --only-binary=:all: -r apps/api/requirements-ci-py313-linux.txt
+    - name: Install the checked-out project without resolving new dependencies
+      shell: bash
+      run: |
+        python -m pip install --no-index --no-deps --no-build-isolation -e './apps/api[dev,full]'
+        python -m pip check
+        python scripts/python_ci_lock.py --verify-installed

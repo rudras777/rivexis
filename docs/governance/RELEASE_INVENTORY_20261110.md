@@ -2,6 +2,8 @@
 
 The existing npm CycloneDX artifact remains unchanged. CI now also prepares two narrowly scoped JSON inventories using the standard-library exporter `scripts/release_dependency_inventory.py`. Protected CI artifact publication and independent readback are acceptance gates; implementation alone is not verified publication.
 
+PR134 completed those gates on10 November as `5119de1c44a350af07e430210cd719833e4d8494`. Actual source and main artifacts match:73 Python distributions and60 Deno entries, with manifest/lock hashes matching Git. [Exact release and artifact evidence](https://github.com/rudras777/rivexis/pull/134). The subsequent [Python CI hash lock](PYTHON_CI_LOCK_20261110.md) addresses installation drift separately; this inventory remains an observation rather than a universal lock.
+
 ## Scope and regeneration
 
 Python inventory runs after the existing API installation, tests and `pip-audit --skip-editable` gate. It reads `pip inspect --local` from that isolated CI environment, retains only normalized distribution names and installed versions, and records project requirements/extras and the source manifest hash. Development, audit and bootstrap packages are included. Paths, direct URLs, authors, arbitrary license text, environment fields and unrelated metadata are excluded. Empty inventories, duplicate normalized names, unsupported input formats and direct manifest URLs fail closed without echoing their contents. The raw inspection file is temporary and is never uploaded.
