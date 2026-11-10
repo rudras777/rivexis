@@ -36,7 +36,7 @@ def python_inventory(inspect: dict, manifest: dict) -> dict:
         components[name] = {"name": name, "version": version}
     project = manifest["project"]
     declarations = project["dependencies"] + [value for group in project.get("optional-dependencies", {}).values() for value in group]
-    if any(not isinstance(value, str) or "://" in value for value in declarations):
+    if any(not isinstance(value, str) or "://" in value or re.search(r"\s@\s", value) for value in declarations):
         raise ValueError("Review direct package URLs before publishing a Python inventory")
     return {
         "format": "rivexis-release-inventory-1",
@@ -67,7 +67,7 @@ def deno_inventory(lock: dict) -> dict:
             if registry == "remote":
                 parsed = urlsplit(identifier)
                 if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
-                    raise ValueError("Remote dependency is not a public versioned HTTPS identifier")
+                    raise ValueError("Remote dependency URL contains an unsupported scheme or private URL fields")
                 integrity, dependencies = data, []
             else:
                 if not re.fullmatch(r"(?:@[a-z0-9._-]+/)?[a-z0-9._-]+@[A-Za-z0-9@._+-]+", identifier):

@@ -66,9 +66,10 @@ class ReleaseInventoryTests(unittest.TestCase):
                 operation()
 
     def test_direct_manifest_urls_require_review_instead_of_public_export(self):
-        manifest = {"project": {"name": "test", "version": "1", "dependencies": ["test @ https://secret@private.example/pkg"]}}
-        with self.assertRaises(ValueError):
-            python_inventory(inspection(("test", "1")), manifest)
+        for requirement in ("test @ https://secret@private.example/pkg", "test @ file:/private/pkg", "test @ git+ssh://private.example/pkg"):
+            manifest = {"project": {"name": "test", "version": "1", "dependencies": [requirement]}}
+            with self.subTest(requirement=requirement), self.assertRaises(ValueError):
+                python_inventory(inspection(("test", "1")), manifest)
 
 
 if __name__ == "__main__":
