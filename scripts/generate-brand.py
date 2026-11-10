@@ -1,8 +1,8 @@
-"""Author SVG masters from local font outlines and the original interlaced-X concept.
+"""Compose the existing type outlines with the owner's ORIGINAL metallic X.
 Authoring dependency: fonttools==4.66.1. Fonts are not redistributed.
-Usage: python scripts/generate-brand.py --serif /path/to/timesbd.ttf --sans /path/to/arial.ttf
+Run generate-brand.py followed by export-brand.mjs to generate all consumers.
 """
-import argparse,json
+import argparse,base64,json,struct
 from pathlib import Path
 from fontTools.ttLib import TTFont
 from fontTools.pens.svgPathPen import SVGPathPen
@@ -12,50 +12,42 @@ from fontTools.svgLib.path import parse_path
 parser=argparse.ArgumentParser();parser.add_argument('--serif',required=True);parser.add_argument('--sans',required=True)
 args=parser.parse_args();root=Path(__file__).resolve().parents[1]
 serif=TTFont(args.serif);sans=TTFont(args.sans)
+out=root/'apps/web/public/brand';out.mkdir(parents=True,exist_ok=True)
+art=(out/'rivexis-x-original.png').read_bytes()
+if art[:8]!=b'\x89PNG\r\n\x1a\n':raise ValueError('Original logo must be PNG')
+art_width,art_height=struct.unpack('>II',art[16:24])
+art_uri='data:image/png;base64,'+base64.b64encode(art).decode()
 def outline(font,text,x,y,scale,tracking):
     paths=[];glyphs=font.getGlyphSet();cmap=font.getBestCmap()
     for char in text:
         if char!=' ':
             glyph=glyphs[cmap[ord(char)]];pen=SVGPathPen(glyphs)
             glyph.draw(TransformPen(pen,(scale,0,0,-scale,x,y)))
-            paths.append(pen.getCommands())
-            x+=glyph.width*scale+tracking
+            paths.append(pen.getCommands());x+=glyph.width*scale+tracking
         else:x+=font['hmtx'].metrics[cmap[ord(' ')]][0]*scale+tracking
     return ''.join(paths),x
-left,x=outline(serif,'RIVE',18,129,.08,14)
-markX=x+2
-right,end=outline(serif,'IS',markX+120+16,129,.08,14)
+left,x=outline(serif,'RIVE',18,129,.08,14);markX=x+2
+right,end=outline(serif,'IS',markX+132+16,129,.08,14)
 width=round(end+4);word=left+right
-# Vector reconstruction of the owner-supplied 10_X_Mark_Only.png (10 November).
-# Flared terminals and two curved, interwoven ribbons; coordinates use a 128-unit
-# master, preserving the site's existing type outlines and teal/ivory palette.
-ribbons=[
- 'M5 19C27 8 45 18 59 36L94 84C104 98 113 108 121 114C99 125 81 114 71 101L36 55C25 41 16 27 5 19Z',
- 'M121 19C99 17 82 34 66 50L53 63C46 70 50 76 59 83L50 92C38 83 35 75 39 66C42 59 48 53 54 46L70 30C86 14 102 8 121 19Z',
- 'M5 114C28 118 48 91 66 72C71 67 72 64 67 59L59 51L68 42L79 56C87 65 84 73 76 82L54 104C40 118 23 123 5 114Z'
-]
-bridge='M5 19C27 13 41 25 54 42L45 52C31 34 19 24 5 19ZM76 82C90 101 105 113 121 114C102 118 88 109 71 90Z'
 _,tagwidth=outline(sans,'RISK. VALUE. EXECUTION. ANALYSIS.',0,0,.016,2.0)
 tag,_=outline(sans,'RISK. VALUE. EXECUTION. ANALYSIS.',(width-tagwidth)/2,181,.016,2.0)
-out=root/'apps/web/public/brand';out.mkdir(parents=True,exist_ok=True)
-def content(ink,accent,lockup=False):
-    return f'<path fill="{ink}" d="{word}"/>'+mark(ink,accent,f'translate({markX} 4)')+ (f'<path fill="{ink}" opacity=".82" d="{tag}"/>' if lockup else '')
-
-def mark(ink,accent,transform):
-    return f'<g transform="{transform}"><defs><linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="1"><stop stop-color="{accent}"/><stop offset=".5" stop-color="{ink}"/><stop offset="1" stop-color="{accent}"/></linearGradient><linearGradient id="weave" x1="0" y1="1" x2="1" y2="0"><stop stop-color="{accent}"/><stop offset=".45" stop-color="{ink}"/><stop offset=".75" stop-color="{ink}"/><stop offset="1" stop-color="{accent}"/></linearGradient></defs><path fill="{accent}" d="{ribbons[0]}"/><path fill="url(#ribbon)" d="{ribbons[1]}"/><path fill="url(#weave)" d="{ribbons[2]}"/><path fill="{ink}" opacity=".22" d="{bridge}"/></g>'
+def image(x,y,w,h):
+    return f'<image x="{x}" y="{y}" width="{w}" height="{h}" preserveAspectRatio="xMidYMid meet" href="{art_uri}"/>'
+def content(ink,lockup=False):
+    return f'<path fill="{ink}" d="{word}"/>'+image(markX-8,-9,148,148)+(f'<path fill="{ink}" opacity=".82" d="{tag}"/>' if lockup else '')
 def svg(body,w=width,h=146):return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" role="img" aria-label="RIVEXIS">{body}</svg>'
-for variant,ink,accent in [('dark','#E9EBE7','#80AAA1'),('light','#202B2D','#326C6A'),('ivory','#E9EBE7','#E9EBE7'),('graphite','#202B2D','#202B2D')]:
+for variant,ink in [('dark','#E9EBE7'),('light','#202B2D'),('ivory','#E9EBE7'),('graphite','#202B2D')]:
     for lockup in [False,True]:
         name='lockup' if lockup else 'wordmark'
-        (out/f'rivexis-{name}-{variant}.svg').write_text(svg(content(ink,accent,lockup),h=203 if lockup else 146),encoding='utf-8')
-# Symbol-only exports have enough negative space to survive 16px rendering.
-icon=mark('#E9EBE7','#80AAA1','translate(17 15)')
+        (out/f'rivexis-{name}-{variant}.svg').write_text(svg(content(ink,lockup),h=203 if lockup else 146),encoding='utf-8')
+icon=image(0,0,160,160)
 (out/'rivexis-symbol.svg').write_text(svg('<rect width="160" height="160" rx="28" fill="#141B1D"/>'+icon,160,160),encoding='utf-8')
 (out/'rivexis-symbol-transparent.svg').write_text(svg(icon,160,160),encoding='utf-8')
 (out/'rivexis-compact.svg').write_text(svg(icon,160,160),encoding='utf-8')
-(out/'rivexis-report-header.svg').write_text(svg(content('#202B2D','#326C6A',True),h=203),encoding='utf-8')
-geometry={'width':width,'wordmark':word,'tagline':tag,'markX':markX,'ribbons':ribbons,'bridge':bridge}
-(root/'apps/web/components/brand-geometry.ts').write_text('// Generated by scripts/generate-brand.py; original identity, vector paths only.\nexport const brandGeometry='+json.dumps(geometry,separators=(',',':'))+' as const;\n',encoding='utf-8')
+report=svg(content('#202B2D',True),h=203)
+(out/'rivexis-report-header.svg').write_text(report,encoding='utf-8')
+geometry={'width':width,'wordmark':word,'tagline':tag,'markX':markX,'artwork':'/brand/rivexis-x-original.png','artworkWidth':art_width,'artworkHeight':art_height}
+(root/'apps/web/components/brand-geometry.ts').write_text('// Generated: outlined type plus the original supplied metallic artwork, never a traced substitute.\nexport const brandGeometry='+json.dumps(geometry,separators=(',',':'))+' as const;\n',encoding='utf-8')
 class PdfPen(BasePen):
     def __init__(self):super().__init__(None);self.commands=[]
     def point(self,p):return ' '.join(f'{n:.5f}'.rstrip('0').rstrip('.') for n in p)
@@ -66,6 +58,8 @@ class PdfPen(BasePen):
     def _endPath(self):pass
 def pdf_path(path):
     pen=PdfPen();parse_path(path,pen);return '\n'.join(pen.commands)+'\nf'
-pdf='q\n0.21 0 0 -0.21 72 768 cm\n0.12549 0.16863 0.17647 rg\n'+pdf_path(word)+'\nq\n1 0 0 1 '+str(markX)+' 4 cm\n0.19608 0.42353 0.41569 rg\n'+pdf_path(ribbons[0])+'\n0.12549 0.16863 0.17647 rg\n'+pdf_path(ribbons[1])+'\n0.50196 0.66667 0.63137 rg\n'+pdf_path(ribbons[2])+'\nQ\n'+pdf_path(tag)+'\nQ'
-(root/'supabase/functions/rivexis-api/brand.mjs').write_text('// Generated from the same vector master as Brand.tsx. No remote assets or fonts.\nexport const BRAND_REPORT_SVG='+json.dumps(svg(content('#202B2D','#326C6A',True),h=203))+';\nexport const BRAND_PDF_HEADER='+json.dumps(pdf)+';\n',encoding='utf-8')
-print(f'Generated vector masters: {width} x 146; outlined lockup {width} x 203.')
+# Preserve the existing PDF coordinate system and outlined type. The original X
+# is embedded separately by the PDF renderer; no network/font fetch is needed.
+pdf='q\n0.21 0 0 -0.21 72 768 cm\n0.12549 0.16863 0.17647 rg\n'+pdf_path(word)+'\n'+pdf_path(tag)+'\nQ\nq\n31.08 0 0 31.08 '+str(round(72+(markX-8)*.21,5))+' 738.81 cm\n/RvxX Do\nQ'
+(root/'supabase/functions/rivexis-api/brand.mjs').write_text('// Generated from the original supplied artwork. No remote assets or fonts.\nexport const BRAND_REPORT_SVG='+json.dumps(report)+';\nexport const BRAND_PDF_HEADER='+json.dumps(pdf)+';\n',encoding='utf-8')
+print(f'Composed original {art_width}x{art_height} artwork; outlined lockup {width}x203. Run export-brand.mjs next.')

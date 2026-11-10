@@ -1,13 +1,14 @@
-import {BRAND_PDF_HEADER} from "./brand.mjs";
+import {BRAND_PDF_HEADER,BRAND_PDF_X_HEX} from "./brand.mjs";
 export function brandedPdf(title,lines,maxLines=24){
   const clean=(value)=>value.replaceAll("\\","\\\\").replaceAll("(","\\(").replaceAll(")","\\)").replaceAll(/[^\x20-\x7E]/g,"?");
   const content=[BRAND_PDF_HEADER,"BT","/F1 16 Tf","72 704 Td",`(${clean(title)}) Tj`,"/F1 10 Tf",...lines.slice(0,maxLines).flatMap(line=>["0 -18 Td",`(${clean(line)}) Tj`]),"ET"].join("\n");
   const objects=[
     "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
     "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
-    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
+    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> /XObject << /RvxX 6 0 R >> >> /Contents 5 0 R >> endobj",
     "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
     `5 0 obj << /Length ${new TextEncoder().encode(content).length} >> stream\n${content}\nendstream endobj`,
+    `6 0 obj << /Type /XObject /Subtype /Image /Width 512 /Height 512 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter [/ASCIIHexDecode /DCTDecode] /Length ${BRAND_PDF_X_HEX.length+1} >> stream\n${BRAND_PDF_X_HEX}>\nendstream endobj`,
   ];
   let pdf="%PDF-1.4\n";const offsets=[0];
   for(const object of objects){offsets.push(new TextEncoder().encode(pdf).length);pdf+=object+"\n"}
