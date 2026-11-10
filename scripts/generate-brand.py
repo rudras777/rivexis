@@ -46,7 +46,7 @@ icon=image(0,0,160,160)
 (out/'rivexis-compact.svg').write_text(svg(icon,160,160),encoding='utf-8')
 report=svg(content('#202B2D',True),h=203)
 (out/'rivexis-report-header.svg').write_text(report,encoding='utf-8')
-geometry={'width':width,'wordmark':word,'tagline':tag,'markX':markX,'artwork':'/brand/rivexis-x-original.png','artworkWidth':art_width,'artworkHeight':art_height}
+geometry={'width':width,'wordmark':word,'tagline':tag,'markX':markX,'artwork':'/brand/rivexis-x-teal.png','artworkWidth':art_width,'artworkHeight':art_height}
 (root/'apps/web/components/brand-geometry.ts').write_text('// Generated: outlined type plus the original supplied metallic artwork, never a traced substitute.\nexport const brandGeometry='+json.dumps(geometry,separators=(',',':'))+' as const;\n',encoding='utf-8')
 class PdfPen(BasePen):
     def __init__(self):super().__init__(None);self.commands=[]
