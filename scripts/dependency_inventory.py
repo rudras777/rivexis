@@ -13,6 +13,6 @@ for location, package in sorted(lock["packages"].items()):
 print(json.dumps({
     "source": "package-lock.json", "lockfileVersion": lock["lockfileVersion"],
     "scope": "Declared npm lock metadata, including optional platform packages; not an installed-tree or validated SPDX SBOM",
-    "limitations": ["License labels are upstream package metadata, not a legal review", "For a standard npm CycloneDX document use npm run --silent sbom:npm with its pinned generator; this file remains a lock-location inventory", "Python ranged dependencies and Deno lock require separate inventory", "No project license or IP assignment is inferred"],
+    "limitations": ["License labels are upstream package metadata, not a legal review", "For a standard npm CycloneDX document use npm run --silent sbom:npm with its pinned generator; this file remains a lock-location inventory", "Python installed and Deno lock inventories are generated separately by scripts/release_dependency_inventory.py; Python ranges remain", "No project license or IP assignment is inferred"],
     "componentCount": len(components), "components": components,
 }, indent=2))
