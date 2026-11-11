@@ -1,0 +1,14 @@
+{
+  "date":"2026-11-11",
+  "status":"Verified full database archive replay; operating full-service Supabase recovery remains incomplete",
+  "project":"ivszvufdonfgwjpfgwii",
+  "capture":{"startedAt":"2026-11-11T07:32:48.905666Z","completedAt":"2026-11-11T07:33:11.514491Z","archiveBytes":2157807,"tableDataEntries":104,"tls":"verify-full","transactionReadOnly":true,"requestedRole":"supabase_read_only_user","temporaryLoginTtlSeconds":300,"encryptedRoundTripVerified":true},
+  "restore":{"postgres":"17.11","image":"supabase/postgres@sha256:d6844e71062a3c8e2f8021d644802850760ef970a45ac163ec8c9f0171075bda","singleTransaction":true,"exitOnError":true,"excludedArchiveEntries":0,"tableDataSectionsChecked":104,"allTableRowCountsMatchArchive":true,"migrationLedgerEntries":48,"publicTables":61,"publicTablesWithoutRls":0,"publicSchemaFingerprintGroupsMatch":7,"groups":{"columns":715,"constraints":206,"functions":13,"indexes":201,"policies":45,"rls":61,"triggers":3}},
+  "isolation":{"network":"none","publishedPorts":0,"restartPolicy":"no","memoryBytes":1073741824,"cpus":2,"cronLaunchActiveJobs":"off","pgNetDatabase":"rivexis_inactive_no_requests"},
+  "accessCloseout":{"tokenRevoked":true,"dashboardNoTokensRemain":true,"temporaryLoginExpired":true,"activeTemporaryConnections":0,"localCredentialFilesRemoved":true,"oneTimeSecretPrinted":false,"clipboardCleared":true},
+  "cleanup":{"ownedDaemonStopped":true,"daemonSocketAbsent":true,"remainingContainerDirectories":0,"remainingVolumeDirectories":0,"redundantPlaintextArchiveRemovedAfterEncryptedVerification":true,"publicImageCacheRetained":true,"olderWindowsRestoreDirectoryUntouched":true},
+  "privacy":{"rawUserValuesPrintedOrShared":false,"archiveUploaded":false,"archiveInGit":false,"archiveOwnerOnlyAcl":true,"archiveEncryption":"Windows CurrentUser DPAPI","independentPortableKeyCustodyVerified":false},
+  "limits":["This is database archive replay, not operating Auth/Storage/Realtime/Edge/SMTP/IAM recovery","NOLOGIN role bootstrap is not production password/IAM cloning","Vault encrypted rows are archived; independent decryption/root-key custody is not established","Row counts and archive integrity are checked; no independent value-by-value service acceptance is claimed","Operational RPO/RTO targets and founder-independent exercise are not certified"],
+  "sourceChangesToProduction":false,
+  "newPaidServices":false
+}

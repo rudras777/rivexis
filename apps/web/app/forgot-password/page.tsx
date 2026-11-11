@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {useState} from "react";
 import {useForm} from "react-hook-form";
 import {AuthFrame} from "@/components/AuthFrame";
@@ -34,6 +33,6 @@ export default function ForgotPassword(){
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Requesting…":"Send reset link"}</button>
       </form>}
-      <p className="authNote"><Link href="/login">Return to login</Link>.</p>
+      <p className="authNote"><a href="/login">Return to login</a>.</p>
   </AuthFrame>;
 }

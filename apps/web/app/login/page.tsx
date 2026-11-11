@@ -2,7 +2,6 @@
 
 import {useDeFi} from "@/components/DeFiContext";
 import {useQueryClient} from "@tanstack/react-query";
-import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useForm} from "react-hook-form";
 import {authHref,intendedDestination} from "@/lib/auth-destination";
@@ -68,6 +67,6 @@ export default function Login(){
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Logging in…":"Log in"}</button>
       </form>
-      <p className="authNote"><a href="/forgot-password">Forgot your password?</a> <Link href="/verify-email">Verify an existing account</Link>. Need an account? <Link href={authHref("/signup",destination)}>Create one</Link>.</p>
+      <p className="authNote"><a href="/forgot-password">Forgot your password?</a> <a href="/verify-email">Verify an existing account</a>. Need an account? <a href={authHref("/signup",destination)}>Create one</a>.</p>
   </AuthFrame>;
 }
