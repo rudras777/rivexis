@@ -589,5 +589,74 @@
         ]
       }
     ]
+  },
+  "leadingCommentComparison": {
+    "checkedAt": "2026-11-11",
+    "normalization": "Strict normalization, then remove leading -- line comments and outer whitespace only",
+    "method": "Read-only server-side comparison; no historical SQL or user rows returned",
+    "additionalMatches": [
+      {
+        "file": "infrastructure/supabase/016_restrict_alert_requeue.sql",
+        "name": "restrict_alert_requeue_to_failed_deliveries",
+        "version": "20261004141344",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/017_alert_dispatch_org_owner_recipient.sql",
+        "name": "alert_dispatch_org_owner_recipient",
+        "version": "20261004142002",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/018_edge_org_workspace_create.sql",
+        "name": "edge_org_workspace_create",
+        "version": "20261004142814",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/019_fix_org_workspace_membership_rls_context.sql",
+        "name": "fix_org_workspace_membership_rls_context",
+        "version": "20261004142927",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/020_alert_dispatch_org_workspace_grants.sql",
+        "name": "alert_dispatch_org_workspace_grants",
+        "version": "20261004160624",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/021_lock_org_workspace_rpc_execution.sql",
+        "name": "lock_org_workspace_rpc_execution",
+        "version": "20261004160631",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/022_explicit_deny_alert_delivery_runtime_rls.sql",
+        "name": "explicit_deny_alert_delivery_runtime_rls",
+        "version": "20261004161348",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/023_remove_unused_app_delete_privileges.sql",
+        "name": "remove_unused_app_delete_privileges",
+        "version": "20261004162430",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/024_make_audit_and_provider_telemetry_append_only.sql",
+        "name": "make_audit_and_provider_telemetry_append_only",
+        "version": "20261004162855",
+        "statement_count": 1
+      },
+      {
+        "file": "infrastructure/supabase/025_remove_unsupported_tenant_deletes.sql",
+        "name": "remove_unsupported_tenant_deletes",
+        "version": "20261004163048",
+        "statement_count": 1
+      }
+    ],
+    "matchedProductionEntries": 22,
+    "unreconciledProductionEntries": 26
   }
 }

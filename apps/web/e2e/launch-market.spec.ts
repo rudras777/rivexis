@@ -77,7 +77,12 @@ async function rpc(page:Page,mode:Mode='success'){
 }
 const panel=(page:Page)=>page.getByRole('region',{name:'Live on-chain market context'});
 async function open(page:Page,mode:Mode='success',path='/workspace/overview'){
- await account(page);const state=await rpc(page,mode);await page.goto(path,{waitUntil:'domcontentloaded'});await expect(panel(page)).toBeVisible();return state;
+ await account(page);const state=await rpc(page,mode);
+ // The offline fixture deliberately aborts RPC during hydration. Firefox may
+ // strand its DOMContentLoaded driver wait; verify the committed document and
+ // actual rendered failure state instead of relaxing the navigation guard.
+ const response=await page.goto(path,{waitUntil:mode==='offline'?'commit':'domcontentloaded'});
+ expect(response?.status()).toBe(200);await expect(panel(page)).toBeVisible();return state;
 }
 
 test('market: validated quotes, real-shape fee history and accessible exact-value tables',async({page})=>{

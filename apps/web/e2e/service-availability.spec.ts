@@ -7,7 +7,13 @@ async function setup(page:Page,respond:(route:Route,number:number)=>unknown){
  await page.goto('/',{waitUntil:'domcontentloaded'});return ()=>requests;
 }
 for(const status of ['ready','healthy','OK'])test(`valid ${status} service status needs no ongoing polling`,async({page})=>{
- const requests=await setup(page,r=>r.fulfill({json:{status}}));await expect.poll(requests).toBe(1);await page.clock.fastForward(120000);await expect(banner(page)).toHaveCount(0);expect(requests()).toBe(1);
+ // A routed request being counted is not evidence that its response body has
+ // arrived. Settle the real response before advancing past its 4s deadline.
+ const reply=page.waitForResponse(r=>r.url().endsWith('/health')&&r.status()===200);
+ const requests=await setup(page,r=>r.fulfill({json:{status}}));
+ const response=await reply;await response.finished();expect(await response.json()).toEqual({status});
+ await page.clock.runFor(1);await expect.poll(requests).toBe(1);await expect(banner(page)).toHaveCount(0);
+ await page.clock.fastForward(120000);await expect(banner(page)).toHaveCount(0);expect(requests()).toBe(1);
 });
 for(const failure of ['http','transport','json','status'])test(`service warning recovers after transient ${failure} failure`,async({page})=>{
  const requests=await setup(page,(r,n)=>n>1?r.fulfill({json:{status:'ready'}}):failure==='transport'?r.abort('failed'):failure==='json'?r.fulfill({contentType:'application/json',body:'{'}):failure==='status'?r.fulfill({json:{status:42}}):r.fulfill({status:503,json:{detail:'temporarily unavailable'}}));
