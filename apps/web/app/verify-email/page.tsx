@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {useDeFi} from "@/components/DeFiContext";
 import {useQueryClient} from "@tanstack/react-query";
 import {useEffect,useState} from "react";
@@ -65,7 +64,7 @@ export default function VerifyEmail(){
   return <AuthFrame mode="verification">
       <h1>Verify your email</h1>
       <p>Open the confirmation link in your Rivexis email, then return to log in. Check your spam folder too. Never share a verification link or code.</p>
-      <p className="authNote"><Link href={authHref("/login",destination)}>Continue to login</Link>.</p>
+      <p className="authNote"><a href={authHref("/login",destination)}>Continue to login</a>.</p>
       {notice&&<div className="success" role="status">{notice}</div>}
       <form className="form" method="post" aria-busy={!codeReady||!emailReady||codeSubmitting} onSubmit={codeForm.handleSubmit(confirm)}>
         <label className="field">Verification code<input type="text" autoComplete="one-time-code" required aria-describedby="verification-code-help" {...codeForm.register("token")} disabled={!codeReady||!emailReady}/></label>
@@ -77,6 +76,6 @@ export default function VerifyEmail(){
         <button className="ghost" type="submit" disabled={!emailReady||emailSubmitting}>{emailSubmitting?"Sending…":"Send verification email"}</button>
       </form>
       {error&&<div className="error authFlowError" role="alert">{error}</div>}
-      <p className="authNote"><Link href="/login">Return to login</Link>.</p>
+      <p className="authNote"><a href="/login">Return to login</a>.</p>
   </AuthFrame>;
 }

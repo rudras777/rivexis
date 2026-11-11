@@ -8,6 +8,19 @@ const authRoutes=[
   "/reset-password",
 ];
 
+const authDocumentLinks=[
+  {name:'login verification',from:'/login',link:'Verify an existing account',to:'/verify-email'},
+  {name:'login signup',from:'/login',link:'Create one',to:'/signup'},
+  {name:'signup login',from:'/signup',link:'Log in',to:'/login'},
+  {name:'verification continue',from:'/verify-email',link:'Continue to login',to:'/login'},
+  {name:'verification return',from:'/verify-email',link:'Return to login',to:'/login'},
+  {name:'recovery return',from:'/forgot-password',link:'Return to login',to:'/login'},
+  {name:'login signup destination',from:'/login?next=%2Fworkspace%2Ffrontier',link:'Create one',to:'/signup?next=%2Fworkspace%2Ffrontier'},
+  {name:'signup login destination',from:'/signup?next=%2Fworkspace%2Ffrontier',link:'Log in',to:'/login?next=%2Fworkspace%2Ffrontier'},
+  {name:'verification login destination',from:'/verify-email?next=%2Fworkspace%2Ffrontier',link:'Continue to login',to:'/login?next=%2Fworkspace%2Ffrontier'},
+  {name:'invalid destination withheld',from:'/login?next=https%3A%2F%2Fevil.example',link:'Create one',to:'/signup'},
+];
+
 test.describe("public production regressions",()=>{
   test.beforeEach(async({baseURL,request})=>{
     if(baseURL&&new URL(baseURL).hostname==='127.0.0.1'){
@@ -41,6 +54,29 @@ test.describe("public production regressions",()=>{
       await expect(form).toBeVisible();
       await expect(form).toHaveAttribute("method",/^post$/i);
     }
+  });
+
+  for(const scenario of authDocumentLinks)test(`auth document navigation: ${scenario.name}`,async({page,baseURL})=>{
+    const prefetched:string[]=[];
+    page.on('request',request=>{
+      const url=new URL(request.url());
+      if(authRoutes.includes(url.pathname)&&request.headers()['next-router-prefetch']==='1')prefetched.push(url.pathname);
+    });
+    const initial=await page.goto(scenario.from,{waitUntil:'domcontentloaded'});
+    expect(initial?.status()).toBe(200);
+    const link=page.getByRole('link',{name:scenario.link,exact:true});
+    await expect(link).toHaveAttribute('href',scenario.to);
+    await expect(page.locator('form.form').first().getByRole('button').first()).toBeEnabled();
+    await link.hover();
+    const target=new URL(scenario.to,baseURL);
+    const [document]=await Promise.all([
+      page.waitForResponse(response=>response.request().isNavigationRequest()&&new URL(response.url()).pathname===target.pathname),
+      link.click(),
+    ]);
+    expect(document.status()).toBe(200);
+    await expect(page).toHaveURL(target.href);
+    await expect(page.locator('form.form').first()).toHaveAttribute('method',/^post$/i);
+    expect(prefetched).toEqual([]);
   });
 
   test('compiled recovery document and direct assets retain POST-only hydration and private response headers',async({page,request})=>{

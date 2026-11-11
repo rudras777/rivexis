@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {useEffect,useRef,useState} from "react";
 import {useForm} from "react-hook-form";
 import {AuthFrame} from "@/components/AuthFrame";
@@ -63,7 +62,7 @@ export default function ResetPassword(){
   return <AuthFrame mode="recovery">
       <h1>Choose a new password</h1>
       <p>Recovery ends refresh sessions. Existing access tokens may remain valid until expiry.</p>
-      {complete?<div className="success" role="status">Password updated. {sessionsRevoked?"Refresh sessions ended. Existing access tokens may remain valid until expiry.":"Session revocation could not be confirmed. After logging in, use Settings → Sessions to end other refresh sessions."} <Link href="/login">Log in with your new password</Link>.</div>:<form className="form" method="post" aria-busy={!isReady||isSubmitting} onSubmit={handleSubmit(submit)}>
+      {complete?<div className="success" role="status">Password updated. {sessionsRevoked?"Refresh sessions ended. Existing access tokens may remain valid until expiry.":"Session revocation could not be confirmed. After logging in, use Settings → Sessions to end other refresh sessions."} <a href="/login">Log in with your new password</a>.</div>:<form className="form" method="post" aria-busy={!isReady||isSubmitting} onSubmit={handleSubmit(submit)}>
         {!hasRecoverySession&&<label className="field">Recovery token<input type="text" autoComplete="one-time-code" required {...register("token")} disabled={!isReady}/></label>}
         {!hasRecoverySession&&<label className="field">Email<input type="email" autoComplete="email" {...register("email")} disabled={!isReady}/></label>}
         <label className="field">New password<input type="password" autoComplete="new-password" required minLength={8} {...register("password")} disabled={!isReady}/></label>
