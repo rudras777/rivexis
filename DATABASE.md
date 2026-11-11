@@ -18,6 +18,8 @@ Two tracked October SQL filenames have different timestamps from their productio
 
 On 11 November, read-only server-side comparisons verified all four timestamped files and six retained infrastructure files against twelve production entries. Only CRLF/LF and outer space/tab/CR/LF are normalized; comments, internal whitespace and SQL tokens remain significant. The two timestamp aliases are now content-verified, without changing either identity. Thirty-six production entries remain unreconciled, including one sensitive entry excluded from comparison. Nineteen other retained infrastructure files have no full-text match under this strict comparison; this alone does not establish a behavioral difference. [Method, coverage and reproducible check](docs/governance/MIGRATION_PROVENANCE_20261111.md).
 
+A separately recorded follow-up comparison verifies ten more entries after removing only leading `--` documentation headers. SQL statements, internal/trailing/block comments, quoted values and complete function bodies remain unchanged. Combined coverage is now22 of48, with26 entries still unreconciled. The original twelve full-text matches retain their stronger classification. The generator also escapes source line endings explicitly so Windows stdout cannot corrupt CRLF inside SQL literals; the default offline digest check was unaffected.
+
 Existing PostgreSQL CI validates the Alembic schema, runtime controls, private legacy-table RLS and a disposable fixture restore. It does not certify replay of all 48 Supabase migrations or all managed Auth/storage configuration. Historical restore evidence is dated in [the recovery drill](docs/FRESH_RECOVERY_DRILL_20261020.md).
 
 ## Making a database change

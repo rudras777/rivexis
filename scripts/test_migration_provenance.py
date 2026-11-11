@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.migration_provenance import REGISTER, comparison_query, normalized_source, source_digest, verify
+from scripts.migration_provenance import HEADER_NORMALIZATION, REGISTER, comparison_query, leading_comment_source, normalized_source, source_digest, verify
 
 
 class MigrationProvenanceTests(unittest.TestCase):
@@ -108,6 +108,89 @@ class MigrationProvenanceTests(unittest.TestCase):
         self.register['migrations'][-1]['version'] = "bad'); SELECT 1; --"
         with self.assertRaisesRegex(ValueError, "Invalid ledger"):
             comparison_query(self.register, self.root)
+
+    def test_windows_console_cannot_expand_source_crlf_inside_literals(self):
+        text = "SELECT 'quoted value';\r\n\t-- final header\r\n"
+        (self.root / self.file).write_bytes(text.encode())
+        self.register['sourceComparison']['sources'][0]['normalizedSha256'] = source_digest(text)
+        query = comparison_query(self.register, self.root)
+        literal = "E'SELECT ''quoted value'';\\r\\n\\t-- final header\\r\\n'"
+        self.assertIn(literal, query)
+        self.assertIn(literal, query.replace('\n', '\r\n'))
+
+    def test_leading_headers_only_and_internal_comments_are_preserved(self):
+        cases = [
+            ("-- heading\n SELECT 1;", "SELECT 1;"),
+            (" \t-- one\r\n\n -- two\n SELECT 1;", "SELECT 1;"),
+            ("-- only", ""),
+            ("SELECT '-- literal'; -- internal", "SELECT '-- literal'; -- internal"),
+            ("/* block */ SELECT 1;", "/* block */ SELECT 1;"),
+            ("-- heading\nDO $$ BEGIN -- internal\n NULL; END $$;", "DO $$ BEGIN -- internal\n NULL; END $$;"),
+            ("-- heading\rSELECT 1;", "-- heading\rSELECT 1;"),
+            ("SELECT 1;\n-- trailing", "SELECT 1;\n-- trailing"),
+            ("-- header\nSELECT 'a b';", "SELECT 'a b';"),
+            ("-- header\nSELECT E'\\n';", "SELECT E'\\n';"),
+        ]
+        for original, expected in cases:
+            with self.subTest(original=original):
+                self.assertEqual(leading_comment_source(original), expected)
+
+    def header_register(self):
+        self.register['migrations'].append({'version': '20261009135603', 'name': 'header', 'statement_count': 1, 'requires_sensitive_statement_review': False})
+        self.register['sourceComparison']['unreconciledProductionEntries'] = 1
+        self.register['leadingCommentComparison'] = {
+            'normalization': HEADER_NORMALIZATION, 'matchedProductionEntries': 2, 'unreconciledProductionEntries': 0,
+            'additionalMatches': [{'file': self.file, 'version': '20261009135603', 'name': 'header', 'statement_count': 1}],
+        }
+        return self.register['leadingCommentComparison']
+
+    def test_header_observation_requires_verified_public_source_digest(self):
+        self.header_register()
+        verify(self.register, self.root)
+        (self.root / self.file).write_text('SELECT 3;')
+        with self.assertRaisesRegex(ValueError, 'fresh comparison'):
+            verify(self.register, self.root)
+
+    def test_header_observation_does_not_double_count_strict_matches(self):
+        header = self.header_register()
+        header['additionalMatches'][0].update(version='20261009135602', name='example')
+        with self.assertRaisesRegex(ValueError, 'already counted'):
+            verify(self.register, self.root)
+
+    def test_header_observation_rejects_unknown_source_or_identity(self):
+        header = self.header_register()
+        for key, invalid in (('file', '../private.sql'), ('version', '20261009135604'), ('name', 'wrong'), ('statement_count', 2)):
+            target = header['additionalMatches'][0]
+            old = target[key]
+            target[key] = invalid
+            with self.assertRaises(ValueError):
+                verify(self.register, self.root)
+            target[key] = old
+
+    def test_header_observation_cannot_certify_sensitive_history(self):
+        self.header_register()
+        self.register['migrations'][-1]['requires_sensitive_statement_review'] = True
+        self.register['sourceComparison']['sensitiveVersionsExcluded'] = ['20261009135603']
+        with self.assertRaisesRegex(ValueError, 'Sensitive'):
+            verify(self.register, self.root)
+
+    def test_header_duplicate_and_wrong_coverage_fail(self):
+        header = self.header_register()
+        header['additionalMatches'] *= 2
+        with self.assertRaisesRegex(ValueError, 'already counted'):
+            verify(self.register, self.root)
+        header['additionalMatches'].pop()
+        header['matchedProductionEntries'] = 3
+        with self.assertRaisesRegex(ValueError, 'coverage'):
+            verify(self.register, self.root)
+
+    def test_header_normalization_is_explicit_and_opt_in(self):
+        header = self.header_register()
+        self.assertNotIn('regexp_replace', comparison_query(self.register, self.root))
+        self.assertIn('regexp_replace', comparison_query(self.register, self.root, ignore_leading_comments=True))
+        header['normalization'] = 'remove all whitespace and comments'
+        with self.assertRaisesRegex(ValueError, 'normalization'):
+            verify(self.register, self.root)
 
 
 if __name__ == '__main__':
