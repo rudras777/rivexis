@@ -28,14 +28,14 @@ export default function VerifyEmail(){
     setDestination(intendedDestination());
     const pending=readDeviceHint('session',"rivexis_pending_verification_email");
     if(pending)emailForm.setValue("email",pending);
-    if(new URLSearchParams(window.location.search).get("sent")==="1")setNotice("Verification email requested. Open its confirmation link, then log in. Check your spam folder if it has not arrived.");
+    if(new URLSearchParams(window.location.search).get("sent")==="1")setNotice("Verification email requested. Follow the instructions in the email to confirm your address. Check your spam folder if it has not arrived.");
   },[emailForm]);
 
   async function resend(v:EmailForm){
     try{
       setError("");
       await api<{status:string}>("/api/v1/auth/email-verification/request",{method:"POST",body:JSON.stringify(v)});
-      setNotice("Verification request received. If your account is eligible, open the confirmation link in your email, then log in. Delivery may take a few minutes; check your spam folder too.");
+      setNotice("Verification request received. If this address needs verification, follow the instructions in your email. Delivery may take a few minutes; check your spam folder too.");
     }catch{
       setError("Verification email is temporarily unavailable. Try again shortly.");
     }
@@ -63,18 +63,22 @@ export default function VerifyEmail(){
 
   return <AuthFrame mode="verification">
       <h1>Verify your email</h1>
-      <p>Open the confirmation link in your Rivexis email, then return to log in. Check your spam folder too. Never share a verification link or code.</p>
+      <p>Confirm a new account with the code or instructions in your Rivexis email. Never share a verification link or code.</p>
       <p className="authNote"><a href={authHref("/login",destination)}>Continue to login</a>.</p>
       {notice&&<div className="success" role="status">{notice}</div>}
       <form className="form" method="post" aria-busy={!codeReady||!emailReady||codeSubmitting} onSubmit={codeForm.handleSubmit(confirm)}>
         <label className="field">Verification code<input type="text" autoComplete="one-time-code" required aria-describedby="verification-code-help" {...codeForm.register("token")} disabled={!codeReady||!emailReady}/></label>
-        <p id="verification-code-help" className="authNote">Use this only if your email includes a code. A confirmation link works without entering a code here.</p>
+        <p id="verification-code-help" className="authNote">Enter the code if your email includes one. If it includes a confirmation link instead, follow its instructions.</p>
         <button className="button" type="submit" disabled={!codeReady||!emailReady||codeSubmitting}>{codeSubmitting?"Verifying…":"Verify account"}</button>
       </form>
       <form className="form secondaryForm" method="post" aria-busy={!emailReady||emailSubmitting} onSubmit={emailForm.handleSubmit(resend)}>
         <label className="field">Email<input type="email" autoComplete="email" required {...emailForm.register("email")} disabled={!emailReady}/></label>
         <button className="ghost" type="submit" disabled={!emailReady||emailSubmitting}>{emailSubmitting?"Sending…":"Send verification email"}</button>
       </form>
+      <div className="authFlowGuidance">
+        <strong>Already verified this email?</strong>
+        <p>A signup email is only for an account that still needs verification. <a href={authHref("/login",destination)}>Log in with your existing password</a>, or <a href="/forgot-password">reset your password</a>. Signing in on another device does not require a new signup email.</p>
+      </div>
       {error&&<div className="error authFlowError" role="alert">{error}</div>}
       <p className="authNote"><a href="/login">Return to login</a>.</p>
   </AuthFrame>;

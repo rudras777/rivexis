@@ -60,6 +60,6 @@ export default function Signup(){
         {error&&<div className="error" role="alert">{error}</div>}
         <button className="button" type="submit" disabled={!isReady||isSubmitting}>{isSubmitting?"Creating account…":"Continue"}</button>
       </form>
-      <p className="authNote">We verify new accounts before workspace access. Already registered? <a href={authHref("/login",destination)}>Log in</a>.</p>
+      <p className="authNote">New accounts require email verification. Already registered this address? <a href={authHref("/login",destination)}>Log in</a> or <a href="/forgot-password">reset your password</a>.</p>
   </AuthFrame>;
 }

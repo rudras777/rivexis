@@ -1,8 +1,12 @@
 # Rivexis Current Build State
 
-Last updated: 2026-10-10 (IST)
+Last updated: 2026-11-13 (IST)
 
-## Current production checkpoint
+## Latest presentation work — 13 November 2026
+
+The app refinement begins at main `f27c2556f1aa7efcd5915bdb251862d10305f96f`. See [the scoped change and validation record](WEB_POLISH_20261113.md). Production identity after this patch must be independently rechecked following protected CI and deployment. The existing Wix portfolio typography and motion refinements were published and checked on mobile. The October records below are historical release evidence.
+
+## Historical production checkpoint — 10 October 2026
 
 The existing production site serves `611aba24871be74bcec0e660efe6fad764fc9139`, merged through PR52. Worker `rivexis-web` version `d30ed0e3-1c40-4d40-9848-05a2ade27b0e` has 100% traffic. Existing Supabase project and API24, users, data and Brevo integration are preserved. The unified portfolio, scenarios, Defense Frontier, transaction intelligence and private reports are deployed; verified free-account gates cover all interactive features.
 

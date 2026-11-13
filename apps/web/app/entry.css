@@ -17,3 +17,33 @@ body{font-family:var(--font-geist-sans),Arial,Helvetica,sans-serif}
 @media(prefers-reduced-motion:no-preference){.riskFolio circle{transition:cx .18s ease,cy .18s ease}.folioExplore:hover span{transform:translateY(2px);transition:transform .18s ease}.folioNav nav a:hover{color:var(--soft)}}
 
 .folioNav .publicActions .authActions>.button{display:inline-flex}
+
+
+/* Public entry refinement: readable controls and a compact, keyboard-safe menu. */
+.publicSkipLink{position:fixed;top:12px;left:20px;z-index:100;transform:translateY(-200%);padding:10px 16px;border-radius:6px;background:var(--text);color:var(--bg);font-size:14px;font-weight:600}
+.publicSkipLink:focus-visible{transform:none}
+.folioNav .desktopPublicNav a{display:inline-flex;align-items:center;min-height:44px;font-size:13px}
+.folioNav nav a[aria-current=page]{color:var(--text);text-decoration:underline;text-decoration-color:var(--soft);text-decoration-thickness:1px;text-underline-offset:7px}
+.folioNav .mobileNav>summary{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;cursor:pointer;list-style:none}
+.folioNav .mobileNav>summary::-webkit-details-marker{display:none}
+.folioNav .mobileNav>summary svg{flex:none;transition:transform .12s ease}
+.folioNav .mobileNav[open]>summary svg{transform:rotate(180deg)}
+.folioNav .mobileNav>nav{width:min(320px,calc(100vw - 40px));min-width:0;max-height:70svh;overflow:auto;overscroll-behavior:contain;padding:8px;background:var(--surface);border:1px solid var(--border-strong);border-radius:12px;box-shadow:0 18px 40px #0003}
+.folioNav .mobileNav>nav a{display:flex;align-items:center;min-height:46px;padding:11px 14px;font-size:14px;line-height:1.5;border-radius:6px}
+.folioNav .mobileNav>nav a:hover{background:var(--elevated)}
+.authIdentity>.textButton{font-size:13px}
+.authEntry .authNote{font-size:13px;line-height:1.75}
+.authPrinciples{font-size:12px}
+.authEditorial>small{font-size:11px}
+.authFlowGuidance{border-top:1px solid var(--border);padding-top:20px;margin-top:24px;font-size:13px;line-height:1.75}
+.authFlowGuidance>strong{font-weight:500;color:var(--text)}
+.authFlowGuidance>p{margin:8px 0 0}
+.authFlowGuidance a{color:var(--soft);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:600px){
+ .folioNav{grid-template-columns:minmax(0,1fr) auto;column-gap:16px}
+ .folioNav .mobileNav{grid-column:2}
+ .folioNav .authActions>*{font-size:13px!important}
+ .authEntry .formCard{padding:26px 22px}
+}
+@media(prefers-reduced-motion:reduce){.folioNav .mobileNav>summary svg{transition:none}}
+[data-motion=reduce] .folioNav .mobileNav>summary svg{transition:none}

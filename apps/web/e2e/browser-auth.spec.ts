@@ -101,7 +101,7 @@ test.describe("browser authentication and onboarding",()=>{
 
     await expect(page).toHaveURL(/\/verify-email\?sent=1$/);
     await expect(page.getByLabel("Email")).toHaveValue("new@example.com");
-    await expect(page.getByRole('status')).toContainText('Open its confirmation link, then log in.');
+    await expect(page.getByRole('status')).toContainText('Follow the instructions in the email to confirm your address.');
     await expect(page.getByText('Use this only if your email includes a code.',{exact:false})).toBeVisible();
     await expect(page.getByRole('link',{name:'Continue to login',exact:true})).toHaveAttribute('href','/login');
     expect(await page.evaluate(()=>sessionStorage.getItem("rivexis_pending_verification_email"))).toBe("new@example.com");
@@ -114,7 +114,7 @@ test.describe("browser authentication and onboarding",()=>{
     await expect(page.getByRole('link',{name:'Continue to login',exact:true})).toHaveAttribute('href','/login?next=%2Fworkspace%2Fsettings');
     await page.getByLabel('Email',{exact:true}).fill('pending@example.invalid');
     await page.getByRole('button',{name:'Send verification email',exact:true}).click();
-    await expect(page.getByRole('status')).toContainText('open the confirmation link in your email, then log in');
+    await expect(page.getByRole('status')).toContainText('follow the instructions in your email');
     await expect(page.getByRole('status')).toContainText('spam folder');
   });
 
