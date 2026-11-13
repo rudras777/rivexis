@@ -83,3 +83,14 @@
 .landingFooterNote{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px 32px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:22px;font-size:11px;line-height:1.8;color:var(--secondary)}
 @media(max-width:1000px){.landingFooter.productFooter{grid-template-columns:1fr;gap:32px}.landingFooter.productFooter nav{grid-template-columns:1fr 1fr 1.25fr}.landingFooterIdentity{max-width:none}}
 @media(max-width:600px){.composedHome .featureDiagram{max-width:400px;margin-block:22px 30px}.composedHome .gasDiagram figcaption{font-size:9px;letter-spacing:.08em}.landingFooter.productFooter nav{grid-template-columns:1fr 1fr;gap:28px 20px}.landingFooterTrust{grid-column:1/-1}.landingFooterGroup h2{font-size:12px}.landingFooterGroup>a,.landingFooterGroup summary{font-size:13px}.landingFooterNote{display:grid;font-size:11px;gap:6px}}
+
+
+/* Keep the approved artwork while giving the copy a steadier reading rhythm. */
+.composedHome .continuousHero .folioLead{max-width:42rem;font-size:16px;line-height:1.75;text-wrap:pretty}
+.composedHome .showcaseCopy>p,.composedHome .gasEditorial>div>p,.composedHome .defenseLayout>div>p,.composedHome .methodologyIntro>p{font-size:15px;line-height:1.8;text-wrap:pretty}
+.continuousHero .folioHeroFoot{font-size:12px}
+.continuousHero .folioHeroFoot>span:last-child{font-size:10px;letter-spacing:.08em}
+@media(max-width:600px){
+ .composedHome .continuousHero .folioLead,.composedHome .showcaseCopy>p,.composedHome .gasEditorial>div>p,.composedHome .defenseLayout>div>p,.composedHome .methodologyIntro>p{font-size:14px}
+ .continuousHero .folioHeroFoot{font-size:11px}
+}

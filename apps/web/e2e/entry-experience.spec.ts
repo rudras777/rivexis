@@ -2,6 +2,41 @@ import {test,expect,type Page} from './browser-test';
 import AxeBuilder from '@axe-core/playwright';
 import {sampleSnapshot} from '../../../supabase/functions/rivexis-api/defi-sample.mjs';
 const workspace={id:'ENTRY_TEST_WORKSPACE',name:'Entry test workspace',role:'Individual',access_role:'OWNER'};
+
+test('public mobile navigation dismisses predictably and identifies the current page',async({page})=>{
+  await setup(page);
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('/');
+  const menu=page.locator('details.mobileNav');
+  const trigger=menu.locator('summary');
+  await trigger.click();
+  await menu.getByRole('link',{name:'Intelligence',exact:true}).focus();
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveJSProperty('open',false);
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page.getByRole('heading',{name:'Exposure is connected. Your view should be, too.',exact:true}).click();
+  await expect(menu).toHaveJSProperty('open',false);
+  await trigger.click();
+  await menu.getByRole('link',{name:'Methodology',exact:true}).click();
+  await expect(page).toHaveURL(/\/methodology$/);
+  await expect(page.locator('details.mobileNav')).toHaveJSProperty('open',false);
+  await page.locator('details.mobileNav summary').click();
+  await expect(page.getByRole('navigation',{name:'Mobile navigation'}).getByRole('link',{name:'Methodology',exact:true})).toHaveAttribute('aria-current','page');
+});
+
+test('public skip navigation moves keyboard focus to the page content',async({page})=>{
+  await setup(page);
+  for(const route of ['/','/platform']){
+    await page.goto(route);
+    await page.keyboard.press('Tab');
+    const skip=page.getByRole('link',{name:'Skip to content',exact:true});
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeVisible();
+    await skip.press('Enter');
+    await expect(page.locator('#main-content')).toBeFocused();
+  }
+});
 test('landing diagrams and grouped resources remain legible across fourteen viewport and theme combinations',async({page,request})=>{
   test.setTimeout(90000);await setup(page);await page.emulateMedia({reducedMotion:'reduce'});
   const assets=['liquidation-inputs.svg','transaction-assessment.svg','defense-branches.svg'];
