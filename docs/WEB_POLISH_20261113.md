@@ -25,3 +25,7 @@ The existing Harmony editor was used through its native editor tools. A before s
 ## Remaining boundaries
 
 This presentation release is not a new live financial-model or fresh email-delivery certification. Previous security exceptions and owner-only recovery-code work remain separate. Recheck actual main, public `rivexis-build` and `/health` after release; retain the original Worker host and custom hostname.
+## First CI follow-up
+
+The first protected run passed 350 of 352 Chromium browser cases, including the new navigation and skip-link regressions. Two assertions still expected the replaced signup/helper copy; those expectations were corrected without weakening the generic-conflict or pre-verification session checks. The complete CI gate must pass on the follow-up commit before merge.
+
