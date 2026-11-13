@@ -29,3 +29,6 @@ This presentation release is not a new live financial-model or fresh email-deliv
 
 The first protected run passed 350 of 352 Chromium browser cases, including the new navigation and skip-link regressions. Two assertions still expected the replaced signup/helper copy; those expectations were corrected without weakening the generic-conflict or pre-verification session checks. The complete CI gate must pass on the follow-up commit before merge.
 
+## Published portfolio follow-up
+
+The seven existing portfolio pages now have page-specific browser titles and search descriptions. Four pages whose main heading was marked H2 now use H1 while retaining the same connected font, size and color. Native readback confirmed those tags and unchanged styling. After publishing, actual public-browser checks passed all seven pages at 390px and 1280px: each has one H1, its intended title, and no horizontal overflow. All seven descriptions were verified on the actual public mobile documents. Existing URLs and site identity remain intact.
