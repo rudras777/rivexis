@@ -2,6 +2,12 @@ name: rvea-production-audit
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rvea-production-audit.yml'
+      - 'scripts/audit-rvea-cloudflare.mjs'
+      - 'scripts/audit-rvea-cloudflare.test.mjs'
 
 permissions:
   contents: read
