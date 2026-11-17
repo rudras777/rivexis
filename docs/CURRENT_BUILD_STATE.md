@@ -1,6 +1,10 @@
 # Rivexis Current Build State
 
-Last updated: 2026-11-13 (IST)
+Last updated: 2026-11-17 (IST)
+
+## Master-prompt reconciliation — 17 November 2026
+
+See [the current completion record](RVEA_MASTER_COMPLETION_20261117.md) for the migration requirements, dated real account acceptance, fresh recovery inbox delivery, current DNS/security observations and remaining owner/product limits. At the start of this recheck both public app hosts served `1212d5d776b589ce77360009400a8ccbb678865f`; all 32 stateless public probes and eight gateway tests passed. Later documentation/build commits require their own public SHA and health readback. Use the manual read-only Cloudflare audit for current provider configuration rather than historical version counters.
 
 ## Latest presentation work — 13 November 2026
 

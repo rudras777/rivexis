@@ -1,5 +1,7 @@
 # RVEA / RIVEXIS production runbook
 
+Latest requirement-by-requirement follow-up: [17 November master-prompt completion record](RVEA_MASTER_COMPLETION_20261117.md). Historical deployment IDs below remain rollback evidence, not a permanently current release assertion.
+
 Verified application checkpoint: **29 October 2026**; documentation finalized **30 October 2026** (Asia/Kolkata). This records the deployed architecture and the acceptance checks actually completed. Recheck live settings before a later change; IDs below identify this release rather than an instruction to deploy an old version.
 
 ## Architecture and boundaries
