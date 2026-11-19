@@ -37,8 +37,8 @@ const FRESHNESS = {
   '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 90000,
   '0xdac17f958d2ee523a2206206994597c13d831ec7': 90000,
 };
-export function client(url='https://ethereum.publicnode.com') {
-  return createPublicClient({chain:mainnet,transport:http(url,{timeout:12000,retryCount:0}),batch:{multicall:{batchSize:24000}}});
+export function client(url='https://ethereum.publicnode.com',{signal}={}) {
+  return createPublicClient({chain:mainnet,transport:http(url,{timeout:12000,retryCount:0,fetchOptions:signal?{signal}:undefined}),batch:{multicall:{batchSize:24000}}});
 }
 function good(value) {if(value.status!=='success')throw new Error('Protocol evidence read failed'); return value.result;}
 export async function snapshot(wallet, rpc=client(), pinnedBlock=null) {

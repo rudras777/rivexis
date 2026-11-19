@@ -1,0 +1,11 @@
+{
+  "templateName": "rivexis-defi-risk-update",
+  "subject": "Rivexis risk monitoring: an update to review",
+  "isActive": false,
+  "params": {
+    "eventKind": "Risk threshold reached",
+    "observedAt": "2026-11-19T14:00:00.000Z"
+  },
+  "sender": "CONFIRM_EXISTING_VERIFIED_SENDER_IN_BREVO",
+  "status": "OFFLINE_PREPARATION_ONLY_NOT_CREATED_OR_SENT"
+}

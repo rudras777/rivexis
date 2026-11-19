@@ -12,3 +12,16 @@
 .frontierChart{margin:30px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:25px}.frontierChart figcaption strong{font-size:13px;display:block;font-weight:500}.frontierChart figcaption span{font-size:11px;display:block;color:var(--text-muted);margin-top:7px}.frontierChart svg{width:100%;margin-top:25px}.sidebar>.themeToggle{margin-bottom:20px}
 .largeIndex{color:var(--text-muted)}
 .workspaceAmbient,.publicAmbient{display:none}.appShell>.sidebar{grid-column:1}.appShell>.workspaceMain{grid-column:2}.tableWrap{width:100%;overflow-x:auto}.actions{display:flex;gap:10px;flex-wrap:wrap}button,a{transition:border-color .15s ease}.instrumentTabs small{color:var(--pale)}:root[data-theme=light]{--bronze:#756244}@media(max-width:900px){.sidebar .workspaceSelector{display:block;max-width:320px;margin-bottom:15px}.sidebar .sideFoot{display:block;padding-top:12px}.sidebar .sidebarLogout{width:150px}.sidebar .decisionLegend{display:none}}
+
+/* Market embeds and monitoring extend existing workspace tokens and layout. */
+.exchangeChart{margin:20px 0;border-top:1px solid var(--border);padding-top:16px}
+.exchangeChart summary{cursor:pointer;color:var(--text);padding:8px 0}
+.exchangeChart>p{max-width:90ch;font-size:13px}
+.exchangeChartControls{display:flex;gap:16px;align-items:end;margin:16px 0;flex-wrap:wrap}
+.exchangeChartControls .field{min-width:230px;max-width:380px;flex:1;margin:0}
+.exchangeChartFrame{width:100%;height:405px;border:1px solid var(--border);border-radius:7px;display:block;background:var(--surface)}
+.monitorEvidence{display:grid;grid-template-columns:minmax(150px,1fr) minmax(0,2fr);gap:8px 20px;padding:20px 0;border-block:1px solid var(--border)}
+.monitorEvidence dt{color:var(--secondary)}.monitorEvidence dd{margin:0;overflow-wrap:anywhere}
+.riskMonitoring fieldset{border:0;padding:0;margin:20px 0}.riskMonitoring legend{font-size:18px;color:var(--text);margin-bottom:16px}
+.riskMonitoring .settingCheck{margin:16px 0}.riskMonitoring .marketFreshness{display:block;padding:10px 0}
+@media(max-width:600px){.exchangeChartControls{align-items:stretch;flex-direction:column}.exchangeChartControls .field{min-width:0;max-width:none}.monitorEvidence{grid-template-columns:1fr;gap:3px}.monitorEvidence dd{margin-bottom:10px}}

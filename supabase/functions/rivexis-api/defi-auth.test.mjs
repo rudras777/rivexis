@@ -10,6 +10,7 @@ import {webcrypto} from 'node:crypto';
 import {accountSettings} from './defi-account-settings.mjs';
 import {DEFAULT_PREFERENCES} from './account-preferences.mjs';
 import {handleDefi} from './defi-http.mjs';
+import {handleDefiMonitor} from './defi-monitor-http.mjs';
 import {handleOnChain} from './onchain-http.mjs';
 import {parseRole,roleOrDefault} from './role.mjs';
 const source=readFileSync(new URL('./index.ts',import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'');
@@ -30,7 +31,7 @@ function harness({verified=true,refresh=false,otpError=false,otpSession=true,upd
       signOut:async(input)=>{if(!established)return {error:{message:'Auth session missing'}};revocations.push(input.scope);return {error:revokeError?{message:'provider failed'}:null}},
     }};
   };
-  const context=vm.createContext({LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin,Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,handleDefi,handleOnChain,accountSettings,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
+  const context=vm.createContext({LIVE_ORIGIN,PUBLIC_ORIGINS,authEmailOrigin,Deno:{env:{get:()=>''},serve:fn=>{handler=fn}},createClient,handleDefi,handleDefiMonitor,handleOnChain,accountSettings,parseRole,roleOrDefault,Response,Request,Headers,URL,TextEncoder,TextDecoder,Uint8Array,crypto:webcrypto,atob,btoa,console});
   new vm.Script(compiled).runInContext(context);
   const cookie=(access='test-access')=>'rvx_session='+Buffer.from(JSON.stringify({access_token:access,refresh_token:'test-refresh',csrf})).toString('base64url');
   const request=(path,{authenticated=false,token=csrf,access='test-access',method='POST',body={wallet}}={})=>new Request('https://example.com'+path,{method,headers:{...(authenticated?{cookie:cookie(access)}:{}),...(token?{'x-rivexis-csrf':token}:{})},...(method==='POST'?{body:JSON.stringify(body)}:{})});
@@ -126,4 +127,12 @@ test('actual Edge routing normalizes Supabase function prefixes for every accoun
 test('on-chain routes require verified identity and matching CSRF before quota',async()=>{
  for(const path of ['/api/v1/on-chain/contract','/api/v1/on-chain/read','/api/v1/on-chain/wallet','/api/v1/on-chain/network']){const h=harness();assert.equal((await h.handler(h.request(path))).status,401);assert.equal((await h.handler(h.request(path,{authenticated:true,token:'wrong'}))).status,403);const unverified=harness({verified:false});assert.equal((await unverified.handler(unverified.request(path,{authenticated:true}))).status,403);assert.equal(h.quota(),0);assert.equal(unverified.quota(),0)}
  const h=harness();assert.equal((await h.handler(h.request('/api/v1/on-chain/contract',{authenticated:true,body:{chainId:1,address:wallet}}))).status,429);assert.equal(h.quota(),1);
+});
+
+test('monitoring preserves verified-session and CSRF boundaries before inactive capability response',async()=>{
+ const path='/api/v1/defi/monitor';
+ const guest=harness();assert.equal((await guest.handler(guest.request(path,{method:'GET'}))).status,401);
+ const unverified=harness({verified:false});assert.equal((await unverified.handler(unverified.request(path,{authenticated:true,method:'GET'}))).status,403);
+ const member=harness();assert.equal((await member.handler(member.request(path,{authenticated:true,method:'POST',token:'wrong'}))).status,403);
+ const response=await member.handler(member.request(path,{authenticated:true,method:'GET'}));assert.equal(response.status,200);assert.equal((await response.json()).runtime.state,'INACTIVE');assert.equal(member.quota(),0);
 });
