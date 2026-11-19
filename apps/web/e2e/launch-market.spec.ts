@@ -27,6 +27,9 @@ test('market quote labels respect the saved USD grouping preference',async({page
 /** RPC fixtures live only at the network boundary; no product quote or success state is injected. */
 async function rpc(page:Page,mode:Mode='success'){
  const state={mode,reads:0,batches:0,number:head,time:0,chains:0,archiveCalls:0};
+ // Immutable synthetic chain/round identities: repeated observations cannot rewrite history.
+ let anchorTime=0;const blockTimes=new Map<number,number>();
+ const blockTime=(number:number)=>{if(!blockTimes.has(number))blockTimes.set(number,anchorTime+(number-head)*12);return blockTimes.get(number)!};
  await page.route(`${endpoint}/**`,async route=>{
   const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'POST, OPTIONS'};
   if(route.request().method()==='OPTIONS'){await route.fulfill({status:204,headers});return}
@@ -41,9 +44,9 @@ async function rpc(page:Page,mode:Mode='success'){
    let result:any;
    if(call.method==='eth_chainId'){state.chains++;result=state.mode==='wrong chain'?'0x89':'0x1'}
    else if(call.method==='eth_getBlockByNumber'){
-    if(call.params[0]==='latest'){state.reads++;state.number=head+state.reads-1;state.time=latestTime;state.chains=1}
+    if(call.params[0]==='latest'){state.reads++;state.number=head+state.reads-1;state.time=latestTime;state.chains=1;if(!anchorTime)anchorTime=latestTime;blockTimes.set(state.number,latestTime)}
     const number=call.params[0]==='latest'?state.number:Number(BigInt(call.params[0]));
-    result={number:hex(number),hash:hash(number),parentHash:hash(number-1),timestamp:hex(state.time-(state.number-number)*12),baseFeePerGas:'0x3b9aca00'};
+    result={number:hex(number),hash:hash(number),parentHash:hash(number-1),timestamp:hex(blockTime(number)),baseFeePerGas:'0x3b9aca00'};
     if(state.mode==='reorg'&&state.chains>=2&&number===state.number)result.hash=hash(number+100);
    }else if(call.method==='eth_feeHistory'){
     result={oldestBlock:hex(state.number-3),baseFeePerGas:Array(5).fill('0x3b9aca00'),gasUsedRatio:Array(4).fill(.5)};
@@ -60,9 +63,11 @@ async function rpc(page:Page,mode:Mode='success'){
     else{
      const isEth=transaction.to==='0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419';
      expect(['0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419','0xf4030086522a5beea4988f8ca5b36dbc97bee88c']).toContain(transaction.to);
-     const roundId=transaction.data.startsWith('0x9a6fc8f5')?BigInt(`0x${transaction.data.slice(10)}`):10n;
-     let timestamp=state.time-(state.number-number)*12-60-Number(10n-roundId)*(state.mode==='history gaps'?10800:600);
-     if(state.mode==='stale quote')timestamp=state.time-7200;
+     const cadence=state.mode==='history gaps'?10800:600;
+     const epoch=anchorTime-60,baseRound=100000n;
+     const roundId=transaction.data.startsWith('0x9a6fc8f5')?BigInt(`0x${transaction.data.slice(10)}`):baseRound+BigInt(Math.floor((blockTime(number)-epoch)/cadence));
+     let timestamp=epoch+Number(roundId-baseRound)*cadence;
+     if(state.mode==='stale quote')timestamp-=7200;
      if(state.mode==='future quote')timestamp=state.time+60;
      let answer=isEth?300000000000n:9000000000000n;
      if(state.mode==='negative quote'&&isEth)answer=(1n<<256n)-1n;

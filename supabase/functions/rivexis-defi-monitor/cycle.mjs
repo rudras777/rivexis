@@ -1,6 +1,6 @@
 import {evaluateMonitor,deliveryOutcome} from '../rivexis-api/defi-monitor-policy.mjs';
 
-export async function runMonitorCycle({job,readSnapshot,verifyBlock,send,enabled=false,emailEnabled=false,now=()=>Date.now()}) {
+export async function runMonitorCycle({job,reserve=async(/** @type {{wallet:string}} */ _rule)=>false,readSnapshot,verifyBlock,send,enabled=false,emailEnabled=false,now=()=>Date.now()}) {
   // Cron is the durable scheduler. An invocation performs at most one evaluation
   // and one outbox attempt. No interval, waitUntil or background promise.
   await job('heartbeat',{evaluation_enabled:enabled,email_enabled:enabled&&emailEnabled});
@@ -10,6 +10,9 @@ export async function runMonitorCycle({job,readSnapshot,verifyBlock,send,enabled
   if(rule){
     const identity={id:rule.id,version:rule.version,lease_token:rule.lease_token};
     try{
+      // The shared gate covers revalidation as well as the new snapshot. An
+      // unavailable/denied acknowledgement must prevent every provider read.
+      if(await reserve(rule)!==true)throw new Error('Quota confirmation unavailable');
       // Invalidate previously accepted evidence after a detected reorganization.
       if(rule.block_number&&rule.block_hash&&!await verifyBlock(rule.block_number,rule.block_hash)){
         await job('reorg',identity);

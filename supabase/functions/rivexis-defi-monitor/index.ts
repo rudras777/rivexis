@@ -14,22 +14,23 @@ function authorized(value:string|null){
 Deno.serve(async(req:Request)=>{
   if(req.method!=='POST')return reply({detail:'POST required'},405);
   if(!authorized(req.headers.get('x-rivexis-monitor-token')))return reply({detail:'Scheduled worker authentication required'},401);
-  const admin=createClient(env('SUPABASE_URL')!,env('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
-  const job=async(action:string,payload:Record<string,unknown>={})=>{
-    const {data,error}=await admin.rpc('rivexis_defi_monitor_job',{p_action:action,p_payload:payload});
-    if(error)throw new Error('Monitoring persistence unavailable');return data;
-  };
-  const config=monitorConfiguration(env),controller=new AbortController();
-  // Bound the entire invocation, including protocol reads and response bodies.
+  const controller=new AbortController();
+  // Bound database calls, protocol reads and complete response bodies alike.
   const timer=setTimeout(()=>controller.abort(),55000);
-  const rpc=client(config.url||'https://ethereum.publicnode.com',{signal:controller.signal});
   try{
+    const boundedFetch:typeof fetch=(input,init)=>fetch(input,{...init,signal:init?.signal?AbortSignal.any([controller.signal,init.signal]):controller.signal});
+    const admin=createClient(env('SUPABASE_URL')!,env('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:boundedFetch}});
+    const job=async(action:string,payload:Record<string,unknown>={})=>{
+      const {data,error}=await admin.rpc('rivexis_defi_monitor_job',{p_action:action,p_payload:payload});
+      if(error)throw new Error('Monitoring persistence unavailable');return data;
+    };
+    const config=monitorConfiguration(env),rpc=client(config.url||'https://ethereum.publicnode.com',{signal:controller.signal});
     const result=await runMonitorCycle({job,enabled:config.enabled,emailEnabled:config.emailEnabled,
-      readSnapshot:async(rule:{wallet:string;coverage:string})=>{
+      reserve:async(rule:{wallet:string})=>{
         const quota=await admin.rpc('rivexis_defi_quota',{p_wallet:rule.wallet});
-        if(quota.error||quota.data!==true)throw new Error('Quota confirmation unavailable');
-        return snapshot(rule.wallet,rpc,rule.coverage);
+        return !quota.error&&quota.data===true;
       },
+      readSnapshot:async(rule:{wallet:string;coverage:string})=>snapshot(rule.wallet,rpc,rule.coverage),
       verifyBlock:async(number:string,hash:string)=>(await rpc.getBlock({blockNumber:BigInt(number)})).hash?.toLowerCase()===hash.toLowerCase(),
       send:async(event:{id:string;recipient:string;kind:string;created_at:string})=>{
         const response=await fetch('https://api.brevo.com/v3/smtp/email',{

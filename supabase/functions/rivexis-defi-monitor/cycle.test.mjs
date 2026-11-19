@@ -5,7 +5,7 @@ const now=1800000000000,wallet='0x'+'a'.repeat(40);
 function setup(){
  const calls=[],rule={id:'rule',version:1,lease_token:'lease',wallet,coverage:'aave',threshold_raw:'1400000000000000000',recovery_raw:'1500000000000000000',condition:'UNKNOWN'};
  const s={...sampleSnapshot(now),sample:false,chainId:1,wallet,coverage:'aave',blockNumber:'30000000',blockHash:'0x'+'a'.repeat(64)};
- return {calls,rule,s,config:{enabled:true,emailEnabled:true,now:()=>now,job:async(action,payload)=>{calls.push({action,payload});return action==='claim'?rule:action==='claim_delivery'?{id:'event',delivery_token:'delivery'}:{committed:true}},readSnapshot:async()=>s,verifyBlock:async()=>true,send:async()=>({status:201,body:{messageId:'receipt'}})}};
+ return {calls,rule,s,config:{enabled:true,emailEnabled:true,now:()=>now,reserve:async()=>true,job:async(action,payload)=>{calls.push({action,payload});return action==='claim'?rule:action==='claim_delivery'?{id:'event',delivery_token:'delivery'}:{committed:true}},readSnapshot:async()=>s,verifyBlock:async()=>true,send:async()=>({status:201,body:{messageId:'receipt'}})}};
 }
 test('disabled configuration has no protocol reads, claims or sends',async()=>{const {config,calls}=setup();assert.deepEqual(await runMonitorCycle({...config,enabled:false}),{state:'INACTIVE',evaluated:0,attempted:0});assert.deepEqual(calls.map(c=>c.action),['heartbeat'])});
 test('one bounded invocation commits one evaluation and one acceptance without claiming inbox delivery',async()=>{const {config,calls}=setup();assert.deepEqual(await runMonitorCycle(config),{state:'SCHEDULED',evaluated:1,attempted:1});assert.deepEqual(calls.map(c=>c.action),['heartbeat','claim','complete','claim_delivery','mark_delivery']);assert.equal(calls.at(-1).payload.state,'ACCEPTED')});
@@ -24,4 +24,11 @@ test('provider receipt bodies are streamed with a hard bound and malformed bodie
  assert.deepEqual(await readBrevoResult(new Response('{"messageId":"test"}',{status:201})),{status:201,body:{messageId:'test'}});
  assert.deepEqual(await readBrevoResult(new Response('x'.repeat(16385),{status:201})),{status:201,body:null});
  assert.deepEqual(await readBrevoResult(new Response('not-json',{status:201})),{status:201,body:null});
+});
+test('unconfirmed or exhausted quota prevents prior-block validation and snapshot reads alike',async()=>{
+ for(const reserve of [async()=>false,async()=>null,async()=>{throw new Error('quota transport')}]){
+  const {config,calls,rule}=setup();Object.assign(rule,{block_number:'29999999',block_hash:'0x'+'b'.repeat(64)});let reads=0;
+  await runMonitorCycle({...config,emailEnabled:false,reserve,verifyBlock:async()=>{reads++;return true},readSnapshot:async()=>{reads++;return setup().s}});
+  assert.equal(reads,0);assert.deepEqual(calls.map(c=>c.action),['heartbeat','claim','unavailable']);
+ }
 });
