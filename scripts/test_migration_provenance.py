@@ -26,7 +26,14 @@ class MigrationProvenanceTests(unittest.TestCase):
         }
 
     def test_current_public_register_and_sources_verify(self):
-        self.assertEqual(len(verify(json.loads(REGISTER.read_text()))), 29)
+        self.assertEqual(len(verify(json.loads(REGISTER.read_text()))), 31)
+
+    def test_monitor_candidate_sources_do_not_claim_production_migration_matches(self):
+        register = json.loads(REGISTER.read_text())
+        candidates = [row for row in register['sourceComparison']['sources'] if row.get('status') == 'NOT_APPLIED_DEVELOPMENT_CANDIDATE']
+        self.assertEqual({row['file'] for row in candidates}, {'supabase/migrations/20261119140235_defi_risk_monitoring.sql', 'infrastructure/supabase/026_defi_monitor_cron.sql'})
+        self.assertTrue(all(not row['exactMatches'] for row in candidates))
+        self.assertEqual(len(register['migrations']), 48)
 
     def test_timestamp_alias_preserves_actual_applied_identity(self):
         self.assertEqual(list(verify(self.register, self.root)), [self.file])

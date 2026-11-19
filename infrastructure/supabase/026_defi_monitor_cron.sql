@@ -1,4 +1,4 @@
--- ACTIVATION RECIPE, NOT A MIGRATION. Requires specific production approval.
+-- ACTIVATION RECIPE, NOT AN APPLIED MIGRATION. Requires specific production approval.
 -- Review the exact deployed source, additive schema, quotas, RPC rights and
 -- inactive template first. Store the matching worker token privately in Vault
 -- as rivexis_defi_monitor_token; never put its value in SQL/source/chat.
