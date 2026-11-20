@@ -158,6 +158,9 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]):hover, select:hov
 }
 @media (max-width: 700px) {
   :root { --control-height: 44px; }
+  /* Keep text fields readable and avoid focus zoom in mobile Safari. */
+  input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea { font-size: 16px; }
+  .passwordReveal { min-height: 44px; bottom: 0; }
   .lookupBar form { grid-template-columns: minmax(0, 1fr); row-gap: 6px; }
   .lookupBar form > .field { grid-column: 1; grid-row: auto; margin-bottom: 8px; }
   .lookupBar form > label:not(.field), .lookupControls { grid-column: 1; }
