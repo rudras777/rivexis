@@ -57,7 +57,7 @@ test('planner selection, supported preview and route return retain the original 
  await setup(page);const snapshot=fixture();
  await page.route('**/api/v1/defi/snapshot',r=>r.fulfill({status:200,json:snapshot}));
  await page.route('**/api/v1/defi/transaction',r=>r.fulfill({status:200,json:{status:'PREVIEW_ONLY',simulation:'SUCCEEDED_AT_BLOCK',blockNumber:'19002',blockHash:'0x'+'2'.repeat(64),nonceAtBlock:7,before:{healthFactorRaw:'1333333333333333333'},after:{healthFactorRaw:'1500000000000000000'},gasRaw:'100000',feeReserveWei:'100000000000000',blockers:[],warnings:[]}}));
- await page.goto('/workspace/frontier',{waitUntil:'domcontentloaded'});await expect(page.getByLabel('Account menu',{exact:true})).toContainText('TA');await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
+ await page.goto('/workspace/frontier',{waitUntil:'domcontentloaded'});await page.getByLabel('Public Ethereum address',{exact:true}).fill(wallet);await page.getByRole('button',{name:'Inspect wallet',exact:true}).click();await page.getByRole('button',{name:'Calculate alternatives ↗'}).click();
  await expect(page.getByRole('region',{name:'Selected defense plan comparison'})).toBeVisible();
  await page.getByLabel('Alternative',{exact:true}).selectOption('1');await expect(page.getByRole('heading',{name:'Inspect alternative 2'})).toBeVisible();
  await page.getByRole('button',{name:/Select alternative 1:/}).press('Enter');await expect(page.getByRole('heading',{name:'Inspect alternative 1'})).toBeVisible();

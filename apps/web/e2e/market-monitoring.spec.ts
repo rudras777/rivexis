@@ -1,4 +1,4 @@
-import {test,expect,type Page} from './browser-test';
+import {test,expect,type Page,type Route} from './browser-test';
 import {DEFAULT_PREFERENCES} from '../../../supabase/functions/rivexis-api/account-preferences.mjs';
 const inactive={runtime:{state:'INACTIVE',email:false,interval_minutes:30,last_cycle_at:null},rule:null,events:[]};
 const scheduled=()=>({...inactive,runtime:{state:'SCHEDULED',email:false,interval_minutes:30,last_cycle_at:new Date().toISOString()}});
@@ -39,4 +39,12 @@ for(const width of [390,1440])for(const theme of ['light','dark'])test(`market a
  await page.setViewportSize({width,height:900});await account(page,theme);await page.route('**/api/v1/defi/monitor',r=>r.fulfill({json:scheduled()}));
  await page.goto('/workspace/reports');await expect(page.getByRole('region',{name:'Scheduled risk monitoring'})).toContainText('Scheduled worker available');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
  await page.goto('/workspace/overview');await page.locator('.exchangeChart > summary').click();await expect(page.getByLabel('Market pair')).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+});
+
+test('late account hydration preserves an address already entered in the financial workspace',async({page})=>{
+ await account(page);let pending:Route|undefined;await page.route('**/api/v1/account/settings',r=>{pending=r});
+ await page.goto('/workspace/reports');await expect.poll(()=>!!pending).toBe(true);
+ const address=page.getByRole('region',{name:'Wallet inspection'}).getByLabel('Public Ethereum address',{exact:true});const wallet='0x'+'a'.repeat(40);await address.fill(wallet);
+ await pending!.fulfill({json:{profile:{displayName:'Synthetic QA',email:'qa@example.invalid',emailVerified:true},preferences:DEFAULT_PREFERENCES}});
+ await expect(page.getByLabel('Account menu',{exact:true})).toContainText('SQ');await expect(address).toHaveValue(wallet);
 });

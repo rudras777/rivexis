@@ -9,14 +9,16 @@ type State={data:MarketSnapshot|null;fees:FeeSample[];quotes:{ETH:OracleQuote[];
 const Context=createContext<State|null>(null);
 export function MarketContextProvider({children}:{children:React.ReactNode}){
  const {account}=useAccountPreferences();
- return <MarketSession key={account?.profile.emailVerified?account.profile.email:'guest'}>{children}</MarketSession>;
+ return <MarketSession owner={account?.profile.emailVerified?account.profile.email:'guest'}>{children}</MarketSession>;
 }
-function MarketSession({children}:{children:React.ReactNode}){
+function MarketSession({children,owner}:{children:React.ReactNode;owner:string}){
  const path=usePathname(),{account}=useAccountPreferences(),[data,setData]=useState<MarketSnapshot|null>(null),[fees,setFees]=useState<FeeSample[]>([]),[quotes,setQuotes]=useState<{ETH:OracleQuote[];BTC:OracleQuote[]}>({ETH:[],BTC:[]}),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[visible,setVisible]=useState(true),[request,setRequest]=useState(0);
  const last=useRef(0),lastAttempt=useRef(0),dataRef=useRef(data),windowRef=useRef({fees,quotes}),consumedRequest=useRef(0),historyNeeded=useRef(true),nextHistoryAttempt=useRef(0),failuresRef=useRef(0),nextPollAt=useRef(0);dataRef.current=data;
  const enabled=!!account?.profile.emailVerified&&['/workspace/overview','/workspace/transactions','/workspace/networks'].includes(path);
  useEffect(()=>{const update=()=>setVisible(!document.hidden);update();document.addEventListener('visibilitychange',update);return()=>document.removeEventListener('visibilitychange',update)},[]);
- useEffect(()=>{if(!account?.profile.emailVerified){setData(null);setFees([]);setQuotes({ETH:[],BTC:[]});last.current=0;historyNeeded.current=true;nextHistoryAttempt.current=0}},[account?.profile.emailVerified]);
+ // Reset only public market state. A keyed provider would remount the entire
+ // financial workspace when profile hydration completes and discard user input.
+ useEffect(()=>{const empty={fees:[],quotes:{ETH:[],BTC:[]}};dataRef.current=null;windowRef.current=empty;setData(null);setFees([]);setQuotes(empty.quotes);setError('');setNotice('');last.current=0;lastAttempt.current=0;historyNeeded.current=true;nextHistoryAttempt.current=0;failuresRef.current=0;nextPollAt.current=0},[owner]);
  useEffect(()=>{
   if(!enabled||!visible)return;let cancelled=false,timer:ReturnType<typeof setTimeout>,inflight=false;const controller=new AbortController();
   async function check(){if(cancelled||inflight)return;inflight=true;lastAttempt.current=Date.now();setBusy(true);try{
@@ -31,7 +33,7 @@ function MarketSession({children}:{children:React.ReactNode}){
   }catch(e){if(!cancelled){setError(e instanceof Error?e.message:'Provider observations unavailable');failuresRef.current++}}finally{inflight=false;if(!cancelled){setBusy(false);const delay=Math.min(300000,60000*2**Math.min(failuresRef.current,3));nextPollAt.current=Date.now()+delay;timer=setTimeout(()=>void check(),delay)}}}
   const manual=request>consumedRequest.current;consumedRequest.current=request;if(Date.now()>=nextPollAt.current||manual)void check();else timer=setTimeout(()=>void check(),Math.max(1000,nextPollAt.current-Date.now()));
   return()=>{cancelled=true;controller.abort();clearTimeout(timer);setBusy(false)};
- },[enabled,visible,request]);
+ },[enabled,visible,request,owner]);
  return <Context.Provider value={{data,fees,quotes,error,notice,busy,visible,refresh:()=>{if(Date.now()-lastAttempt.current<15000){setNotice('Wait 15 seconds between manual network refreshes.');return}setRequest(n=>n+1)}}}>{children}</Context.Provider>;
 }
 export function LiveMarketContext({networkOnly=false}:{networkOnly?:boolean}){
