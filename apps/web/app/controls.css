@@ -150,6 +150,8 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]):hover, select:hov
 .authFormIndex { border: 0; padding-bottom: 0; }
 
 [data-text-size=large] :is(button, .button, .ghost, .textButton, input, select, summary) { font-size: 16px; }
+[data-text-size=large] input:not([type=checkbox]):not([type=radio]):not([type=range]),
+[data-text-size=large] select, [data-text-size=large] textarea { font-size: 16px; }
 [data-contrast=high] { --control-selected: var(--elevated); }
 
 @media (max-width: 1120px) {
