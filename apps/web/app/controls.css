@@ -59,6 +59,7 @@ button:disabled, button[aria-busy=true], [aria-disabled=true] { opacity: .48; cu
 button:focus-visible, a:focus-visible, summary:focus-visible,
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--bronze); outline-offset: 3px; }
 .button > span[aria-hidden=true], .ghost > span[aria-hidden=true] { transform: none; transition: none; }
+:is(.button, .ghost):is(:hover, :active) > span[aria-hidden=true] { transform: none; }
 
 input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea {
   min-height: var(--control-height); border-radius: var(--control-radius); padding: 9px 12px;
@@ -171,6 +172,15 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]):hover, select:hov
   .instrumentHeader h1 { font-size: 28px; }
   .overviewNextStep .inlineActions { align-items: stretch; }
   .overviewNextStep .inlineActions > :is(.button, .ghost) { flex: 1 1 auto; }
+}
+@media (max-width: 650px) {
+  .workspaceHeaderBar { gap: 8px; }
+  .workspaceHeaderBar .brand { width: clamp(92px, 28vw, 122px); }
+  .workspaceHeaderActions { gap: 4px; }
+  .walletHeaderControl.ghost { font-size: 11px !important; padding-inline: 8px !important; }
+  .workspaceHeaderBar .workspaceMobileNav summary { gap: 4px; padding-inline: 4px; }
+  .workspaceHeaderBar .accountMenu summary { gap: 0; padding-inline: 4px; }
+  .accountMenu summary > span:last-child { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   button, a, summary, input, select, textarea { transition: none; }
