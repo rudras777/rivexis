@@ -111,7 +111,7 @@ test('market: wrong provider chain fails closed with no chart',async({page})=>{
  await open(page,'wrong chain');await expect(panel(page)).toContainText('not Ethereum mainnet');await expect(panel(page).getByRole('img')).toHaveCount(0);
 });
 test('market: provider transport failure shows truthful unavailable state',async({page})=>{
- await open(page,'offline');await expect(panel(page)).toContainText('Provider unavailable');await expect(panel(page)).toContainText('No fabricated market series');await expect(panel(page).getByRole('img')).toHaveCount(0);
+ await open(page,'offline');await expect(panel(page)).toContainText('Provider unavailable');await expect(panel(page)).toContainText('Market observations are unavailable');await expect(panel(page).getByRole('img')).toHaveCount(0);
 });
 test('market: provider HTTP rate limiting is surfaced without success',async({page})=>{
  await open(page,'rate limited');await expect(panel(page)).toContainText('HTTP 429');await expect(panel(page)).not.toContainText('Fresh block observation');

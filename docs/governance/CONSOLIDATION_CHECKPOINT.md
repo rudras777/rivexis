@@ -1,5 +1,7 @@
 # Consolidation checkpoint
 
+**20 November control/copy candidate (not deployed):** Hypurrscan-informed flat controls, consistent action groups and quieter navigation are implemented on `feature/control-refinement`. Repeated public/auth/workspace slogans and decorative framing are reduced; financial evidence, permissions, unsupported states and essential risk disclosures remain explicit. [Scope, verification and presentation-only rollback](../CONTROL_REFINEMENT_20261120.md). Exact-head CI and screenshots belong to the new implementation PR. This is separate from the already approved frontend PR141 release and inactive API44; no database migration, monitor worker, Cron or risk-email activation is included.
+
 **19 November development candidate (not deployed/active):** Optional official exchange display, reorg-safe reference-history retention and owner-scoped scheduled-risk monitoring/outbox preparation are implemented on `feature/market-risk-monitoring`. The new durable worker, schema, Cron and Brevo sends remain disabled/unapplied. Existing infrastructure, authentication, reports and validated Aave/Morpho coverage are preserved. [Scope, provider rights/costs, validation boundaries and rollback](../MARKET_RISK_MONITORING_20261119.md). Exact tested head and CI/review evidence are recorded in the implementation PR and delivery report; no earlier acceptance is relabeled as a fresh production test.
 
 

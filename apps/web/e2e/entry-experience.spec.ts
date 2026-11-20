@@ -15,7 +15,7 @@ test('public mobile navigation dismisses predictably and identifies the current 
   await expect(menu).toHaveJSProperty('open',false);
   await expect(trigger).toBeFocused();
   await trigger.click();
-  await page.getByRole('heading',{name:'Exposure is connected. Your view should be, too.',exact:true}).click();
+  await page.getByRole('heading',{name:'Understand your exposure.',exact:true}).click();
   await expect(menu).toHaveJSProperty('open',false);
   await trigger.click();
   await menu.getByRole('link',{name:'Methodology',exact:true}).click();

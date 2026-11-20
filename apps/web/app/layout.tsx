@@ -6,9 +6,9 @@ import "./completion.css";
 import "./institutional-controls.css";
 import "./landing.css";
 import "./workspace-refinement.css";
+import "./controls.css";
 import {BlockchainBackground} from "@/components/BlockchainBackground";
 import {APPEARANCE_BOOTSTRAP} from "@/lib/appearance-bootstrap";
-import {PrecisionInteractions} from "@/components/PrecisionInteractions";
 import {GeistSans} from "geist/font/sans";
 import {Providers} from "@/components/Providers";
 import {ServiceAvailability} from "@/components/ServiceAvailability";
@@ -39,5 +39,5 @@ export const metadata:Metadata={
 
 export default function RootLayout({children}:{children:React.ReactNode}){
   const buildSha=process.env.NEXT_PUBLIC_RIVEXIS_BUILD_SHA||"local";
-  return <html lang="en" suppressHydrationWarning data-theme="dark" className={GeistSans.variable}><head><script dangerouslySetInnerHTML={{__html:APPEARANCE_BOOTSTRAP}}/><meta name="rivexis-build" content={buildSha}/></head><body><Providers><BlockchainBackground/><ServiceAvailability/><PrecisionInteractions/>{children}</Providers></body></html>;
+  return <html lang="en" suppressHydrationWarning data-theme="dark" className={GeistSans.variable}><head><script dangerouslySetInnerHTML={{__html:APPEARANCE_BOOTSTRAP}}/><meta name="rivexis-build" content={buildSha}/></head><body><Providers><BlockchainBackground/><ServiceAvailability/>{children}</Providers></body></html>;
 }
