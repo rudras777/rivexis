@@ -4,8 +4,8 @@ import {usePathname} from 'next/navigation';
 import {useEffect,useRef,useState,type MouseEvent} from 'react';
 export const workspaceGroups=[
  {name:'Risk Intelligence',label:'Risk',items:[['LiquidationGuard','/workspace','Observed lending exposure'],['Stress Testing','/workspace/scenarios','Explicit market assumptions'],['Risk Reports','/workspace/reports','Private evidence receipts']]},
- {name:'Transaction Intelligence',label:'Transactions',items:[['GasGuard','/workspace/transactions','Supported call and fee assessment']]},
- {name:'Decision Intelligence',label:'Decisions',items:[['Defense Planner','/workspace/frontier','Capital-constrained alternatives'],['Scenario Analysis','/workspace/scenarios','Sensitivity before a decision'],['Decision Reports','/workspace/reports','Reproducible comparisons']]},
+ {name:'Transaction Intelligence',label:'Transaction',items:[['GasGuard','/workspace/transactions','Supported call and fee assessment']]},
+ {name:'Decision Intelligence',label:'Decision',items:[['Defense Planner','/workspace/frontier','Capital-constrained alternatives'],['Scenario Analysis','/workspace/scenarios','Sensitivity before a decision'],['Decision Reports','/workspace/reports','Reproducible comparisons']]},
  {name:'On-Chain',label:'On-chain',items:[['Wallets','/workspace/wallets','Providers and analysis addresses'],['Contracts','/workspace/contracts','Block-aware contract inspection'],['Networks','/workspace/networks','Supported network evidence']]},
  {name:'Research & Monitoring',label:'Research',items:[['Methodology','/methodology','Financial models and coverage'],['Monitoring & Reports','/workspace/reports','Bounded checks and history'],['Historical Records','/workspace/history','Retained account analyses']]},
 ] as const;
