@@ -201,3 +201,28 @@ export function mergeMarketSamples(previous, incoming, limit = 120) {
   if (result.some((point, i) => i && point.timestamp <= result[i - 1].timestamp)) throw new Error("Historical time order is invalid");
   return result.slice(-limit);
 }
+
+export function mergeOracleSamples(previous,incoming,limit=96) {
+  if(!Array.isArray(previous)||!Array.isArray(incoming)||!Number.isInteger(limit)||limit<1||limit>240)throw new Error('Invalid oracle history');
+  const rounds=new Map(),times=new Map();
+  for(const q of [...previous,...incoming]){
+    if(!q||!Object.hasOwn(MARKET_FEEDS,q.symbol)||q.feed!==MARKET_FEEDS[q.symbol]||!/^\d{1,78}$/.test(q.answerRaw)||!/^\d{1,25}$/.test(q.roundId)||!Number.isSafeInteger(q.updatedAt)||q.updatedAt<1||!HASH.test(q.blockHash)||!Number.isSafeInteger(q.blockNumber))throw new Error('Invalid oracle history');
+    const key=`${q.feed}:${q.roundId}`,old=rounds.get(key),at=times.get(q.updatedAt);
+    if(old&&(old.answerRaw!==q.answerRaw||old.updatedAt!==q.updatedAt)||at&&(at.answerRaw!==q.answerRaw||at.feed!==q.feed))throw new Error('Conflicting oracle history');
+    rounds.set(key,q);if(!at||q.blockNumber>=at.blockNumber)times.set(q.updatedAt,q);
+  }
+  return [...times.values()].sort((a,b)=>a.updatedAt-b.updatedAt).slice(-limit);
+}
+
+export function mergeMarketWindow(previous,next,fees,quotes) {
+  if(previous&&next.block.number<previous.block.number)throw new Error('Older network evidence discarded; retained observations may be stale');
+  let reset=!!previous&&((next.block.number===previous.block.number&&next.block.hash!==previous.block.hash)||(next.block.number===previous.block.number+1&&next.block.parentHash!==previous.block.hash));
+  let mergedFees;
+  try{mergedFees=mergeMarketSamples(reset?[]:fees,next.fees,96)}catch{reset=true;mergedFees=mergeMarketSamples([],next.fees,96)}
+  const mergedQuotes={ETH:[],BTC:[]};
+  for(const symbol of ['ETH','BTC']){
+    const incoming=[...next.history[symbol],...(next.quotes[symbol]?[next.quotes[symbol]]:[])];
+    mergedQuotes[symbol]=mergeOracleSamples(reset?[]:quotes[symbol],incoming);
+  }
+  return {fees:mergedFees,quotes:mergedQuotes,reset};
+}

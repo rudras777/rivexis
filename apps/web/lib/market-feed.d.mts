@@ -9,3 +9,5 @@ export function decodeOracleQuote(value: unknown, symbol: "ETH" | "BTC", block: 
 export function createMarketReader(dependencies?: { fetchImpl?: typeof fetch; now?: () => number }): (options?: { signal?: AbortSignal; history?: boolean }) => Promise<MarketSnapshot>;
 export function readMarket(options?: { signal?: AbortSignal; history?: boolean }): Promise<MarketSnapshot>;
 export function mergeMarketSamples(previous: FeeSample[], incoming: FeeSample[], limit?: number): FeeSample[];
+export function mergeOracleSamples(previous:OracleQuote[],incoming:OracleQuote[],limit?:number):OracleQuote[];
+export function mergeMarketWindow(previous:MarketSnapshot|null,next:MarketSnapshot,fees:FeeSample[],quotes:{ETH:OracleQuote[];BTC:OracleQuote[]}):{fees:FeeSample[];quotes:{ETH:OracleQuote[];BTC:OracleQuote[]};reset:boolean};

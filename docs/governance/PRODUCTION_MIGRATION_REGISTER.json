@@ -587,6 +587,22 @@
             "statement_count": 1
           }
         ]
+      },
+      {
+        "file": "supabase/migrations/20261119140235_defi_risk_monitoring.sql",
+        "normalizedSha256": "96b0d06dfe1c362aa22faed473977192200bd6c40feec30d16f554952b140d4c",
+        "exactMatches": [],
+        "status": "NOT_APPLIED_DEVELOPMENT_CANDIDATE",
+        "reviewedAt": "2026-11-19",
+        "note": "New source preparation only. No production migration, schedule or ledger match claimed."
+      },
+      {
+        "file": "infrastructure/supabase/026_defi_monitor_cron.sql",
+        "normalizedSha256": "87d0103221c8da73a779cf278667e084c7b68072cb1d2fc289ef6c16dc3e7670",
+        "exactMatches": [],
+        "status": "NOT_APPLIED_DEVELOPMENT_CANDIDATE",
+        "reviewedAt": "2026-11-19",
+        "note": "New source preparation only. No production migration, schedule or ledger match claimed."
       }
     ]
   },

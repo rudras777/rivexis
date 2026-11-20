@@ -53,8 +53,10 @@ jobs:
           retention-days: 7
       - run: npm run test:api-edge
       - run: npm run test:defi
+      - run: node --test supabase/functions/rivexis-defi-monitor/*.test.mjs apps/web/lib/market-widget.test.mjs
+      - run: npx --yes deno@2.9.6 check --frozen-lockfile --config supabase/functions/rivexis-api/deno.json supabase/functions/rivexis-defi-monitor/index.ts
       - run: node --test scripts/certify_aave_sequence_rpc.test.mjs
-      - run: node --test apps/web/lib/market-feed.test.mjs
+      - run: node --test apps/web/lib/market-feed.test.mjs apps/web/lib/market-window.test.mjs
       - run: node --test apps/web/lib/api.test.mjs
       - run: node --test apps/web/lib/edge-api-proxy.test.mjs
       - run: node --test apps/web/lib/public-document.test.mjs
@@ -151,6 +153,14 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "GRANT SELECT, INSERT, UPDATE ON public.users, public.data_sources TO rivexis_app"
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -f supabase/migrations/20261009145634_legacy_private_table_rls.sql
           psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -f supabase/tests/legacy_private_table_rls.sql
+      - name: Certify monitoring leases, consent, outbox and tenant isolation in a disposable database
+        env:
+          PGPASSWORD: ci_only
+        run: |
+          psql -h 127.0.0.1 -U postgres -d rivexis_ci -v ON_ERROR_STOP=1 -c "CREATE DATABASE rivexis_monitor_ci"
+          psql -h 127.0.0.1 -U postgres -d rivexis_monitor_ci -v ON_ERROR_STOP=1 -f supabase/tests/defi_monitor_bootstrap.sql
+          psql -h 127.0.0.1 -U postgres -d rivexis_monitor_ci -v ON_ERROR_STOP=1 -f supabase/migrations/20261119140235_defi_risk_monitoring.sql
+          psql -h 127.0.0.1 -U postgres -d rivexis_monitor_ci -v ON_ERROR_STOP=1 -f supabase/tests/defi_monitor.sql
       - name: Restore actual CI fixture into a disposable local database
         timeout-minutes: 8
         env:

@@ -27,6 +27,9 @@ test('market quote labels respect the saved USD grouping preference',async({page
 /** RPC fixtures live only at the network boundary; no product quote or success state is injected. */
 async function rpc(page:Page,mode:Mode='success'){
  const state={mode,reads:0,batches:0,number:head,time:0,chains:0,archiveCalls:0};
+ // Immutable synthetic chain/round identities: repeated observations cannot rewrite history.
+ let anchorTime=0;const blockTimes=new Map<number,number>();
+ const blockTime=(number:number)=>{if(!blockTimes.has(number))blockTimes.set(number,anchorTime+(number-head)*12);return blockTimes.get(number)!};
  await page.route(`${endpoint}/**`,async route=>{
   const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type','Access-Control-Allow-Methods':'POST, OPTIONS'};
   if(route.request().method()==='OPTIONS'){await route.fulfill({status:204,headers});return}
@@ -41,9 +44,9 @@ async function rpc(page:Page,mode:Mode='success'){
    let result:any;
    if(call.method==='eth_chainId'){state.chains++;result=state.mode==='wrong chain'?'0x89':'0x1'}
    else if(call.method==='eth_getBlockByNumber'){
-    if(call.params[0]==='latest'){state.reads++;state.number=head+state.reads-1;state.time=latestTime;state.chains=1}
+    if(call.params[0]==='latest'){state.reads++;state.number=head+state.reads-1;state.time=latestTime;state.chains=1;if(!anchorTime)anchorTime=latestTime;blockTimes.set(state.number,latestTime)}
     const number=call.params[0]==='latest'?state.number:Number(BigInt(call.params[0]));
-    result={number:hex(number),hash:hash(number),parentHash:hash(number-1),timestamp:hex(state.time-(state.number-number)*12),baseFeePerGas:'0x3b9aca00'};
+    result={number:hex(number),hash:hash(number),parentHash:hash(number-1),timestamp:hex(blockTime(number)),baseFeePerGas:'0x3b9aca00'};
     if(state.mode==='reorg'&&state.chains>=2&&number===state.number)result.hash=hash(number+100);
    }else if(call.method==='eth_feeHistory'){
     result={oldestBlock:hex(state.number-3),baseFeePerGas:Array(5).fill('0x3b9aca00'),gasUsedRatio:Array(4).fill(.5)};
@@ -60,9 +63,11 @@ async function rpc(page:Page,mode:Mode='success'){
     else{
      const isEth=transaction.to==='0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419';
      expect(['0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419','0xf4030086522a5beea4988f8ca5b36dbc97bee88c']).toContain(transaction.to);
-     const roundId=transaction.data.startsWith('0x9a6fc8f5')?BigInt(`0x${transaction.data.slice(10)}`):10n;
-     let timestamp=state.time-(state.number-number)*12-60-Number(10n-roundId)*(state.mode==='history gaps'?10800:600);
-     if(state.mode==='stale quote')timestamp=state.time-7200;
+     const cadence=state.mode==='history gaps'?10800:600;
+     const epoch=anchorTime-60,baseRound=100000n;
+     const roundId=transaction.data.startsWith('0x9a6fc8f5')?BigInt(`0x${transaction.data.slice(10)}`):baseRound+BigInt(Math.floor((blockTime(number)-epoch)/cadence));
+     let timestamp=epoch+Number(roundId-baseRound)*cadence;
+     if(state.mode==='stale quote')timestamp-=7200;
      if(state.mode==='future quote')timestamp=state.time+60;
      let answer=isEth?300000000000n:9000000000000n;
      if(state.mode==='negative quote'&&isEth)answer=(1n<<256n)-1n;
@@ -114,7 +119,7 @@ test('market: provider HTTP rate limiting is surfaced without success',async({pa
 test('market: disconnection retains evidence with warning and recovers on explicit retry',async({page})=>{
  await page.clock.install();const state=await open(page);await expect(panel(page)).toContainText('$3,000');
  state.mode='offline';await page.clock.fastForward(61000);await expect(panel(page)).toContainText('Provider unavailable; retained observations may be stale');await expect(panel(page)).toContainText('$3,000');
- state.mode='success';await panel(page).getByRole('button',{name:'Refresh market context',exact:true}).click();await expect(panel(page)).toContainText(`Block ${head+1}`);await expect(panel(page)).not.toContainText('Provider unavailable');
+ state.mode='success';await page.clock.fastForward(16000);await panel(page).getByRole('button',{name:'Refresh market context',exact:true}).click();await expect(panel(page)).toContainText(`Block ${head+1}`);await expect(panel(page)).not.toContainText('Provider unavailable');
 });
 test('market: final observed-block reorg rejects all rendered results',async({page})=>{
  await open(page,'reorg');await expect(panel(page)).toContainText('changed during read');await expect(panel(page).getByRole('img')).toHaveCount(0);
@@ -128,6 +133,7 @@ test('market: archive failure obtains actual-shape previous rounds with explicit
 });
 test('market: missing time intervals break chart lines rather than fill gaps',async({page})=>{
  await open(page,'history gaps');await expect(panel(page)).toContainText('Fresh block observation');
+ await panel(page).getByText('ETH / USD · oracle observations',{exact:true}).click();
  const chart=panel(page).getByRole('img',{name:'ETH / USD · observed oracle history'});
  await expect(chart.locator('circle')).toHaveCount(7);await expect(chart.locator('polyline')).toHaveCount(7);
 });
@@ -142,7 +148,7 @@ test('market: a recovered missing feed backfills history after bounded delay wit
  const archiveCalls=state.archiveCalls;state.mode='success';await page.clock.fastForward(60001);await expect(panel(page).locator('.marketQuoteStatus')).toContainText(['Fresh oracle round','Fresh oracle round']);expect(state.archiveCalls).toBe(archiveCalls);
  await page.clock.fastForward(240001);
  await expect.poll(()=>state.archiveCalls).toBeGreaterThan(archiveCalls);
- const chart=panel(page).getByRole('img',{name:'ETH / USD · observed oracle history'});await expect.poll(()=>chart.locator('circle').count()).toBeGreaterThanOrEqual(7);
+ await panel(page).getByText('ETH / USD · oracle observations',{exact:true}).click();const chart=panel(page).getByRole('img',{name:'ETH / USD · observed oracle history'});await expect.poll(()=>chart.locator('circle').count()).toBeGreaterThanOrEqual(7);
 });
 test('market: hidden-tab polling pauses and resumes after becoming visible',async({page})=>{
  await page.clock.install();await page.addInitScript(()=>{(window as any).launchHidden=false;Object.defineProperty(document,'hidden',{configurable:true,get:()=>(window as any).launchHidden})});
@@ -169,7 +175,7 @@ for(const width of [1440,390])test(`market clarity: separated metrics, sticky co
  await page.setViewportSize({width,height:900});await open(page);await expect(panel(page)).toContainText('Fresh block observation');await page.evaluate(()=>document.fonts.ready);
  const metrics=page.getByRole('region',{name:'Current analysis overview'});await expect(metrics.locator('article')).toHaveCount(3);await expect(metrics).toContainText('Inspect a wallet to view this metric');
  const grid=await metrics.evaluate(el=>getComputedStyle(el).display);expect(grid).toBe('grid');
- const chart=panel(page).locator('figure').filter({hasText:'ETH / USD · observed oracle history'});const before=await chart.locator('.chartReadout').innerText();await chart.getByRole('img').focus();await page.keyboard.press('ArrowLeft');await expect(chart.locator('.chartReadout')).not.toHaveText(before);
+ await panel(page).getByText('ETH / USD · oracle observations',{exact:true}).click();const chart=panel(page).locator('figure').filter({hasText:'ETH / USD · observed oracle history'});const before=await chart.locator('.chartReadout').innerText();await chart.getByRole('img').focus();await page.keyboard.press('ArrowLeft');await expect(chart.locator('.chartReadout')).not.toHaveText(before);
  await page.evaluate(()=>window.scrollTo(0,400));const header=await page.locator('.workspaceHeaderBar').boundingBox(),scope=await page.locator('.workspaceScope').boundingBox();expect(scope!.y).toBeGreaterThanOrEqual(header!.y+header!.height-1);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await page.evaluate(()=>window.scrollTo(0,0));
  await page.screenshot({path:`../../../../outputs/workspace-clarity-fixture-${width}.png`,fullPage:true});
