@@ -18,4 +18,6 @@ Run the existing frontend AST check, type check, production build and browser su
 
 Local AST/type checks and a production build passed during implementation. An intermediate build rejected a dangling selector left during removal of cursor CSS; that selector was corrected, and the next build passed. The final source/CI and visual results are recorded in the PR. No new tests are added solely to mirror CSS declarations.
 
+Existing axe checks caught a light selected-label contrast regression, and the market-view checks caught lost sticky workspace context; both are corrected with their original assertions retained. A primary-hover contrast check now covers the darker existing hover shade. Firefox also exposed a health-fixture navigation stall: the document was complete with HTTP200, but the driver's DOMContentLoaded wait outlasted an intentionally held health reply. Those clock-driven fixtures now require one HTTP200 document commit and retain all hydration/response/counter/banner/deadline checks. They do not reload the page or loosen the navigation guard.
+
 Use the existing protected PR and automatic frontend release workflow after specific merge authorization. Rollback is a normal revert of this presentation commit through the same protected workflow. No API/function redeploy, migration, credential, DNS, plan, email or wallet action is needed.

@@ -4,7 +4,12 @@ async function setup(page:Page,respond:(route:Route,number:number)=>unknown){
  await page.clock.install();let requests=0;
  await page.route('**/api/v1/auth/session-status',r=>r.fulfill({json:{authenticated:false,email_verified:false}}));
  await page.route('**/health',r=>respond(r,++requests));
- await page.goto('/',{waitUntil:'domcontentloaded'});return ()=>requests;
+ // Health replies are deliberately held/aborted in several fixtures. Firefox's
+ // driver can strand its DOMContentLoaded wait after the document is complete.
+ // Commit once; the response, counter and banner assertions below establish
+ // hydration and request outcomes without reloading or replaying a probe.
+ const documentResponse=await page.goto('/',{waitUntil:'commit'});
+ expect(documentResponse?.status()).toBe(200);return ()=>requests;
 }
 for(const status of ['ready','healthy','OK'])test(`valid ${status} service status needs no ongoing polling`,async({page})=>{
  // A routed request being counted is not evidence that its response body has
