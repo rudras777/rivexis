@@ -128,6 +128,8 @@ test('saved light appearance has no serious axe findings',async({page})=>{
   await expect(page.locator('.workspaceScope')).toHaveCSS('background-color','rgb(243, 243, 239)');
   await expect(page.locator('.lookupBar')).toHaveCSS('background-color','rgb(250, 250, 247)');
   const light=await new AxeBuilder({page}).withTags(['wcag2aa','wcag22aa']).analyze();expect(light.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);
+  await page.getByRole('button',{name:'Inspect wallet',exact:true}).hover();
+  const hovered=await new AxeBuilder({page}).withTags(['wcag2aa','wcag22aa']).analyze();expect(hovered.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);
 });
 
 test('obsolete public tools redirect to the unified product',async({page})=>{

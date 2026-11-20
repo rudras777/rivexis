@@ -5,6 +5,7 @@
   --control-gap: 8px;
   --control-hover: color-mix(in srgb, var(--soft) 10%, transparent);
   --control-selected: color-mix(in srgb, var(--soft) 16%, transparent);
+  --control-primary-hover: #3a7773;
   --control-ease: cubic-bezier(.2, .8, .2, 1);
 }
 
@@ -46,7 +47,7 @@ button, .button, .ghost, .textButton, .criticalButton, .iconButton, summary {
 
 @media (hover: hover) {
   :is(button, a).button:not(:disabled):not([aria-disabled=true]):hover {
-    background: var(--brand-hover); border-color: var(--brand-hover); box-shadow: none;
+    background: var(--control-primary-hover); border-color: var(--control-primary-hover); box-shadow: none;
   }
   :is(button, a):is(.ghost, .textButton, .iconButton):not(:disabled):not([aria-disabled=true]):hover {
     background: var(--control-hover); border-color: var(--border-strong); color: var(--text); text-decoration: none;
