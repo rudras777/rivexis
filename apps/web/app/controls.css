@@ -85,7 +85,7 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]):hover, select:hov
 .workspaceGroupedNav > a[aria-current=page]:after { display: none; }
 .folioNav .desktopPublicNav a[aria-current=page], .workspaceGroupedNav > a[aria-current=page],
 .workspaceNavGroup > button[data-active=true], .workspaceNavGroup > button[aria-expanded=true] {
-  color: var(--soft); background: var(--control-selected); text-decoration: none;
+  color: var(--text); background: var(--control-selected); text-decoration: none;
 }
 .folioNav .desktopPublicNav a:hover, .workspaceGroupedNav > a:hover, .workspaceNavGroup > button:hover {
   background: var(--control-hover); color: var(--text);
@@ -100,7 +100,7 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]):hover, select:hov
 .workspaceDropdown, .accountMenu nav, .folioNav .mobileNav > nav { border-radius: 6px; padding: 6px; }
 .workspaceDropdown a, .accountMenu nav > a { border-radius: var(--control-radius); }
 .workspaceDropdown a:hover, .workspaceDropdown a[aria-current=page] { background: var(--control-selected); }
-.workspaceScope { position: relative; top: auto; border-bottom: 0; padding-bottom: 0; }
+.workspaceScope { position: sticky; top: 84px; border-bottom: 0; padding-bottom: 0; }
 .workspaceScope .workspaceSelector { gap: 12px; letter-spacing: .04em; }
 .workspaceScope select { min-height: 36px; padding-block: 6px; }
 
@@ -155,6 +155,7 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]):hover, select:hov
 [data-contrast=high] { --control-selected: var(--elevated); }
 
 @media (max-width: 1120px) {
+  .workspaceScope { top: 74px; }
   .workspaceGroupedMobile .workspaceNavGroup > button { width: 100%; justify-content: space-between; padding: 11px 12px; }
   .workspaceGroupedMobile > a { border-radius: var(--control-radius); }
 }
