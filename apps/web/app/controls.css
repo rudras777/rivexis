@@ -1,0 +1,200 @@
+/* Shared control geometry. Keep this after the page styles in RootLayout. */
+:root {
+  --control-height: 40px;
+  --control-radius: 4px;
+  --control-gap: 8px;
+  --control-hover: color-mix(in srgb, var(--soft) 10%, transparent);
+  --control-selected: color-mix(in srgb, var(--soft) 16%, transparent);
+  --control-primary-hover: #3a7773;
+  --control-ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+button, a, summary, input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, .button, .ghost, .textButton, .criticalButton, .iconButton, summary {
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: background-color 160ms var(--control-ease), color 160ms var(--control-ease),
+    border-color 160ms var(--control-ease), box-shadow 160ms var(--control-ease);
+}
+
+/* Primary, secondary and quiet actions use the same baseline and hit area. */
+:is(button, a):is(.button, .ghost, .textButton, .criticalButton, .iconButton) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--control-gap);
+  min-height: var(--control-height);
+  max-width: 100%;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--control-radius);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: none;
+}
+
+:is(button, a).button { background: var(--brand); border-color: var(--brand); color: #f4f5ef; }
+:is(button, a).ghost { background: transparent; border-color: var(--border-strong); color: var(--text); }
+:is(button, a).textButton { background: transparent; color: var(--soft); padding-inline: 10px; }
+:is(button, a).criticalButton { background: transparent; border-color: var(--border-strong); color: var(--danger); }
+:is(button, a).iconButton { width: var(--control-height); padding: 9px; background: transparent; color: var(--text); }
+
+@media (hover: hover) {
+  :is(button, a).button:not(:disabled):not([aria-disabled=true]):hover {
+    background: var(--control-primary-hover); border-color: var(--control-primary-hover); box-shadow: none;
+  }
+  :is(button, a):is(.ghost, .textButton, .iconButton):not(:disabled):not([aria-disabled=true]):hover {
+    background: var(--control-hover); border-color: var(--border-strong); color: var(--text); text-decoration: none;
+  }
+  :is(button, a).criticalButton:not(:disabled):hover { background: var(--danger-soft); border-color: var(--danger); }
+}
+
+button:not(:disabled):active, :is(a.button, a.ghost, a.textButton):active { box-shadow: inset 0 0 0 1px var(--soft); }
+button:disabled, button[aria-busy=true], [aria-disabled=true] { opacity: .48; cursor: not-allowed; box-shadow: none; }
+button:focus-visible, a:focus-visible, summary:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--bronze); outline-offset: 3px; }
+.button > span[aria-hidden=true], .ghost > span[aria-hidden=true] { transform: none; transition: none; }
+:is(.button, .ghost):is(:hover, :active) > span[aria-hidden=true] { transform: none; }
+
+input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea {
+  min-height: var(--control-height); border-radius: var(--control-radius); padding: 9px 12px;
+  font-size: 13px; line-height: 1.5;
+  transition: border-color 160ms var(--control-ease), box-shadow 160ms var(--control-ease);
+}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):hover, select:hover, textarea:hover { border-color: var(--soft); }
+.themeToggle { width: var(--control-height); height: var(--control-height); border-radius: var(--control-radius); }
+.inlineActions, .actions, .authActions { gap: var(--control-gap); }
+.inlineActions { align-items: center; flex-direction: row; flex-wrap: wrap; }
+.inlineActions > :is(button, .button, .ghost, .textButton) { flex-shrink: 0; }
+.sectionHeading { gap: 16px; flex-wrap: wrap; }
+.sectionHeading > :is(button, .button, .ghost, .textButton) { flex-shrink: 0; }
+
+/* Navigation and tabs communicate selection with a quiet fill, without lifting. */
+.folioNav .desktopPublicNav { gap: 4px; }
+.folioNav .desktopPublicNav a, .workspaceGroupedNav > a, .workspaceNavGroup > button {
+  align-self: center; min-height: var(--control-height); padding: 9px 10px;
+  border: 1px solid transparent; border-radius: var(--control-radius); font-size: 12px;
+  line-height: 1.5; color: var(--secondary); text-decoration: none;
+}
+.workspaceGroupedNav { gap: 2px; }
+.workspaceGroupedNav > a[aria-current=page]:after { display: none; }
+.folioNav .desktopPublicNav a[aria-current=page], .workspaceGroupedNav > a[aria-current=page],
+.workspaceNavGroup > button[data-active=true], .workspaceNavGroup > button[aria-expanded=true] {
+  color: var(--text); background: var(--control-selected); text-decoration: none;
+}
+.folioNav .desktopPublicNav a:hover, .workspaceGroupedNav > a:hover, .workspaceNavGroup > button:hover {
+  background: var(--control-hover); color: var(--text);
+}
+.workspaceNavGroup > button > span { transition: transform 160ms var(--control-ease); }
+.workspaceNavGroup > button[aria-expanded=true] > span { transform: rotate(180deg); }
+.workspaceHeaderActions { gap: 8px; }
+.walletHeaderControl.ghost { min-height: var(--control-height); padding: 9px 12px !important; font-size: 12px !important; }
+.workspaceHeaderBar .accountMenu summary, .workspaceHeaderBar .workspaceMobileNav summary {
+  min-height: var(--control-height); border-radius: var(--control-radius); padding: 5px 8px;
+}
+.workspaceDropdown, .accountMenu nav, .folioNav .mobileNav > nav { border-radius: 6px; padding: 6px; }
+.workspaceDropdown a, .accountMenu nav > a { border-radius: var(--control-radius); }
+.workspaceDropdown a:hover, .workspaceDropdown a[aria-current=page] { background: var(--control-selected); }
+.workspaceScope { position: sticky; top: 84px; border-bottom: 0; padding-bottom: 0; }
+.workspaceScope .workspaceSelector { gap: 12px; letter-spacing: .04em; }
+.workspaceScope select { min-height: 36px; padding-block: 6px; }
+
+.instrumentTabs, .settingsTabs {
+  display: flex; gap: 2px; padding: 3px; margin-inline: 0; margin-bottom: 24px;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--inset);
+  overflow-x: auto; scrollbar-width: thin;
+}
+.instrumentTabs button, .settingsTabs button {
+  min-height: var(--control-height); padding: 8px 14px; border: 1px solid transparent;
+  border-radius: var(--control-radius); font-size: 12px; line-height: 1.5;
+  background: transparent; color: var(--secondary); white-space: nowrap;
+}
+.instrumentTabs button.selected, .settingsTabs button[aria-selected=true] {
+  color: var(--text); border-color: var(--border-strong); background: var(--surface);
+}
+.instrumentTabs button:hover, .settingsTabs button:hover { color: var(--text); background: var(--control-hover); }
+.settingsTabs button { flex: 1 0 auto; }
+
+/* Keep coverage, address and inspect aligned, with secondary actions beneath. */
+.lookupBar:not(.demoBoundary) { flex-direction: column; align-items: stretch; gap: 10px; padding: 20px; border-radius: 6px; }
+.lookupBar form { display: grid; grid-template-columns: minmax(200px, .85fr) minmax(0, 2fr); column-gap: 16px; }
+.lookupBar form > .field { grid-column: 1; grid-row: 1 / 3; margin: 0; }
+.lookupBar form > .field select { margin-top: 6px; }
+.lookupBar form > label:not(.field) { grid-column: 2; margin-bottom: 6px; }
+.lookupControls { grid-column: 2; align-items: center; gap: 8px; }
+.lookupControls input { flex: 1; }
+.lookupControls .button { flex: none; }
+.lookupSecondary { display: flex; flex-direction: row; justify-content: flex-end; flex-wrap: wrap; gap: 4px; }
+.lookupSecondary .textButton { font-size: 12px; min-height: 36px; padding-block: 6px; }
+.demoBoundary { border-radius: 6px; }
+.overviewNextStep .inlineActions { gap: var(--control-gap); }
+.overviewNextStep :is(.button, .ghost) { padding: 9px 14px; min-height: var(--control-height); font-size: 13px; }
+.overviewNextStep .textButton, .marketRefresh { font-size: 12px; }
+.exchangeChartControls { align-items: end; gap: 8px; }
+.settingsSaveBar { gap: 12px; padding-block: 16px; }
+.settingsSaveBar .inlineActions { gap: 8px; }
+.constraintForm button { min-height: var(--control-height); }
+
+/* Reduce repeated editorial framing; keep provenance and financial boundaries. */
+.instrumentHeader { margin-bottom: 24px; align-items: center; }
+.instrumentHeader h1 { margin-bottom: 0; font-size: 32px; }
+.instrumentFooter { justify-content: flex-start; padding: 20px 0; margin-top: 12px; }
+.composedHome .sectionMarker { border: 0; padding-bottom: 0; }
+.composedHome .sectionMarker > span:last-child { display: none; }
+.composedHome .folioHeroFoot { border: 0; }
+.authFormIndex { border: 0; padding-bottom: 0; }
+
+[data-text-size=large] :is(button, .button, .ghost, .textButton, input, select, summary) { font-size: 16px; }
+[data-text-size=large] input:not([type=checkbox]):not([type=radio]):not([type=range]),
+[data-text-size=large] select, [data-text-size=large] textarea { font-size: 16px; }
+[data-contrast=high] { --control-selected: var(--elevated); }
+
+@media (max-width: 1120px) {
+  .workspaceScope { top: 74px; }
+  .workspaceGroupedMobile .workspaceNavGroup > button { width: 100%; justify-content: space-between; padding: 11px 12px; }
+  .workspaceGroupedMobile > a { border-radius: var(--control-radius); }
+}
+@media (max-width: 700px) {
+  :root { --control-height: 44px; }
+  /* Keep text fields readable and avoid focus zoom in mobile Safari. */
+  input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea { font-size: 16px; }
+  .passwordReveal { min-height: 44px; bottom: 0; }
+  .lookupBar form { grid-template-columns: minmax(0, 1fr); row-gap: 6px; }
+  .lookupBar form > .field { grid-column: 1; grid-row: auto; margin-bottom: 8px; }
+  .lookupBar form > label:not(.field), .lookupControls { grid-column: 1; }
+  .lookupControls { flex-direction: column; align-items: stretch; }
+  .lookupControls .button { justify-content: center; }
+  .lookupSecondary { justify-content: flex-start; gap: 4px; }
+  .lookupSecondary .textButton { min-height: var(--control-height); text-align: left; }
+  .infoButton { min-width: 44px; min-height: 44px; }
+  .instrumentTabs button { flex: 0 0 auto; }
+  .settingsTabs { margin-inline: 0; }
+  .inlineActions > :is(button, .button, .ghost, .textButton) { flex-shrink: 1; }
+  .instrumentHeader h1 { font-size: 28px; }
+  .overviewNextStep .inlineActions { align-items: stretch; }
+  .overviewNextStep .inlineActions > :is(.button, .ghost) { flex: 1 1 auto; }
+}
+@media (max-width: 650px) {
+  .workspaceHeaderBar { gap: 8px; }
+  .workspaceHeaderBar .brand { width: clamp(92px, 28vw, 122px); }
+  .workspaceHeaderActions { gap: 4px; }
+  .walletHeaderControl.ghost { font-size: 11px !important; padding-inline: 8px !important; }
+  .workspaceHeaderBar .workspaceMobileNav summary { gap: 4px; padding-inline: 4px; }
+  .workspaceHeaderBar .accountMenu summary { gap: 0; padding-inline: 4px; }
+  .accountMenu summary > span:last-child { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  button, a, summary, input, select, textarea { transition: none; }
+}
+[data-motion=reduce] :is(button, a, summary, input, select, textarea) { transition: none; }
+@media (forced-colors: active) {
+  :is(button, a):is(.button, .ghost, .textButton, .criticalButton, .iconButton) { border-color: ButtonText; }
+  .workspaceNavGroup > button[data-active=true], .instrumentTabs button.selected,
+  .settingsTabs button[aria-selected=true] { outline: 1px solid Highlight; outline-offset: -2px; }
+}
