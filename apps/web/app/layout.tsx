@@ -7,6 +7,7 @@ import "./institutional-controls.css";
 import "./landing.css";
 import "./workspace-refinement.css";
 import "./controls.css";
+import "./editorial.css";
 import {BlockchainBackground} from "@/components/BlockchainBackground";
 import {APPEARANCE_BOOTSTRAP} from "@/lib/appearance-bootstrap";
 import {GeistSans} from "geist/font/sans";

@@ -126,7 +126,7 @@ for(const path of ['/','/workspace','/demo','/forgot-password','/verify-email','
 test('saved light appearance has no serious axe findings',async({page})=>{
   await mockWorkspaceAccess(page,'light');await page.addInitScript(()=>localStorage.setItem('rivexis_theme','light'));await page.goto('/workspace',{waitUntil:'domcontentloaded'});await expect(page.locator('html')).toHaveAttribute('data-theme','light');
   await expect(page.locator('.workspaceScope')).toHaveCSS('background-color','rgb(243, 243, 239)');
-  await expect(page.locator('.lookupBar')).toHaveCSS('background-color','rgb(250, 250, 247)');
+  await expect(page.locator('.lookupBar')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   const light=await new AxeBuilder({page}).withTags(['wcag2aa','wcag22aa']).analyze();expect(light.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);
   await page.getByRole('button',{name:'Inspect wallet',exact:true}).hover();
   const hovered=await new AxeBuilder({page}).withTags(['wcag2aa','wcag22aa']).analyze();expect(hovered.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);

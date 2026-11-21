@@ -1,0 +1,166 @@
+/* Open sections, restrained type and text-led actions. Loaded after page styles. */
+body { font-weight: 400; }
+h1, h2, h3, .instrumentHeader h1, .settingsIntro h1,
+.overviewNextStep h2, .marketAssetHeading h3, .authEntry .formCard h1 {
+  font-weight: 350;
+  letter-spacing: -.025em;
+  line-height: 1.25;
+}
+.folioHero h1, .institutionalHome h2, .authStatement .authEditorialTitle {
+  font-weight: 300;
+  letter-spacing: -.035em;
+}
+strong, b, .workspaceDropdown strong, .accountMenu nav strong,
+.alternativeMetrics b, .frontierSelected strong { font-weight: 450; }
+.eyebrow { font-weight: 400; letter-spacing: .12em; }
+.overviewMetric > strong, .marketPrice, .metricRibbon strong,
+.scenarioResult strong, .chartReadout strong {
+  font-family: inherit;
+  font-weight: 350;
+  letter-spacing: -.025em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Group related information with space rather than repeated card shells. */
+.instrumentPanel, .panel, .settingsPanel, .historyPanel, .formSection,
+.shellStateCard, .accountSettingsPanel, .overviewMetric, .lookupBar,
+.formCard, .authEntry .formCard, .heroInstrument, .riskFolio,
+.thresholdPlate, .defenseShowcase, .defenseComparison, .frontierChart,
+.contractRead, .shockControl, .evidenceDetails dl, .settingsConfirmation,
+.codeBlock, pre, .exchangeChartFrame {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.instrumentPanel, .panel, .settingsPanel, .historyPanel, .formSection,
+.shellStateCard, .accountSettingsPanel, .contractRead {
+  padding: 20px 0;
+  margin-bottom: 36px;
+}
+.marketContext { padding: 20px 0 !important; border-radius: 0; }
+.lookupBar:not(.demoBoundary) { padding: 8px 0 24px; border-radius: 0; }
+.demoBoundary { padding-inline: 0; border-radius: 0; }
+.portfolioMetrics { gap: 40px; margin-block: 12px 36px; }
+.overviewMetric { padding: 12px 0; gap: 10px; }
+.overviewMetric > strong { font-size: clamp(27px, 2.7vw, 38px); }
+.metricRibbon { border: 0; gap: 30px; padding-block: 20px; }
+.metricRibbon > div { padding-inline: 0; border: 0; }
+.shockControl, .evidenceDetails dl, .frontierChart { padding-inline: 0; }
+.alternative, .alternative[data-selected=true] { background: transparent; }
+.alternative[data-selected=true] h3 { color: var(--pale); }
+.emptyInstrument { border: 0; padding-inline: 0; }
+.modeLabel { border: 0; padding-left: 0; }
+.badge, .statePill { border: 0; padding-inline: 0; border-radius: 0; }
+.error, .warning, .success, .truthNotice, .resultBanner {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 0;
+}
+.formCard, .authEntry .formCard { padding-inline: 0; }
+.settingsSaveBar { border: 0; box-shadow: none; }
+.marketQuote + .marketQuote { border-left: 0; }
+.marketStatusLine, .marketFee, .marketEvidence, .instrumentFooter,
+.monitorEvidence, .scenarioResult { border: 0; }
+.workspaceHeaderBar { border-bottom: 0; }
+.blockchainCube { display: none; }
+
+/* Fields retain one baseline; actions read as deliberate typographic links. */
+input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0;
+  padding-inline: 0;
+  font-weight: 400;
+  box-shadow: none;
+}
+:is(button, a):is(.button, .ghost, .textButton, .criticalButton, .iconButton),
+.themeToggle, .mobileNav summary {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-weight: 400;
+}
+:is(button, a).button {
+  color: var(--pale);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 7px;
+}
+:is(button, a).ghost { color: var(--text); }
+.lookupControls .button { padding-inline: 18px 0; }
+.lookupSecondary .textButton:first-child { padding-left: 0; }
+button:not(:disabled):active, :is(a.button, a.ghost, a.textButton):active { box-shadow: none; }
+@media (hover: hover) {
+  :is(button, a):is(.button, .ghost, .textButton, .iconButton, .criticalButton):not(:disabled):not([aria-disabled=true]):hover {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text);
+    box-shadow: none;
+    text-decoration: underline;
+    text-underline-offset: 7px;
+  }
+  .themeToggle:hover, .accountMenu summary:hover, .workspaceMobileNav summary:hover { background: transparent; }
+}
+
+.instrumentTabs, .settingsTabs {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  gap: 24px;
+  padding: 0;
+}
+.instrumentTabs button, .settingsTabs button {
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  padding-inline: 0;
+  flex: 0 0 auto;
+  font-weight: 400;
+}
+.instrumentTabs button.selected, .settingsTabs button[aria-selected=true] {
+  background: transparent;
+  border-color: var(--soft);
+}
+.instrumentTabs button:hover, .settingsTabs button:hover { background: transparent; }
+.folioNav .desktopPublicNav a, .workspaceGroupedNav > a, .workspaceNavGroup > button {
+  border-radius: 0;
+  font-weight: 400;
+}
+.folioNav .desktopPublicNav a[aria-current=page], .workspaceGroupedNav > a[aria-current=page],
+.workspaceNavGroup > button[data-active=true], .workspaceNavGroup > button[aria-expanded=true],
+.folioNav .desktopPublicNav a:hover, .workspaceGroupedNav > a:hover, .workspaceNavGroup > button:hover {
+  background: transparent;
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 8px;
+}
+/* Overlays need opaque backgrounds to separate their text from the page beneath. */
+.workspaceDropdown, .accountMenu nav, .workspaceMobileNav nav,
+.folioNav .mobileNav > nav, .infoTooltip, .connectionDialog, .modal, .modalCard {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.workspaceDropdown a, .accountMenu nav > a { border-radius: 0; }
+.workspaceGroupedMobile .workspaceDropdown { border: 0; }
+
+@media (max-width: 700px) {
+  .portfolioMetrics { gap: 18px; margin-block: 12px 30px; }
+  .overviewMetric { padding: 8px 0; }
+  .instrumentPanel, .accountSettingsPanel { margin-bottom: 24px; }
+  .lookupControls .button { align-self: flex-start; width: auto; justify-content: flex-start; padding-inline: 0; }
+  .marketQuote + .marketQuote { border-top: 0; }
+  .instrumentTabs, .settingsTabs { gap: 22px; }
+  .metricRibbon > div { padding-inline: 0; }
+}
+@media (forced-colors: active) {
+  input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea { border-bottom-color: CanvasText; }
+  .workspaceDropdown, .accountMenu nav, .workspaceMobileNav nav,
+  .infoTooltip, .connectionDialog, .modal, .modalCard { outline: 1px solid CanvasText; }
+}
